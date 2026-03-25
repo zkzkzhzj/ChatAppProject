@@ -33,5 +33,4 @@
 <img width="2520" height="2160" alt="image" src="https://github.com/user-attachments/assets/422502bd-4415-42c9-ab5e-8c54b84d91a6" />
 
 ### 공간적 다이어그램
-<img width="4400" height="4000" alt="공간적 다이어그램 — 마음의 고향" src="https://github.com/user-attachments/assets/ce334030-54ce-4d6e-a63d-968ca0a13d24" />
-
+<img width="4400" height="4000" alt="공간적 다이어그램 — 마음의 고향" src="https://github.com/user-attachments/assets/2254ef6f-3d72-4f87-8455-ea02e973eaf7" />

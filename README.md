@@ -27,10 +27,10 @@
 - 텍스트 채팅 서비스를 넘어서 마이크, 화면 공유까지 생각
 
 ### 논리적 ERD
-<img width="8192" height="2566" alt="Christmas Shopping Decision-2026-03-25-094627" src="https://github.com/user-attachments/assets/fc7d6f22-7d2c-4c2f-a525-cb6da8f19695" />
+
 
 ### 아키텍처 다이어그램
-<img width="2520" height="2160" alt="image" src="https://github.com/user-attachments/assets/422502bd-4415-42c9-ab5e-8c54b84d91a6" />
+
 
 ### 공간적 다이어그램
-<img width="4400" height="4000" alt="공간적 다이어그램 — 마음의 고향" src="https://github.com/user-attachments/assets/2254ef6f-3d72-4f87-8455-ea02e973eaf7" />
+

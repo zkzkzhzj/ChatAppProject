@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: gohyang
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gohyang
+    username: ${DB_USERNAME:gohyang}
+    password: ${DB_PASSWORD:gohyang}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+    cassandra:
+      keyspace-name: gohyang
+      contact-points: ${CASSANDRA_HOST:localhost}
+      port: ${CASSANDRA_PORT:9042}
+      local-datacenter: datacenter1
+      schema-action: none
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: gohyang
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.maeum.gohyang.*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  security:
+    filter:
+      order: 10
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+jwt:
+  secret: ${JWT_SECRET:change-me-in-production-this-is-a-256-bit-secret-key-placeholder}
+  access-token-expiry-ms: ${JWT_ACCESS_EXPIRY:3600000}    # 1시간
+  refresh-token-expiry-ms: ${JWT_REFRESH_EXPIRY:604800000} # 7일
+
+logging:
+  level:
+    root: INFO
+    com.maeum.gohyang: DEBUG

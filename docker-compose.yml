@@ -1,0 +1,125 @@
+# 로컬 전체 스택 실행 정의.
+#
+# 사용법:
+#   docker-compose up --build     전체 빌드 후 시작 (Spring Boot 포함)
+#   docker-compose up -d          백그라운드 실행
+#   docker-compose down           종료 (볼륨 유지)
+#   docker-compose down -v        종료 + 볼륨 삭제
+#
+# 포트 충돌 시 .env 파일로 오버라이드 가능.
+#   예) POSTGRES_PORT=5433
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: gohyang-postgres
+    environment:
+      POSTGRES_DB: gohyang
+      POSTGRES_USER: gohyang
+      POSTGRES_PASSWORD: gohyang
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gohyang -d gohyang"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    # Redis 7.x 사용 — 8.0부터 라이선스가 BSD에서 RSALv2/SSPLv1로 변경됨 (ADR-001 참조)
+    image: redis:7.2-alpine
+    container_name: gohyang-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  cassandra:
+    # 채팅 메시지 저장소 — write-once, 시간순 조회에 최적화 (ADR-001 참조)
+    image: cassandra:4.1
+    container_name: gohyang-cassandra
+    ports:
+      - "${CASSANDRA_PORT:-9042}:9042"
+    environment:
+      CASSANDRA_CLUSTER_NAME: gohyang
+      CASSANDRA_DC: datacenter1
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    healthcheck:
+      # Cassandra 초기 기동은 최대 60초 소요됨
+      test: ["CMD-SHELL", "nodetool status | grep UN"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
+  kafka:
+    # KRaft 모드 (Zookeeper 없음) — apache/kafka 3.7+ 기본 지원 (ADR-001 참조)
+    # 컨테이너 간 통신: kafka:9092, 호스트 접근: localhost:${KAFKA_PORT}
+    image: apache/kafka:3.7.0
+    container_name: gohyang-kafka
+    ports:
+      - "${KAFKA_PORT:-9092}:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gohyang-app
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_USERNAME: gohyang
+      SPRING_DATASOURCE_PASSWORD: gohyang
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health | grep UP || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  cassandra_data:
+    driver: local

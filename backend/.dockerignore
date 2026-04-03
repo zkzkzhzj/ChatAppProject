@@ -1,0 +1,13 @@
+# 빌드 산출물
+build/
+.gradle/
+
+# 테스트 리포트
+out/
+
+# IDE
+.idea/
+*.iml
+
+# 로컬 설정
+*.env.local

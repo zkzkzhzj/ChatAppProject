@@ -1,1 +1,15 @@
-.idea
+# IDE
+.idea/
+*.iml
+
+# Build
+build/
+out/
+
+# Environment
+.env
+*.env.local
+
+# OS
+.DS_Store
+Thumbs.db

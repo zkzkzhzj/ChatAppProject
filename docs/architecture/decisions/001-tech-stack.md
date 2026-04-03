@@ -9,9 +9,15 @@
 
 LTS(Long Term Support) 버전. 비LTS(18, 19, 20)는 6개월만 지원되고 끝난다. 실서비스 목표이므로 LTS 필수. Virtual Thread, Record Pattern 등 17 대비 생산성 향상.
 
-## Spring Boot 3.x
+## Spring Boot 4.x
+
+> 2026-04-04: 3.5 → 4.0.3으로 업그레이드.
 
 Java 17+ 최소 요구. 2.x는 2023년 EOL. Jakarta EE 전환(javax → jakarta) 완료. 새 프로젝트에서 2.x를 쓸 이유 없음.
+
+4.x 선택 이유: Testcontainers 2.x를 Spring BOM이 직접 관리하여 버전 명시가 불필요해짐. `RestClient`가 테스트 HTTP 클라이언트의 표준으로 자리잡음. Spring Framework 7.x 기반의 장기 지원 기반 확보.
+
+트레이드오프: 아직 생태계(서드파티 라이브러리)가 4.x 대응을 완료하지 않은 것들이 있을 수 있으나, 이 프로젝트의 의존성 범위(Cucumber, Testcontainers, JJWT)는 모두 호환 확인됨.
 
 ## Gradle Kotlin DSL
 

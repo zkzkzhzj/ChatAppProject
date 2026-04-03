@@ -1,6 +1,6 @@
 plugins {
 	java
-	id("org.springframework.boot") version "3.5.0"
+	id("org.springframework.boot") version "4.0.3"
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -43,17 +43,17 @@ dependencies {
 
 	// Test
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("org.springframework.security:spring-security-test")
 
-	// Testcontainers 2.x — 1.x 대비 WSL2 named pipe 호환성 개선
-	testImplementation("org.testcontainers:testcontainers:2.0.3")
-	testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
-	testImplementation("org.testcontainers:testcontainers-kafka:2.0.3")
+	// Testcontainers — Spring Boot 4.x BOM이 2.x를 관리하므로 버전 명시 불필요
+	testImplementation("org.testcontainers:testcontainers-postgresql")
+	testImplementation("org.testcontainers:testcontainers-kafka")
 
 	// Cucumber BDD
-	testImplementation("io.cucumber:cucumber-java:7.22.2")
-	testImplementation("io.cucumber:cucumber-spring:7.22.2")
-	testImplementation("io.cucumber:cucumber-junit-platform-engine:7.22.2")
+	testImplementation("io.cucumber:cucumber-java:7.34.2")
+	testImplementation("io.cucumber:cucumber-spring:7.34.2")
+	testImplementation("io.cucumber:cucumber-junit-platform-engine:7.34.2")
 
 	// JUnit Platform Suite — CucumberTestSuite의 @Suite, @IncludeEngines 어노테이션에 필요
 	testImplementation("org.junit.platform:junit-platform-suite")

@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
  * - @SpringBootTest(RANDOM_PORT): 실제 서블릿 컨테이너를 랜덤 포트로 기동한다.
  *   MockMvc 대신 RANDOM_PORT를 선택한 이유:
  *   실제 필터, 인터셉터, 시큐리티가 모두 동작하는 환경에서 테스트하기 위함.
+ *   기동된 포트는 ${local.server.port}로 주입되며, TestAdapter가 이를 사용한다.
  *
  * - extends BaseTestContainers: 컨테이너 기동 및 @DynamicPropertySource 주입을 상속한다.
  *

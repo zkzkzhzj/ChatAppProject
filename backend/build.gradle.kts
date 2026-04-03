@@ -43,18 +43,20 @@ dependencies {
 
 	// Test
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.springframework.boot:spring-boot-testcontainers")
-	testImplementation("org.springframework.kafka:spring-kafka-test")
 	testImplementation("org.springframework.security:spring-security-test")
-	testImplementation("org.testcontainers:junit-jupiter")
-	testImplementation("org.testcontainers:kafka")
-	testImplementation("org.testcontainers:postgresql")
-	testImplementation("org.testcontainers:cassandra")
+
+	// Testcontainers 2.x — 1.x 대비 WSL2 named pipe 호환성 개선
+	testImplementation("org.testcontainers:testcontainers:2.0.3")
+	testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
+	testImplementation("org.testcontainers:testcontainers-kafka:2.0.3")
 
 	// Cucumber BDD
 	testImplementation("io.cucumber:cucumber-java:7.22.2")
 	testImplementation("io.cucumber:cucumber-spring:7.22.2")
 	testImplementation("io.cucumber:cucumber-junit-platform-engine:7.22.2")
+
+	// JUnit Platform Suite — CucumberTestSuite의 @Suite, @IncludeEngines 어노테이션에 필요
+	testImplementation("org.junit.platform:junit-platform-suite")
 
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")

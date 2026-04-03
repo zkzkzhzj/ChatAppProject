@@ -1,0 +1,30 @@
+# 테스트 프로파일 설정.
+# 연결 정보(datasource, redis, kafka)는 BaseTestContainers의 @DynamicPropertySource가 주입한다.
+# 여기서는 Testcontainers가 다루지 않는 설정만 오버라이드한다.
+
+spring:
+  autoconfigure:
+    exclude:
+      # Cassandra: 컨테이너 기동 60초 이상, 현재 관련 코드 없음.
+      # Cassandra 테스트가 필요해지면 별도 슈트에서 컨테이너를 추가한다.
+      - org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+management:
+  health:
+    cassandra:
+      enabled: false
+    # Redis는 GenericContainer로 실제 기동되지만 health indicator 연동이 불안정하므로 비활성화.
+    # 실제 Redis 연결 자체는 @DynamicPropertySource로 정상 주입된다.
+    redis:
+      enabled: false
+
+logging:
+  level:
+    com.maeum.gohyang: DEBUG
+    org.springframework.test: INFO

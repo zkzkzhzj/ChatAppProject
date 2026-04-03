@@ -1,7 +1,7 @@
-# CLAUDE.md — 마음의 고향 (Maeum-ui Gohyang)
+# CLAUDE.md — 마음의 고향
 
 > 이 문서는 AI 에이전트의 행동 강령이다.
->
+> 
 > 기술 명세나 상세 규칙은 `/docs/`에 있다. 여기에는 "어떻게 행동할 것인가"만 정의한다.
 
 ---
@@ -39,7 +39,7 @@
 
 ```
 Java 21 / Spring Boot 3.x / Gradle Kotlin DSL / Hexagonal Architecture
-PostgreSQL · Redis · Cassandra · Kafka · WebSocket(STOMP) · WebRTC (화면 공유)
+PostgreSQL · Redis · Cassandra · Kafka · WebSocket(STOMP) · WebRTC (추후 추가 예정)
 Frontend: Next.js (React) + Phaser.js (2D 공간 렌더링)
 Notification: FCM (Web Push)
 Test: JUnit 5 · Cucumber BDD · Testcontainers
@@ -195,7 +195,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 ### 설계 / 구조를 확인해야 할 때
 | 문서 | 경로 | 내용 |
 |------|------|------|
-| 헥사고날 아키텍처 | `/docs/architecture/hexagonal.md` | 아키텍처 원칙, 계층 간 의존 방향 |
+| 아키텍처 | `/docs/architecture/architecture.md` | 아키텍처 원칙, 계층 간 의존 방향 |
 | 도메인 경계 | `/docs/architecture/domain-boundary.md` | 도메인 분류, 통신 규칙, 이벤트 흐름 |
 | 패키지 구조 | `/docs/architecture/package-structure.md` | 패키지 레이아웃, 각 패키지의 책임 |
 | ERD | `/docs/architecture/erd.md` | 논리적 ERD, 테이블 명세 |

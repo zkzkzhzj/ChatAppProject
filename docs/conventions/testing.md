@@ -1,0 +1,153 @@
+# Testing Strategy — 마음의 고향
+
+---
+
+## 1. 테스트 종류
+
+| 종류 | 대상 | 도구 | 인프라 |
+|------|------|------|--------|
+| 단위 테스트 | Domain, Application Service | JUnit 5, Mockito | 없음 (순수 Java) |
+| 통합 테스트 | Adapter (Persistence, Messaging) | JUnit 5, Testcontainers | 실제 DB/Kafka |
+| 인수 테스트 | 주요 비즈니스 시나리오 | Cucumber BDD | Testcontainers |
+| 아키텍처 테스트 | 의존 방향, 패키지 규칙 | ArchUnit | 없음 |
+
+---
+
+## 2. BDD 스타일 (Given-When-Then)
+
+모든 테스트는 BDD 스타일로 작성한다.
+
+```java
+@Test
+void 포인트_잔액_부족_시_예외가_발생한다() {
+    // Given
+    PointWallet wallet = PointWallet.builder()
+            .userId(1L)
+            .balance(100L)
+            .build();
+
+    // When & Then
+    assertThatThrownBy(() -> wallet.deduct(500L))
+            .isInstanceOf(InsufficientBalanceException.class);
+}
+
+@Test
+void 포인트_차감_성공() {
+    // Given
+    PointWallet wallet = PointWallet.builder()
+            .userId(1L)
+            .balance(1000L)
+            .build();
+
+    // When
+    wallet.deduct(500L);
+
+    // Then
+    assertThat(wallet.getBalance()).isEqualTo(500L);
+}
+```
+
+---
+
+## 3. 필수 규칙
+
+- **성공 케이스와 실패 케이스(Unhappy Path)를 반드시 하나 이상 포함한다.**
+- **테스트 간 독립성을 보장한다.** 실행 순서나 DB 상태에 의존하지 않는다.
+- **테스트 메서드명은 한글로 행위를 명확히 기술한다.**
+- **Mock이 5개를 넘으면 설계를 의심한다.** Service의 책임이 너무 많을 가능성이 높다.
+
+---
+
+## 4. 단위 테스트
+
+Domain Entity와 Application Service를 대상으로 한다. 외부 의존성은 Mock 처리.
+
+```java
+class DeductPointServiceTest {
+
+    @Mock PointWalletPersistencePort walletPort;
+    @Mock IdempotencyPort idempotencyPort;
+    @InjectMocks DeductPointService service;
+
+    @Test
+    void 포인트_차감_시_잔액이_갱신된다() {
+        // Given
+        given(idempotencyPort.insertIfAbsent(anyLong(), anyString())).willReturn(true);
+        given(walletPort.load(1L)).willReturn(
+                PointWallet.builder().userId(1L).balance(1000L).build());
+
+        // When
+        service.execute(new DeductPointCommand(1L, 500L, "key-123"));
+
+        // Then
+        verify(walletPort).save(argThat(wallet ->
+                wallet.getBalance().equals(500L)));
+    }
+}
+```
+
+---
+
+## 5. 통합 테스트
+
+Adapter 계층을 대상으로 한다. Testcontainers로 실제 인프라를 사용.
+
+```java
+@SpringBootTest
+@Testcontainers
+class PointWalletJpaAdapterTest {
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17");
+
+    @Autowired
+    PointWalletJpaAdapter adapter;
+
+    @Test
+    void 포인트_지갑을_저장하고_조회할_수_있다() {
+        // Given
+        PointWallet wallet = PointWallet.builder()
+                .userId(1L)
+                .balance(1000L)
+                .build();
+
+        // When
+        adapter.save(wallet);
+        PointWallet loaded = adapter.load(1L);
+
+        // Then
+        assertThat(loaded.getBalance()).isEqualTo(1000L);
+    }
+}
+```
+
+---
+
+## 6. Cucumber 인수 테스트
+
+주요 비즈니스 시나리오를 사람이 읽을 수 있는 형태로 작성한다.
+
+```gherkin
+# features/purchase_item.feature
+Feature: 아이템 구매
+
+  Scenario: 포인트가 충분할 때 아이템을 구매할 수 있다
+    Given 유저의 포인트 잔액이 1000이다
+    And 가격이 500인 아이템이 존재한다
+    When 해당 아이템을 구매한다
+    Then 포인트 잔액이 500이 된다
+    And 인벤토리에 해당 아이템이 추가된다
+
+  Scenario: 포인트가 부족하면 구매할 수 없다
+    Given 유저의 포인트 잔액이 100이다
+    And 가격이 500인 아이템이 존재한다
+    When 해당 아이템을 구매한다
+    Then 잔액 부족 예외가 발생한다
+    And 포인트 잔액은 변하지 않는다
+```
+
+---
+
+## 7. 아키텍처 테스트 (ArchUnit)
+
+의존 방향 위반을 CI에서 자동 검증한다. 상세는 `/docs/architecture/architecture.md` Section 6 참조.

@@ -23,3 +23,6 @@ frontend/dist/
 # Backend
 backend/build/
 backend/.gradle/
+
+# Diagram sources (로컬 작업용, 빌드 산출물만 커밋)
+*.mermaid

@@ -38,7 +38,7 @@
 ## 3. Tech Baseline
 
 ```
-Java 21 / Spring Boot 3.x / Gradle Kotlin DSL / Hexagonal Architecture
+Java 21 / Spring Boot 4.x / Gradle Kotlin DSL / Hexagonal Architecture
 PostgreSQL · Redis · Cassandra · Kafka · WebSocket(STOMP) · WebRTC (추후 추가 예정)
 Frontend: Next.js (React) + Phaser.js (2D 공간 렌더링)
 Notification: FCM (Web Push)
@@ -198,7 +198,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 | 아키텍처 | `/docs/architecture/architecture.md` | 아키텍처 원칙, 계층 간 의존 방향 |
 | 도메인 경계 | `/docs/architecture/domain-boundary.md` | 도메인 분류, 통신 규칙, 이벤트 흐름 |
 | 패키지 구조 | `/docs/architecture/package-structure.md` | 패키지 레이아웃, 각 패키지의 책임 |
-| ERD | `/docs/architecture/erd.md` | 논리적 ERD, 테이블 명세 |
+| ERD | `/docs/architecture/erd.md` | 물리 ERD, 테이블 명세, 설계 결정 기록 |
 | 의사결정 기록 | `/docs/architecture/decisions/` | 기술 선택의 이유와 트레이드오프 (ADR) |
 
 ### 코드를 작성할 때
@@ -220,6 +220,12 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 |------|------|------|
 | 공간 구현 | `/docs/frontend/space.md` | Phaser.js 구현 가이드, 맵 구조 |
 | 에셋 관리 | `/docs/frontend/assets.md` | 스프라이트, 타일셋, 에셋 규격 |
+
+### 작업 이력 / 현재 상태를 파악할 때
+| 문서 | 경로 | 내용 |
+|------|------|------|
+| 현재 상태 | `/docs/handover.md` | 지금 어디까지 왔는가. 새 세션 시작 시 먼저 읽는 것. |
+| 작업 히스토리 | `/docs/history/YYYY-MM-DD.md` | 날짜별 결정 맥락. 왜 이렇게 됐는가. |
 
 ### 학습 / 기술 기록이 필요할 때
 | 문서 | 경로 | 내용 |

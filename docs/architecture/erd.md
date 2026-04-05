@@ -77,7 +77,7 @@ SPACE_PLACEMENT {
 
 CHARACTER {
     Long id PK
-    Long user_id             -- ID 참조 (FK 아님)
+    Long user_id UNIQUE      -- ID 참조 (FK 아님), USER와 1:1
     DateTime updated_at
 }
 
@@ -89,8 +89,8 @@ CHARACTER_EQUIPMENT {
     DateTime equipped_at
 }
 
-SPACE ||--|{ SPACE_PLACEMENT
-CHARACTER ||--|{ CHARACTER_EQUIPMENT
+SPACE ||--o{ SPACE_PLACEMENT  : "1:N"
+CHARACTER ||--o{ CHARACTER_EQUIPMENT : "1:0..N"
 ```
 
 ---
@@ -285,3 +285,49 @@ IDEMPOTENCY_REQUEST {
 | ACCESS_LOG | 존재 | 제거 | 서버 로그로 충분 |
 | REPORT, SANCTION | 없음 | 신규 | Safety Context |
 | OUTBOX 등 | 없음 | 신규 | 멱등성, Outbox 인프라 |
+| CHARACTER.user_id | 제약 없음 | UNIQUE 추가 | USER와 1:1 관계 확정 |
+
+---
+
+## 12. 전체 관계 카디널리티 요약
+
+> Mermaid 다이어그램: `/docs/architecture/erd.mermaid`
+
+### Context 내부 FK 관계
+
+| 테이블 A | 관계 | 테이블 B | 비고 |
+|---------|------|---------|------|
+| USER | 1 : 0..N | USER_SOCIAL_AUTH | 소셜 로그인 미연동 유저 존재 가능 |
+| CHARACTER | 1 : 0..N | CHARACTER_EQUIPMENT | 아이템 미착용 캐릭터 존재 가능 |
+| SPACE | 1 : 0..N | SPACE_PLACEMENT | 빈 공간 존재 가능 |
+| ITEM_DEFINITION | 1 : 0..N | USER_ITEM_INVENTORY | 아무도 구매 안 한 아이템 존재 가능 |
+| CHAT_ROOM | 1 : 1..N | PARTICIPANT | 참여자 없는 채팅방은 존재하지 않음 |
+| CHAT_ROOM | 1 : 0..N | CHAT_ROOM_CATEGORY | 카테고리 미분류 채팅방 존재 가능 |
+| CATEGORY | 1 : 0..N | CHAT_ROOM_CATEGORY | |
+
+### 도메인 간 ID 참조 (FK 아님, 논리적 관계)
+
+| 테이블 | 컬럼 | 참조 대상 | 카디널리티 | 비고 |
+|--------|------|----------|-----------|------|
+| CHARACTER | user_id | USER.id | 1:1 | UNIQUE 제약 |
+| SPACE | user_id | USER.id | N:1 | 유저당 다수 공간 가능, is_default로 기본 공간 식별 |
+| POINT_WALLET | user_id | USER.id | 1:1 | 유저당 지갑 1개 강한 규칙 |
+| POINT_TRANSACTION | user_id | USER.id | N:1 | |
+| USER_ITEM_INVENTORY | user_id | USER.id | N:1 | |
+| CHARACTER_EQUIPMENT | item_definition_id | ITEM_DEFINITION.id | N:1 | 아이템 중복 장착 슬롯별 1개 |
+| SPACE_PLACEMENT | item_definition_id | ITEM_DEFINITION.id | N:1 | 동일 아이템 무제한 배치 가능 |
+| PARTICIPANT | user_id | USER.id | N:1 | NPC일 경우 null 가능 |
+
+### 아이템 장착/배치 설계 결정 기록
+
+- `CHARACTER_EQUIPMENT`와 `SPACE_PLACEMENT`는 `USER_ITEM_INVENTORY`를 직접 참조하지 않는다.
+- **이유**: Economy Context와 Village Context 간 도메인 경계 유지. "소유 검증"은 장착/배치 시점에 애플리케이션 레이어에서 수행.
+- **전제**: 아이템은 소모재가 아닌 소유재. 한 번 구매하면 인벤토리에서 사라지지 않으며, 장착/배치는 아이템 복사본을 만드는 개념이 아니라 "어떤 아이템을 표시할지" 선택하는 행위.
+- **수량 제한 없음**: `SPACE_PLACEMENT`에서 동일 `item_definition_id`를 여러 행에 걸쳐 배치 가능.
+
+### POINT_WALLET 분리 설계 결정 기록
+
+- `POINT_TRANSACTION`만으로 잔액을 관리하지 않고 `POINT_WALLET`을 별도로 유지한다.
+- **이유 1 — 동시성**: `POINT_TRANSACTION`에서 `SUM(amount)`를 기반으로 잔액을 체크하면 check-then-act 사이에 레이스 컨디션이 발생한다. `POINT_WALLET.version`을 이용한 낙관적 락으로 `UPDATE ... WHERE version = ? AND balance >= ?` 단일 쿼리로 원자적 차감이 가능하다.
+- **이유 2 — 조회 성능**: 트랜잭션이 누적될수록 `SUM` 집계 쿼리가 느려진다. `POINT_WALLET`은 현재 잔액의 스냅샷으로 O(1) 조회를 보장한다.
+- **역할 분리**: `POINT_WALLET`은 현재 잔액 + 동시성 제어 지점, `POINT_TRANSACTION`은 감사 로그 + 원천 데이터. POINT_WALLET이 틀어지면 POINT_TRANSACTION으로 재계산하여 복구 가능하다.

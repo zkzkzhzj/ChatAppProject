@@ -87,4 +87,7 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+
+# Diagram sources (로컬 작업용, 빌드 산출물만 커밋)
+*.mermaid
 ```

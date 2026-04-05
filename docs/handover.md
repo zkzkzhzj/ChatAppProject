@@ -72,11 +72,16 @@ ScenarioContext          마지막 응답 보관 — 상태 저장만 한다
 
 ---
 
-## 다음 작업 후보
+## 현재 Phase
 
-1. **Flyway 추가 + 초기 스키마 작성** — `ddl-auto: validate` 상태라 마이그레이션 없으면 앱 미기동
-2. **Auth 도메인** — 소셜 로그인(OAuth2), JWT 발급/검증
-3. **Identity → Village → Economy 순서로 Entity + UseCase 구현**
+**Phase 0 — Foundation 진행 전**
+
+전체 구현 로드맵: `docs/planning/phases.md`
+
+**지금 당장 할 것:**
+1. Flyway 의존성 추가 (`build.gradle.kts`)
+2. `V1__initial_schema.sql` 작성 (ERD 기반 전체 스키마)
+3. 앱 기동 확인
 
 새 도메인 구현 시 반드시 `CLAUDE.md`의 워크플로우(5.1)를 따른다.
 
@@ -92,6 +97,7 @@ ScenarioContext          마지막 응답 보관 — 상태 저장만 한다
 | ERD (설계 결정 포함) | `docs/architecture/erd.md` |
 | 코딩 컨벤션 | `docs/conventions/coding.md` |
 | 테스팅 전략 | `docs/conventions/testing.md` |
+| 구현 로드맵 (Phase) | `docs/planning/phases.md` |
 | 작업 히스토리 | `docs/history/YYYY-MM-DD.md` |
 | Spring Boot 4.x 업그레이드 기록 | `docs/learning/07-spring-boot-4-upgrade.md` |
 | 세팅 학습 기록 | `docs/learning/` |

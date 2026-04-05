@@ -225,6 +225,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 | 문서 | 경로 | 내용 |
 |------|------|------|
 | 현재 상태 | `/docs/handover.md` | 지금 어디까지 왔는가. 새 세션 시작 시 먼저 읽는 것. |
+| 구현 로드맵 | `/docs/planning/phases.md` | Phase별 구현 순서와 이유. 현재 Phase 체크. |
 | 작업 히스토리 | `/docs/history/YYYY-MM-DD.md` | 날짜별 결정 맥락. 왜 이렇게 됐는가. |
 
 ### 학습 / 기술 기록이 필요할 때

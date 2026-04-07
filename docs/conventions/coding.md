@@ -92,7 +92,6 @@ public Space getSpace(@PathVariable Long id) { ... }
 |-----------|----------|------|
 | `@Getter` | Domain Entity, Persistence Entity | |
 | `@NoArgsConstructor(access = PROTECTED)` | Persistence Entity | JPA 요구사항 |
-| `@Builder` | Domain Entity, Persistence Entity | 생성 시 사용 |
 | `@RequiredArgsConstructor` | Service, Adapter 등 | 생성자 주입용 |
 | `@Data` | DTO (record 불가 시에만) | 최소 사용 |
 | `@Setter` | **사용 금지** | 상태 변경은 도메인 메서드로 |

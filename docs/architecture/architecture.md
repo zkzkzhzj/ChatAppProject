@@ -257,21 +257,19 @@ Domain Entity ↔ Persistence Entity 변환은 수동 Mapper로 처리한다.
 public class PointWalletMapper {
 
     public PointWallet toDomain(PointWalletJpaEntity entity) {
-        return PointWallet.builder()
-                .id(entity.getId())
-                .userId(entity.getUserId())
-                .balance(entity.getBalance())
-                .version(entity.getVersion())
-                .build();
+        // restore() — DB에서 읽어온 기존 데이터를 Domain으로 복원한다.
+        // @Builder 대신 정적 팩토리 메서드를 사용한다. (coding.md 5.1 참조)
+        return PointWallet.restore(
+                entity.getId(),
+                entity.getUserId(),
+                entity.getBalance(),
+                entity.getVersion()
+        );
     }
 
     public PointWalletJpaEntity toEntity(PointWallet domain) {
-        return PointWalletJpaEntity.builder()
-                .id(domain.getId())
-                .userId(domain.getUserId())
-                .balance(domain.getBalance())
-                .version(domain.getVersion())
-                .build();
+        // Persistence Entity도 정적 팩토리 메서드로 생성한다. (coding.md 5.2 참조)
+        return PointWalletJpaEntity.from(domain);
     }
 }
 ```

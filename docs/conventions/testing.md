@@ -21,10 +21,8 @@
 @Test
 void 포인트_잔액_부족_시_예외가_발생한다() {
     // Given
-    PointWallet wallet = PointWallet.builder()
-            .userId(1L)
-            .balance(100L)
-            .build();
+    // newWallet() — 신규 생성 정적 팩토리 메서드. @Builder 대신 사용. (coding.md 5.1 참조)
+    PointWallet wallet = PointWallet.newWallet(1L, 100L);
 
     // When & Then
     assertThatThrownBy(() -> wallet.deduct(500L))
@@ -34,10 +32,7 @@ void 포인트_잔액_부족_시_예외가_발생한다() {
 @Test
 void 포인트_차감_성공() {
     // Given
-    PointWallet wallet = PointWallet.builder()
-            .userId(1L)
-            .balance(1000L)
-            .build();
+    PointWallet wallet = PointWallet.newWallet(1L, 1000L);
 
     // When
     wallet.deduct(500L);
@@ -74,7 +69,7 @@ class DeductPointServiceTest {
         // Given
         given(idempotencyPort.insertIfAbsent(anyLong(), anyString())).willReturn(true);
         given(walletPort.load(1L)).willReturn(
-                PointWallet.builder().userId(1L).balance(1000L).build());
+                PointWallet.newWallet(1L, 1000L));
 
         // When
         service.execute(new DeductPointCommand(1L, 500L, "key-123"));
@@ -92,13 +87,16 @@ class DeductPointServiceTest {
 
 Adapter 계층을 대상으로 한다. Testcontainers로 실제 인프라를 사용.
 
+**컨테이너 공유 방식 — `BaseTestContainers` 상속:**
+`@Container`를 각 테스트 클래스마다 선언하면 테스트마다 컨테이너가 새로 기동된다 (느림).
+`BaseTestContainers`는 `static` 초기화로 JVM당 한 번만 컨테이너를 기동하고, 모든 테스트가 공유한다.
+`@DynamicPropertySource`로 컨테이너의 랜덤 포트를 Spring 컨텍스트에 주입한다.
+
 ```java
 @SpringBootTest
-@Testcontainers
-class PointWalletJpaAdapterTest {
+class PointWalletJpaAdapterTest extends BaseTestContainers {
 
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17");
+    // 컨테이너 선언 없음 — BaseTestContainers가 postgres:16-alpine, redis, kafka를 관리한다.
 
     @Autowired
     PointWalletJpaAdapter adapter;
@@ -106,10 +104,8 @@ class PointWalletJpaAdapterTest {
     @Test
     void 포인트_지갑을_저장하고_조회할_수_있다() {
         // Given
-        PointWallet wallet = PointWallet.builder()
-                .userId(1L)
-                .balance(1000L)
-                .build();
+        // newWallet() — 신규 생성 정적 팩토리 메서드
+        PointWallet wallet = PointWallet.newWallet(1L, 1000L);
 
         // When
         adapter.save(wallet);

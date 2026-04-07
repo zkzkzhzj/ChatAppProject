@@ -17,7 +17,7 @@
 - 테스트 `ddl-auto: create-drop` → `validate` 전환
 - 테스트 통과 확인
 
-**Phase 1 — Identity (진행 중, 80% 완료)**
+**Phase 1 — Identity (완료)**
 
 | 레이어 | 파일 | 상태 |
 |--------|------|------|

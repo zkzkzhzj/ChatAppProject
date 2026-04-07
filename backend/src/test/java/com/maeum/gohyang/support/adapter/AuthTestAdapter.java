@@ -38,6 +38,7 @@ public class AuthTestAdapter {
 
     public void requestGuestToken() {
         testAdapter.post(GUEST_PATH);
+        findAccessToken().ifPresent(scenarioContext::setCurrentAccessToken);
     }
 
     /**

@@ -42,4 +42,20 @@ public class VillageSteps {
                 .as("기본 공간 조회 응답 코드")
                 .isEqualTo(200);
     }
+
+    @And("게스트 캐릭터가 반환된다")
+    public void 게스트_캐릭터가_반환된다() {
+        villageTestAdapter.fetchMyCharacterWithGuestToken();
+        assertThat(scenarioContext.getLastStatusCode())
+                .as("게스트 캐릭터 조회 응답 코드")
+                .isEqualTo(200);
+    }
+
+    @And("게스트가 내 공간을 조회하면 403을 받는다")
+    public void 게스트가_내_공간을_조회하면_403을_받는다() {
+        villageTestAdapter.fetchMySpaceWithGuestToken();
+        assertThat(scenarioContext.getLastStatusCode())
+                .as("게스트 공간 조회는 403이어야 한다")
+                .isEqualTo(403);
+    }
 }

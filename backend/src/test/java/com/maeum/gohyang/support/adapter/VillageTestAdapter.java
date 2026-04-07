@@ -58,6 +58,20 @@ public class VillageTestAdapter {
         testAdapter.get(SPACE_PATH, scenarioContext.getCurrentAccessToken());
     }
 
+    /**
+     * 게스트 토큰으로 캐릭터를 조회한다. 200 응답을 기대한다.
+     */
+    public void fetchMyCharacterWithGuestToken() {
+        testAdapter.get(CHARACTER_PATH, scenarioContext.getCurrentAccessToken());
+    }
+
+    /**
+     * 게스트 토큰으로 공간을 조회한다. 403 응답을 기대한다.
+     */
+    public void fetchMySpaceWithGuestToken() {
+        testAdapter.get(SPACE_PATH, scenarioContext.getCurrentAccessToken());
+    }
+
     private void sleep() {
         try {
             Thread.sleep(POLL_INTERVAL_MS);

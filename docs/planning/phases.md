@@ -63,7 +63,7 @@ Scenario: GUEST가 마을에 입장하고 NPC와 채팅 후 회원가입한다
 
 ---
 
-## Phase 2 — Village [ ]
+## Phase 2 — Village [x]
 
 **목표:** 로그인 유저에게 기본 캐릭터 + 기본 공간 자동 생성
 
@@ -73,12 +73,13 @@ Scenario: GUEST가 마을에 입장하고 NPC와 채팅 후 회원가입한다
 
 | 작업 | 상태 |
 |------|------|
-| Character Domain Entity | [ ] |
-| Space Domain Entity | [ ] |
-| 회원가입 이벤트 → 캐릭터/공간 자동 생성 (Identity → Village 이벤트) | [ ] |
-| Character 조회 API | [ ] |
-| Space 조회 API | [ ] |
-| Cucumber: 가입 후 캐릭터/공간 존재 확인 시나리오 | [ ] |
+| Character Domain Entity | [x] |
+| Space Domain Entity | [x] |
+| 회원가입 이벤트 → 캐릭터/공간 자동 생성 (Transactional Outbox + Kafka) | [x] |
+| Character 조회 API (게스트: 인메모리 임시 캐릭터) | [x] |
+| Space 조회 API (게스트: 403) | [x] |
+| Cucumber: 가입 후 캐릭터/공간 존재 확인 시나리오 (비동기 폴링) | [x] |
+| Cucumber: 게스트 캐릭터 조회 / 공간 조회 403 시나리오 | [x] |
 
 ---
 

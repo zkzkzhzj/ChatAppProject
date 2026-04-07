@@ -4,9 +4,11 @@ import com.maeum.gohyang.identity.application.port.in.IssueGuestTokenUseCase;
 import com.maeum.gohyang.identity.application.port.out.IssueTokenPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class IssueGuestTokenService implements IssueGuestTokenUseCase {
 
     private final IssueTokenPort issueTokenPort;

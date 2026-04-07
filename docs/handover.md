@@ -47,6 +47,7 @@
 | Messaging | `UserRegisteredEventConsumer`(Kafka, 멱등성 보장) | ✅ |
 | Web Adapter | `VillageController`, `CharacterResponse`, `SpaceResponse` | ✅ |
 | Cucumber | 회원가입 → Kafka → 캐릭터/공간 생성 비동기 시나리오 | ✅ |
+| Cucumber | 게스트 캐릭터 조회 200 / 공간 조회 403 시나리오 | ✅ |
 
 ---
 
@@ -73,18 +74,23 @@ RegisterUserService
 
 ---
 
-## 다음 할 것 — Phase 3 (WebSocket 실시간 이동)
+## 다음 할 것 — Phase 3 (Communication / WebSocket)
 
 `docs/planning/phases.md` 참조.
 
-**Phase 3 목표:** 캐릭터가 마을 맵에서 실시간으로 이동하는 것을 다른 유저가 볼 수 있어야 한다.
+**Phase 3 목표:** 채팅방 생성 → 유저↔NPC 메시지 전송/수신 (Happy Path 핵심)
 
 구현 순서 (예상):
-1. STOMP WebSocket 설정 (`WebSocketConfig`, `/ws` 엔드포인트)
-2. 마을 입장/퇴장 이벤트 처리
-3. 캐릭터 이동 메시지 브로드캐스트
-4. Redis Pub/Sub 또는 인메모리 브로커로 상태 공유
-5. 프론트엔드 연동 (Next.js + Phaser.js)
+1. WebSocket(STOMP) 설정 — `WebSocketConfig`, `/ws` 엔드포인트, 인메모리 브로커로 시작
+2. ChatRoom, Participant 도메인 엔티티 + Port
+3. 채팅방 생성 UseCase + API
+4. 메시지 전송/수신 핸들러 (`@MessageMapping`)
+5. NPC 응답 — 하드코딩으로 시작 (Port로 추상화해서 Phase 5에서 AI로 교체)
+6. Cassandra 메시지 저장 (Testcontainers에 Cassandra 추가 필요)
+7. Cucumber: GUEST → 채팅 시도 → 403 → 회원가입 → NPC 채팅 Happy Path 시나리오
+
+> 실시간 캐릭터 이동(위치 브로드캐스트)은 WebSocket 인프라가 갖춰지면 같이 붙일 수 있다.
+> Phase 3에서 STOMP 설정이 완성되면 이동 좌표 브로드캐스트 추가는 비교적 단순하다.
 
 ---
 

@@ -9,8 +9,11 @@
 ## Happy Path 목표
 
 ```gherkin
-Scenario: 신규 유저가 마을에서 AI NPC와 첫 대화를 나눈다
-  Given 신규 유저가 이메일로 회원가입한다
+Scenario: GUEST가 마을에 입장하고 NPC와 채팅 후 회원가입한다
+  Given 비회원이 GUEST로 마을에 입장한다
+  When GUEST가 NPC에게 채팅을 시도한다
+  Then 회원가입이 필요하다는 안내를 받는다
+  When 유저가 이메일로 회원가입한다
   Then 기본 캐릭터와 기본 공간이 자동으로 생성된다
   When 유저가 마을의 NPC에게 "안녕하세요"를 전송한다
   Then NPC로부터 응답 메시지를 받는다
@@ -18,9 +21,13 @@ Scenario: 신규 유저가 마을에서 AI NPC와 첫 대화를 나눈다
 
 이 시나리오가 Cucumber로 통과하는 것이 Happy Path 완료 조건이다.
 
+> **GUEST 설계 (방식 A):** GUEST는 DB 레코드 없이 JWT claim(`role=GUEST`)만으로 식별한다.
+> 채팅 시도 시 서버가 role을 확인하고 403 + 가입 안내를 반환한다.
+> 회원가입 시 새 MEMBER `users` 행을 생성한다. GUEST 세션과의 연속성은 MVP에서 고려하지 않는다.
+
 ---
 
-## Phase 0 — Foundation [ ]
+## Phase 0 — Foundation [x]
 
 **목표:** 앱이 뜨고 DB와 연결되는 최소 조건
 
@@ -28,13 +35,13 @@ Scenario: 신규 유저가 마을에서 AI NPC와 첫 대화를 나눈다
 
 | 작업 | 상태 |
 |------|------|
-| Flyway 의존성 추가 | [ ] |
-| V1__initial_schema.sql 작성 (전체 ERD 기반) | [ ] |
-| 앱 기동 확인 | [ ] |
+| Flyway 의존성 추가 | [x] |
+| V1__initial_schema.sql 작성 (전체 ERD 기반) | [x] |
+| 앱 기동 확인 | [x] |
 
 ---
 
-## Phase 1 — Identity [ ]
+## Phase 1 — Identity [x]
 
 **목표:** 회원가입 → JWT 발급 → 인증된 요청
 
@@ -42,12 +49,14 @@ Scenario: 신규 유저가 마을에서 AI NPC와 첫 대화를 나눈다
 
 | 작업 | 상태 |
 |------|------|
-| User Domain Entity | [ ] |
-| UserSocialAuth Persistence | [ ] |
-| 이메일 회원가입 UseCase (MVP, 소셜 로그인은 이후) | [ ] |
-| JWT 발급/검증 | [ ] |
-| Spring Security 설정 | [ ] |
-| Cucumber: 회원가입 → 로그인 시나리오 | [ ] |
+| User Domain Entity + Port 정의 | [x] |
+| UserLocalAuth Persistence Adapter | [x] |
+| 이메일 회원가입 UseCase | [x] |
+| GUEST 토큰 발급 UseCase | [x] |
+| JWT 발급/검증 (JwtProvider, JwtFilter) | [x] |
+| Spring Security 설정 | [x] |
+| AuthController (Web Adapter) | [x] |
+| Cucumber: 회원가입 → JWT 발급 시나리오 | [x] |
 
 > **소셜 로그인(Google/Kakao)은 Happy Path 이후에 붙인다.**
 > 외부 OAuth2 의존이 생기면 속도가 느려진다.
@@ -57,6 +66,8 @@ Scenario: 신규 유저가 마을에서 AI NPC와 첫 대화를 나눈다
 ## Phase 2 — Village [ ]
 
 **목표:** 로그인 유저에게 기본 캐릭터 + 기본 공간 자동 생성
+
+> **UI 방향 (확정):** 그럴듯한 비주얼은 지금 필요 없다. 로컬에서 마을 입장 → 캐릭터 이동 → NPC 식별이 되면 완료다. 디자인·에셋은 Happy Path 완료 후 별도 결정한다.
 
 **이유:** Happy Path 시나리오에서 "마을에 입장한다"는 전제가 필요하다.
 

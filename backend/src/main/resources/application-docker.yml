@@ -20,6 +20,10 @@ spring:
       - org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration
       - org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
 
+security:
+  env-public-paths:
+    - /actuator/health  # docker 환경에서는 헬스체크 엔드포인트만 허용
+
 management:
   health:
     cassandra:

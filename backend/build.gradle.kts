@@ -38,6 +38,13 @@ dependencies {
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 
+	// Flyway
+	// spring-boot-flyway: Spring Boot 4.x에서 Flyway 자동 구성이 별도 모듈로 분리됨.
+	// flyway-core만으로는 마이그레이션이 실행되지 않는다. (ADR-003 참조)
+	implementation("org.springframework.boot:spring-boot-flyway")
+	implementation("org.flywaydb:flyway-core")
+	implementation("org.flywaydb:flyway-database-postgresql")
+
 	// DB Drivers
 	runtimeOnly("org.postgresql:postgresql")
 
@@ -64,5 +71,10 @@ dependencies {
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
+	// junit-platform-suite 엔진 제외: CucumberTestSuite는 IDE 전용.
+	// Gradle은 junit-platform.properties를 통해 Cucumber 엔진을 직접 구동한다.
+	// 두 엔진이 동시에 활성화되면 각 시나리오가 2번 실행되어 DB 상태 오염이 발생한다.
+	useJUnitPlatform {
+		excludeEngines("junit-platform-suite")
+	}
 }

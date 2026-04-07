@@ -1,0 +1,6 @@
+# 로컬 개발 환경 프로파일.
+# IDE에서 실행 시 -Dspring.profiles.active=local 로 활성화한다.
+
+security:
+  env-public-paths:
+    - /actuator/**    # 로컬에서는 actuator 전체 허용

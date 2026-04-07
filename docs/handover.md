@@ -5,41 +5,100 @@
 
 ---
 
-## 현재 상태 (2026-04-05 기준)
+## 현재 상태 (2026-04-07 기준, 2차 업데이트)
 
-**완료:**
-- docker-compose 전체 스택 기동 (`docker-compose up --build`)
-- Spring Boot 멀티스테이지 Docker 빌드 + 환경별 프로파일
-- Cucumber BDD + Testcontainers 2.x 통합 테스트 환경 구축
-- HealthCheck 시나리오 통과 (PostgreSQL, Redis, Kafka 실제 컨테이너 기반)
-- TestAdapter 계층 구조 (TestAdapter → ActuatorTestAdapter → Steps)
-- `~/.gradle/gradle.properties`에 Gradle 데몬 JDK 설정 (corretto-17)
-- **Spring Boot 3.5 → 4.0.3 업그레이드 완료**
-  - Testcontainers 2.x를 Spring BOM이 직접 관리 (버전 명시 불필요)
-  - TestAdapter HTTP 클라이언트를 `TestRestTemplate` → `RestClient`로 교체
-  - Jackson 3.x(`tools.jackson.*`)로 전환
-  - `RestClient` lazy 초기화 (WebServerInitializedEvent 이후 포트 주입)
-- **물리 ERD 설계 확정**
-  - CHARACTER ↔ USER 1:1, SPACE ↔ USER 1:N
-  - 아이템 흐름: ITEM_DEFINITION → USER_ITEM_INVENTORY → (CHARACTER_EQUIPMENT / SPACE_PLACEMENT)
-  - POINT_WALLET 분리 유지 (낙관적 락 기반 동시성 제어)
-  - 상세 결정 기록: `docs/architecture/erd.md` 섹션 12
+### 완료된 것
 
-**아직 없는 것:**
-- 비즈니스 도메인 구현 없음 (Entity, UseCase, Adapter 전무)
-- REST API 없음
-- WebSocket 채팅 없음
-- 프론트엔드 마을 공간 미구현
+**Phase 0 — Foundation**
+- Flyway 의존성 추가 (`flyway-core` + `flyway-database-postgresql`)
+- `V1__initial_schema.sql` 작성 (전체 ERD 기반)
+  - `users` 테이블명 사용 (PostgreSQL 예약어 `user` 회피)
+  - `user_local_auth` 테이블 추가 (이메일/비밀번호 인증 분리, `user_social_auth`와 대칭 구조)
+- 테스트 `ddl-auto: create-drop` → `validate` 전환
+- 테스트 통과 확인
+
+**Phase 1 — Identity (진행 중, 80% 완료)**
+
+| 레이어 | 파일 | 상태 |
+|--------|------|------|
+| Domain | `User`, `UserType`, `LocalAuthCredentials`, `IdentityErrorCode`, `DuplicateEmailException` | ✅ |
+| Port (in) | `RegisterUserUseCase`, `IssueGuestTokenUseCase` | ✅ |
+| Port (out) | `SaveUserPort`, `CheckEmailDuplicatePort`, `IssueTokenPort` | ✅ |
+| Service | `RegisterUserService`, `IssueGuestTokenService` | ✅ |
+| Persistence | `UserJpaEntity`, `UserLocalAuthJpaEntity`, `UserJpaRepository`, `UserLocalAuthJpaRepository`, `UserPersistenceAdapter` | ✅ |
+| Security | `JwtProvider`, `JwtFilter`, `JwtClaims`, `SecurityConfig`, `SecurityProperties` | ✅ |
+| Web Adapter | `RegisterRequest`, `AuthResponse` | ✅ |
+| Web Adapter | `AuthController` | ✅ |
+| Cucumber | 회원가입 → JWT 발급 시나리오 | ✅ |
 
 ---
 
-## 테스트 실행 방법
+## Happy Path 구현 방향 (확정)
+
+**목표:** 로컬에서 실행했을 때 마을에 입장하고, 캐릭터가 이동하고, NPC가 보이고, 대화를 시도할 수 있어야 한다.
+
+**UI/디자인은 우선순위가 아니다.** 그럴듯한 비주얼 없어도 된다. 기능이 동작하면 완료 조건을 충족한다. 디자인과 에셋은 Happy Path 완료 이후에 별도로 정한다.
+
+즉, Phase 2~3을 구현할 때 "보기 좋은가"가 아니라 **"로컬에서 기능이 돌아가는가"**를 완료 기준으로 삼는다.
+
+---
+
+## 다음 할 것 — Phase 2 (Village)
+
+
+`identity/adapter/in/web/AuthController.java` 작성.
+- `POST /api/v1/auth/register` → `RegisterUserUseCase` 호출, `201 Created` + `AuthResponse`
+- `POST /api/v1/auth/guest` → `IssueGuestTokenUseCase` 호출, `200 OK` + `AuthResponse`
+
+컨벤션:
+- `register`는 `ResponseEntity<AuthResponse>` (나중에 Location 헤더 추가 가능성)
+- `guest`는 `@ResponseStatus(HttpStatus.OK) + AuthResponse` (항상 200 고정)
+- `@Valid @RequestBody`로 입력 검증
+
+### 2. 컴파일 + 테스트 통과 확인
 
 ```bash
-cd backend
-./gradlew test --rerun          # 전체 테스트 (Docker 필요)
-./gradlew test --rerun          # 리포트: build/reports/cucumber/cucumber.html
+cd backend && ./gradlew test --rerun
 ```
+
+### 3. Phase 1 Cucumber 인수 테스트 작성
+
+`src/test/resources/features/identity/` 디렉터리 생성 후 시나리오 작성.
+
+```gherkin
+Feature: 인증
+
+  Scenario: 이메일로 회원가입하면 JWT를 발급받는다
+    Given 미가입 이메일 "test@maeum.com"이 있다
+    When 비밀번호 "password123"으로 회원가입을 요청한다
+    Then HTTP 상태코드 201을 받는다
+    And 응답에 accessToken이 포함되어 있다
+
+  Scenario: GUEST 토큰을 발급받는다
+    When GUEST 토큰 발급을 요청한다
+    Then HTTP 상태코드 200을 받는다
+    And 응답에 accessToken이 포함되어 있다
+
+  Scenario: 중복 이메일로 회원가입하면 실패한다
+    Given "test@maeum.com"으로 이미 가입된 유저가 있다
+    When 동일한 이메일로 회원가입을 요청한다
+    Then HTTP 상태코드 409를 받는다
+```
+
+Step 클래스: `IdentitySteps.java`
+TestAdapter 확장: `AuthTestAdapter.java` (`POST /api/v1/auth/register`, `POST /api/v1/auth/guest`)
+
+### 1. `Character`, `Space` Domain Entity 작성
+
+`village/domain/` 패키지 생성 후 Domain Entity 설계.
+ERD 확인 후 `character`, `space` 테이블과 대응하는 Domain Entity + Port 정의.
+
+### 2. `UserRegisteredEvent` → 캐릭터/공간 자동 생성
+
+Identity → Village 이벤트 흐름 구현.
+`RegisterUserService`에서 이벤트 발행, Village에서 수신하여 기본 캐릭터/공간 생성.
+
+### 3. Cucumber: 가입 후 캐릭터/공간 존재 확인 시나리오
 
 ---
 
@@ -52,38 +111,84 @@ cd backend
 | Testcontainers | 2.x (Spring BOM 관리) |
 | Cucumber | 7.34.2 |
 | JJWT | 0.12.6 |
+| Flyway | Spring BOM 관리 |
+
+---
+
+## 패키지 구조 현황
+
+```
+com.maeum.gohyang/
+├── global/
+│   └── error/
+│       ├── BusinessException.java
+│       ├── ErrorResponse.java
+│       └── GlobalExceptionHandler.java
+└── identity/
+    ├── domain/
+    │   ├── User.java
+    │   ├── UserType.java
+    │   ├── LocalAuthCredentials.java
+    │   ├── IdentityErrorCode.java
+    │   └── DuplicateEmailException.java
+    ├── application/
+    │   ├── port/in/
+    │   │   ├── RegisterUserUseCase.java
+    │   │   └── IssueGuestTokenUseCase.java
+    │   ├── port/out/
+    │   │   ├── SaveUserPort.java
+    │   │   ├── CheckEmailDuplicatePort.java
+    │   │   └── IssueTokenPort.java
+    │   └── service/
+    │       ├── RegisterUserService.java
+    │       └── IssueGuestTokenService.java
+    └── adapter/
+        ├── in/
+        │   ├── web/
+        │   │   ├── RegisterRequest.java
+        │   │   ├── AuthResponse.java
+        │   │   └── AuthController.java       ← ❌ 미완성
+        │   └── security/
+        │       ├── JwtClaims.java
+        │       ├── JwtProvider.java
+        │       ├── JwtFilter.java
+        │       ├── SecurityConfig.java
+        │       └── SecurityProperties.java
+        └── out/
+            └── persistence/
+                ├── UserJpaEntity.java
+                ├── UserLocalAuthJpaEntity.java
+                ├── UserJpaRepository.java
+                ├── UserLocalAuthJpaRepository.java
+                └── UserPersistenceAdapter.java
+```
 
 ---
 
 ## TestAdapter 구조 (Spring Boot 4.x 기준)
 
 ```
-HealthCheckSteps         "헬스체크 API를 호출한다" — 비즈니스 언어만 안다
+HealthCheckSteps / IdentitySteps  ← 비즈니스 언어만 안다
     ↓
-ActuatorTestAdapter      /actuator/health, status 파싱 — URL과 파싱 방법을 안다
+ActuatorTestAdapter / AuthTestAdapter  ← URL과 파싱 방법을 안다
     ↓
-TestAdapter              RestClient GET/POST, 인증 헤더 — HTTP 방법을 안다
+TestAdapter              ← RestClient GET/POST, 인증 헤더
     ↓
-ScenarioContext          마지막 응답 보관 — 상태 저장만 한다
+ScenarioContext          ← 마지막 응답 보관
 ```
-
-- `TestAdapter`는 `@Value("${local.server.port}")`로 랜덤 포트를 주입받아 `RestClient`를 생성
-- `exchange()` 콜백으로 4xx/5xx 응답도 예외 없이 `ResponseEntity<String>`으로 반환
 
 ---
 
-## 현재 Phase
+## 추가된 컨벤션 / 학습 문서
 
-**Phase 0 — Foundation 진행 전**
-
-전체 구현 로드맵: `docs/planning/phases.md`
-
-**지금 당장 할 것:**
-1. Flyway 의존성 추가 (`build.gradle.kts`)
-2. `V1__initial_schema.sql` 작성 (ERD 기반 전체 스키마)
-3. 앱 기동 확인
-
-새 도메인 구현 시 반드시 `CLAUDE.md`의 워크플로우(5.1)를 따른다.
+| 문서 | 추가 내용 |
+|------|----------|
+| `coding.md` | 정적 팩토리 메서드, Port 메서드 비즈니스 언어, 파라미터 객체, ErrorCode enum, JPA Entity `@Builder` 금지, Import 규칙, Security 경로 yml 관리, ResponseEntity vs @ResponseStatus, toCommand() 네이밍 |
+| `learning/08` | Domain Entity 설계 패턴 |
+| `learning/10` | JPA Persistence Entity 패턴 |
+| `learning/11` | Security 설정 패턴 |
+| `learning/12` | Spring Boot 4.x 모듈형 자동 구성 — Flyway 누락 사례 |
+| `decisions/002` | GUEST 인증 패턴 선택 (명시적 Guest 토큰 vs 무토큰 vs 서버 자동 발급) |
 
 ---
 
@@ -92,12 +197,9 @@ ScenarioContext          마지막 응답 보관 — 상태 저장만 한다
 | 필요할 때 | 파일 |
 |-----------|------|
 | 아키텍처 원칙 | `docs/architecture/architecture.md` |
-| 도메인 경계 | `docs/architecture/domain-boundary.md` |
 | 패키지 구조 | `docs/architecture/package-structure.md` |
-| ERD (설계 결정 포함) | `docs/architecture/erd.md` |
+| ERD | `docs/architecture/erd.md` |
 | 코딩 컨벤션 | `docs/conventions/coding.md` |
 | 테스팅 전략 | `docs/conventions/testing.md` |
-| 구현 로드맵 (Phase) | `docs/planning/phases.md` |
-| 작업 히스토리 | `docs/history/YYYY-MM-DD.md` |
-| Spring Boot 4.x 업그레이드 기록 | `docs/learning/07-spring-boot-4-upgrade.md` |
-| 세팅 학습 기록 | `docs/learning/` |
+| 구현 로드맵 | `docs/planning/phases.md` |
+| Happy Path 시나리오 | `docs/planning/phases.md` 상단 |

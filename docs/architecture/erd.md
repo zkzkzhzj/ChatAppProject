@@ -16,7 +16,7 @@
 
 | Context | 소유 테이블 |
 |---------|------------|
-| Identity | user, user_social_auth |
+| Identity | users, user_local_auth, user_social_auth |
 | Village | space, space_placement, character*, character_equipment* |
 | Economy - Wallet | point_wallet, point_transaction |
 | Economy - Inventory | item_definition, user_item_inventory |
@@ -33,9 +33,18 @@
 ## 3. Identity Context
 
 ```
-USER {
+USERS {
     Long id PK
     Enum type                -- MEMBER / GUEST
+    DateTime created_at
+    DateTime deleted_at
+}
+
+USER_LOCAL_AUTH {
+    Long id PK
+    Long user_id FK UNIQUE   -- Identity 내부 FK, USERS와 1:1
+    String email UNIQUE
+    String password_hash
     DateTime created_at
     DateTime deleted_at
 }
@@ -47,10 +56,16 @@ USER_SOCIAL_AUTH {
     String provider_id
     DateTime created_at
     DateTime deleted_at
+    UNIQUE (provider, provider_id)
 }
 
-USER ||--|{ USER_SOCIAL_AUTH
+USERS ||--o| USER_LOCAL_AUTH  : "1:0..1 (소셜 전용 유저는 없을 수 있음)"
+USERS ||--|{ USER_SOCIAL_AUTH
 ```
+
+> **설계 결정:** 이메일/비밀번호 인증 정보는 `USERS` 테이블이 아닌 `USER_LOCAL_AUTH`에 분리 저장한다.
+> `USER_SOCIAL_AUTH`와 대칭 구조를 유지하여 인증 수단이 추가되어도 `USERS` 테이블은 변경이 없다.
+> 소셜 전용 계정은 `USER_LOCAL_AUTH` 행이 없을 수 있으므로 1:0..1 관계다.
 
 ---
 
@@ -274,6 +289,8 @@ IDEMPOTENCY_REQUEST {
 
 | 항목 | 기존 | 변경 후 | 이유 |
 |------|------|---------|------|
+| USER 테이블명 | user | users | PostgreSQL 예약어(`user`) 충돌 방지 |
+| USER_LOCAL_AUTH | 없음 | 신규 추가 | 이메일/비밀번호를 USER_SOCIAL_AUTH와 대칭 구조로 분리. 인증 수단 추가 시 USERS 테이블 변경 불필요 |
 | SPACE_ITEM | inventory_id FK | SPACE_PLACEMENT + item_definition_id (ID 참조) | 이름 변경 + 도메인 간 FK 제거 |
 | CHARACTER_ITEM | inventory_id FK | CHARACTER_EQUIPMENT + item_definition_id (ID 참조) | 이름 변경 + 도메인 간 FK 제거 |
 | ITEM | 이름 | ITEM_DEFINITION | 카탈로그 역할 명확히 |
@@ -297,7 +314,8 @@ IDEMPOTENCY_REQUEST {
 
 | 테이블 A | 관계 | 테이블 B | 비고 |
 |---------|------|---------|------|
-| USER | 1 : 0..N | USER_SOCIAL_AUTH | 소셜 로그인 미연동 유저 존재 가능 |
+| USERS | 1 : 0..1 | USER_LOCAL_AUTH | 소셜 전용 유저는 로컬 인증 없을 수 있음 |
+| USERS | 1 : 0..N | USER_SOCIAL_AUTH | 소셜 로그인 미연동 유저 존재 가능 |
 | CHARACTER | 1 : 0..N | CHARACTER_EQUIPMENT | 아이템 미착용 캐릭터 존재 가능 |
 | SPACE | 1 : 0..N | SPACE_PLACEMENT | 빈 공간 존재 가능 |
 | ITEM_DEFINITION | 1 : 0..N | USER_ITEM_INVENTORY | 아무도 구매 안 한 아이템 존재 가능 |

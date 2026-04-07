@@ -64,6 +64,11 @@ jwt:
   access-token-expiry-ms: ${JWT_ACCESS_EXPIRY:3600000}    # 1시간
   refresh-token-expiry-ms: ${JWT_REFRESH_EXPIRY:604800000} # 7일
 
+security:
+  common-public-paths:
+    - /api/v1/auth/register
+    - /api/v1/auth/guest
+
 logging:
   level:
     root: INFO

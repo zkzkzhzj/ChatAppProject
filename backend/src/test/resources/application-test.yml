@@ -21,7 +21,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: true
 
 management:
@@ -32,6 +32,10 @@ management:
     # 실제 Redis 연결 자체는 @DynamicPropertySource로 정상 주입된다.
     redis:
       enabled: false
+
+security:
+  env-public-paths:
+    - /actuator/health
 
 logging:
   level:

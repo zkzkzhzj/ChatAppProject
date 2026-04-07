@@ -79,6 +79,14 @@ public class TestAdapter {
         return response;
     }
 
+    public ResponseEntity<String> post(String path) {
+        ResponseEntity<String> response = getRestClient().post()
+                .uri(path)
+                .exchange((req, res) -> toResponseEntity(res));
+        scenarioContext.setLastResponse(response);
+        return response;
+    }
+
     public ResponseEntity<String> post(String path, Object body) {
         ResponseEntity<String> response = getRestClient().post()
                 .uri(path)

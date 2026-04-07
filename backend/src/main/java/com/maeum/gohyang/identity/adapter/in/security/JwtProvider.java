@@ -1,7 +1,8 @@
 package com.maeum.gohyang.identity.adapter.in.security;
 
+import com.maeum.gohyang.global.security.AuthenticatedUser;
+import com.maeum.gohyang.global.security.UserType;
 import com.maeum.gohyang.identity.application.port.out.IssueTokenPort;
-import com.maeum.gohyang.identity.domain.UserType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -44,10 +45,10 @@ public class JwtProvider implements IssueTokenPort {
     }
 
     /**
-     * 토큰을 파싱해 JwtClaims를 반환한다.
+     * 토큰을 파싱해 AuthenticatedUser를 반환한다.
      * 유효하지 않은 토큰이면 empty를 반환한다.
      */
-    public Optional<JwtClaims> parse(String token) {
+    public Optional<AuthenticatedUser> parse(String token) {
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(secretKey)
@@ -63,7 +64,7 @@ public class JwtProvider implements IssueTokenPort {
                 userId = Long.valueOf(claims.getSubject());
             }
 
-            return Optional.of(new JwtClaims(userId, role));
+            return Optional.of(new AuthenticatedUser(userId, role));
         } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
         }

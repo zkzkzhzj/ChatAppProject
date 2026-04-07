@@ -1,5 +1,6 @@
 package com.maeum.gohyang.identity.adapter.in.security;
 
+import com.maeum.gohyang.global.security.AuthenticatedUser;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,10 +30,10 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         extractToken(request)
                 .flatMap(jwtProvider::parse)
-                .ifPresent(claims -> {
-                    var authority = new SimpleGrantedAuthority("ROLE_" + claims.role().name());
+                .ifPresent(user -> {
+                    var authority = new SimpleGrantedAuthority("ROLE_" + user.role().name());
                     var authentication = new UsernamePasswordAuthenticationToken(
-                            claims, null, List.of(authority)
+                            user, null, List.of(authority)
                     );
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 });

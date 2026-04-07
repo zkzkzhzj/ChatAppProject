@@ -1,6 +1,6 @@
 package com.maeum.gohyang.identity.adapter.out.persistence;
 
-import com.maeum.gohyang.identity.domain.UserType;
+import com.maeum.gohyang.global.security.UserType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

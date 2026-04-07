@@ -57,6 +57,23 @@ List<Item> loadItemsByUserId(Long userId);
 구현체(JpaAdapter)는 내부에서 `existsByEmail`을 써도 무방하다.
 Port 인터페이스의 이름만 비즈니스 언어로 유지하면 된다.
 
+**Port 이름이 대상을 이미 선언하므로 메서드명에서 반복하지 않는다.**
+`ByUserId`, `ByEmail` 같은 기술적 수식어도 메서드명에서 제거한다.
+파라미터가 이미 `userId`임을 알리고, Port 이름이 대상(Character, Space 등)을 선언한다.
+
+```java
+// ❌ Port 이름(LoadCharacterPort)과 메서드명(loadCharacterByUserId)이 중복
+Optional<Character> loadCharacterByUserId(long userId);
+
+// ❌ ByUserId는 JPA 파생 쿼리 냄새
+Optional<Character> loadByUserId(long userId);
+
+// ✅ Port 이름이 Character임을 선언, 메서드는 행위와 수식자만
+Optional<Character> load(long userId);            // 단일 조회
+Optional<Space> loadDefault(long userId);         // "기본" 공간 조회
+List<Item> loadAll(long userId);                  // 목록 조회
+```
+
 ---
 
 ## 2. DTO

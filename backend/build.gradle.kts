@@ -28,6 +28,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	implementation("org.springframework.kafka:spring-kafka")
+	// spring-boot-kafka: Spring Boot 4.x에서 Kafka 자동 구성이 별도 모듈로 분리됨.
+	// spring-kafka만으로는 KafkaTemplate 빈이 자동 생성되지 않는다.
+	implementation("org.springframework.boot:spring-boot-kafka")
 
 	// JWT (JJWT)
 	implementation("io.jsonwebtoken:jjwt-api:0.12.6")

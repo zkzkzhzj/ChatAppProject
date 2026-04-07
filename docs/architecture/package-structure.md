@@ -120,8 +120,15 @@ economy/
 ```
 global/
 ├── config/              # Spring Configuration (WebSocket, Kafka, Redis 등)
-└── error/               # GlobalExceptionHandler, 커스텀 예외 베이스 클래스
+├── error/               # GlobalExceptionHandler, 커스텀 예외 베이스 클래스
+├── alert/               # AlertPort, LogAlertAdapter — 운영 알람 (개발자/운영팀 향)
+├── infra/
+│   ├── outbox/          # OutboxJpaEntity, OutboxKafkaRelay — Transactional Outbox 인프라
+│   └── idempotency/     # ProcessedEventJpaEntity — Kafka 컨슈머 멱등성
+└── security/            # AuthenticatedUser, UserType — 도메인 간 공유되는 인증 타입만
 ```
+
+`global/security/`에 넣는 기준: **모든 도메인의 Controller가 `@AuthenticationPrincipal`로 참조해야 하는 타입만.** JWT 필터, Security 설정 같은 인프라 구현은 여전히 `identity/adapter/in/security/`에 있다.
 
 ### 4.1 global/에 넣으면 안 되는 것
 
@@ -131,7 +138,8 @@ global/
 
 ### 4.2 이동된 패키지
 
-- **security/** → `identity/adapter/` 내부로 이동. JWT 필터, Security 설정은 인증/인가 도메인의 인프라 구현이다.
+- **security/ (인프라)** → `identity/adapter/in/security/`로 이동. JWT 필터, SecurityConfig, JwtProvider는 인증/인가 도메인의 인프라 구현이다.
+- **security/ (공유 타입)** → `global/security/`에 위치. `AuthenticatedUser`, `UserType`은 모든 도메인 Controller에서 `@AuthenticationPrincipal`로 사용되므로 global에 둔다. identity에 두면 village, economy 등이 identity에 직접 의존하게 된다.
 - **notification/** → 최상위 독립 모듈로 승격. 현재는 단순 이벤트 구독 → FCM 발송이지만, 알림 수신 설정, 재시도 정책, 중복 발송 방지 등 자체 정책이 생길 가능성이 높다. global에 묻어두면 나중에 분리하기 어렵다.
 
 ---

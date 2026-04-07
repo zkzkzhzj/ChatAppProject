@@ -36,12 +36,12 @@ spring:
       group-id: gohyang
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.maeum.gohyang.*"
+      # String으로 통일: 직렬화/역직렬화는 도메인 코드가 ObjectMapper로 직접 처리한다.
+      # JsonSerializer는 __TypeId__ 헤더를 강제해 Java 외 컨슈머 추가 시 문제가 된다.
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
   security:
     filter:

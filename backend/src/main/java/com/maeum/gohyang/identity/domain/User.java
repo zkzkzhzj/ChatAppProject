@@ -1,5 +1,6 @@
 package com.maeum.gohyang.identity.domain;
 
+import com.maeum.gohyang.global.security.UserType;
 import java.time.LocalDateTime;
 
 /**

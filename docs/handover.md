@@ -5,100 +5,86 @@
 
 ---
 
-## 현재 상태 (2026-04-07 기준, 2차 업데이트)
+## 현재 상태 (2026-04-07 기준, 3차 업데이트)
 
 ### 완료된 것
 
-**Phase 0 — Foundation**
-- Flyway 의존성 추가 (`flyway-core` + `flyway-database-postgresql`)
-- `V1__initial_schema.sql` 작성 (전체 ERD 기반)
-  - `users` 테이블명 사용 (PostgreSQL 예약어 `user` 회피)
-  - `user_local_auth` 테이블 추가 (이메일/비밀번호 인증 분리, `user_social_auth`와 대칭 구조)
-- 테스트 `ddl-auto: create-drop` → `validate` 전환
-- 테스트 통과 확인
+**Phase 0 — Foundation** ✅
+- Flyway 의존성 추가, `V1__initial_schema.sql` (전체 ERD 기반)
+- 테스트 `ddl-auto: validate` 전환
 
-**Phase 1 — Identity (완료)**
+**Phase 1 — Identity** ✅
 
 | 레이어 | 파일 | 상태 |
 |--------|------|------|
-| Domain | `User`, `UserType`, `LocalAuthCredentials`, `IdentityErrorCode`, `DuplicateEmailException` | ✅ |
+| Domain | `User`, `UserType`(→global/security), `LocalAuthCredentials`, `IdentityErrorCode`, `DuplicateEmailException` | ✅ |
 | Port (in) | `RegisterUserUseCase`, `IssueGuestTokenUseCase` | ✅ |
-| Port (out) | `SaveUserPort`, `CheckEmailDuplicatePort`, `IssueTokenPort` | ✅ |
-| Service | `RegisterUserService`, `IssueGuestTokenService` | ✅ |
-| Persistence | `UserJpaEntity`, `UserLocalAuthJpaEntity`, `UserJpaRepository`, `UserLocalAuthJpaRepository`, `UserPersistenceAdapter` | ✅ |
-| Security | `JwtProvider`, `JwtFilter`, `JwtClaims`, `SecurityConfig`, `SecurityProperties` | ✅ |
-| Web Adapter | `RegisterRequest`, `AuthResponse` | ✅ |
-| Web Adapter | `AuthController` | ✅ |
-| Cucumber | 회원가입 → JWT 발급 시나리오 | ✅ |
+| Port (out) | `SaveUserPort`, `CheckEmailDuplicatePort`, `IssueTokenPort`, `SaveOutboxEventPort` | ✅ |
+| Service | `RegisterUserService`(Outbox 포함), `IssueGuestTokenService` | ✅ |
+| Persistence | `UserJpaEntity`, `UserLocalAuthJpaEntity`, `UserJpaRepository`, `UserLocalAuthJpaRepository`, `UserPersistenceAdapter`, `OutboxPersistenceAdapter` | ✅ |
+| Security | `JwtProvider`(Optional\<AuthenticatedUser\>), `JwtFilter`, `SecurityConfig`, `SecurityProperties` | ✅ |
+| Web Adapter | `AuthController`, `RegisterRequest`, `AuthResponse` | ✅ |
+| Cucumber | 회원가입/중복/게스트 토큰 시나리오 | ✅ |
+
+**Global Infrastructure** ✅
+
+| 패키지 | 내용 |
+|--------|------|
+| `global/security/` | `UserType`(enum), `AuthenticatedUser`(record) — identity 크로스 도메인 의존 제거 |
+| `global/alert/` | `AlertPort`, `AlertContext`, `LogAlertAdapter` — 운영 알람 전용 인터페이스 |
+| `global/infra/outbox/` | `OutboxJpaEntity`, `OutboxJpaRepository`, `OutboxKafkaRelay`(@Scheduled 1s) |
+| `global/infra/idempotency/` | `ProcessedEventJpaEntity`, `ProcessedEventJpaRepository` |
+
+**Phase 2 — Village** ✅
+
+| 레이어 | 파일 | 상태 |
+|--------|------|------|
+| Domain | `Character`, `Space`, `SpaceTheme`, `VillageErrorCode`, 예외 3종 | ✅ |
+| Port (in) | `InitializeUserVillageUseCase`, `GetMyCharacterUseCase`, `GetMySpaceUseCase` | ✅ |
+| Port (out) | `SaveCharacterPort`, `LoadCharacterPort`, `SaveSpacePort`, `LoadSpacePort` | ✅ |
+| Service | `InitializeUserVillageService`, `GetMyCharacterService`, `GetMySpaceService` | ✅ |
+| Persistence | `CharacterJpaEntity`, `SpaceJpaEntity`, `CharacterJpaRepository`, `SpaceJpaRepository`, `VillagePersistenceAdapter` | ✅ |
+| Messaging | `UserRegisteredEventConsumer`(Kafka, 멱등성 보장) | ✅ |
+| Web Adapter | `VillageController`, `CharacterResponse`, `SpaceResponse` | ✅ |
+| Cucumber | 회원가입 → Kafka → 캐릭터/공간 생성 비동기 시나리오 | ✅ |
 
 ---
 
-## Happy Path 구현 방향 (확정)
+## 핵심 설계 결정 요약
 
-**목표:** 로컬에서 실행했을 때 마을에 입장하고, 캐릭터가 이동하고, NPC가 보이고, 대화를 시도할 수 있어야 한다.
+### 이벤트 흐름
+```
+RegisterUserService
+  → outbox_event 테이블 저장 (같은 트랜잭션)
+  → OutboxKafkaRelay (@Scheduled 1s) → Kafka "user.registered" 토픽
+  → UserRegisteredEventConsumer → InitializeUserVillageService
+  → character + space 테이블 저장
+```
 
-**UI/디자인은 우선순위가 아니다.** 그럴듯한 비주얼 없어도 된다. 기능이 동작하면 완료 조건을 충족한다. 디자인과 에셋은 Happy Path 완료 이후에 별도로 정한다.
+### 게스트 정책
+- `GET /api/v1/village/characters/me`: 게스트 → `Character.defaultGuest()` 반환 (DB 저장 없음)
+- `GET /api/v1/village/spaces/me`: 게스트 → `GuestNoPersonalSpaceException` (403)
 
-즉, Phase 2~3을 구현할 때 "보기 좋은가"가 아니라 **"로컬에서 기능이 돌아가는가"**를 완료 기준으로 삼는다.
+### Spring Boot 4.x 주의사항
+- Kafka 자동설정: `spring-boot-kafka` 별도 의존성 필요 (Flyway처럼 모듈 분리됨)
+- Cassandra 자동설정: `application-test.yml`에서 제외 처리
+- Jackson: `tools.jackson.*` 패키지 (3.x, 기존 `com.fasterxml.jackson`은 2.x)
+- JSONB 매핑: `@JdbcTypeCode(SqlTypes.JSON)` 필요 (`columnDefinition = "jsonb"`만으로는 바인딩 오류)
 
 ---
 
-## 다음 할 것 — Phase 2 (Village)
+## 다음 할 것 — Phase 3 (WebSocket 실시간 이동)
 
+`docs/planning/phases.md` 참조.
 
-`identity/adapter/in/web/AuthController.java` 작성.
-- `POST /api/v1/auth/register` → `RegisterUserUseCase` 호출, `201 Created` + `AuthResponse`
-- `POST /api/v1/auth/guest` → `IssueGuestTokenUseCase` 호출, `200 OK` + `AuthResponse`
+**Phase 3 목표:** 캐릭터가 마을 맵에서 실시간으로 이동하는 것을 다른 유저가 볼 수 있어야 한다.
 
-컨벤션:
-- `register`는 `ResponseEntity<AuthResponse>` (나중에 Location 헤더 추가 가능성)
-- `guest`는 `@ResponseStatus(HttpStatus.OK) + AuthResponse` (항상 200 고정)
-- `@Valid @RequestBody`로 입력 검증
-
-### 2. 컴파일 + 테스트 통과 확인
-
-```bash
-cd backend && ./gradlew test --rerun
-```
-
-### 3. Phase 1 Cucumber 인수 테스트 작성
-
-`src/test/resources/features/identity/` 디렉터리 생성 후 시나리오 작성.
-
-```gherkin
-Feature: 인증
-
-  Scenario: 이메일로 회원가입하면 JWT를 발급받는다
-    Given 미가입 이메일 "test@maeum.com"이 있다
-    When 비밀번호 "password123"으로 회원가입을 요청한다
-    Then HTTP 상태코드 201을 받는다
-    And 응답에 accessToken이 포함되어 있다
-
-  Scenario: GUEST 토큰을 발급받는다
-    When GUEST 토큰 발급을 요청한다
-    Then HTTP 상태코드 200을 받는다
-    And 응답에 accessToken이 포함되어 있다
-
-  Scenario: 중복 이메일로 회원가입하면 실패한다
-    Given "test@maeum.com"으로 이미 가입된 유저가 있다
-    When 동일한 이메일로 회원가입을 요청한다
-    Then HTTP 상태코드 409를 받는다
-```
-
-Step 클래스: `IdentitySteps.java`
-TestAdapter 확장: `AuthTestAdapter.java` (`POST /api/v1/auth/register`, `POST /api/v1/auth/guest`)
-
-### 1. `Character`, `Space` Domain Entity 작성
-
-`village/domain/` 패키지 생성 후 Domain Entity 설계.
-ERD 확인 후 `character`, `space` 테이블과 대응하는 Domain Entity + Port 정의.
-
-### 2. `UserRegisteredEvent` → 캐릭터/공간 자동 생성
-
-Identity → Village 이벤트 흐름 구현.
-`RegisterUserService`에서 이벤트 발행, Village에서 수신하여 기본 캐릭터/공간 생성.
-
-### 3. Cucumber: 가입 후 캐릭터/공간 존재 확인 시나리오
+구현 순서 (예상):
+1. STOMP WebSocket 설정 (`WebSocketConfig`, `/ws` 엔드포인트)
+2. 마을 입장/퇴장 이벤트 처리
+3. 캐릭터 이동 메시지 브로드캐스트
+4. Redis Pub/Sub 또는 인메모리 브로커로 상태 공유
+5. 프론트엔드 연동 (Next.js + Phaser.js)
 
 ---
 
@@ -108,6 +94,7 @@ Identity → Village 이벤트 흐름 구현.
 |------|------|
 | Spring Boot | 4.0.3 |
 | Java | 21 |
+| spring-kafka | 4.0.3 |
 | Testcontainers | 2.x (Spring BOM 관리) |
 | Cucumber | 7.34.2 |
 | JJWT | 0.12.6 |
@@ -120,61 +107,61 @@ Identity → Village 이벤트 흐름 구현.
 ```
 com.maeum.gohyang/
 ├── global/
-│   └── error/
-│       ├── BusinessException.java
-│       ├── ErrorResponse.java
-│       └── GlobalExceptionHandler.java
-└── identity/
+│   ├── alert/
+│   │   ├── AlertContext.java
+│   │   ├── AlertPort.java
+│   │   └── LogAlertAdapter.java
+│   ├── error/
+│   │   ├── BusinessException.java
+│   │   ├── ErrorResponse.java
+│   │   └── GlobalExceptionHandler.java
+│   ├── infra/
+│   │   ├── outbox/
+│   │   │   ├── OutboxEventStatus.java
+│   │   │   ├── OutboxJpaEntity.java
+│   │   │   ├── OutboxJpaRepository.java
+│   │   │   └── OutboxKafkaRelay.java
+│   │   └── idempotency/
+│   │       ├── ProcessedEventJpaEntity.java
+│   │       └── ProcessedEventJpaRepository.java
+│   └── security/
+│       ├── AuthenticatedUser.java
+│       └── UserType.java
+├── identity/
+│   └── ... (Phase 1 완료)
+└── village/
     ├── domain/
-    │   ├── User.java
-    │   ├── UserType.java
-    │   ├── LocalAuthCredentials.java
-    │   ├── IdentityErrorCode.java
-    │   └── DuplicateEmailException.java
+    │   ├── Character.java
+    │   ├── Space.java
+    │   ├── SpaceTheme.java
+    │   ├── VillageErrorCode.java
+    │   └── *Exception.java (3종)
     ├── application/
-    │   ├── port/in/
-    │   │   ├── RegisterUserUseCase.java
-    │   │   └── IssueGuestTokenUseCase.java
-    │   ├── port/out/
-    │   │   ├── SaveUserPort.java
-    │   │   ├── CheckEmailDuplicatePort.java
-    │   │   └── IssueTokenPort.java
-    │   └── service/
-    │       ├── RegisterUserService.java
-    │       └── IssueGuestTokenService.java
+    │   ├── port/in/ (UseCase 3종)
+    │   ├── port/out/ (Port 4종)
+    │   └── service/ (Service 3종)
     └── adapter/
         ├── in/
-        │   ├── web/
-        │   │   ├── RegisterRequest.java
-        │   │   ├── AuthResponse.java
-        │   │   └── AuthController.java       ← ❌ 미완성
-        │   └── security/
-        │       ├── JwtClaims.java
-        │       ├── JwtProvider.java
-        │       ├── JwtFilter.java
-        │       ├── SecurityConfig.java
-        │       └── SecurityProperties.java
-        └── out/
-            └── persistence/
-                ├── UserJpaEntity.java
-                ├── UserLocalAuthJpaEntity.java
-                ├── UserJpaRepository.java
-                ├── UserLocalAuthJpaRepository.java
-                └── UserPersistenceAdapter.java
+        │   ├── messaging/UserRegisteredEventConsumer.java
+        │   └── web/VillageController.java + DTO 2종
+        └── out/persistence/
+            ├── CharacterJpaEntity.java + Repository
+            ├── SpaceJpaEntity.java + Repository
+            └── VillagePersistenceAdapter.java
 ```
 
 ---
 
-## TestAdapter 구조 (Spring Boot 4.x 기준)
+## TestAdapter 구조
 
 ```
-HealthCheckSteps / IdentitySteps  ← 비즈니스 언어만 안다
+HealthCheckSteps / IdentitySteps / VillageSteps  ← 비즈니스 언어만 안다
     ↓
-ActuatorTestAdapter / AuthTestAdapter  ← URL과 파싱 방법을 안다
+ActuatorTestAdapter / AuthTestAdapter / VillageTestAdapter  ← URL, 폴링 로직
     ↓
 TestAdapter              ← RestClient GET/POST, 인증 헤더
     ↓
-ScenarioContext          ← 마지막 응답 보관
+ScenarioContext          ← lastResponse, currentAccessToken, currentEmail
 ```
 
 ---
@@ -183,12 +170,12 @@ ScenarioContext          ← 마지막 응답 보관
 
 | 문서 | 추가 내용 |
 |------|----------|
-| `coding.md` | 정적 팩토리 메서드, Port 메서드 비즈니스 언어, 파라미터 객체, ErrorCode enum, JPA Entity `@Builder` 금지, Import 규칙, Security 경로 yml 관리, ResponseEntity vs @ResponseStatus, toCommand() 네이밍 |
-| `learning/08` | Domain Entity 설계 패턴 |
-| `learning/10` | JPA Persistence Entity 패턴 |
-| `learning/11` | Security 설정 패턴 |
+| `coding.md` | Port 메서드 네이밍: Port 이름에 엔티티 선언됨, 메서드는 액션만 (`load`, `save`), `ByXxx` 금지 |
 | `learning/12` | Spring Boot 4.x 모듈형 자동 구성 — Flyway 누락 사례 |
-| `decisions/002` | GUEST 인증 패턴 선택 (명시적 Guest 토큰 vs 무토큰 vs 서버 자동 발급) |
+| `learning/13` | Global AlertPort 패턴 — 운영 알람 vs 유저 알림 분리 |
+| `decisions/003` | Transactional Outbox + Kafka 이벤트 흐름 |
+| `decisions/004` | Global AlertPort 설계 |
+| `decisions/005` | 게스트 마을 상태 정책 |
 
 ---
 
@@ -197,9 +184,8 @@ ScenarioContext          ← 마지막 응답 보관
 | 필요할 때 | 파일 |
 |-----------|------|
 | 아키텍처 원칙 | `docs/architecture/architecture.md` |
-| 패키지 구조 | `docs/architecture/package-structure.md` |
+| 패키지 구조 상세 | `docs/architecture/package-structure.md` |
 | ERD | `docs/architecture/erd.md` |
 | 코딩 컨벤션 | `docs/conventions/coding.md` |
 | 테스팅 전략 | `docs/conventions/testing.md` |
 | 구현 로드맵 | `docs/planning/phases.md` |
-| Happy Path 시나리오 | `docs/planning/phases.md` 상단 |

@@ -27,28 +27,28 @@ public class IdentitySteps {
     private ScenarioContext scenarioContext;
 
     @Given("미가입 이메일 {string}이 있다")
+    @Given("미가입 이메일 {string}가 있다")
     public void 미가입_이메일이_있다(String email) {
         // DB가 비어있는 상태이므로 별도 작업 불필요.
-        // Given 단계를 명시하는 이유: 시나리오의 전제 조건("이 이메일은 아직 가입 전")을 문서화하기 위함.
+        // 이메일을 ScenarioContext에 저장해 이후 When 단계에서 사용한다.
+        scenarioContext.setCurrentEmail(email);
     }
 
     @Given("{string}으로 이미 가입된 유저가 있다")
     public void 이미_가입된_유저가_있다(String email) {
+        scenarioContext.setCurrentEmail(email);
         authTestAdapter.requestRegister(email, "password123");
     }
 
     @When("비밀번호 {string}으로 회원가입을 요청한다")
+    @When("비밀번호 {string}로 회원가입을 요청한다")
     public void 비밀번호로_회원가입을_요청한다(String password) {
-        // ScenarioContext에서 이메일을 읽으려면 Given 단계에서 저장이 필요하지만,
-        // feature 파일에서 이메일을 When 단계로 넘기지 않는 구조라
-        // 현재 시나리오의 이메일("test@maeum.com")을 그대로 사용한다.
-        // 시나리오가 늘어나면 ScenarioContext에 이메일을 저장하는 방식으로 확장한다.
-        authTestAdapter.requestRegister("test@maeum.com", password);
+        authTestAdapter.requestRegister(scenarioContext.getCurrentEmail(), password);
     }
 
     @When("동일한 이메일로 회원가입을 요청한다")
     public void 동일한_이메일로_회원가입을_요청한다() {
-        authTestAdapter.requestRegister("duplicate@maeum.com", "password123");
+        authTestAdapter.requestRegister(scenarioContext.getCurrentEmail(), "password123");
     }
 
     @When("GUEST 토큰 발급을 요청한다")

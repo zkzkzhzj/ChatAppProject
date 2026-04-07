@@ -20,6 +20,19 @@ public class ScenarioContext {
 
     private ResponseEntity<String> lastResponse;
 
+    /**
+     * 현재 시나리오에서 인증에 사용할 Access Token.
+     * 회원가입/로그인 성공 후 AuthTestAdapter가 설정한다.
+     * 이후 인증이 필요한 API 호출(VillageTestAdapter 등)에서 자동으로 사용된다.
+     */
+    private String currentAccessToken;
+
+    /**
+     * 현재 시나리오에서 사용 중인 이메일.
+     * Given 단계에서 설정되고, When 단계의 회원가입 요청에서 사용된다.
+     */
+    private String currentEmail;
+
     public void setLastResponse(ResponseEntity<String> response) {
         this.lastResponse = response;
     }
@@ -40,5 +53,31 @@ public class ScenarioContext {
             throw new IllegalStateException("아직 HTTP 요청이 수행되지 않았습니다. API 호출 단계가 먼저 실행되어야 합니다.");
         }
         return lastResponse.getBody();
+    }
+
+    public void setCurrentAccessToken(String token) {
+        this.currentAccessToken = token;
+    }
+
+    public String getCurrentAccessToken() {
+        if (currentAccessToken == null) {
+            throw new IllegalStateException("인증 토큰이 없습니다. 회원가입 또는 로그인 단계가 먼저 실행되어야 합니다.");
+        }
+        return currentAccessToken;
+    }
+
+    public boolean hasAccessToken() {
+        return currentAccessToken != null && !currentAccessToken.isBlank();
+    }
+
+    public void setCurrentEmail(String email) {
+        this.currentEmail = email;
+    }
+
+    public String getCurrentEmail() {
+        if (currentEmail == null) {
+            throw new IllegalStateException("이메일이 설정되지 않았습니다. Given 단계에서 이메일을 먼저 설정해야 합니다.");
+        }
+        return currentEmail;
     }
 }

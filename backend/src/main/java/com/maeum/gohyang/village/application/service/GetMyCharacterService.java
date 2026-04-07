@@ -1,0 +1,23 @@
+package com.maeum.gohyang.village.application.service;
+
+import com.maeum.gohyang.village.application.port.in.GetMyCharacterUseCase;
+import com.maeum.gohyang.village.application.port.out.LoadCharacterPort;
+import com.maeum.gohyang.village.domain.Character;
+import com.maeum.gohyang.village.domain.CharacterNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class GetMyCharacterService implements GetMyCharacterUseCase {
+
+    private final LoadCharacterPort loadCharacterPort;
+
+    @Override
+    @Transactional(readOnly = true)
+    public Character execute(long userId) {
+        return loadCharacterPort.load(userId)
+                .orElseThrow(CharacterNotFoundException::new);
+    }
+}

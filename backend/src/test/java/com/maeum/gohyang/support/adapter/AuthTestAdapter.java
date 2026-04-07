@@ -6,6 +6,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 인증 엔드포인트를 테스트하기 위한 도메인별 TestAdapter.
@@ -13,7 +14,7 @@ import java.util.Map;
  * 역할:
  * - /api/v1/auth/* 엔드포인트 호출을 의미 있는 메서드 이름으로 감싼다.
  * - JSON 응답 파싱 로직을 이 클래스 안에 캡슐화한다.
- *   Step 정의는 파싱 방법이 아닌 비즈니스 의미("accessToken이 있다")에 집중한다.
+ * - 회원가입 성공 시 토큰을 ScenarioContext에 자동 저장한다.
  */
 @Component
 public class AuthTestAdapter {
@@ -32,6 +33,7 @@ public class AuthTestAdapter {
 
     public void requestRegister(String email, String password) {
         testAdapter.post(REGISTER_PATH, Map.of("email", email, "password", password));
+        findAccessToken().ifPresent(scenarioContext::setCurrentAccessToken);
     }
 
     public void requestGuestToken() {
@@ -39,32 +41,33 @@ public class AuthTestAdapter {
     }
 
     /**
-     * 마지막 응답 본문에서 accessToken 값을 반환한다.
-     *
-     * @throws IllegalStateException accessToken 필드가 없거나 파싱 실패 시
+     * 마지막 응답에서 accessToken을 찾는다. 없거나 파싱 실패 시 empty.
      */
-    public String getAccessToken() {
-        String body = scenarioContext.getLastResponseBody();
+    public Optional<String> findAccessToken() {
         try {
-            JsonNode root = objectMapper.readTree(body);
-            JsonNode tokenNode = root.get("accessToken");
-            if (tokenNode == null || tokenNode.isNull()) {
-                throw new IllegalStateException("응답에 accessToken 필드가 없습니다. 응답 본문: " + body);
+            String body = scenarioContext.getLastResponseBody();
+            JsonNode tokenNode = objectMapper.readTree(body).get("accessToken");
+            if (tokenNode == null || tokenNode.isNull() || tokenNode.asText().isBlank()) {
+                return Optional.empty();
             }
-            return tokenNode.asText();
-        } catch (IllegalStateException e) {
-            throw e;
+            return Optional.of(tokenNode.asText());
         } catch (Exception e) {
-            throw new IllegalStateException("응답 파싱에 실패했습니다. 응답 본문: " + body, e);
+            return Optional.empty();
         }
     }
 
+    /**
+     * 마지막 응답에 accessToken이 반드시 있어야 하는 상황에서 사용한다.
+     *
+     * @throws IllegalStateException accessToken이 없거나 파싱 실패 시
+     */
+    public String getAccessToken() {
+        return findAccessToken()
+                .orElseThrow(() -> new IllegalStateException(
+                        "응답에 accessToken이 없습니다. 응답 본문: " + scenarioContext.getLastResponseBody()));
+    }
+
     public boolean hasAccessToken() {
-        try {
-            String token = getAccessToken();
-            return token != null && !token.isBlank();
-        } catch (IllegalStateException e) {
-            return false;
-        }
+        return findAccessToken().isPresent();
     }
 }

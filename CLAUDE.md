@@ -219,7 +219,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 ### API / 프로토콜을 다룰 때
 | 문서 | 경로 | 내용 |
 |------|------|------|
-| REST API | `/docs/specs/api.md` | 엔드포인트 정의, 요청/응답 형식 |
+| REST API | `/docs/specs/api.md` (인덱스) / `/docs/specs/api/` (도메인별 상세) | 엔드포인트 정의, 요청/응답 형식 |
 | WebSocket | `/docs/specs/websocket.md` | STOMP 프로토콜, 메시지 형식 |
 | Kafka 이벤트 | `/docs/specs/event.md` | 토픽 정의, 이벤트 페이로드 |
 

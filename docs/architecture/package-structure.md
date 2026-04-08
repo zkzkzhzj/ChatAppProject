@@ -32,6 +32,9 @@ com.maeum.gohyang
 │   ├── VO (Value Object)
 │   ├── DomainService
 │   └── DomainEvent
+├── error/               # 이 도메인이 던지는 에러 정의
+│   ├── *ErrorCode       # 에러 코드 enum (code, message, HttpStatus)
+│   └── *Exception       # BusinessException 구현체
 ├── application/         # 유스케이스 조율
 │   ├── port/
 │   │   ├── in/          # Driving Port (UseCase 인터페이스)
@@ -47,6 +50,10 @@ com.maeum.gohyang
         └── external/    # 외부 API 연동
 ```
 
+`error/`는 헥사고날 3계층(`domain`, `application`, `adapter`) 밖에 위치하지만 해당 bounded context 안에 있다.
+에러 조건(DUPLICATE_EMAIL, GUEST_CHAT_NOT_ALLOWED 등)은 도메인 규칙이지만, `ErrorCode`가 `HttpStatus`를 포함하므로 순수 도메인(`domain/`)과 분리한다.
+`application`과 `adapter` 양쪽에서 모두 참조된다.
+
 ---
 
 ## 3. 구체 예시 — Economy (Wallet + Inventory)
@@ -56,7 +63,9 @@ economy/
 ├── wallet/
 │   ├── domain/
 │   │   ├── PointWallet.java
-│   │   ├── PointTransaction.java
+│   │   └── PointTransaction.java
+│   ├── error/
+│   │   ├── WalletErrorCode.java
 │   │   └── InsufficientBalanceException.java
 │   ├── application/
 │   │   ├── port/

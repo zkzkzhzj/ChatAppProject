@@ -23,7 +23,7 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
-    cassandra:
+  cassandra:
       keyspace-name: gohyang
       contact-points: ${CASSANDRA_HOST:localhost}
       port: ${CASSANDRA_PORT:9042}
@@ -68,6 +68,7 @@ security:
   common-public-paths:
     - /api/v1/auth/register
     - /api/v1/auth/guest
+    - /ws/**
 
 logging:
   level:

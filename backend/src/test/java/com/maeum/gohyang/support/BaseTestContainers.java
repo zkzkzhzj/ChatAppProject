@@ -1,5 +1,7 @@
 package com.maeum.gohyang.support;
 
+import com.datastax.oss.driver.api.core.CqlSession;
+import org.testcontainers.cassandra.CassandraContainer;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.lifecycle.Startables;
@@ -8,6 +10,7 @@ import org.testcontainers.utility.DockerImageName;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+
 /**
  * 통합 테스트용 컨테이너 기반 클래스.
  *
@@ -15,13 +18,14 @@ import org.springframework.test.context.DynamicPropertySource;
  * - 컨테이너를 "언제, 어떻게 기동하는가"를 한 곳에서 관리한다.
  * - 정적 초기화 블록으로 컨테이너를 JVM당 한 번만 기동한다.
  *   이 클래스를 extends하는 테스트가 몇 개든 컨테이너는 한 번만 뜬다.
- * - Startables.deepStart()로 3개 컨테이너를 병렬 기동해 대기 시간을 줄인다.
+ * - Startables.deepStart()로 4개 컨테이너를 병렬 기동해 대기 시간을 줄인다.
  * - @DynamicPropertySource로 컨테이너의 랜덤 포트를 Spring 프로퍼티에 주입한다.
  *   application.yml의 기본값을 Spring Context 초기화 전에 덮어쓴다.
  *
- * 주의:
- * - Cassandra는 기동 시간이 60초 이상 소요되고 현재 관련 코드가 없으므로 포함하지 않는다.
- *   Cassandra 통합 테스트가 필요해지면 별도 슈트에서 추가한다.
+ * Cassandra:
+ * - Phase 3 (Communication) 구현으로 추가됐다.
+ * - 기동 후 CQL로 keyspace를 먼저 생성한다. Spring Data Cassandra는 keyspace가
+ *   존재해야 schema-action(create-if-not-exists)으로 테이블을 생성할 수 있다.
  */
 public abstract class BaseTestContainers {
 
@@ -39,8 +43,22 @@ public abstract class BaseTestContainers {
     protected static final KafkaContainer kafka =
             new KafkaContainer(DockerImageName.parse("apache/kafka:3.7.0"));
 
+    protected static final CassandraContainer cassandra =
+            new CassandraContainer(DockerImageName.parse("cassandra:4.1"));
+
     static {
-        Startables.deepStart(postgres, redis, kafka).join();
+        Startables.deepStart(postgres, redis, kafka, cassandra).join();
+
+        // getContactPoint()가 이미 InetSocketAddress(host, mappedPort)를 반환한다.
+        try (CqlSession session = CqlSession.builder()
+                .addContactPoint(cassandra.getContactPoint())
+                .withLocalDatacenter("datacenter1")
+                .build()) {
+            session.execute(
+                    "CREATE KEYSPACE IF NOT EXISTS gohyang " +
+                    "WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}"
+            );
+        }
     }
 
     @DynamicPropertySource
@@ -51,5 +69,12 @@ public abstract class BaseTestContainers {
         registry.add("spring.data.redis.host", redis::getHost);
         registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+        registry.add("spring.cassandra.contact-points",
+                () -> cassandra.getContactPoint().getAddress().getHostAddress());
+        registry.add("spring.cassandra.port",
+                () -> cassandra.getContactPoint().getPort());
+        registry.add("spring.cassandra.local-datacenter", () -> "datacenter1");
+        registry.add("spring.cassandra.keyspace-name", () -> "gohyang");
+        registry.add("spring.cassandra.schema-action", () -> "create-if-not-exists");
     }
 }

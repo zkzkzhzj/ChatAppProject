@@ -5,7 +5,19 @@
 
 ---
 
-## 현재 상태 (2026-04-07 기준, 3차 업데이트)
+## 현재 상태 (2026-04-08 기준, 4차 업데이트)
+
+### ✅ Happy Path 완료 (Phase 0 ~ Phase 3)
+
+모든 핵심 시나리오가 Cucumber로 검증됐다.
+
+```
+GUEST 토큰 발급 → NPC 채팅 시도 → 403
+이메일 회원가입 → Kafka → 캐릭터/공간 자동 생성
+NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
+```
+
+---
 
 ### 완료된 것
 
@@ -34,6 +46,7 @@
 | `global/alert/` | `AlertPort`, `AlertContext`, `LogAlertAdapter` — 운영 알람 전용 인터페이스 |
 | `global/infra/outbox/` | `OutboxJpaEntity`, `OutboxJpaRepository`, `OutboxKafkaRelay`(@Scheduled 1s) |
 | `global/infra/idempotency/` | `ProcessedEventJpaEntity`, `ProcessedEventJpaRepository` |
+| `global/config/` | `WebSocketConfig` — STOMP/SockJS 설정 |
 
 **Phase 2 — Village** ✅
 
@@ -48,6 +61,21 @@
 | Web Adapter | `VillageController`, `CharacterResponse`, `SpaceResponse` | ✅ |
 | Cucumber | 회원가입 → Kafka → 캐릭터/공간 생성 비동기 시나리오 | ✅ |
 | Cucumber | 게스트 캐릭터 조회 200 / 공간 조회 403 시나리오 | ✅ |
+
+**Phase 3 — Communication** ✅
+
+| 레이어 | 파일 | 상태 |
+|--------|------|------|
+| Domain | `ChatRoom`, `Participant`, `Message`, enum 5종, `CommunicationErrorCode`, 예외 3종 | ✅ |
+| Port (in) | `CreateChatRoomUseCase`, `SendMessageUseCase` | ✅ |
+| Port (out) | `SaveChatRoomPort`, `SaveParticipantPort`, `LoadParticipantPort`, `SaveMessagePort`, `GenerateNpcResponsePort` | ✅ |
+| Service | `CreateChatRoomService`, `SendMessageService` | ✅ |
+| Persistence (JPA) | `ChatRoomJpaEntity`, `ParticipantJpaEntity`, 각 Repository, `CommunicationPersistenceAdapter` | ✅ |
+| Persistence (Cassandra) | `MessageKey`, `MessageCassandraEntity`, `MessageCassandraRepository`, `MessageCassandraPersistenceAdapter` | ✅ |
+| NPC Adapter | `HardcodedNpcResponseAdapter` — Phase 5에서 AI로 교체 예정 | ✅ |
+| Web Adapter | `ChatRoomController`, `CreateChatRoomRequest`, `ChatRoomResponse`, `SendMessageRequest`, `SendMessageResponse`, `MessageResponse` | ✅ |
+| WebSocket | `ChatMessageHandler`, `StompSendMessageRequest` | ✅ |
+| Cucumber | GUEST 채팅 403 / 회원 NPC 채팅 Happy Path 시나리오 | ✅ |
 
 ---
 
@@ -65,32 +93,51 @@ RegisterUserService
 ### 게스트 정책
 - `GET /api/v1/village/characters/me`: 게스트 → `Character.defaultGuest()` 반환 (DB 저장 없음)
 - `GET /api/v1/village/spaces/me`: 게스트 → `GuestNoPersonalSpaceException` (403)
+- `POST /api/v1/chat-rooms`: 게스트 → `GuestChatNotAllowedException` (403)
+
+### 채팅 흐름
+```
+POST /api/v1/chat-rooms
+  → ChatRoom (NPC 타입) 생성
+  → Participant(HOST, 유저) + Participant(NPC) 생성
+
+POST /api/v1/chat-rooms/{roomId}/messages
+  → 유저 참여자 확인
+  → Message(유저) → Cassandra 저장
+  → HardcodedNpcResponseAdapter.generate()
+  → Message(NPC) → Cassandra 저장
+  → WebSocket /topic/chat/{roomId} broadcast
+  → REST 응답: {userMessage, npcMessage}
+```
+
+### WebSocket 구조
+- STOMP 엔드포인트: `/ws` (SockJS fallback)
+- 클라이언트 → 서버: `/app/chat/{roomId}` (`@MessageMapping`)
+- 서버 → 클라이언트: `/topic/chat/{roomId}` (Simple Broker)
+- Phase 3: 인메모리 브로커. 스케일아웃 시 Redis Pub/Sub으로 교체 예정.
 
 ### Spring Boot 4.x 주의사항
-- Kafka 자동설정: `spring-boot-kafka` 별도 의존성 필요 (Flyway처럼 모듈 분리됨)
-- Cassandra 자동설정: `application-test.yml`에서 제외 처리
-- Jackson: `tools.jackson.*` 패키지 (3.x, 기존 `com.fasterxml.jackson`은 2.x)
-- JSONB 매핑: `@JdbcTypeCode(SqlTypes.JSON)` 필요 (`columnDefinition = "jsonb"`만으로는 바인딩 오류)
+- Kafka 자동설정: `spring-boot-kafka` 별도 의존성 필요
+- Cassandra 프로퍼티: `spring.cassandra.*` (spring.data.cassandra 아님)
+- Cassandra Testcontainers 모듈: `org.testcontainers:testcontainers-cassandra`
+- Cassandra 테스트: keyspace를 `CqlSession`으로 직접 생성 후 `schema-action: create-if-not-exists` 적용
+- Cassandra: `datacenter1`은 single-node 컨테이너의 기본 datacenter 이름
+- Jackson: `tools.jackson.*` 패키지 (3.x)
+- JSONB 매핑: `@JdbcTypeCode(SqlTypes.JSON)` 필요
 
 ---
 
-## 다음 할 것 — Phase 3 (Communication / WebSocket)
+## 다음 할 것
 
-`docs/planning/phases.md` 참조.
+Happy Path는 완료됐다. 이후 방향은 아래 중 하나를 선택한다.
 
-**Phase 3 목표:** 채팅방 생성 → 유저↔NPC 메시지 전송/수신 (Happy Path 핵심)
+| Phase | 목표 | 핵심 기술 과제 |
+|-------|------|--------------|
+| Phase 4 — Economy | 포인트 획득 → 아이템 구매 → 인벤토리 | 낙관적 락, 멱등성 |
+| Phase 5 — AI NPC | 하드코딩 → Claude API 교체 | `GenerateNpcResponsePort` 구현체 교체 |
+| 프론트엔드 | Phaser.js 마을 공간 | 2D 렌더링, 캐릭터 이동 |
 
-구현 순서 (예상):
-1. WebSocket(STOMP) 설정 — `WebSocketConfig`, `/ws` 엔드포인트, 인메모리 브로커로 시작
-2. ChatRoom, Participant 도메인 엔티티 + Port
-3. 채팅방 생성 UseCase + API
-4. 메시지 전송/수신 핸들러 (`@MessageMapping`)
-5. NPC 응답 — 하드코딩으로 시작 (Port로 추상화해서 Phase 5에서 AI로 교체)
-6. Cassandra 메시지 저장 (Testcontainers에 Cassandra 추가 필요)
-7. Cucumber: GUEST → 채팅 시도 → 403 → 회원가입 → NPC 채팅 Happy Path 시나리오
-
-> 실시간 캐릭터 이동(위치 브로드캐스트)은 WebSocket 인프라가 갖춰지면 같이 붙일 수 있다.
-> Phase 3에서 STOMP 설정이 완성되면 이동 좌표 브로드캐스트 추가는 비교적 단순하다.
+> Phase 4/5 중 어느 것을 먼저 할지는 결정된 바 없다. `docs/planning/phases.md` 참조.
 
 ---
 
@@ -114,46 +161,37 @@ RegisterUserService
 com.maeum.gohyang/
 ├── global/
 │   ├── alert/
-│   │   ├── AlertContext.java
-│   │   ├── AlertPort.java
-│   │   └── LogAlertAdapter.java
+│   ├── config/
+│   │   └── WebSocketConfig.java
 │   ├── error/
-│   │   ├── BusinessException.java
-│   │   ├── ErrorResponse.java
-│   │   └── GlobalExceptionHandler.java
 │   ├── infra/
 │   │   ├── outbox/
-│   │   │   ├── OutboxEventStatus.java
-│   │   │   ├── OutboxJpaEntity.java
-│   │   │   ├── OutboxJpaRepository.java
-│   │   │   └── OutboxKafkaRelay.java
 │   │   └── idempotency/
-│   │       ├── ProcessedEventJpaEntity.java
-│   │       └── ProcessedEventJpaRepository.java
 │   └── security/
-│       ├── AuthenticatedUser.java
-│       └── UserType.java
 ├── identity/
-│   └── ... (Phase 1 완료)
-└── village/
-    ├── domain/
-    │   ├── Character.java
-    │   ├── Space.java
-    │   ├── SpaceTheme.java
-    │   ├── VillageErrorCode.java
-    │   └── *Exception.java (3종)
+│   ├── domain/          ← User, LocalAuthCredentials (순수 도메인만)
+│   ├── error/           ← IdentityErrorCode, DuplicateEmailException
+│   ├── application/
+│   └── adapter/
+├── village/
+│   ├── domain/          ← Character, Space, SpaceTheme (순수 도메인만)
+│   ├── error/           ← VillageErrorCode, *Exception 3종
+│   ├── application/
+│   └── adapter/
+└── communication/
+    ├── domain/          ← ChatRoom, Participant, Message, enum 5종 (순수 도메인만)
+    ├── error/           ← CommunicationErrorCode, *Exception 3종
     ├── application/
-    │   ├── port/in/ (UseCase 3종)
-    │   ├── port/out/ (Port 4종)
-    │   └── service/ (Service 3종)
+    │   ├── port/in/ (UseCase 2종)
+    │   ├── port/out/ (Port 5종 + GenerateNpcResponsePort)
+    │   └── service/ (Service 2종)
     └── adapter/
         ├── in/
-        │   ├── messaging/UserRegisteredEventConsumer.java
-        │   └── web/VillageController.java + DTO 2종
-        └── out/persistence/
-            ├── CharacterJpaEntity.java + Repository
-            ├── SpaceJpaEntity.java + Repository
-            └── VillagePersistenceAdapter.java
+        │   ├── web/ (ChatRoomController + DTO 5종)
+        │   └── websocket/ (ChatMessageHandler, StompSendMessageRequest)
+        └── out/
+            ├── persistence/ (JPA 4종 + Cassandra 4종)
+            └── npc/ (HardcodedNpcResponseAdapter)
 ```
 
 ---
@@ -161,13 +199,13 @@ com.maeum.gohyang/
 ## TestAdapter 구조
 
 ```
-HealthCheckSteps / IdentitySteps / VillageSteps  ← 비즈니스 언어만 안다
+HealthCheckSteps / IdentitySteps / VillageSteps / CommunicationSteps  ← 비즈니스 언어만 안다
     ↓
-ActuatorTestAdapter / AuthTestAdapter / VillageTestAdapter  ← URL, 폴링 로직
+ActuatorTestAdapter / AuthTestAdapter / VillageTestAdapter / ChatTestAdapter  ← URL, 폴링 로직
     ↓
 TestAdapter              ← RestClient GET/POST, 인증 헤더
     ↓
-ScenarioContext          ← lastResponse, currentAccessToken, currentEmail
+ScenarioContext          ← lastResponse, currentAccessToken, currentEmail, currentChatRoomId
 ```
 
 ---
@@ -177,7 +215,7 @@ ScenarioContext          ← lastResponse, currentAccessToken, currentEmail
 | 문서 | 추가 내용 |
 |------|----------|
 | `coding.md` | Port 메서드 네이밍: Port 이름에 엔티티 선언됨, 메서드는 액션만 (`load`, `save`), `ByXxx` 금지 |
-| `learning/12` | Spring Boot 4.x 모듈형 자동 구성 — Flyway 누락 사례 |
+| `learning/12` | Spring Boot 4.x 모듈형 자동 구성 — Flyway/Kafka/Cassandra 누락 사례 |
 | `learning/13` | Global AlertPort 패턴 — 운영 알람 vs 유저 알림 분리 |
 | `decisions/003` | Transactional Outbox + Kafka 이벤트 흐름 |
 | `decisions/004` | Global AlertPort 설계 |

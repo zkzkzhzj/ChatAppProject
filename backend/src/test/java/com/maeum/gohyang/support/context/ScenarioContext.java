@@ -33,6 +33,8 @@ public class ScenarioContext {
      */
     private String currentEmail;
 
+    private Long currentChatRoomId;
+
     public void setLastResponse(ResponseEntity<String> response) {
         this.lastResponse = response;
     }
@@ -79,5 +81,16 @@ public class ScenarioContext {
             throw new IllegalStateException("이메일이 설정되지 않았습니다. Given 단계에서 이메일을 먼저 설정해야 합니다.");
         }
         return currentEmail;
+    }
+
+    public void setCurrentChatRoomId(long chatRoomId) {
+        this.currentChatRoomId = chatRoomId;
+    }
+
+    public long getCurrentChatRoomId() {
+        if (currentChatRoomId == null) {
+            throw new IllegalStateException("채팅방이 생성되지 않았습니다. 채팅방 생성 단계가 먼저 실행되어야 합니다.");
+        }
+        return currentChatRoomId;
     }
 }

@@ -83,7 +83,7 @@ Scenario: GUEST가 마을에 입장하고 NPC와 채팅 후 회원가입한다
 
 ---
 
-## Phase 3 — Communication (WebSocket) [ ]
+## Phase 3 — Communication (WebSocket) [x]
 
 **목표:** 채팅방 생성 → 메시지 전송/수신
 
@@ -91,17 +91,34 @@ Scenario: GUEST가 마을에 입장하고 NPC와 채팅 후 회원가입한다
 
 | 작업 | 상태 |
 |------|------|
-| ChatRoom Domain Entity | [ ] |
-| Participant Domain Entity | [ ] |
-| 채팅방 생성 UseCase | [ ] |
-| WebSocket(STOMP) 설정 | [ ] |
-| 메시지 전송/수신 Handler | [ ] |
-| NPC 응답 (하드코딩, AI 없음) | [ ] |
-| Cassandra 메시지 저장 | [ ] |
-| Cucumber: NPC 채팅 Happy Path 시나리오 | [ ] |
+| ChatRoom Domain Entity | [x] |
+| Participant Domain Entity | [x] |
+| 채팅방 생성 UseCase | [x] |
+| WebSocket(STOMP) 설정 | [x] |
+| 메시지 전송/수신 Handler | [x] |
+| NPC 응답 (하드코딩, AI 없음) | [x] |
+| Cassandra 메시지 저장 | [x] |
+| Cucumber: NPC 채팅 Happy Path 시나리오 | [x] |
 
 > **NPC 응답은 하드코딩으로 시작한다.**
 > 로컬 LLM, Claude API 연동은 Happy Path 완료 이후 별도 Phase로 분리한다.
+
+---
+
+## ✅ Happy Path 완료 (Phase 0 ~ Phase 3)
+
+```gherkin
+Scenario: GUEST가 마을에 입장하고 NPC와 채팅 후 회원가입한다
+  Given 비회원이 GUEST로 마을에 입장한다              ← Phase 1 (게스트 토큰)
+  When GUEST가 NPC에게 채팅을 시도한다               ← Phase 3 (403 반환)
+  Then 회원가입이 필요하다는 안내를 받는다
+  When 유저가 이메일로 회원가입한다                   ← Phase 1
+  Then 기본 캐릭터와 기본 공간이 자동으로 생성된다    ← Phase 2 (Kafka 이벤트)
+  When 유저가 마을의 NPC에게 "안녕하세요"를 전송한다  ← Phase 3
+  Then NPC로부터 응답 메시지를 받는다                 ← Phase 3 (하드코딩 응답)
+```
+
+이 시나리오는 Cucumber로 검증 완료됐다.
 
 ---
 

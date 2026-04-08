@@ -59,6 +59,7 @@ dependencies {
 	// Testcontainers — Spring Boot 4.x BOM이 2.x를 관리하므로 버전 명시 불필요
 	testImplementation("org.testcontainers:testcontainers-postgresql")
 	testImplementation("org.testcontainers:testcontainers-kafka")
+	testImplementation("org.testcontainers:testcontainers-cassandra")
 
 	// Cucumber BDD
 	testImplementation("io.cucumber:cucumber-java:7.34.2")

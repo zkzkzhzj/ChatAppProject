@@ -3,21 +3,8 @@
 # 여기서는 Testcontainers가 다루지 않는 설정만 오버라이드한다.
 
 spring:
-  autoconfigure:
-    exclude:
-      # Cassandra: 컨테이너 기동 60초 이상, 현재 관련 코드 없음.
-      # Cassandra 테스트가 필요해지면 별도 슈트에서 컨테이너를 추가한다.
-      # Spring Boot 4.x: autoconfigure 패키지가 기능별 모듈로 분리됨
-      #   3.x: org.springframework.boot.autoconfigure.cassandra.*
-      #   4.x: org.springframework.boot.cassandra.autoconfigure.*
-      #        org.springframework.boot.data.cassandra.autoconfigure.*
-      - org.springframework.boot.cassandra.autoconfigure.CassandraAutoConfiguration
-      - org.springframework.boot.cassandra.autoconfigure.health.CassandraHealthContributorAutoConfiguration
-      - org.springframework.boot.cassandra.autoconfigure.health.CassandraReactiveHealthContributorAutoConfiguration
-      - org.springframework.boot.data.cassandra.autoconfigure.DataCassandraAutoConfiguration
-      - org.springframework.boot.data.cassandra.autoconfigure.DataCassandraReactiveAutoConfiguration
-      - org.springframework.boot.data.cassandra.autoconfigure.DataCassandraRepositoriesAutoConfiguration
-      - org.springframework.boot.data.cassandra.autoconfigure.DataCassandraReactiveRepositoriesAutoConfiguration
+  # Cassandra: Phase 3 (Communication) 구현으로 이제 Testcontainers에서 기동한다.
+  # 연결 정보는 BaseTestContainers의 @DynamicPropertySource가 주입한다.
 
   jpa:
     hibernate:
@@ -26,9 +13,7 @@ spring:
 
 management:
   health:
-    cassandra:
-      enabled: false
-    # Redis는 GenericContainer로 실제 기동되지만 health indicator 연동이 불안정하므로 비활성화.
+    # Redis: GenericContainer로 실제 기동되지만 health indicator 연동이 불안정하므로 비활성화.
     # 실제 Redis 연결 자체는 @DynamicPropertySource로 정상 주입된다.
     redis:
       enabled: false

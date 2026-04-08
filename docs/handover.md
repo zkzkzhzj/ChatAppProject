@@ -5,7 +5,7 @@
 
 ---
 
-## 현재 상태 (2026-04-08 기준, 4차 업데이트)
+## 현재 상태 (2026-04-09 기준, 5차 업데이트)
 
 ### ✅ Happy Path 완료 (Phase 0 ~ Phase 3)
 
@@ -29,7 +29,8 @@ NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
 
 | 레이어 | 파일 | 상태 |
 |--------|------|------|
-| Domain | `User`, `UserType`(→global/security), `LocalAuthCredentials`, `IdentityErrorCode`, `DuplicateEmailException` | ✅ |
+| Domain | `User`, `UserType`(→global/security), `LocalAuthCredentials` | ✅ |
+| Error | `IdentityErrorCode`, `DuplicateEmailException` → `identity/error/` | ✅ |
 | Port (in) | `RegisterUserUseCase`, `IssueGuestTokenUseCase` | ✅ |
 | Port (out) | `SaveUserPort`, `CheckEmailDuplicatePort`, `IssueTokenPort`, `SaveOutboxEventPort` | ✅ |
 | Service | `RegisterUserService`(Outbox 포함), `IssueGuestTokenService` | ✅ |
@@ -52,7 +53,8 @@ NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
 
 | 레이어 | 파일 | 상태 |
 |--------|------|------|
-| Domain | `Character`, `Space`, `SpaceTheme`, `VillageErrorCode`, 예외 3종 | ✅ |
+| Domain | `Character`, `Space`, `SpaceTheme` | ✅ |
+| Error | `VillageErrorCode`, 예외 3종 → `village/error/` | ✅ |
 | Port (in) | `InitializeUserVillageUseCase`, `GetMyCharacterUseCase`, `GetMySpaceUseCase` | ✅ |
 | Port (out) | `SaveCharacterPort`, `LoadCharacterPort`, `SaveSpacePort`, `LoadSpacePort` | ✅ |
 | Service | `InitializeUserVillageService`, `GetMyCharacterService`, `GetMySpaceService` | ✅ |
@@ -66,7 +68,8 @@ NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
 
 | 레이어 | 파일 | 상태 |
 |--------|------|------|
-| Domain | `ChatRoom`, `Participant`, `Message`, enum 5종, `CommunicationErrorCode`, 예외 3종 | ✅ |
+| Domain | `ChatRoom`, `Participant`, `Message`, enum 5종 | ✅ |
+| Error | `CommunicationErrorCode`, 예외 3종 → `communication/error/` | ✅ |
 | Port (in) | `CreateChatRoomUseCase`, `SendMessageUseCase` | ✅ |
 | Port (out) | `SaveChatRoomPort`, `SaveParticipantPort`, `LoadParticipantPort`, `SaveMessagePort`, `GenerateNpcResponsePort` | ✅ |
 | Service | `CreateChatRoomService`, `SendMessageService` | ✅ |
@@ -129,15 +132,47 @@ POST /api/v1/chat-rooms/{roomId}/messages
 
 ## 다음 할 것
 
-Happy Path는 완료됐다. 이후 방향은 아래 중 하나를 선택한다.
+### 1단계 — 프론트엔드 (결정됨)
+
+Happy Path를 실제 화면으로 확인할 수 있도록 프론트엔드를 먼저 구현한다.
+
+| 목표 | 핵심 내용 |
+|------|---------|
+| 마을 공간 렌더링 | Phaser.js 기반 2D 맵, 캐릭터 이동 |
+| NPC 상호작용 | NPC 클릭 → 채팅 UI 진입 |
+| 실시간 채팅 | WebSocket(STOMP) 연결, 메시지 송수신 |
+| 인증 흐름 | 게스트 입장 → 채팅 시도 → 회원가입 → NPC 채팅 |
+
+> `docs/frontend/space.md` 참조. 상세 기획은 구현 시작 전 별도 정의.
+
+---
+
+### 병행 가능 (편할 때)
+
+코드 품질 인프라는 프론트엔드 작업 중 편할 때 세팅한다.
+
+| 우선순위 | 툴 | 역할 |
+|---------|---|------|
+| 높음 | **GitHub Actions** | push/PR 시 테스트 자동 실행 |
+| 높음 | **Branch Protection** | main 직접 push 차단, CI 통과 필수 |
+| 중간 | **Checkstyle** | 컨벤션 위반 시 빌드 실패 |
+| 중간 | **JaCoCo** | 커버리지 리포트 |
+| 중간 | **Dependabot** | 취약 의존성 자동 PR |
+| 낮음 | **CodeRabbit** | AI PR 리뷰 봇 |
+| 낮음 | **PR 템플릿** | PR 설명 형식 강제 |
+| 나중 | **SonarCloud** | 코드 품질 종합 대시보드 |
+| 나중 | **SpotBugs** | 버그 패턴 정적 분석 |
+
+---
+
+### 이후 Feature Phase
 
 | Phase | 목표 | 핵심 기술 과제 |
 |-------|------|--------------|
 | Phase 4 — Economy | 포인트 획득 → 아이템 구매 → 인벤토리 | 낙관적 락, 멱등성 |
 | Phase 5 — AI NPC | 하드코딩 → Claude API 교체 | `GenerateNpcResponsePort` 구현체 교체 |
-| 프론트엔드 | Phaser.js 마을 공간 | 2D 렌더링, 캐릭터 이동 |
 
-> Phase 4/5 중 어느 것을 먼저 할지는 결정된 바 없다. `docs/planning/phases.md` 참조.
+> 프론트엔드 완료 후 우선순위 결정. `docs/planning/phases.md` 참조.
 
 ---
 
@@ -217,9 +252,16 @@ ScenarioContext          ← lastResponse, currentAccessToken, currentEmail, cur
 | `coding.md` | Port 메서드 네이밍: Port 이름에 엔티티 선언됨, 메서드는 액션만 (`load`, `save`), `ByXxx` 금지 |
 | `learning/12` | Spring Boot 4.x 모듈형 자동 구성 — Flyway/Kafka/Cassandra 누락 사례 |
 | `learning/13` | Global AlertPort 패턴 — 운영 알람 vs 유저 알림 분리 |
+| `learning/14` | Cassandra + Spring Boot 4.x 설정 함정 4가지 |
+| `learning/15` | WebSocket/STOMP 동작 원리와 프로젝트 구현 딥다이브 |
 | `decisions/003` | Transactional Outbox + Kafka 이벤트 흐름 |
 | `decisions/004` | Global AlertPort 설계 |
 | `decisions/005` | 게스트 마을 상태 정책 |
+| `decisions/006` | Cassandra 메시지 저장 선택 이유 |
+| `decisions/007` | WebSocket Simple Broker 선택 및 스케일아웃 교체 계획 |
+| `specs/api/` | 도메인별 REST API 명세 (auth, village, communication) |
+| `specs/websocket.md` | STOMP 구조, REST↔WebSocket 관계 |
+| `specs/event.md` | user.registered Kafka 이벤트 명세 |
 
 ---
 

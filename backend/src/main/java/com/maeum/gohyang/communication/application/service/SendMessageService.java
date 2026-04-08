@@ -11,11 +11,9 @@ import com.maeum.gohyang.communication.error.NotParticipantException;
 import com.maeum.gohyang.communication.domain.Participant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class SendMessageService implements SendMessageUseCase {
 
     private final LoadParticipantPort loadParticipantPort;
@@ -25,11 +23,11 @@ public class SendMessageService implements SendMessageUseCase {
     @Override
     public Result execute(Command command) {
         Participant userParticipant = loadParticipantPort
-                .loadByUserAndRoom(command.userId(), command.chatRoomId())
+                .load(command.userId(), command.chatRoomId())
                 .orElseThrow(NotParticipantException::new);
 
         Participant npcParticipant = loadParticipantPort
-                .loadNpcByRoom(command.chatRoomId())
+                .loadNpc(command.chatRoomId())
                 .orElseThrow(ChatRoomNotFoundException::new);
 
         Message userMessage = saveMessagePort.save(

@@ -30,13 +30,13 @@ public class CommunicationPersistenceAdapter
     }
 
     @Override
-    public Optional<Participant> loadByUserAndRoom(long userId, long chatRoomId) {
+    public Optional<Participant> load(long userId, long chatRoomId) {
         return participantJpaRepository.findByUserIdAndChatRoomId(userId, chatRoomId)
                 .map(ParticipantJpaEntity::toDomain);
     }
 
     @Override
-    public Optional<Participant> loadNpcByRoom(long chatRoomId) {
+    public Optional<Participant> loadNpc(long chatRoomId) {
         return participantJpaRepository.findByParticipantRoleAndChatRoomId(ParticipantRole.NPC, chatRoomId)
                 .map(ParticipantJpaEntity::toDomain);
     }

@@ -5,7 +5,7 @@ import com.maeum.gohyang.identity.application.port.out.CheckEmailDuplicatePort;
 import com.maeum.gohyang.identity.application.port.out.IssueTokenPort;
 import com.maeum.gohyang.identity.application.port.out.SaveOutboxEventPort;
 import com.maeum.gohyang.identity.application.port.out.SaveUserPort;
-import com.maeum.gohyang.identity.domain.DuplicateEmailException;
+import com.maeum.gohyang.identity.error.DuplicateEmailException;
 import com.maeum.gohyang.identity.domain.LocalAuthCredentials;
 import com.maeum.gohyang.identity.domain.User;
 import lombok.RequiredArgsConstructor;

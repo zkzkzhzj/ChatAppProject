@@ -3,7 +3,7 @@ package com.maeum.gohyang.village.application.service;
 import com.maeum.gohyang.village.application.port.in.GetMySpaceUseCase;
 import com.maeum.gohyang.village.application.port.out.LoadSpacePort;
 import com.maeum.gohyang.village.domain.Space;
-import com.maeum.gohyang.village.domain.SpaceNotFoundException;
+import com.maeum.gohyang.village.error.SpaceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

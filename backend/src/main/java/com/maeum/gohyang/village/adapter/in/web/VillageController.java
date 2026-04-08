@@ -4,7 +4,7 @@ import com.maeum.gohyang.global.security.AuthenticatedUser;
 import com.maeum.gohyang.village.application.port.in.GetMyCharacterUseCase;
 import com.maeum.gohyang.village.application.port.in.GetMySpaceUseCase;
 import com.maeum.gohyang.village.domain.Character;
-import com.maeum.gohyang.village.domain.GuestNoPersonalSpaceException;
+import com.maeum.gohyang.village.error.GuestNoPersonalSpaceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -56,7 +56,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 1. **Domain Entity에 인프라 어노테이션 금지.** `@Entity`, `@Column`, `@Table` 등 JPA 어노테이션은 Persistence Entity에만 사용한다. Domain Entity는 순수 POJO로 유지한다.
 2. **도메인 간 직접 참조 금지.** 다른 도메인의 Entity나 Repository를 import하지 않는다. 도메인 간 통신은 Kafka 이벤트 또는 Application Service의 Port를 통해서만 한다.
 3. **`@Autowired` 필드 주입 금지.** 모든 의존성은 생성자 주입(`@RequiredArgsConstructor`)을 사용한다.
-4. **`throw new RuntimeException()` 금지.** 반드시 `/global/error/`에 정의된 커스텀 예외를 사용한다. 적절한 예외가 없으면 새로 정의한다.
+4. **`throw new RuntimeException()` 금지.** 반드시 `[domain]/error/`에 정의된 커스텀 예외를 사용한다. 적절한 예외가 없으면 새로 정의한다.
 5. **테스트 없는 기능 완료 금지.** 기능 구현과 테스트는 하나의 작업 단위다. 테스트 없이 "완료"라고 하지 않는다.
 6. **상태 변경 로직에서 동시성을 무시하지 마라.** 포인트 차감, 아이템 구매, 좌석 점유 등 상태를 변경하는 모든 로직은 동시 요청 시나리오를 반드시 고려한다. "단일 요청에서 잘 돌아간다"는 완료 조건이 아니다. 동시성 전략(낙관적 락, 비관적 락, 분산 락 등)의 선택과 이유를 명시한다.
 

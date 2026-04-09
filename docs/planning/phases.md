@@ -160,4 +160,4 @@ Scenario: GUEST가 마을에 입장하고 NPC와 채팅 후 회원가입한다
 - **소셜 로그인** — Google, Kakao OAuth2
 - **프론트엔드 UI** — Phaser.js 마을 공간
 - **Notification** — FCM Web Push
-- **서브에이전트 / 스킬 세팅** — Happy Path 구현 후 반복 패턴 파악되면 그때 도입
+- **서브에이전트 / 스킬 세팅** — ✅ 완료 (`.claude/skills/`: 코드리뷰, 전체리뷰, MD리뷰)

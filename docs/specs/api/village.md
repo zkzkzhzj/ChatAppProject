@@ -54,7 +54,7 @@
 | id | Long | 공간 ID |
 | userId | Long | 소유자 ID |
 | isDefault | boolean | 기본 공간 여부 |
-| theme | SpaceTheme | `FOREST` / `OCEAN` / `CITY` |
+| theme | SpaceTheme | `DEFAULT` (현재 구현). `FOREST` / `OCEAN` / `CITY`는 공간 꾸미기 Phase에서 추가 예정 |
 | createdAt | LocalDateTime | |
 | updatedAt | LocalDateTime | |
 

@@ -262,6 +262,11 @@ ScenarioContext          ← lastResponse, currentAccessToken, currentEmail, cur
 | `specs/api/` | 도메인별 REST API 명세 (auth, village, communication) |
 | `specs/websocket.md` | STOMP 구조, REST↔WebSocket 관계 |
 | `specs/event.md` | user.registered Kafka 이벤트 명세 |
+| `AGENTS.md` | Codex CLI용 컨벤션 설정 — Critical Rules + 전체 체크리스트 (coding.md 기반) |
+| `docs/reviews/` | `/코드리뷰`, `/전체리뷰` 커맨드 실행 시 날짜/시간별 리뷰 결과 자동 저장 |
+| `.claude/skills/코드리뷰/SKILL.md` | Claude Code 슬래시 커맨드 — uncommitted 변경사항 Codex 리뷰 |
+| `.claude/skills/전체리뷰/SKILL.md` | Claude Code 슬래시 커맨드 — 전체 프로젝트 Codex 리뷰 |
+| `.claude/skills/MD리뷰/SKILL.md` | Claude Code 슬래시 커맨드 — 문서 정합성 + 코드↔명세 교차검증 |
 
 ---
 

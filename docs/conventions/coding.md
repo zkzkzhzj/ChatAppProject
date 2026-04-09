@@ -51,7 +51,7 @@ List<Item> findAllByUserId(Long userId);
 
 // ✅ 비즈니스 의도를 표현
 boolean isEmailTaken(String email);
-List<Item> loadItemsByUserId(Long userId);
+List<Item> loadAll(Long userId);
 ```
 
 구현체(JpaAdapter)는 내부에서 `existsByEmail`을 써도 무방하다.
@@ -131,7 +131,7 @@ global/error/
 ### 4.2 규칙
 
 - `throw new RuntimeException()` 금지. 반드시 커스텀 예외를 사용한다.
-- 도메인별 예외는 해당 도메인의 `domain/` 패키지에 정의한다.
+- 도메인별 예외는 해당 도메인의 `error/` 패키지에 정의한다.
 - 예외 메시지에 디버깅에 필요한 정보를 포함한다.
 
 ### 4.3 ErrorCode enum — 도메인별 분리

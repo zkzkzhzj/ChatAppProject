@@ -4,11 +4,11 @@ import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
 import com.maeum.gohyang.communication.application.port.out.GenerateNpcResponsePort;
 import com.maeum.gohyang.communication.application.port.out.LoadParticipantPort;
 import com.maeum.gohyang.communication.application.port.out.SaveMessagePort;
-import com.maeum.gohyang.communication.error.ChatRoomNotFoundException;
 import com.maeum.gohyang.communication.domain.Message;
 import com.maeum.gohyang.communication.domain.MessageType;
-import com.maeum.gohyang.communication.error.NotParticipantException;
 import com.maeum.gohyang.communication.domain.Participant;
+import com.maeum.gohyang.communication.error.ChatRoomNotFoundException;
+import com.maeum.gohyang.communication.error.NotParticipantException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -39,11 +39,6 @@ public class SendMessageService implements SendMessageUseCase {
                 Message.newMessage(command.chatRoomId(), npcParticipant.getId(), npcResponseText, MessageType.TEXT)
         );
 
-        return new Result(toMessageData(userMessage), toMessageData(npcMessage));
-    }
-
-    private MessageData toMessageData(Message message) {
-        return new MessageData(message.getId(), message.getParticipantId(),
-                message.getBody(), message.getCreatedAt());
+        return new Result(userMessage, npcMessage);
     }
 }

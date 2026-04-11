@@ -1,7 +1,6 @@
 package com.maeum.gohyang.communication.application.port.in;
 
-import java.time.Instant;
-import java.util.UUID;
+import com.maeum.gohyang.communication.domain.Message;
 
 /**
  * 메시지 전송 유스케이스.
@@ -13,7 +12,5 @@ public interface SendMessageUseCase {
 
     record Command(long userId, long chatRoomId, String body) {}
 
-    record Result(MessageData userMessage, MessageData npcMessage) {}
-
-    record MessageData(UUID id, long participantId, String body, Instant createdAt) {}
+    record Result(Message userMessage, Message npcMessage) {}
 }

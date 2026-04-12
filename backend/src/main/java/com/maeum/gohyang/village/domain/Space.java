@@ -38,10 +38,27 @@ public class Space {
         return new Space(id, userId, isDefault, theme, createdAt, updatedAt);
     }
 
-    public Long getId() { return id; }
-    public Long getUserId() { return userId; }
-    public boolean isDefault() { return isDefault; }
-    public SpaceTheme getTheme() { return theme; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public boolean isDefault() {
+        return isDefault;
+    }
+
+    public SpaceTheme getTheme() {
+        return theme;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

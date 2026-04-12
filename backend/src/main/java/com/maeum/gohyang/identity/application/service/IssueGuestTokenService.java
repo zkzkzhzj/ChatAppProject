@@ -1,10 +1,12 @@
 package com.maeum.gohyang.identity.application.service;
 
-import com.maeum.gohyang.identity.application.port.in.IssueGuestTokenUseCase;
-import com.maeum.gohyang.identity.application.port.out.IssueTokenPort;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.maeum.gohyang.identity.application.port.in.IssueGuestTokenUseCase;
+import com.maeum.gohyang.identity.application.port.out.IssueTokenPort;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

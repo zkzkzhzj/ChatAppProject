@@ -1,11 +1,13 @@
 package com.maeum.gohyang.identity.adapter.out.persistence;
 
+import org.springframework.stereotype.Component;
+
 import com.maeum.gohyang.identity.application.port.out.CheckEmailDuplicatePort;
 import com.maeum.gohyang.identity.application.port.out.SaveUserPort;
 import com.maeum.gohyang.identity.domain.LocalAuthCredentials;
 import com.maeum.gohyang.identity.domain.User;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

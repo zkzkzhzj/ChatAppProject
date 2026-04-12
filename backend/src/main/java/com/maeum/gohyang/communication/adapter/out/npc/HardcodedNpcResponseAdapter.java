@@ -1,10 +1,11 @@
 package com.maeum.gohyang.communication.adapter.out.npc;
 
-import com.maeum.gohyang.communication.application.port.out.GenerateNpcResponsePort;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Random;
+
+import org.springframework.stereotype.Component;
+
+import com.maeum.gohyang.communication.application.port.out.GenerateNpcResponsePort;
 
 /**
  * NPC 응답 하드코딩 구현체.

@@ -1,14 +1,16 @@
 package com.maeum.gohyang.cucumber.steps;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.maeum.gohyang.support.adapter.ActuatorTestAdapter;
 import com.maeum.gohyang.support.context.ScenarioContext;
+
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * health_check.feature 시나리오의 단계 정의.

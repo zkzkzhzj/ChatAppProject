@@ -1,8 +1,9 @@
 package com.maeum.gohyang.support;
 
-import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+
+import io.cucumber.spring.CucumberContextConfiguration;
 
 /**
  * Cucumber + Spring Boot 통합 진입점.

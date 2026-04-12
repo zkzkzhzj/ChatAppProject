@@ -1,0 +1,148 @@
+# .coderabbit.yaml — 마음의 고향 CodeRabbit 설정
+# 설정 레퍼런스: https://docs.coderabbit.ai/reference/configuration
+
+language: ko-KR
+early_access: true
+
+reviews:
+  profile: assertive
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  collapse_walkthrough: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+      - "[skip review]"
+      - "draft"
+
+  path_filters:
+    - "!**/*.lock"
+    - "!**/node_modules/**"
+    - "!**/.gradle/**"
+    - "!**/build/**"
+    - "!**/dist/**"
+    - "!**/*.min.js"
+    - "!**/*.min.css"
+
+  path_instructions:
+    # ── 백엔드: 도메인 계층 ──
+    - path: "backend/src/main/java/**/domain/**"
+      instructions: |
+        헥사고날 아키텍처 도메인 계층 리뷰:
+        - Domain Entity에 JPA 어노테이션(@Entity, @Column, @Table) 절대 금지.
+        - 다른 도메인 패키지를 import하지 않는지 확인 (도메인 간 직접 참조 금지).
+        - Domain Entity는 순수 POJO로 유지. Spring 의존성도 금지.
+        - VO(Value Object)는 불변이어야 하며, equals/hashCode 구현 확인.
+        - 비즈니스 로직이 도메인에 응집되어 있는지 확인.
+
+    # ── 백엔드: 포트 계층 ──
+    - path: "backend/src/main/java/**/port/**"
+      instructions: |
+        헥사고날 아키텍처 포트 리뷰:
+        - Driving Port(in)는 Use Case 인터페이스로 정의.
+        - Driven Port(out)는 외부 의존 인터페이스로 정의.
+        - 포트 메서드명에 ByXxx 패턴 금지 (도메인 의도를 반영하는 이름 사용).
+        - 포트 인터페이스가 인프라 기술에 의존하지 않는지 확인.
+
+    # ── 백엔드: 어댑터 계층 ──
+    - path: "backend/src/main/java/**/adapter/**"
+      instructions: |
+        헥사고날 아키텍처 어댑터 리뷰:
+        - Controller가 Domain Entity를 직접 반환하지 않는지 확인 (DTO 변환 필수).
+        - @Autowired 필드 주입 금지. 생성자 주입(@RequiredArgsConstructor)만 허용.
+        - API 응답에 민감 정보(비밀번호, 토큰, 내부 ID)가 노출되지 않는지 확인.
+        - Request DTO에 입력 값 검증(@Valid, @NotBlank 등) 어노테이션 존재 확인.
+        - JPA Entity ↔ Domain Entity 매핑이 올바른지 확인.
+
+    # ── 백엔드: Application Service ──
+    - path: "backend/src/main/java/**/application/**"
+      instructions: |
+        Application Service 리뷰:
+        - @Transactional이 적절한 위치에 있는지 확인.
+        - 읽기 전용 조회에 @Transactional(readOnly = true) 적용 확인.
+        - 상태 변경 로직에 동시성 처리(낙관적 락, 비관적 락, 분산 락) 검토.
+        - 다른 도메인 서비스를 직접 참조하지 않는지 확인 (Port를 통해서만 통신).
+
+    # ── 백엔드: 예외/에러 ──
+    - path: "backend/src/main/java/**/error/**"
+      instructions: |
+        예외 처리 리뷰:
+        - RuntimeException 직접 throw 절대 금지. 커스텀 예외만 사용.
+        - ErrorCode enum이 적절한 HTTP 상태코드와 메시지를 포함하는지 확인.
+
+    # ── 백엔드: 설정 파일 ──
+    - path: "backend/src/main/resources/**"
+      instructions: |
+        설정 파일 리뷰:
+        - 민감 정보(비밀번호, API 키)가 하드코딩되지 않았는지 확인.
+        - 하드코딩된 URL, 타임아웃, 사이즈 값이 없는지 확인.
+
+    # ── 백엔드: 테스트 ──
+    - path: "backend/src/test/**"
+      instructions: |
+        테스트 코드 리뷰:
+        - BDD 스타일(Given-When-Then)로 작성되었는지 확인.
+        - 성공 케이스와 실패 케이스 모두 존재하는지 확인.
+        - 테스트 간 독립성 보장 (실행 순서나 DB 상태에 의존 금지).
+
+    # ── 백엔드: Cucumber ──
+    - path: "backend/src/test/**/*.feature"
+      instructions: |
+        Cucumber 시나리오 리뷰:
+        - Feature/Scenario 이름이 비즈니스 관점에서 명확한지 확인.
+        - 시나리오가 독립적으로 실행 가능한지 확인.
+
+    # ── DB 마이그레이션 ──
+    - path: "**/*.sql"
+      instructions: |
+        SQL 마이그레이션 리뷰:
+        - 마이그레이션은 가역적(rollback 가능)이어야 함.
+        - 프로덕션 데이터가 있는 컬럼 DROP 시 별도 데이터 마이그레이션 필요.
+        - 인덱스 추가/삭제 시 성능 영향 분석.
+
+    # ── 프론트엔드: 일반 ──
+    - path: "frontend/src/**"
+      instructions: |
+        프론트엔드 리뷰:
+        - TypeScript strict mode 준수. any 타입 사용 최소화.
+        - useEffect 의존성 배열이 올바른지 확인.
+        - 불필요한 리렌더링을 유발하는 패턴이 없는지 확인.
+
+    # ── 프론트엔드: Phaser ──
+    - path: "frontend/src/game/**"
+      instructions: |
+        Phaser.js 게임 코드 리뷰:
+        - Scene 생명주기(preload, create, update) 구현 확인.
+        - 리소스 정리(destroy)가 적절한지 확인. 메모리 누수 방지.
+        - Next.js SSR 환경에서 클라이언트 사이드에서만 실행되는지 확인.
+
+    # ── Docker/인프라 ──
+    - path: "docker-compose.yml"
+      instructions: |
+        Docker 설정 리뷰:
+        - 민감 정보가 하드코딩되지 않았는지 확인.
+        - 서비스 간 의존성(depends_on)이 적절한지 확인.
+
+  tools:
+    eslint:
+      enabled: true
+    biome:
+      enabled: false
+    markdownlint:
+      enabled: true
+    yamllint:
+      enabled: true
+    hadolint:
+      enabled: true
+    semgrep:
+      enabled: true
+
+chat:
+  auto_reply: true

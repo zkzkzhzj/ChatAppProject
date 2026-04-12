@@ -8,7 +8,7 @@ public interface CreateChatRoomUseCase {
 
     Result execute(Command command);
 
-    record Command(long userId, String displayName) {}
+    record Command(long userId, String displayName) { }
 
-    record Result(long chatRoomId, long participantId) {}
+    record Result(long chatRoomId, long participantId) { }
 }

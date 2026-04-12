@@ -1,6 +1,8 @@
 package com.maeum.gohyang.support.adapter;
 
-import com.maeum.gohyang.support.context.ScenarioContext;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -9,8 +11,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import com.maeum.gohyang.support.context.ScenarioContext;
 
 /**
  * 테스트에서 HTTP API를 호출하기 위한 추상화 기반 클래스.

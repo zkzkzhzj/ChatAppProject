@@ -1,7 +1,8 @@
 package com.maeum.gohyang.support.adapter;
 
-import com.maeum.gohyang.support.context.ScenarioContext;
 import org.springframework.stereotype.Component;
+
+import com.maeum.gohyang.support.context.ScenarioContext;
 
 /**
  * Communication 엔드포인트 테스트 어댑터.
@@ -55,7 +56,9 @@ public class ChatTestAdapter {
     /** 응답 JSON에서 특정 필드의 long 값을 파싱한다. */
     private long parseJsonLong(String json, String field) {
         int keyIndex = json.indexOf("\"" + field + "\"");
-        if (keyIndex < 0) throw new IllegalStateException("응답에 " + field + " 필드가 없습니다: " + json);
+        if (keyIndex < 0) {
+            throw new IllegalStateException("응답에 " + field + " 필드가 없습니다: " + json);
+        }
         int colonIndex = json.indexOf(":", keyIndex);
         int commaIndex = json.indexOf(",", colonIndex);
         int braceIndex = json.indexOf("}", colonIndex);

@@ -1,12 +1,14 @@
 package com.maeum.gohyang.cucumber.steps;
 
-import com.maeum.gohyang.support.adapter.ChatTestAdapter;
-import com.maeum.gohyang.support.context.ScenarioContext;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.maeum.gohyang.support.adapter.ChatTestAdapter;
+import com.maeum.gohyang.support.context.ScenarioContext;
+
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 
 /**
  * npc_chat.feature 시나리오의 단계 정의.

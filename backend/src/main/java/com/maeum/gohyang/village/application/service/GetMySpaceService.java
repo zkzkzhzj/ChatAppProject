@@ -1,12 +1,14 @@
 package com.maeum.gohyang.village.application.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.maeum.gohyang.village.application.port.in.GetMySpaceUseCase;
 import com.maeum.gohyang.village.application.port.out.LoadSpacePort;
 import com.maeum.gohyang.village.domain.Space;
 import com.maeum.gohyang.village.error.SpaceNotFoundException;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor

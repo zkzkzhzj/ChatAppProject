@@ -4,5 +4,5 @@ public interface IssueGuestTokenUseCase {
 
     TokenResult execute();
 
-    record TokenResult(String accessToken) {}
+    record TokenResult(String accessToken) { }
 }

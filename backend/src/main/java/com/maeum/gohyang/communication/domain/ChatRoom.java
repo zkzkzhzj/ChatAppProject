@@ -37,10 +37,27 @@ public class ChatRoom {
         return new ChatRoom(id, title, type, status, createdAt, closedAt);
     }
 
-    public Long getId() { return id; }
-    public String getTitle() { return title; }
-    public ChatRoomType getType() { return type; }
-    public ChatRoomStatus getStatus() { return status; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getClosedAt() { return closedAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public ChatRoomType getType() {
+        return type;
+    }
+
+    public ChatRoomStatus getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getClosedAt() {
+        return closedAt;
+    }
 }

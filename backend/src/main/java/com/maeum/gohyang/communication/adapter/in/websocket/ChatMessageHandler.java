@@ -1,17 +1,18 @@
 package com.maeum.gohyang.communication.adapter.in.websocket;
 
-import com.maeum.gohyang.communication.adapter.in.web.MessageResponse;
-import com.maeum.gohyang.communication.adapter.in.web.SendMessageResponse;
-import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
-import com.maeum.gohyang.communication.error.GuestChatNotAllowedException;
-import com.maeum.gohyang.global.security.AuthenticatedUser;
-import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+
+import com.maeum.gohyang.communication.adapter.in.web.MessageResponse;
+import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
+import com.maeum.gohyang.communication.error.GuestChatNotAllowedException;
+import com.maeum.gohyang.global.security.AuthenticatedUser;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * STOMP 메시지 핸들러.

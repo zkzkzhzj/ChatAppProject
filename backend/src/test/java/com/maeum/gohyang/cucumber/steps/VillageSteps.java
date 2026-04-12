@@ -1,11 +1,13 @@
 package com.maeum.gohyang.cucumber.steps;
 
-import com.maeum.gohyang.support.adapter.VillageTestAdapter;
-import com.maeum.gohyang.support.context.ScenarioContext;
-import io.cucumber.java.en.And;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.maeum.gohyang.support.adapter.VillageTestAdapter;
+import com.maeum.gohyang.support.context.ScenarioContext;
+
+import io.cucumber.java.en.And;
 
 /**
  * village/registration.feature 시나리오의 단계 정의.

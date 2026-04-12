@@ -1,6 +1,7 @@
 package com.maeum.gohyang.communication.adapter.in.web;
 
 import com.maeum.gohyang.communication.application.port.in.CreateChatRoomUseCase;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 

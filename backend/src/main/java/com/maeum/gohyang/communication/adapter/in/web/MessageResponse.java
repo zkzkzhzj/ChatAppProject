@@ -1,9 +1,9 @@
 package com.maeum.gohyang.communication.adapter.in.web;
 
-import com.maeum.gohyang.communication.domain.Message;
-
 import java.time.Instant;
 import java.util.UUID;
+
+import com.maeum.gohyang.communication.domain.Message;
 
 public record MessageResponse(UUID id, long participantId, String body, Instant createdAt) {
 

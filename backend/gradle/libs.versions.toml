@@ -1,0 +1,49 @@
+[versions]
+# ── Plugins ──
+spring-boot = "4.0.3"
+spring-dependency-management = "1.1.7"
+errorprone-plugin = "4.2.0"
+
+# ── Code Quality ──
+errorprone = "2.36.0"
+nullaway = "0.12.4"
+checkstyle = "10.21.4"
+jacoco = "0.8.12"
+
+# ── Architecture ──
+archunit = "1.4.0"
+
+# ── JWT ──
+jjwt = "0.12.6"
+
+# ── API Docs ──
+springdoc = "2.8.8"
+
+# ── Test ──
+cucumber = "7.34.2"
+
+[libraries]
+# Error Prone + NullAway
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
+nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
+
+# JWT
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+# API Docs
+springdoc-openapi = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+
+# Architecture Test
+archunit = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
+
+# Cucumber BDD
+cucumber-java = { module = "io.cucumber:cucumber-java", version.ref = "cucumber" }
+cucumber-spring = { module = "io.cucumber:cucumber-spring", version.ref = "cucumber" }
+cucumber-junit-platform = { module = "io.cucumber:cucumber-junit-platform-engine", version.ref = "cucumber" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-plugin" }

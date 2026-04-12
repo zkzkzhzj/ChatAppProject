@@ -37,10 +37,27 @@ public class Message {
         return new Message(id, chatRoomId, participantId, body, messageType, createdAt);
     }
 
-    public UUID getId() { return id; }
-    public long getChatRoomId() { return chatRoomId; }
-    public long getParticipantId() { return participantId; }
-    public String getBody() { return body; }
-    public MessageType getMessageType() { return messageType; }
-    public Instant getCreatedAt() { return createdAt; }
+    public UUID getId() {
+        return id;
+    }
+
+    public long getChatRoomId() {
+        return chatRoomId;
+    }
+
+    public long getParticipantId() {
+        return participantId;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public MessageType getMessageType() {
+        return messageType;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }

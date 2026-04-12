@@ -1,7 +1,8 @@
 package com.maeum.gohyang.identity.domain;
 
-import com.maeum.gohyang.global.security.UserType;
 import java.time.LocalDateTime;
+
+import com.maeum.gohyang.global.security.UserType;
 
 /**
  * Identity Context의 핵심 Domain Entity.
@@ -30,7 +31,15 @@ public class User {
         return new User(id, type, createdAt);
     }
 
-    public Long getId() { return id; }
-    public UserType getType() { return type; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public UserType getType() {
+        return type;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }

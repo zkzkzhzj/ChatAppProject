@@ -38,7 +38,15 @@ public class Character {
         return new Character(id, userId, updatedAt);
     }
 
-    public Long getId() { return id; }
-    public Long getUserId() { return userId; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

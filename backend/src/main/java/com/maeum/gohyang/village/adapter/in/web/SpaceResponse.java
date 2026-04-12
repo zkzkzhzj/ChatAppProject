@@ -1,9 +1,9 @@
 package com.maeum.gohyang.village.adapter.in.web;
 
+import java.time.LocalDateTime;
+
 import com.maeum.gohyang.village.domain.Space;
 import com.maeum.gohyang.village.domain.SpaceTheme;
-
-import java.time.LocalDateTime;
 
 public record SpaceResponse(
         Long id,

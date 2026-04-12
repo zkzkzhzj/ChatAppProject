@@ -1,12 +1,14 @@
 package com.maeum.gohyang.support.adapter;
 
-import com.maeum.gohyang.support.context.ScenarioContext;
-import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-
 import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.stereotype.Component;
+
+import com.maeum.gohyang.support.context.ScenarioContext;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * 인증 엔드포인트를 테스트하기 위한 도메인별 TestAdapter.

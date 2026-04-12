@@ -1,10 +1,12 @@
 package com.maeum.gohyang.identity.adapter.out.persistence;
 
+import org.springframework.stereotype.Component;
+
 import com.maeum.gohyang.global.infra.outbox.OutboxJpaEntity;
 import com.maeum.gohyang.global.infra.outbox.OutboxJpaRepository;
 import com.maeum.gohyang.identity.application.port.out.SaveOutboxEventPort;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

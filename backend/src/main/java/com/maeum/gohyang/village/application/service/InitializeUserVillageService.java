@@ -1,15 +1,17 @@
 package com.maeum.gohyang.village.application.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.maeum.gohyang.village.application.port.in.InitializeUserVillageUseCase;
 import com.maeum.gohyang.village.application.port.out.LoadCharacterPort;
 import com.maeum.gohyang.village.application.port.out.SaveCharacterPort;
 import com.maeum.gohyang.village.application.port.out.SaveSpacePort;
 import com.maeum.gohyang.village.domain.Character;
 import com.maeum.gohyang.village.domain.Space;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service

@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0"
+  },
+  "lint-staged": {
+    "frontend/src/**/*.{ts,tsx,js,jsx}": [
+      "npx --prefix frontend prettier --write --config frontend/.prettierrc",
+      "npx --prefix frontend eslint --fix --config frontend/eslint.config.mjs"
+    ],
+    "frontend/src/**/*.{json,css}": [
+      "npx --prefix frontend prettier --write --config frontend/.prettierrc"
+    ]
+  }
+}

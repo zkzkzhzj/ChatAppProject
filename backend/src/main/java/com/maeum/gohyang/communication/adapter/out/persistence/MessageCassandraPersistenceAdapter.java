@@ -1,9 +1,11 @@
 package com.maeum.gohyang.communication.adapter.out.persistence;
 
+import org.springframework.stereotype.Component;
+
 import com.maeum.gohyang.communication.application.port.out.SaveMessagePort;
 import com.maeum.gohyang.communication.domain.Message;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

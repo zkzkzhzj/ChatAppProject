@@ -1,5 +1,7 @@
 package com.maeum.gohyang.communication.application.service;
 
+import org.springframework.stereotype.Service;
+
 import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
 import com.maeum.gohyang.communication.application.port.out.GenerateNpcResponsePort;
 import com.maeum.gohyang.communication.application.port.out.LoadParticipantPort;
@@ -9,8 +11,8 @@ import com.maeum.gohyang.communication.domain.MessageType;
 import com.maeum.gohyang.communication.domain.Participant;
 import com.maeum.gohyang.communication.error.ChatRoomNotFoundException;
 import com.maeum.gohyang.communication.error.NotParticipantException;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor

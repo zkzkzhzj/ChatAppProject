@@ -144,6 +144,16 @@ Feature: 아이템 구매
 
 ---
 
-## 7. 아키텍처 테스트 (ArchUnit)
+## 7. 아키텍처 테스트 (ArchUnit) — 구현 완료
 
-의존 방향 위반을 CI에서 자동 검증한다. 상세는 `/docs/architecture/architecture.md` Section 6 참조.
+의존 방향 위반을 CI에서 자동 검증한다. 상세는 `/docs/architecture/architecture.md` Section 6, 선정 이유는 `/docs/architecture/decisions/008-ci-dx-tool-stack.md` 참조.
+
+**검증 규칙 (동작 중):**
+
+| 규칙 | 대상 | 내용 |
+|------|------|------|
+| Domain → JPA 어노테이션 금지 | `*/domain/**` | `@Entity`, `@Table`, `@Column`, `@Id` 사용 불가 (Critical Rule #1) |
+| Domain → Spring 의존 금지 | `*/domain/**` | Spring Framework import 불가 |
+| 도메인 간 직접 참조 금지 | identity, village, communication | 3개 도메인이 서로의 패키지를 import 불가 (Critical Rule #2) |
+| Domain → Adapter 의존 금지 | `*/domain/**` → `*/adapter/**` | 도메인 계층이 어댑터를 알지 못함 |
+| Application → Adapter 의존 금지 | `*/application/**` → `*/adapter/**` | 애플리케이션 계층이 어댑터를 알지 못함 |

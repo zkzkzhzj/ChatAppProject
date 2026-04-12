@@ -10,7 +10,7 @@ public interface SendMessageUseCase {
 
     Result execute(Command command);
 
-    record Command(long userId, long chatRoomId, String body) {}
+    record Command(long userId, long chatRoomId, String body) { }
 
-    record Result(Message userMessage, Message npcMessage) {}
+    record Result(Message userMessage, Message npcMessage) { }
 }

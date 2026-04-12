@@ -1,16 +1,22 @@
 package com.maeum.gohyang.communication.adapter.in.web;
 
-import com.maeum.gohyang.communication.application.port.in.CreateChatRoomUseCase;
-import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
-import com.maeum.gohyang.communication.error.GuestChatNotAllowedException;
-import com.maeum.gohyang.global.security.AuthenticatedUser;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.maeum.gohyang.communication.application.port.in.CreateChatRoomUseCase;
+import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
+import com.maeum.gohyang.communication.error.GuestChatNotAllowedException;
+import com.maeum.gohyang.global.security.AuthenticatedUser;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/chat-rooms")

@@ -1,8 +1,8 @@
 package com.maeum.gohyang.communication.application.port.out;
 
-import com.maeum.gohyang.communication.domain.Participant;
-
 import java.util.Optional;
+
+import com.maeum.gohyang.communication.domain.Participant;
 
 public interface LoadParticipantPort {
 

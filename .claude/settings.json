@@ -1,0 +1,24 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import sys,json; d=json.load(sys.stdin); c=d.get('command',''); exit_code=d.get('exitCode',1); print('[AUTO-REVIEW] git commit 성공 감지. review-agent를 사용하여 이 커밋의 변경사항을 리뷰하세요. git diff HEAD~1 --name-only 로 변경 파일을 확인하고, AGENTS.md 기준으로 Critical Rules 위반 여부를 점검하세요.' if 'git commit' in c and exit_code==0 else '', end='')\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}

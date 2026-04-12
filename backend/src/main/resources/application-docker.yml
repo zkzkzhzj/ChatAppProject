@@ -13,18 +13,9 @@ spring:
   kafka:
     bootstrap-servers: kafka:9092
 
-  autoconfigure:
-    exclude:
-      # Cassandra는 기동 시간이 60초 이상 소요되고 현재 관련 코드가 없다.
-      # Cassandra 도메인 구현 시 이 exclusion을 제거하고 depends_on을 추가한다.
-      - org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
+  cassandra:
+    contact-points: cassandra
 
 security:
   env-public-paths:
     - /actuator/health  # docker 환경에서는 헬스체크 엔드포인트만 허용
-
-management:
-  health:
-    cassandra:
-      enabled: false

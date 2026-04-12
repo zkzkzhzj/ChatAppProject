@@ -28,3 +28,9 @@ backend/.gradle/
 *.mermaid
 # Obsidian
 .obsidian/
+
+# Claude Code local settings (개인 설정)
+.claude/settings.local.json
+
+# Gradle home cache
+backend/.gradle-home/

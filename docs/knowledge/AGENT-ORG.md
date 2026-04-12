@@ -205,7 +205,7 @@ Stop Hook → memory/ 자동 저장 (예정)
 | realtime-tech-agent 주간 크론 | ✅ | 매주 월요일 09:00 KST |
 | job-market-agent 주간 크론 | ✅ | 매주 월요일 10:00 KST |
 | PostToolUse Hook (git commit) | ✅ | `settings.json` — commit 성공 시 review-agent 리뷰 지시 |
-| Stop Hook 세션 캡처 | ✅ | `settings.local.json` — 비프음 + memory 저장/handover 확인/학습노트 리마인드 |
+| Stop Hook 세션 캡처 | ✅ | `settings.local.json` — 비프음 + memory 저장/handover 확인 |
 | Notification Hook | ✅ | `settings.local.json` — 비프음 |
 | Wiki (LLM Wiki 패턴) | ✅ | `docs/wiki/` — 11페이지 + INDEX + log.md + Lint 스킬 |
 | dependency-tracker-agent 격주 크론 | 🔒 | 플랜 트리거 한도(3개) 초과 — 잠금. 슬롯 여유 시 재등록 |

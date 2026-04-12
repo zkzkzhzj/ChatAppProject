@@ -28,7 +28,7 @@ spring:
       contact-points: ${CASSANDRA_HOST:localhost}
       port: ${CASSANDRA_PORT:9042}
       local-datacenter: datacenter1
-      schema-action: none
+      schema-action: create_if_not_exists
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}

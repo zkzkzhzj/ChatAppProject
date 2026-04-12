@@ -1,15 +1,17 @@
 package com.maeum.gohyang.village.adapter.out.persistence;
 
+import java.util.Optional;
+
+import org.springframework.stereotype.Component;
+
 import com.maeum.gohyang.village.application.port.out.LoadCharacterPort;
 import com.maeum.gohyang.village.application.port.out.LoadSpacePort;
 import com.maeum.gohyang.village.application.port.out.SaveCharacterPort;
 import com.maeum.gohyang.village.application.port.out.SaveSpacePort;
 import com.maeum.gohyang.village.domain.Character;
 import com.maeum.gohyang.village.domain.Space;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor

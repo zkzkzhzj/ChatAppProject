@@ -1,8 +1,9 @@
 package com.maeum.gohyang.support.context;
 
-import io.cucumber.spring.ScenarioScope;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+
+import io.cucumber.spring.ScenarioScope;
 
 /**
  * 하나의 Cucumber 시나리오 안에서 단계(Step) 간 상태를 공유하는 컨텍스트.

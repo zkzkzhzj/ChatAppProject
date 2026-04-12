@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Puppy Crawl//DTD Suppressions 1.2//EN"
+        "http://www.puppycrawl.com/dtds/suppressions_1_2.dtd">
+
+<!--
+    BDD 테스트의 한글 메서드명을 허용하기 위한 Checkstyle 억제 규칙.
+    Cucumber Steps 등 테스트 코드에서 Given-When-Then 한글 메서드를 사용하므로
+    MethodName, AbbreviationAsWordInName 규칙을 테스트 소스에 한해 억제한다.
+-->
+<suppressions>
+    <suppress files="src[\\/]test[\\/]" checks="MethodName"/>
+    <suppress files="src[\\/]test[\\/]" checks="AbbreviationAsWordInName"/>
+</suppressions>

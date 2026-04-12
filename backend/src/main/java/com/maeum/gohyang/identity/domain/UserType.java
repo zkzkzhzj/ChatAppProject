@@ -6,5 +6,6 @@ package com.maeum.gohyang.identity.domain;
  */
 @Deprecated
 final class UserType {
-    private UserType() {}
+    private UserType() {
+    }
 }

@@ -1,8 +1,8 @@
 package com.maeum.gohyang.village.adapter.in.web;
 
-import com.maeum.gohyang.village.domain.Character;
-
 import java.time.LocalDateTime;
+
+import com.maeum.gohyang.village.domain.Character;
 
 public record CharacterResponse(
         Long id,

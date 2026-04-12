@@ -1,13 +1,15 @@
 package com.maeum.gohyang.communication.adapter.out.persistence;
 
-import com.maeum.gohyang.communication.domain.Message;
-import com.maeum.gohyang.communication.domain.MessageType;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
+
+import com.maeum.gohyang.communication.domain.Message;
+import com.maeum.gohyang.communication.domain.MessageType;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Table("message")
 @Getter

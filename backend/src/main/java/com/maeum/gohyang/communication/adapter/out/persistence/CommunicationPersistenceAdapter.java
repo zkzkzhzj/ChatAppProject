@@ -1,15 +1,17 @@
 package com.maeum.gohyang.communication.adapter.out.persistence;
 
+import java.util.Optional;
+
+import org.springframework.stereotype.Component;
+
 import com.maeum.gohyang.communication.application.port.out.LoadParticipantPort;
 import com.maeum.gohyang.communication.application.port.out.SaveChatRoomPort;
 import com.maeum.gohyang.communication.application.port.out.SaveParticipantPort;
 import com.maeum.gohyang.communication.domain.ChatRoom;
 import com.maeum.gohyang.communication.domain.Participant;
 import com.maeum.gohyang.communication.domain.ParticipantRole;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor

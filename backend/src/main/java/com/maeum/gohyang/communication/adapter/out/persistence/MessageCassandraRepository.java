@@ -1,8 +1,8 @@
 package com.maeum.gohyang.communication.adapter.out.persistence;
 
-import org.springframework.data.cassandra.repository.CassandraRepository;
-
 import java.util.List;
+
+import org.springframework.data.cassandra.repository.CassandraRepository;
 
 public interface MessageCassandraRepository extends CassandraRepository<MessageCassandraEntity, MessageKey> {
 

@@ -1,7 +1,8 @@
 package com.maeum.gohyang.support.adapter;
 
-import com.maeum.gohyang.support.context.ScenarioContext;
 import org.springframework.stereotype.Component;
+
+import com.maeum.gohyang.support.context.ScenarioContext;
 
 /**
  * Village 엔드포인트를 테스트하기 위한 도메인별 TestAdapter.

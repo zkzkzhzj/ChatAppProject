@@ -1,8 +1,9 @@
 package com.maeum.gohyang.global.config;
 
-import com.datastax.oss.driver.api.core.CqlSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+
+import com.datastax.oss.driver.api.core.CqlSession;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

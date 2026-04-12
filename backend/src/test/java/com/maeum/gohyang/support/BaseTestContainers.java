@@ -1,15 +1,15 @@
 package com.maeum.gohyang.support;
 
-import com.datastax.oss.driver.api.core.CqlSession;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.cassandra.CassandraContainer;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.lifecycle.Startables;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 
+import com.datastax.oss.driver.api.core.CqlSession;
 
 /**
  * 통합 테스트용 컨테이너 기반 클래스.
@@ -55,8 +55,8 @@ public abstract class BaseTestContainers {
                 .withLocalDatacenter("datacenter1")
                 .build()) {
             session.execute(
-                    "CREATE KEYSPACE IF NOT EXISTS gohyang " +
-                    "WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}"
+                    "CREATE KEYSPACE IF NOT EXISTS gohyang "
+                    + "WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}"
             );
         }
     }

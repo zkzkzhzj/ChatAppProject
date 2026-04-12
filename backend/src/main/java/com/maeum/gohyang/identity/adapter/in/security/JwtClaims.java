@@ -6,5 +6,6 @@ package com.maeum.gohyang.identity.adapter.in.security;
  */
 @Deprecated
 final class JwtClaims {
-    private JwtClaims() {}
+    private JwtClaims() {
+    }
 }

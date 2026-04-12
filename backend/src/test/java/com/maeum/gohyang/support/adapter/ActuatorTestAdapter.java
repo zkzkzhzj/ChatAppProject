@@ -1,7 +1,9 @@
 package com.maeum.gohyang.support.adapter;
 
-import com.maeum.gohyang.support.context.ScenarioContext;
 import org.springframework.stereotype.Component;
+
+import com.maeum.gohyang.support.context.ScenarioContext;
+
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 

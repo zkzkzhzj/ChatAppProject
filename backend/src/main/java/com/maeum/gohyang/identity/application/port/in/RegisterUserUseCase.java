@@ -4,7 +4,7 @@ public interface RegisterUserUseCase {
 
     TokenResult execute(RegisterUserCommand command);
 
-    record RegisterUserCommand(String email, String rawPassword) {}
+    record RegisterUserCommand(String email, String rawPassword) { }
 
-    record TokenResult(String accessToken) {}
+    record TokenResult(String accessToken) { }
 }

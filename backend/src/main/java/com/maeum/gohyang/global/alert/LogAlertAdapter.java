@@ -1,7 +1,8 @@
 package com.maeum.gohyang.global.alert;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * AlertPort의 기본 구현체. 현재는 구조화된 로그만 출력한다.

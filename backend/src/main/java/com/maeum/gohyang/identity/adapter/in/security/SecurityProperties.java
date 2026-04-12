@@ -1,9 +1,9 @@
 package com.maeum.gohyang.identity.adapter.in.security;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import java.util.List;
 import java.util.stream.Stream;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Security 허용 경로 설정.
@@ -18,8 +18,12 @@ public record SecurityProperties(
         List<String> envPublicPaths
 ) {
     public SecurityProperties {
-        if (commonPublicPaths == null) commonPublicPaths = List.of();
-        if (envPublicPaths == null) envPublicPaths = List.of();
+        if (commonPublicPaths == null) {
+            commonPublicPaths = List.of();
+        }
+        if (envPublicPaths == null) {
+            envPublicPaths = List.of();
+        }
     }
 
     public String[] allPublicPaths() {

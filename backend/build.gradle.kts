@@ -1,7 +1,12 @@
+import net.ltgt.gradle.errorprone.errorprone
+
 plugins {
 	java
-	id("org.springframework.boot") version "4.0.3"
-	id("io.spring.dependency-management") version "1.1.7"
+	jacoco
+	checkstyle
+	alias(libs.plugins.errorprone)
+	alias(libs.plugins.spring.boot)
+	alias(libs.plugins.spring.dependency.management)
 }
 
 group = "com.maeum"
@@ -33,14 +38,14 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-kafka")
 
 	// JWT (JJWT)
-	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
-	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
-	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+	implementation(libs.jjwt.api)
+	runtimeOnly(libs.jjwt.impl)
+	runtimeOnly(libs.jjwt.jackson)
 
 	// Swagger (SpringDoc OpenAPI)
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
+	implementation(libs.springdoc.openapi)
 
-	// Lombok
+	// Lombok — Spring Boot BOM이 버전 관리
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 
@@ -54,6 +59,10 @@ dependencies {
 	// DB Drivers
 	runtimeOnly("org.postgresql:postgresql")
 
+	// ── Error Prone + NullAway (컴파일 타임 버그 탐지) ──
+	errorprone(libs.errorprone.core)
+	errorprone(libs.nullaway)
+
 	// Test
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
@@ -65,16 +74,35 @@ dependencies {
 	testImplementation("org.testcontainers:testcontainers-cassandra")
 
 	// Cucumber BDD
-	testImplementation("io.cucumber:cucumber-java:7.34.2")
-	testImplementation("io.cucumber:cucumber-spring:7.34.2")
-	testImplementation("io.cucumber:cucumber-junit-platform-engine:7.34.2")
+	testImplementation(libs.cucumber.java)
+	testImplementation(libs.cucumber.spring)
+	testImplementation(libs.cucumber.junit.platform)
 
 	// JUnit Platform Suite — CucumberTestSuite의 @Suite, @IncludeEngines 어노테이션에 필요
 	testImplementation("org.junit.platform:junit-platform-suite")
 
+	// ── ArchUnit (아키텍처 규칙 자동 검증) ──
+	testImplementation(libs.archunit)
+
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testAnnotationProcessor("org.projectlombok:lombok")
+}
+
+tasks.withType<JavaCompile>().configureEach {
+	options.errorprone {
+		option("NullAway:AnnotatedPackages", "com.maeum.gohyang")
+		// NullAway는 초기에 경고로 시작. 안정화되면 error()로 전환.
+		warn("NullAway")
+		disableWarningsInGeneratedCode = true
+	}
+}
+
+// 테스트 코드는 BDD 한글 메서드명을 사용하므로 UnicodeInCode 비활성화
+tasks.named<JavaCompile>("compileTestJava") {
+	options.errorprone {
+		disable("UnicodeInCode")
+	}
 }
 
 tasks.withType<Test> {
@@ -84,4 +112,61 @@ tasks.withType<Test> {
 	useJUnitPlatform {
 		excludeEngines("junit-platform-suite")
 	}
+	finalizedBy(tasks.jacocoTestReport)
+}
+
+// ── JaCoCo 커버리지 ──
+jacoco {
+	toolVersion = libs.versions.jacoco.get()
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	reports {
+		xml.required = true   // CI 연동용 (CodeRabbit, SonarCloud)
+		html.required = true  // 로컬 확인용
+		csv.required = false
+	}
+
+	// 커버리지 측정 제외 대상
+	classDirectories.setFrom(
+		files(classDirectories.files.map {
+			fileTree(it) {
+				exclude(
+					"**/config/**",           // 설정 클래스
+					"**/error/**",            // 예외/에러코드
+					"**/*JpaEntity*",         // Persistence Entity
+					"**/*CassandraEntity*",
+					"**/*Key*",
+					"**/*Request*",           // DTO
+					"**/*Response*",
+					"**/GohyangApplication*", // 메인 클래스
+				)
+			}
+		})
+	)
+}
+
+tasks.jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				// 초기 단계: 라인 커버리지 50% 이상
+				// 테스트가 축적되면 점진적으로 올린다
+				minimum = "0.50".toBigDecimal()
+			}
+		}
+	}
+}
+
+tasks.check {
+	dependsOn(tasks.jacocoTestCoverageVerification)
+}
+
+// ── Checkstyle (Naver Convention 기반) ──
+checkstyle {
+	toolVersion = libs.versions.checkstyle.get()
+	configFile = file("config/checkstyle/checkstyle.xml")
+	isIgnoreFailures = false
+	maxWarnings = 0
 }

@@ -186,21 +186,28 @@ Happy Path를 실제 화면으로 확인할 수 있도록 프론트엔드를 먼
 
 ---
 
-### 병행 가능 (편할 때)
+### CI/DX 인프라 ✅
 
-코드 품질 인프라는 프론트엔드 작업 중 편할 때 세팅한다.
+코드 품질 파이프라인 구축 완료. 상세 선정 이유는 `docs/architecture/decisions/008-ci-dx-tool-stack.md` 참조.
 
-| 우선순위 | 툴 | 역할 |
-|---------|---|------|
-| 높음 | **GitHub Actions** | push/PR 시 테스트 자동 실행 |
-| 높음 | **Branch Protection** | main 직접 push 차단, CI 통과 필수 |
-| 중간 | **Checkstyle** | 컨벤션 위반 시 빌드 실패 |
-| 중간 | **JaCoCo** | 커버리지 리포트 |
-| 중간 | **Dependabot** | 취약 의존성 자동 PR |
-| 낮음 | **CodeRabbit** | AI PR 리뷰 봇 |
-| 낮음 | **PR 템플릿** | PR 설명 형식 강제 |
-| 나중 | **SonarCloud** | 코드 품질 종합 대시보드 |
-| 나중 | **SpotBugs** | 버그 패턴 정적 분석 |
+| 레이어 | 도구 | 상태 |
+|--------|------|------|
+| Style (백엔드) | **Checkstyle** — Naver Convention 기반, `maxWarnings=0`, 테스트 한글 메서드 억제 완료 | ✅ |
+| Style (프론트엔드) | **Prettier** — Airbnb 기반, `endOfLine: lf` | ✅ |
+| Bugs (백엔드) | **Error Prone + NullAway** — 컴파일 타임 통합, warn 모드 | ✅ |
+| Bugs (프론트엔드) | **ESLint** — `typescript-eslint/strictTypeChecked` + `simple-import-sort` 적용 | ✅ |
+| Architecture | **ArchUnit** — Critical Rule #1, #2 + 레이어 의존 방향 검증 동작 중 | ✅ |
+| Coverage | **JaCoCo** — 라인 커버리지 50% 이상 강제 | ✅ |
+| Process | **CodeRabbit** — assertive 프로필, 13개 `path_instructions`, tools 연동 | ✅ |
+| Process | **Husky + lint-staged** — pre-commit hook으로 Prettier + ESLint 자동 실행 | ✅ |
+
+**미세팅 (필요 시 추가):**
+
+| 툴 | 역할 |
+|----|------|
+| **GitHub Actions** | push/PR 시 테스트 자동 실행 |
+| **Branch Protection** | main 직접 push 차단, CI 통과 필수 |
+| **Dependabot** | 취약 의존성 자동 PR |
 
 ---
 

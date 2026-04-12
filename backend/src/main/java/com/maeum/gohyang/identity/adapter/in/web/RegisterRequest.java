@@ -1,6 +1,7 @@
 package com.maeum.gohyang.identity.adapter.in.web;
 
 import com.maeum.gohyang.identity.application.port.in.RegisterUserUseCase.RegisterUserCommand;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

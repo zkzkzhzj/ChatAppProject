@@ -1,17 +1,19 @@
 package com.maeum.gohyang.identity.application.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.maeum.gohyang.identity.application.port.in.RegisterUserUseCase;
 import com.maeum.gohyang.identity.application.port.out.CheckEmailDuplicatePort;
 import com.maeum.gohyang.identity.application.port.out.IssueTokenPort;
 import com.maeum.gohyang.identity.application.port.out.SaveOutboxEventPort;
 import com.maeum.gohyang.identity.application.port.out.SaveUserPort;
-import com.maeum.gohyang.identity.error.DuplicateEmailException;
 import com.maeum.gohyang.identity.domain.LocalAuthCredentials;
 import com.maeum.gohyang.identity.domain.User;
+import com.maeum.gohyang.identity.error.DuplicateEmailException;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor

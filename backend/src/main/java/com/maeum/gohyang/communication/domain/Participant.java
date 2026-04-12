@@ -51,12 +51,35 @@ public class Participant {
         return new Participant(id, userId, chatRoomId, displayName, role, entryType, joinedAt, leftAt);
     }
 
-    public Long getId() { return id; }
-    public Long getUserId() { return userId; }
-    public Long getChatRoomId() { return chatRoomId; }
-    public String getDisplayName() { return displayName; }
-    public ParticipantRole getRole() { return role; }
-    public EntryType getEntryType() { return entryType; }
-    public LocalDateTime getJoinedAt() { return joinedAt; }
-    public LocalDateTime getLeftAt() { return leftAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public Long getChatRoomId() {
+        return chatRoomId;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public ParticipantRole getRole() {
+        return role;
+    }
+
+    public EntryType getEntryType() {
+        return entryType;
+    }
+
+    public LocalDateTime getJoinedAt() {
+        return joinedAt;
+    }
+
+    public LocalDateTime getLeftAt() {
+        return leftAt;
+    }
 }

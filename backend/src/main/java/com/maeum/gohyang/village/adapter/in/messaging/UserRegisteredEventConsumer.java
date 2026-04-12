@@ -1,19 +1,21 @@
 package com.maeum.gohyang.village.adapter.in.messaging;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import com.maeum.gohyang.global.alert.AlertContext;
-import com.maeum.gohyang.global.alert.AlertPort;
-import com.maeum.gohyang.global.infra.idempotency.IdempotencyGuard;
-import com.maeum.gohyang.village.application.port.in.InitializeUserVillageUseCase;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.UUID;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
+import com.maeum.gohyang.global.alert.AlertContext;
+import com.maeum.gohyang.global.alert.AlertPort;
+import com.maeum.gohyang.global.infra.idempotency.IdempotencyGuard;
+import com.maeum.gohyang.village.application.port.in.InitializeUserVillageUseCase;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * user.registered 이벤트를 수신하여 유저의 기본 캐릭터와 공간을 생성한다.

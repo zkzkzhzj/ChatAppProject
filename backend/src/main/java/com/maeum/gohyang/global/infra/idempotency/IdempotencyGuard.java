@@ -1,9 +1,10 @@
 package com.maeum.gohyang.global.infra.idempotency;
 
-import lombok.RequiredArgsConstructor;
+import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Kafka at-least-once 환경에서 동일 이벤트의 중복 처리를 막는 멱등성 가드.

@@ -1,8 +1,8 @@
 package com.maeum.gohyang.global.infra.idempotency;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProcessedEventJpaRepository extends JpaRepository<ProcessedEventJpaEntity, Long> {
 

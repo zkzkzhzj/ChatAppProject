@@ -5,7 +5,7 @@
 
 ---
 
-## 현재 상태 (2026-04-09 기준, 5차 업데이트)
+## 현재 상태 (2026-04-13 기준, 6차 업데이트)
 
 ### ✅ Happy Path 완료 (Phase 0 ~ Phase 3)
 
@@ -79,6 +79,45 @@ NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
 | Web Adapter | `ChatRoomController`, `CreateChatRoomRequest`, `ChatRoomResponse`, `SendMessageRequest`, `SendMessageResponse`, `MessageResponse` | ✅ |
 | WebSocket | `ChatMessageHandler`, `StompSendMessageRequest` | ✅ |
 | Cucumber | GUEST 채팅 403 / 회원 NPC 채팅 Happy Path 시나리오 | ✅ |
+
+**4/10 — AI 하네스 구축** ✅
+
+| 항목 | 내용 |
+|------|------|
+| 스킬 개선 | `/코드리뷰`, `/전체리뷰`, `/MD리뷰` SKILL.md — tail 제거→Read 도구, Codex CLI 제약 명시 |
+| AGENTS.md | Codex CLI용 프로젝트 리뷰 기준 설정 |
+| 문서 교정 | CLAUDE.md Rule 4 경로 교정, coding.md 예외 패키지/ByXxx 수정, village API 명세 현황 반영 |
+| 학습 노트 | `learning/00-ai-harness-claude-codex.md` — Claude Code·Codex 하네스 학습 노트 |
+| 리뷰 결과 | `docs/reviews/2026-04-09/` — 전체리뷰·코드리뷰·MD리뷰 초회 실행 결과 저장 |
+
+**4/11 — 서비스 책임 경계 정제** ✅
+
+| 항목 | 내용 |
+|------|------|
+| MessageData 제거 | `SendMessageUseCase.Result`가 Message 도메인 직접 보유, 어댑터에서 DTO 변환 |
+| IdempotencyGuard | `global/infra/idempotency/` — `isAlreadyProcessed()`/`markAsProcessed()` 캡슐화, Kafka 컨슈머 재사용 가능 |
+| UserRegisteredEventConsumer | `UserRegisteredPayload` inner record 도입, handle() 4줄로 정제 |
+| 학습 노트 | `learning/16-hexagonal-refactoring-responsibility.md` |
+
+**4/11 — PR #1 머지** ✅
+- `refactor/service-responsibility-boundary` → `main` 머지 완료
+
+**4/13 — AI Native 하네스 점검·보강** (진행 중)
+
+| 항목 | 내용 |
+|------|------|
+| 스킬 추가 | `/동시성리뷰`, `/보안리뷰`, `/테스트리뷰`, `/wiki-lint` 추가 (총 7종) |
+| 에이전트 추가 | `test-quality-agent`, `context-health-agent`, `job-market-agent`, `dependency-tracker-agent` 등 총 19개 |
+| 크론 트리거 | research-agent, realtime-tech-agent, job-market-agent 3개 주간 크론 등록·정상 동작 확인 |
+| 지식 베이스 확장 | `docs/knowledge/` — job-market/, dependencies/, realtime/ 카테고리 추가 |
+| 인프라 설정 | docker-compose, application.yml, build.gradle.kts — Cassandra/Kafka/Redis 전체 설정 구성 |
+| PostToolUse Hook | `settings.json` — git commit 성공 시 review-agent 리뷰 지시 |
+| Stop Hook | `settings.local.json` — 비프음 + memory 저장/handover 확인 지시 |
+| Wiki | `docs/wiki/` — Karpathy LLM Wiki 패턴 적용. 11페이지 + INDEX + log.md + `/wiki-lint` 스킬 |
+| 에셋 리서치 | `docs/wiki/frontend/asset-guide.md` — 32x32 픽셀, Cainos/Cup Nooble 추천, Tiled 워크플로우 |
+| learning-agent | `.claude/agents/learning-agent.md` — 트레이드오프·선택지 비교 학습 노트 전담 에이전트 (총 19개) |
+| `/학습노트` 스킬 | `.claude/skills/학습노트/SKILL.md` — learning-agent 트리거 (총 8종) |
+| Stop Hook 보강 | 세션 종료 시 학습노트 리마인드 추가 (memory + handover + 학습노트 3종 캡처) |
 
 ---
 
@@ -267,6 +306,12 @@ ScenarioContext          ← lastResponse, currentAccessToken, currentEmail, cur
 | `.claude/skills/코드리뷰/SKILL.md` | Claude Code 슬래시 커맨드 — uncommitted 변경사항 Codex 리뷰 |
 | `.claude/skills/전체리뷰/SKILL.md` | Claude Code 슬래시 커맨드 — 전체 프로젝트 Codex 리뷰 |
 | `.claude/skills/MD리뷰/SKILL.md` | Claude Code 슬래시 커맨드 — 문서 정합성 + 코드↔명세 교차검증 |
+| `.claude/skills/동시성리뷰/SKILL.md` | Claude Code 슬래시 커맨드 — 동시성·락·N+1·Kafka 전문 검증 |
+| `.claude/skills/보안리뷰/SKILL.md` | Claude Code 슬래시 커맨드 — Security·OWASP Top 10 전문 검증 |
+| `.claude/skills/테스트리뷰/SKILL.md` | Claude Code 슬래시 커맨드 — 테스트 품질 전문 검증 |
+| `learning/00` | Claude Code·Codex 하네스 학습 노트 |
+| `learning/16` | 헥사고날 리팩토링 — 서비스 책임 경계 정제 |
+| `global/infra/idempotency/IdempotencyGuard` | Kafka 컨슈머 멱등성 처리 공용 컴포넌트 |
 
 ---
 

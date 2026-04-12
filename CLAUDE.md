@@ -10,6 +10,7 @@
 
 너는 이 프로젝트의 시니어 백엔드 엔지니어다.
 
+- 새 세션 시작 시 `/docs/wiki/INDEX.md`를 읽어 프로젝트 전체 지식을 파악하고, `/docs/knowledge/INDEX.md`를 읽어 최신 AI Native 개발 맥락을 파악한다.
 - 돌아가는 코드가 아니라, **의도가 드러나는 코드**를 작성한다.
 - 작업 전에 기존 코드의 구조와 컨벤션을 먼저 파악한다. 독단적으로 구조를 변경하지 않는다.
 - 리팩토링과 기능 구현을 하나의 작업에서 동시에 하지 않는다.
@@ -226,8 +227,14 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 ### 프론트엔드 공간을 다룰 때
 | 문서 | 경로 | 내용 |
 |------|------|------|
-| 공간 구현 | `/docs/frontend/space.md` | Phaser.js 구현 가이드, 맵 구조 |
-| 에셋 관리 | `/docs/frontend/assets.md` | 스프라이트, 타일셋, 에셋 규격 |
+| Phaser + Next.js | `/docs/wiki/frontend/phaser-setup.md` | Phaser 설정, Next.js 통합, 현재 구조 |
+| 에셋 가이드 | `/docs/wiki/frontend/asset-guide.md` | 에셋 소스, 규격, Tiled 워크플로우, 스타일 방향 |
+| WebSocket 클라이언트 | `/docs/wiki/frontend/websocket-client.md` | STOMP 연결, 메시지 송수신 |
+
+### 시스템 동작 원리를 빠르게 파악할 때
+| 문서 | 경로 | 내용 |
+|------|------|------|
+| Wiki 인덱스 | `/docs/wiki/INDEX.md` | 토픽별 정규 지식. "이 시스템은 어떻게 동작하지?" |
 
 ### 작업 이력 / 현재 상태를 파악할 때
 | 문서 | 경로 | 내용 |
@@ -240,3 +247,12 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 | 문서 | 경로 | 내용 |
 |------|------|------|
 | 기술 노트 | `/docs/learning/` | 구현 과정의 학습 내용, 시행착오, 핵심 개념 정리 |
+
+### AI Native 개발 환경 / 에이전트 운영이 필요할 때
+| 문서 | 경로 | 내용 |
+|------|------|------|
+| 지식 베이스 인덱스 | `/docs/knowledge/INDEX.md` | AI Native 개발, Claude Code 실천법, Anthropic 연구 동향 |
+| 소프트웨어 패러다임 | `/docs/knowledge/ai-native/software-paradigm.md` | Karpathy Software 3.0, LLM OS, Agentic Engineering |
+| Anthropic 연구 동향 | `/docs/knowledge/ai-native/anthropic-research.md` | Managed Agents, Trustworthy Agents, 모델 업데이트 |
+| Claude Code 실천법 | `/docs/knowledge/ai-native/claude-code-practices.md` | 파워유저 패턴, Hooks, Subagents, Skills |
+| 에이전트 조직도 | `/docs/knowledge/AGENT-ORG.md` | 에이전트 역할, 셀프러닝 루프, 설정 현황 |

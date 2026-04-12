@@ -5,7 +5,7 @@
 
 ---
 
-## 현재 상태 (2026-04-13 기준, 6차 업데이트)
+## 현재 상태 (2026-04-13 기준, 7차 업데이트)
 
 ### ✅ Happy Path 완료 (Phase 0 ~ Phase 3)
 
@@ -102,7 +102,7 @@ NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
 **4/11 — PR #1 머지** ✅
 - `refactor/service-responsibility-boundary` → `main` 머지 완료
 
-**4/13 — AI Native 하네스 점검·보강** (진행 중)
+**4/13 — AI Native 하네스 점검·보강** ✅
 
 | 항목 | 내용 |
 |------|------|
@@ -118,6 +118,22 @@ NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
 | learning-agent | `.claude/agents/learning-agent.md` — 트레이드오프·선택지 비교 학습 노트 전담 에이전트 (총 19개) |
 | `/학습노트` 스킬 | `.claude/skills/학습노트/SKILL.md` — learning-agent 트리거 (총 8종) |
 | Stop Hook 보강 | 세션 종료 시 학습노트 리마인드 추가 (memory + handover + 학습노트 3종 캡처) |
+
+**4/13 — CI/DX 5-레이어 품질 파이프라인 구축** ✅
+
+| 항목 | 내용 |
+|------|------|
+| Style (백엔드) | Checkstyle — Naver Convention 기반, `maxWarnings=0`, 테스트 한글 메서드 억제 |
+| Style (프론트엔드) | Prettier — Airbnb 기반, `endOfLine: lf` |
+| Bugs (백엔드) | Error Prone + NullAway — 컴파일 타임 통합, warn 모드 |
+| Bugs (프론트엔드) | ESLint — `typescript-eslint/strictTypeChecked` + `simple-import-sort` |
+| Architecture | ArchUnit — Critical Rule #1, #2 + 레이어 의존 방향 검증 (5 rules) |
+| Coverage | JaCoCo — 라인 커버리지 50% 이상 강제 |
+| Process | CodeRabbit assertive + Husky + lint-staged + GitHub Actions CI |
+| Version Catalog | `backend/gradle/libs.versions.toml` — 의존성 버전 중앙 관리 도입 |
+| ADR | `docs/architecture/decisions/008-ci-dx-tool-stack.md` |
+| 학습 노트 | `learning/18` Java 정적 분석 도구, `learning/19` Checkstyle 테스트 억제, `learning/20` 프론트엔드 ESLint |
+| PR 상태 | `refactor/service-responsibility-boundary` → `main` PR 오픈 상태 (커밋 `88c80dd`, `fe4d81c`) |
 
 ---
 
@@ -169,7 +185,32 @@ POST /api/v1/chat-rooms/{roomId}/messages
 
 ---
 
+## 현재 진행 중
+
+### PR 오픈 상태
+- 브랜치: `refactor/service-responsibility-boundary` → `main`
+- 내용: CI/DX 5-레이어 품질 파이프라인 구축 + PR 에이전트 + git 전략 보강
+- 커밋: `88c80dd`, `fe4d81c`, `d9ca579`
+- 상태: 리뷰 대기. **머지 후 이 브랜치는 삭제한다.**
+- ⚠️ 다음 작업은 반드시 **새 브랜치**에서 시작 (git.md 브랜치 생명주기 규칙)
+
+---
+
 ## 다음 할 것
+
+### 0단계 — 서브에이전트 자동화 개선 (긴급)
+
+현재 문제: 커스텀 에이전트(`.claude/agents/`)가 `subagent_type`으로 직접 호출이 안 되고, 훅도 이벤트 기반이라 "키워드 감지 → 자동 위임" 패턴이 네이티브로 안 된다. 매번 메인 에이전트가 수동으로 서브에이전트를 호출하고 있어서 AI Native하지 않다.
+
+**해결해야 할 것:**
+- 세션 종료 시 → handover.md 자동 최신화
+- "기록해줘" 키워드 → learning-agent 자동 호출
+- 커밋 전 → docs 정합성 검증 자동 실행
+- PR 생성 → pr-agent가 git.md 규칙 자동 검증
+- 훅(Hooks) 구조를 파고들어서 실질적 자동화가 동작하게 만들기
+
+**새로 추가된 에이전트:**
+- `pr-agent` — PR 생성 전문. git.md 필수 히트, 브랜치 생명주기 검증
 
 ### 1단계 — 프론트엔드 (결정됨)
 
@@ -200,12 +241,12 @@ Happy Path를 실제 화면으로 확인할 수 있도록 프론트엔드를 먼
 | Coverage | **JaCoCo** — 라인 커버리지 50% 이상 강제 | ✅ |
 | Process | **CodeRabbit** — assertive 프로필, 13개 `path_instructions`, tools 연동 | ✅ |
 | Process | **Husky + lint-staged** — pre-commit hook으로 Prettier + ESLint 자동 실행 | ✅ |
+| Process | **GitHub Actions CI** — push/PR 시 Gradle 빌드 + 테스트 자동 실행 | ✅ |
 
 **미세팅 (필요 시 추가):**
 
 | 툴 | 역할 |
 |----|------|
-| **GitHub Actions** | push/PR 시 테스트 자동 실행 |
 | **Branch Protection** | main 직접 push 차단, CI 통과 필수 |
 | **Dependabot** | 취약 의존성 자동 PR |
 
@@ -319,6 +360,17 @@ ScenarioContext          ← lastResponse, currentAccessToken, currentEmail, cur
 | `learning/00` | Claude Code·Codex 하네스 학습 노트 |
 | `learning/16` | 헥사고날 리팩토링 — 서비스 책임 경계 정제 |
 | `global/infra/idempotency/IdempotencyGuard` | Kafka 컨슈머 멱등성 처리 공용 컴포넌트 |
+| `learning/17` | Cassandra 스키마 관리 전략 |
+| `learning/18` | Java 정적 분석 도구 (Checkstyle, Error Prone, NullAway) 비교·설정 |
+| `learning/19` | Checkstyle 테스트 한글 메서드 억제 전략 |
+| `learning/20` | 프론트엔드 ESLint strictTypeChecked + Prettier 컨벤션 |
+| `decisions/008` | CI/DX 5-레이어 도구 스택 선정 (ADR) |
+| `.github/workflows/ci.yml` | GitHub Actions CI — Gradle 빌드 + 테스트 자동 실행 |
+| `.coderabbit.yaml` | CodeRabbit AI 코드 리뷰 설정 (assertive, 13개 path_instructions) |
+| `.husky/pre-commit` | pre-commit hook — Prettier + ESLint 자동 실행 |
+| `backend/config/checkstyle/` | Checkstyle 설정 (checkstyle.xml, suppressions.xml) |
+| `backend/gradle/libs.versions.toml` | Gradle Version Catalog — 의존성 버전 중앙 관리 |
+| `backend/src/test/.../HexagonalArchitectureTest.java` | ArchUnit 헥사고날 아키텍처 검증 테스트 (5 rules) |
 
 ---
 

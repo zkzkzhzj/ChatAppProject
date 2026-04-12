@@ -10,6 +10,8 @@ main              ← 배포 가능한 상태만
     ├── feat/xxx  ← 기능 개발
     ├── fix/xxx   ← 버그 수정
     ├── refactor/xxx ← 리팩토링
+    ├── infra/xxx ← 인프라/CI/DX 설정
+    ├── chore/xxx ← 기타 잡무
     └── docs/xxx  ← 문서 작업
 ```
 
@@ -18,7 +20,13 @@ main              ← 배포 가능한 상태만
 - `feat/기능명`: 새 기능 개발. 예: `feat/purchase-item`, `feat/chat-room`
 - `fix/이슈명`: 버그 수정. 예: `fix/point-deduction-race-condition`
 - `refactor/대상`: 리팩토링. 예: `refactor/wallet-port-simplify`
+- `infra/대상`: 인프라·CI/DX 설정. 예: `infra/ci-dx-pipeline`, `infra/docker-compose`
+- `chore/대상`: 기타 잡무. 예: `chore/dependency-update`
 - `docs/대상`: 문서 작업. 예: `docs/initial-context-files`, `docs/erd-update`
+
+### 브랜치 생명주기
+
+**하나의 브랜치 = 하나의 PR = 하나의 목적.** 브랜치에서 PR을 올리면 그 브랜치의 역할은 끝난다. 다음 작업은 반드시 새 브랜치에서 시작한다. 같은 브랜치에서 여러 PR을 날리지 않는다.
 
 ---
 
@@ -80,6 +88,7 @@ type: 간결한 설명 (한글 허용)
 | feat | 새 기능 |
 | fix | 버그 수정 |
 | refactor | 리팩토링 (기능 변경 없음) |
+| infra | 인프라·CI/DX 설정 |
 | test | 테스트 추가/수정 |
 | docs | 문서 변경 |
 | chore | 빌드, 설정 등 기타 |

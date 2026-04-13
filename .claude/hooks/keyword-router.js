@@ -39,6 +39,12 @@ const ROUTES = [
     message:
       '[AUTO-ROUTE] 보안 키워드 감지. security-review-agent (subagent_type: "security-review-agent")를 호출하여 보안 검증을 수행하세요.',
   },
+  {
+    // "리뷰 대응/반영", "코멘트 대응", "review respond"
+    pattern: /리뷰\s*(대응|반영|코멘트)|코멘트\s*대응|review\s*respond/i,
+    message:
+      '[AUTO-ROUTE] 리뷰 대응 키워드 감지. review-respond-agent (subagent_type: "review-respond-agent")를 호출하여 PR 리뷰 코멘트를 분석하고 수정안을 제시하세요.',
+  },
 ];
 
 let input = "";

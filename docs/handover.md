@@ -5,16 +5,17 @@
 
 ---
 
-## 현재 상태 (2026-04-13 기준, 8차 업데이트)
+## 현재 상태 (2026-04-13 기준, 9차 업데이트)
 
-### ✅ Happy Path 완료 (Phase 0 ~ Phase 3 + 마을 공개 채팅)
+### ✅ Happy Path 완료 (Phase 0 ~ Phase 3 + 마을 공개 채팅) — PR #7 머지 완료
 
-Cucumber 검증 + 프론트엔드 채팅 UI 구현 완료.
+Cucumber 검증 + 프론트엔드 채팅 UI + 단위/인수 테스트 포함, PR #7 머지 및 CI 통과 완료.
 
 ```
 GUEST 토큰 발급 → 마을 공개 채팅 시도 → 403
 이메일 회원가입 → Kafka → 캐릭터/공간 자동 생성
 마을 공개 채팅방(id=1 고정) → 메시지 전송 → NPC 하드코딩 응답 → WebSocket broadcast
+다중 유저 메시지 구분 (나/이웃/NPC) — senderId 기반 JWT 디코딩
 ```
 
 ---
@@ -245,86 +246,20 @@ POST /api/v1/chat/messages {body: "..."}
 
 ## 현재 진행 중
 
-**백엔드 마을 공개 채팅 + 프론트엔드 채팅 UI 구현 완료 (uncommitted)**
-
-마을 공개 채팅 아키텍처 전환(per-NPC-click → 고정 공개 채팅방) + 프론트엔드 채팅 UI 구현 완료. 테스트 작성 및 커밋 필요.
-
-| 항목 | 상태 |
-|------|------|
-| 마을 공개 채팅방 id=1 고정 (V2~V4 마이그레이션) | ✅ |
-| `POST /api/v1/chat/messages` REST fallback | ✅ |
-| STOMP `/app/chat/village` → `/topic/chat/village` broadcast | ✅ |
-| `StompAuthChannelInterceptor` (ChannelInterceptor JWT 인증) | ✅ |
-| `MessageResponse` senderId/senderType 필드 | ✅ |
-| `getOrCreateParticipant()` + V4 UNIQUE 제약조건 | ✅ |
-| `SendMessageUseCase.Command` body 검증 (REST/STOMP 통합) | ✅ |
-| 게임 풀스크린 (100vw x 100vh, Scale.RESIZE) | ✅ |
-| 좌측 하단 채팅 오버레이 (pointer-events 관리) | ✅ |
-| Enter → 채팅 입력 포커스 / Escape → 해제 (document.activeElement 기반) | ✅ |
-| WASD 차단 (Phaser↔HTML 포커스 관리) | ✅ |
-| LoginPrompt 팝업 (미인증 시 register→login fallback) | ✅ |
-| Zustand Phaser↔React 브릿지 (getState/subscribe) | ✅ |
-| useStomp 훅 (자동 연결 + village 구독 + cleanup) | ✅ |
-| CORS 설정 (SecurityConfig + WebSocketConfig, localhost:3000/3001) | ✅ |
-
-**새로 생성된 파일 (untracked):**
-- `frontend/src/types/chat.ts` — ChatMessage, ChatRoom 타입
-- `frontend/src/store/useChatStore.ts` — Zustand 스토어
-- `frontend/src/lib/api/chatApi.ts` — REST API 래퍼
-- `frontend/src/lib/websocket/useStomp.ts` — STOMP lifecycle hook
-- `frontend/src/components/chat/ChatOverlay.tsx` — 메인 오버레이 컨테이너
-- `frontend/src/components/chat/ChatInput.tsx` — 입력창 (forwardRef)
-- `frontend/src/components/chat/ChatBubble.tsx` — 메시지 말풍선
-- `frontend/src/components/chat/ChatMessageList.tsx` — 스크롤 메시지 목록
-- `frontend/src/components/chat/LoginPrompt.tsx` — 로그인/회원가입 팝업
-- `.claude/agents/blog-writer-agent.md` — 블로그 글 작성 에이전트
-
-**수정된 파일:**
-- `backend/.../communication/adapter/in/web/ChatRoomController.java` — `POST /api/v1/chat/messages`로 변경, publicChatRoomId 설정 키 사용
-- `backend/.../communication/adapter/in/web/MessageResponse.java` — senderId, senderType 필드 추가, fromUser/fromNpc 팩토리
-- `backend/.../communication/adapter/in/websocket/ChatMessageHandler.java` — `/app/chat/village` 고정, Principal 기반 인증
-- `backend/.../communication/application/service/SendMessageService.java` — getOrCreateParticipant() 자동 참여
-- `backend/.../communication/application/port/in/SendMessageUseCase.java` — Command compact constructor body 검증
-- `backend/.../communication/domain/ChatRoomType.java` — PUBLIC 타입 추가
-- `backend/.../global/config/WebSocketConfig.java` — StompAuthChannelInterceptor 등록, CORS 설정
-- `backend/.../identity/adapter/in/security/SecurityConfig.java` — CorsConfigurationSource 빈 추가
-- `frontend/src/game/config.ts` — Scale.RESIZE + noAudio
-- `frontend/src/game/scenes/VillageScene.ts` — Zustand 브릿지, keyboard.enabled 토글
-- `frontend/src/game/PhaserGame.tsx` — absolute inset-0
-- `frontend/src/app/page.tsx` — fullscreen + ChatOverlay
-- `frontend/src/app/layout.tsx` — 레이아웃 수정
-- `frontend/src/app/GameLoader.tsx` — 게임 로더 수정
-- `frontend/src/lib/websocket/stompClient.ts` — JWT 인증, subscribeToChatRoom, sendVillageMessage
-- `frontend/src/lib/api/client.ts` — API 클라이언트 수정
-- `frontend/next.config.ts` — devIndicators: false
-- `docs/learning/21, 22` — YouTube 아티클 추가
-- `.claude/hooks/keyword-router.js` — 블로그 키워드 라우팅 추가
+없음. PR #7 머지 완료, 브랜치 정리 완료.
 
 ---
 
 ## 다음 할 것
 
-### 1단계 — 테스트 작성 + 커밋
-
-현재 uncommitted 상태의 백엔드 아키텍처 전환 + 프론트엔드 채팅 UI를 테스트 후 커밋/PR.
-
-| 테스트 대상 | 내용 |
-|------------|------|
-| `SendMessageService` 단위 테스트 | getOrCreateParticipant() 정상/동시성, NPC 응답 생성, body 검증 |
-| `StompAuthChannelInterceptor` 단위 테스트 | CONNECT 프레임 JWT 파싱, 토큰 없음 허용, 유효하지 않은 토큰 거부 |
-| `ChatMessageHandler` 통합 테스트 | STOMP 메시지 수신 → UseCase 실행 → broadcast 검증 |
-| 브라우저 E2E | STOMP 연결 → 메시지 전송 → NPC 응답 → ChatBubble 렌더링 |
-| 미인증 → LoginPrompt | 팝업 표시, WASD 차단, register/login 동작 |
-
-### 2단계 — NPC 응답 비동기 분리 (Phase 5 준비)
+### 1단계 — NPC 응답 비동기 분리 (Phase 5 준비)
 
 | 작업 | 내용 |
 |------|------|
 | NPC 응답 비동기화 | 현재 동기 호출 → 비동기 분리 (유저 메시지 즉시 broadcast, NPC 응답 별도 broadcast) |
-| STOMP 에러 핸들러 | `@MessageExceptionHandler` 또는 `StompSubProtocolErrorHandler` 추가 |
 | `GenerateNpcResponsePort` 시그니처 확장 | NpcConversationContext 파라미터 (Phase 5 AI 교체 대비) |
 
-### 3단계 — Ollama + Qwen 7B 연동 (선택)
+### 2단계 — Ollama + Qwen 7B 연동 (선택)
 
 RTX 3080 Laptop (8GB VRAM)에서 로컬 LLM 서빙.
 

@@ -119,6 +119,17 @@ NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
 | `/학습노트` 스킬 | `.claude/skills/학습노트/SKILL.md` — learning-agent 트리거 (총 8종) |
 | Stop Hook 보강 | 세션 종료 시 학습노트 리마인드 추가 (memory + handover + 학습노트 3종 캡처) |
 
+**4/13 — 서브에이전트 자동화 훅 구축** ✅
+
+| 항목 | 내용 |
+|------|------|
+| 훅 스크립트 | `.claude/hooks/` — Node.js 기반 3개 스크립트 (Python 의존성 제거) |
+| Stop hook | `stop-handover-check.js` — 세션 종료 시 handover.md 미갱신이면 종료 차단 |
+| UserPromptSubmit hook | `keyword-router.js` — 키워드 감지 → learning/pr/research/concurrency/security agent 자동 라우팅 |
+| PreToolUse hook | `pre-bash-guard.js` — git commit 전 docs 정합성 경고 + gh pr create 전 브랜치 규칙 차단 |
+| PostToolUse hook | 인라인 Node.js — git commit 성공 시 review-agent 리뷰 지시 (python3 → node 전환) |
+| settings.json | 4개 훅 이벤트 등록 (Stop, UserPromptSubmit, PreToolUse, PostToolUse) |
+
 **4/13 — CI/DX 5-레이어 품질 파이프라인 구축** ✅
 
 | 항목 | 내용 |
@@ -187,30 +198,11 @@ POST /api/v1/chat-rooms/{roomId}/messages
 
 ## 현재 진행 중
 
-### PR 오픈 상태
-- 브랜치: `refactor/service-responsibility-boundary` → `main`
-- 내용: CI/DX 5-레이어 품질 파이프라인 구축 + PR 에이전트 + git 전략 보강
-- 커밋: `88c80dd`, `fe4d81c`, `d9ca579`
-- 상태: 리뷰 대기. **머지 후 이 브랜치는 삭제한다.**
-- ⚠️ 다음 작업은 반드시 **새 브랜치**에서 시작 (git.md 브랜치 생명주기 규칙)
+없음. main 브랜치 clean 상태. PR #1~#5 전부 머지 완료.
 
 ---
 
 ## 다음 할 것
-
-### 0단계 — 서브에이전트 자동화 개선 (긴급)
-
-현재 문제: 커스텀 에이전트(`.claude/agents/`)가 `subagent_type`으로 직접 호출이 안 되고, 훅도 이벤트 기반이라 "키워드 감지 → 자동 위임" 패턴이 네이티브로 안 된다. 매번 메인 에이전트가 수동으로 서브에이전트를 호출하고 있어서 AI Native하지 않다.
-
-**해결해야 할 것:**
-- 세션 종료 시 → handover.md 자동 최신화
-- "기록해줘" 키워드 → learning-agent 자동 호출
-- 커밋 전 → docs 정합성 검증 자동 실행
-- PR 생성 → pr-agent가 git.md 규칙 자동 검증
-- 훅(Hooks) 구조를 파고들어서 실질적 자동화가 동작하게 만들기
-
-**새로 추가된 에이전트:**
-- `pr-agent` — PR 생성 전문. git.md 필수 히트, 브랜치 생명주기 검증
 
 ### 1단계 — 프론트엔드 (결정됨)
 
@@ -371,6 +363,9 @@ ScenarioContext          ← lastResponse, currentAccessToken, currentEmail, cur
 | `backend/config/checkstyle/` | Checkstyle 설정 (checkstyle.xml, suppressions.xml) |
 | `backend/gradle/libs.versions.toml` | Gradle Version Catalog — 의존성 버전 중앙 관리 |
 | `backend/src/test/.../HexagonalArchitectureTest.java` | ArchUnit 헥사고날 아키텍처 검증 테스트 (5 rules) |
+| `.claude/hooks/stop-handover-check.js` | Stop hook — 세션 종료 시 handover.md 미갱신 차단 |
+| `.claude/hooks/keyword-router.js` | UserPromptSubmit hook — 키워드 → 에이전트 자동 라우팅 (5개 카테고리) |
+| `.claude/hooks/pre-bash-guard.js` | PreToolUse hook — git commit docs 경고 + gh pr create 규칙 차단 |
 
 ---
 

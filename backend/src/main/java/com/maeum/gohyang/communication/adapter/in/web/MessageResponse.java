@@ -7,7 +7,14 @@ import org.jspecify.annotations.Nullable;
 
 import com.maeum.gohyang.communication.domain.Message;
 
-public record MessageResponse(UUID id, long participantId, @Nullable Long senderId, String senderType, String body, Instant createdAt) {
+public record MessageResponse(
+        UUID id,
+        long participantId,
+        @Nullable Long senderId,
+        String senderType,
+        String body,
+        Instant createdAt
+) {
 
     public static MessageResponse fromUser(Message message, long senderId) {
         return new MessageResponse(

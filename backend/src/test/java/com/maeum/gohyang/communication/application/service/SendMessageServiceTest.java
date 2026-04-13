@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
 import com.maeum.gohyang.communication.application.port.out.GenerateNpcResponsePort;
@@ -30,10 +32,6 @@ import com.maeum.gohyang.communication.domain.Participant;
 import com.maeum.gohyang.communication.domain.ParticipantRole;
 import com.maeum.gohyang.communication.error.ChatRoomNotFoundException;
 import com.maeum.gohyang.communication.error.InvalidMessageBodyException;
-
-import java.time.LocalDateTime;
-
-import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class SendMessageServiceTest {

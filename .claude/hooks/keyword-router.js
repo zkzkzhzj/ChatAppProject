@@ -45,6 +45,12 @@ const ROUTES = [
     message:
       '[AUTO-ROUTE] 리뷰 대응 키워드 감지. review-respond-agent (subagent_type: "review-respond-agent")를 호출하여 PR 리뷰 코멘트를 분석하고 수정안을 제시하세요.',
   },
+  {
+    // "블로그 글", "블로그 작성", "글 써줘", "포스팅", "블로그 포스트"
+    pattern: /블로그\s*(글|작성|포스트|써)|글\s*써줘|포스팅/i,
+    message:
+      '[AUTO-ROUTE] 블로그 키워드 감지. blog-writer-agent (subagent_type: "blog-writer-agent")를 호출하여 zlog 블로그 글을 작성하세요. 반드시 최신 글 3개를 먼저 읽어 스타일을 학습한 뒤, 프로젝트의 docs/learning/, docs/architecture/decisions/ 등에서 소재를 수집하여 작성하세요.',
+  },
 ];
 
 let input = "";

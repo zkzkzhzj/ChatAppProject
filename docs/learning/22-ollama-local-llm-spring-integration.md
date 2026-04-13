@@ -271,3 +271,41 @@ public interface GenerateNpcResponsePort {
 - [Local LLM 벤치마크 2025](https://www.ywian.com/blog/local-llm-performance-2025-benchmark) — 모델별 속도/품질 비교
 - 관련 학습노트: [21-village-public-chat-architecture.md](./21-village-public-chat-architecture.md) — 마을 공개 채팅의 전체 아키텍처
 - 관련 학습노트: [15-websocket-stomp-deep-dive.md](./15-websocket-stomp-deep-dive.md) — WebSocket/STOMP 기초
+
+### 로컬 LLM 서빙 — Ollama, vLLM, llama.cpp 실무 가이드
+- [Ollama vs vLLM vs LM Studio: Best Way to Run LLMs Locally in 2026](https://www.glukhov.org/post/2025/11/hosting-llms-ollama-localai-jan-lmstudio-vllm-comparison/) — 프레임워크별 철학과 적합한 상황을 상세 비교. Ollama는 단일 유저 개발용, vLLM은 멀티테넌트 프로덕션용
+- [Ollama vs vLLM: Performance Benchmark 2026](https://www.sitepoint.com/ollama-vs-vllm-performance-benchmark-2026/) — 동시 접속 50명 기준 vLLM이 6배 처리량, p99 레이턴시 3초 vs Ollama 24.7초
+- [llama.cpp vs Ollama vs vLLM: 2026 Comparison with Benchmarks](https://www.decodesfuture.com/articles/llama-cpp-vs-ollama-vs-vllm-local-llm-stack-guide) — 세 프레임워크의 아키텍처 차이와 벤치마크 결과
+- [Run Local LLMs 2026: Complete Developer Guide](https://www.sitepoint.com/run-local-llms-2026-complete-developer-guide/) — 로컬 LLM 실행 환경 구축부터 프로덕션 배포까지
+- [Running LLMs Locally: Ollama, llama.cpp, and Self-Hosted AI](https://daily.dev/blog/running-llms-locally-ollama-llama-cpp-self-hosted-ai-developers) — 개발자를 위한 로컬 LLM 셀프호스팅 실전 가이드
+
+### NPC/챗봇 설계 — 페르소나, 프롬프트 엔지니어링, 게임 AI
+- [NVIDIA: Inworld AI로 게임 캐릭터에 생명 불어넣기](https://blogs.nvidia.com/blog/generative-ai-npcs/) — Character Brain(성격 ML 모델) + Contextual Mesh(세계관 일관성) + Real-Time AI 3계층 구조
+- [Convai: AI-Driven Narrative Design for Lifelike Characters](https://convai.com/blog/ai-narrative-design-unreal-engine-and-unity-convai-guide) — Unity/Unreal에서 LLM 기반 NPC의 내러티브 설계 방법
+- [Convai: Dynamic NPC Actions in Game Development](https://convai.com/blog/integrating-dynamic-npc-actions-for-game-development-with-convai) — LLM에 로봇 태스크 플래닝 알고리즘을 결합한 NPC 행동 생성
+- [AI Character Prompts: Mastering Persona Creation](https://www.jenova.ai/en/resources/ai-character-prompts) — 일관된 AI 캐릭터를 만들기 위한 프롬프트 설계 패턴
+- [Naavik: AI NPCs — The Future of Game Characters](https://naavik.co/digest/ai-npcs-the-future-of-game-characters/) — 게임 NPC AI의 현재와 미래. 시장 규모($6.4B, 2025) 및 기술 트렌드
+- [Voiceflow: Prompt Engineering for Chatbot (2026)](https://www.voiceflow.com/blog/prompt-engineering) — 챗봇 페르소나 설계 시 "bright lines"(금지선) 설정의 중요성
+
+### Spring + AI 통합 — Spring AI, LangChain4j, Java LLM 생태계
+- [Java Code Geeks: Spring AI 1.1 vs LangChain4j vs Direct API Calls (2026)](https://www.javacodegeeks.com/2026/03/choosing-a-java-llm-integration-strategy-in-2026-spring-ai-1-1-vs-langchain4j-vs-direct-api-calls.html) — 우리 프로젝트의 "RestClient 직접 구현" 선택과 관련된 세 가지 전략 비교
+- [Java Code Geeks: Building AI-Powered Apps with Spring AI and LangChain4j](https://www.javacodegeeks.com/2026/01/building-ai-powered-applications-with-spring-ai-and-langchain4j.html) — 두 프레임워크의 철학 차이. Spring AI는 Advisor 기반, LangChain4j는 레고 블록 방식
+- [Medium: Simplifying LLM Integration in Spring Boot — REST APIs to LangChain4j](https://medium.com/@aravindcsebe/simplifying-llm-integration-in-spring-boot-from-rest-apis-to-langchain4j-4271c30bbff3) — REST API 직접 호출에서 LangChain4j로 전환하는 실전 과정
+- [LangChain4j 공식: Spring Boot Integration 가이드](https://github.com/langchain4j/langchain4j/blob/main/docs/docs/tutorials/spring-boot-integration.md) — LangChain4j의 Spring Boot 자동 설정과 AiServices 패턴
+- [JAVAPRO: Build AI Apps and Agents in Java with LangChain4j](https://javapro.io/2025/04/23/build-ai-apps-and-agents-in-java-hands-on-with-langchain4j/) — Hands-on 튜토리얼. ChatMemory, RAG, Tool 호출 등 실전 패턴
+
+### 유튜브 영상
+
+#### Ollama 설치/사용법
+- [Ollama Course - Build AI Apps Locally — freeCodeCamp](https://youtu.be/GWB9ApTPTv4) — Paulo Dichone의 3시간 Ollama 강좌. 설치부터 REST API, Python 연동, RAG 시스템 구축까지. 로컬 LLM 입문에 가장 체계적인 무료 강좌
+- [run AI on your laptop... it's PRIVATE!! — NetworkChuck](https://youtu.be/Wjrdr0NU4Sk) — Ollama + Llama 3로 프라이빗 AI 서버 구축하기. Open WebUI 설정, 이미지 생성(Stable Diffusion)까지 다룬다. 엔터테인먼트적이면서 실용적
+
+#### Spring AI / Java + LLM 연동
+- [AI for Java Developers - Complete Spring AI Course — Dan Vega](https://youtu.be/FzLABAppJfM) — Spring Developer Advocate가 만든 5.5시간 무료 강좌. Spring AI 1.0 기반으로 Chat Client, Streaming, RAG, Tool Calling, MCP Server, Ollama 로컬 모델 실행까지. 우리 프로젝트에서 Spring AI 방식을 쓰지 않더라도 Spring AI의 설계 철학을 이해하는 데 유용하다
+
+#### Game NPC AI / 로컬 LLM 활용 (YouTube에서 검색 권장)
+- 아래 영상들은 URL을 직접 확인하지 못해 검색 키워드만 제공한다. YouTube에서 검색하면 바로 찾을 수 있다:
+  - **"Telusko Spring AI Tutorial with OpenAI Anthropic and Ollama"** (채널: Telusko) — 47분짜리 Spring AI 튜토리얼. OpenAI, Anthropic, Ollama 세 프로바이더를 하나의 Spring Boot 프로젝트에서 전환하는 방법
+  - **"Dan Vega Getting Started with Ollama Llama 3.1 and Spring AI"** (채널: Dan Vega) — Ollama + Llama 3.1을 Spring AI에 연동하는 입문 영상. 위의 5.5시간 강좌 전에 가볍게 보기 좋다
+  - **"Tech with Tim Learn Ollama"** (채널: Tech with Tim) — 15분 만에 Ollama 설치부터 모델 관리, HTTP API, Python 연동까지 다루는 빠른 입문 영상
+  - **"NVIDIA ACE Covert Protocol AI NPC Demo GDC 2024"** (채널: NVIDIA) — NVIDIA ACE + Inworld Engine으로 만든 AI NPC 데모. 마이크로 실시간 대화하는 NPC. 우리 프로젝트의 NPC 비전과 직접 관련된 미래 방향

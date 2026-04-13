@@ -4,6 +4,11 @@
 
 ---
 
+## [2026-04-13] update | 프론트엔드 Wiki 갱신 (채팅 UI 반영)
+
+- `frontend/phaser-setup.md` — Scale.RESIZE 풀스크린, noAudio, Phaser↔React 브릿지 구조, 채팅 컴포넌트 트리 추가
+- `frontend/websocket-client.md` — @stomp/stompjs Client 기반으로 갱신, connectWithAuth/subscribeToChatRoom/sendChatMessage 반영, useStomp hook 추가
+
 ## [2026-04-13] lint | Wiki 정기 점검
 
 - CRITICAL: 0개, WARNING: 0개, LGTM: 6개 (전항목 통과)

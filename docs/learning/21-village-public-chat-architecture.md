@@ -189,3 +189,41 @@ Phase 미래: Redis Pub/Sub 기반 Relay
 - [Discord 봇 멘션 패턴](https://github.com/Rapptz/discord.py/discussions/5877) — 멘션 기반 봇 반응 구현
 - 관련 학습노트: [15-websocket-stomp-deep-dive.md](./15-websocket-stomp-deep-dive.md) — WebSocket/STOMP 기초
 - 다음 단계: [22-ollama-local-llm-spring-integration.md](./22-ollama-local-llm-spring-integration.md) — NPC 응답을 실제 LLM으로 구현하는 방법
+
+### 채팅 시스템 설계 — 한국 기업 기술블로그
+- [당근마켓 채팅 시스템이 현대화 되어온 과정](https://byline.network/2022/05/0512-2/) — 모놀리식(PostgreSQL) → MSA(Go + DynamoDB)로의 전환기. 2200만 사용자를 위한 채팅 아키텍처
+- [당근 테크 블로그: DynamoDB 데이터 변경 이벤트 파이프라인 구축하기](https://medium.com/daangn/dynamodb-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EB%B3%80%EA%B2%BD-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8-%EA%B5%AC%EC%B6%95%ED%95%98%EA%B8%B0-feat-kinesis-1733db06066) — 라이브 스트리밍 채팅 데이터를 DynamoDB + Kinesis로 처리하는 파이프라인
+- [LINE LIVE 채팅 기능의 기반이 되는 아키텍처](https://engineering.linecorp.com/ko/blog/the-architecture-behind-chatting-on-line-live) — 라이브 스트리밍 채팅의 WebSocket 구현과 대규모 동시 접속 처리
+- [LINE 메신저 아키텍처 — 2억 MAU를 지탱하는 구조](https://speakerdeck.com/line_developers/line-campus-talk-in-uc-berkeley-by-yuto-kawamura) — LEGY 게이트웨이, Redis/HBase 데이터스토어, Kafka 비동기 처리
+- [우아한형제들: 회원시스템 이벤트기반 아키텍처 구축하기](https://techblog.woowahan.com/7835/) — MSA 환경에서 이벤트 기반 아키텍처 설계와 메시징 시스템 활용
+- [우아한형제들: 우리 팀은 카프카를 어떻게 사용하고 있을까](https://techblog.woowahan.com/17386/) — Transactional Outbox Pattern과 Kafka를 활용한 이벤트 순서 보장
+
+### 실시간 통신 — WebSocket, STOMP, SSE 실무 경험기
+- [토스증권의 미국 Option 시세 실시간 제공 사례](https://aws.amazon.com/ko/blogs/tech/toss-securities-nasdaq-options-realtime-pipeline/) — 실시간 시세 데이터를 국가 간 전송하는 파이프라인 설계
+- [우아한형제들: Server-Sent Events로 실시간 알림 전달하기](https://techblog.woowahan.com/23199/) — REST API + SSE 조합의 실무 적용기. WebSocket과의 비교
+- [Dale Seo: 실시간 양방향 통신을 위한 웹소켓(WebSocket)](https://daleseo.com/websocket/) — WebSocket 기초부터 실무까지 정리
+- [Spring WebSocket & STOMP 실시간 채팅 기능](https://brunch.co.kr/@springboot/695) — Spring Boot에서 STOMP 기반 채팅 구현 실전 가이드
+
+### 대규모 채팅 운영 — Discord, Slack, Twitch 엔지니어링
+- [Slack Engineering: Real-time Messaging](https://slack.engineering/real-time-messaging/) — Slack의 Channel Server(stateful, in-memory) 기반 실시간 메시징 아키텍처
+- [Slack System Architecture 분석](https://medium.com/geekculture/slack-system-architecture-aa9b8cfb886e) — Java 기반 핵심 서비스, consistent hashing, 수백 가지 이벤트 타입 처리
+- [Twitch State of Engineering 2023](https://blog.twitch.tv/en/2023/09/28/twitch-state-of-engineering-2023/) — Go로 작성된 채팅 시스템이 하루 수천억 건의 메시지를 처리하는 방법
+- [System Design Case Study: Slack의 Real-time Messaging Architecture](https://scaleyourapp.com/system-design-case-study-real-time-messaging-architecture/) — Slack 아키텍처를 시스템 설계 관점에서 분석
+
+### 메시지 저장/검색 — Cassandra, ScyllaDB 등
+- [Discord 공식 블로그: How Discord Stores Trillions of Messages](https://discord.com/blog/how-discord-stores-trillions-of-messages) — Cassandra → ScyllaDB 마이그레이션, Rust 기반 Data Services 계층, Request Coalescing 패턴
+- [ByteByteGo: How Discord Stores Trillions of Messages](https://blog.bytebytego.com/p/how-discord-stores-trillions-of-messages) — Discord의 메시지 저장 아키텍처를 시각적으로 정리
+- [Discord의 Cassandra → ScyllaDB 마이그레이션 상세](https://seifrajhi.github.io/blog/discord-cassandra-to-scylladb/) — 177노드 → 72노드 축소, p99 레이턴시 40~125ms → 15ms 개선
+- [ScyllaDB vs Apache Cassandra 공식 비교](https://www.scylladb.com/compare/scylladb-vs-apache-cassandra/) — C++ 기반 shard-per-core 아키텍처가 JVM GC 문제를 해결하는 원리
+
+### 유튜브 영상
+
+#### WebSocket / 실시간 통신 기초~심화
+- [WebSockets Crash Course — Hussein Nasser](https://www.youtube.com/watch?v=XgFzHXOk8IQ) — WebSocket 핸드셰이크, 사용 사례, 장단점, 멀티플레이어 게임 및 채팅 구현까지 다루는 5시간 35분 강좌. WebSocket의 근본 원리를 이해하고 싶으면 이 영상부터 보면 된다
+
+#### 채팅/메시징 시스템 설계 (YouTube에서 검색 권장)
+- 아래 영상들은 URL을 직접 확인하지 못해 검색 키워드만 제공한다. YouTube에서 검색하면 바로 찾을 수 있다:
+  - **"Gaurav Sen WhatsApp System Design"** (채널: Gaurav Sen / gkcs) — WhatsApp 아키텍처를 그룹 메시징, 메시지 상태, 미디어 공유 관점에서 분석. Java/Kafka 기반 구현 예제도 GitHub에 있다
+  - **"ByteByteGo Design A Chat System"** (채널: ByteByteGo) — Alex Xu의 System Design Interview 책 기반. WebSocket 연결, 프레즌스 서비스, 메시지 동기화 흐름을 시각적으로 설명
+  - **"Hussein Nasser Scaling Websockets with Redis HAProxy"** (채널: Hussein Nasser) — Redis Pub/Sub + HAProxy로 WebSocket 채팅을 수평 확장하는 방법. 우리 프로젝트의 "Simple Broker → Redis Pub/Sub 전환" 계획과 직접 관련
+  - **"Hussein Nasser Scalable Real-Time Backends with WebSockets"** — 2025년 출시된 유료 Udemy 강좌. I/O-intensive 채팅 시스템과 CPU-intensive 게임 두 가지를 설계하며 WebSocket 스케일링을 다룬다

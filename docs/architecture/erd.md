@@ -164,7 +164,7 @@ ITEM_DEFINITION ||--|{ USER_ITEM_INVENTORY
 CHAT_ROOM {
     Long id PK
     String title
-    Enum type                -- DIRECT / GROUP / NPC
+    Enum type                -- PUBLIC / DIRECT / GROUP / NPC
     Enum status              -- ACTIVE / CLOSED
     DateTime created_at
     DateTime closed_at
@@ -303,6 +303,7 @@ IDEMPOTENCY_REQUEST {
 | REPORT, SANCTION | 없음 | 신규 | Safety Context |
 | OUTBOX 등 | 없음 | 신규 | 멱등성, Outbox 인프라 |
 | CHARACTER.user_id | 제약 없음 | UNIQUE 추가 | USER와 1:1 관계 확정 |
+| ChatRoomType enum | DIRECT/GROUP/NPC | PUBLIC/DIRECT/GROUP/NPC | 마을 공개 채팅(PUBLIC) 타입 추가. V3 마이그레이션으로 기존 데이터 정리 후 공개 채팅방 id=1 고정 생성. `village.public-chat-room-id` 설정으로 관리 |
 
 ---
 

@@ -4,12 +4,13 @@ import { VillageScene } from './scenes/VillageScene';
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
   scene: [VillageScene],
   parent: 'phaser-container',
   scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
+    mode: Phaser.Scale.RESIZE,
+    width: '100%',
+    height: '100%',
   },
+  backgroundColor: '#87c05a',
+  audio: { noAudio: true },
 };

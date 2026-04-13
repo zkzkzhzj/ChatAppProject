@@ -119,16 +119,19 @@ NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
 | `/학습노트` 스킬 | `.claude/skills/학습노트/SKILL.md` — learning-agent 트리거 (총 8종) |
 | Stop Hook 보강 | 세션 종료 시 학습노트 리마인드 추가 (memory + handover + 학습노트 3종 캡처) |
 
-**4/13 — 서브에이전트 자동화 훅 구축** ✅
+**4/13 — 서브에이전트 자동화 훅 구축 + PR #6 머지** ✅
 
 | 항목 | 내용 |
 |------|------|
-| 훅 스크립트 | `.claude/hooks/` — Node.js 기반 3개 스크립트 (Python 의존성 제거) |
-| Stop hook | `stop-handover-check.js` — 세션 종료 시 handover.md 미갱신이면 종료 차단 |
-| UserPromptSubmit hook | `keyword-router.js` — 키워드 감지 → learning/pr/research/concurrency/security agent 자동 라우팅 |
-| PreToolUse hook | `pre-bash-guard.js` — git commit 전 docs 정합성 경고 + gh pr create 전 브랜치 규칙 차단 |
-| PostToolUse hook | 인라인 Node.js — git commit 성공 시 review-agent 리뷰 지시 (python3 → node 전환) |
-| settings.json | 4개 훅 이벤트 등록 (Stop, UserPromptSubmit, PreToolUse, PostToolUse) |
+| 훅 스크립트 | `.claude/hooks/` — Node.js 기반 4개 스크립트 |
+| Stop hook | `stop-handover-check.js` — handover.md 미갱신 차단, 정확한 경로 매칭, porcelain 파싱 |
+| UserPromptSubmit hook | `keyword-router.js` — 정규식 패턴 6개 (학습/PR/리서치/동시성/보안/리뷰대응) |
+| PreToolUse hook | `pre-bash-guard.js` — execFileSync 인젝션 방지, Added 파일만 검출 |
+| PostToolUse hook | `post-commit-review.js` — git commit regex 매칭, 별도 파일로 분리 (Windows 호환) |
+| settings.json | 4개 훅 이벤트, `$CLAUDE_PROJECT_DIR` 절대 경로 |
+| 서브에이전트 | `review-respond-agent.md` — PR 리뷰 코멘트 분석 및 수정 에이전트 |
+| 스킬 | `/브랜치정리` — 머지 후 로컬+리모트 브랜치 정리 |
+| PR | #6 머지 완료 (CodeRabbit/Codex 리뷰 3라운드 대응 후 squash merge) |
 
 **4/13 — CI/DX 5-레이어 품질 파이프라인 구축** ✅
 
@@ -198,24 +201,39 @@ POST /api/v1/chat-rooms/{roomId}/messages
 
 ## 현재 진행 중
 
-없음. main 브랜치 clean 상태. PR #1~#5 전부 머지 완료.
+없음. main 브랜치 clean 상태. PR #1~#6 전부 머지 완료.
 
 ---
 
 ## 다음 할 것
 
-### 1단계 — 프론트엔드 (결정됨)
+### 1단계 — 프론트엔드 채팅 구현 (설계 완료, 구현 시작 전)
 
-Happy Path를 실제 화면으로 확인할 수 있도록 프론트엔드를 먼저 구현한다.
+ZEP/Gather.town 스타일의 마을 공개 채팅을 구현한다. 설계 리서치 완료, 핵심 결정 확정됨.
 
-| 목표 | 핵심 내용 |
-|------|---------|
-| 마을 공간 렌더링 | Phaser.js 기반 2D 맵, 캐릭터 이동 |
-| NPC 상호작용 | NPC 클릭 → 채팅 UI 진입 |
-| 실시간 채팅 | WebSocket(STOMP) 연결, 메시지 송수신 |
-| 인증 흐름 | 게스트 입장 → 채팅 시도 → 회원가입 → NPC 채팅 |
+**채팅 아키텍처 결정사항:**
 
-> `docs/frontend/space.md` 참조. 상세 기획은 구현 시작 전 별도 정의.
+| 항목 | 결정 | 학습노트 |
+|------|------|---------|
+| 채팅 범위 | Everyone (마을 전체) — Nearby는 Phase 2+ | `learning/21` |
+| 방 생명주기 | Persistent, Village 1:1 매핑 | `learning/21` |
+| 과거 메시지 | REST 최근 50건 + WebSocket 실시간 | `learning/21` |
+| NPC 트리거 | @멘션 방식 (Discord 봇 패턴) | `learning/21` |
+| 게스트 접근 | SUBSCRIBE permitAll, SEND authenticated | `learning/21` |
+| NPC LLM | Ollama + Qwen 2.5 7B (로컬, RTX 3080 8GB) | `learning/22` |
+| LLM 연동 | RestClient 직접 (Spring AI 대신) | `learning/22` |
+| 동시성 | Semaphore(2) + fallback 메시지 | `learning/22` |
+
+**구현 순서:**
+
+| 순서 | 작업 | 백엔드 변경 |
+|------|------|------------|
+| 1 | 프론트 채팅 UI (마을 하단 채팅 패널) | - |
+| 2 | 백엔드 VILLAGE 채팅방 타입 + SendMessageService 분기 | ChatRoomType.VILLAGE, @멘션 파싱 |
+| 3 | Ollama + Qwen 7B 연동 (OllamaResponseAdapter) | GenerateNpcResponsePort 시그니처 확장 |
+| 4 | 인증 UI (로그인/회원가입 폼) | - |
+
+> 상세 설계: `docs/learning/21-village-public-chat-architecture.md`, `docs/learning/22-ollama-local-llm-spring-integration.md`
 
 ---
 

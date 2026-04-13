@@ -19,5 +19,5 @@ export default function PhaserGame() {
     };
   }, []);
 
-  return <div id="phaser-container" className="rounded-lg overflow-hidden shadow-2xl" />;
+  return <div id="phaser-container" className="absolute inset-0" />;
 }

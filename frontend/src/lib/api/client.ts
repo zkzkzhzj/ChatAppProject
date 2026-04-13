@@ -20,8 +20,12 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
-      localStorage.removeItem('accessToken');
-      window.location.href = '/login';
+      // 인증 API(/auth/*)의 401은 로그인 실패이므로 건드리지 않는다.
+      // 그 외 401은 토큰 만료 → 토큰 제거 후 새로고침 (LoginPrompt가 다시 뜬다).
+      const url = error.config?.url ?? '';
+      if (!url.includes('/auth/')) {
+        localStorage.removeItem('accessToken');
+      }
     }
     return Promise.reject(error instanceof Error ? error : new Error(String(error)));
   },

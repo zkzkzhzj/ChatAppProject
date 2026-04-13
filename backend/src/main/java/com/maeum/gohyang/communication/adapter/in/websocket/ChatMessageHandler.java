@@ -1,10 +1,12 @@
 package com.maeum.gohyang.communication.adapter.in.websocket;
 
-import org.springframework.messaging.handler.annotation.DestinationVariable;
+import java.security.Principal;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import com.maeum.gohyang.communication.adapter.in.web.MessageResponse;
@@ -15,13 +17,12 @@ import com.maeum.gohyang.global.security.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
 
 /**
- * STOMP 메시지 핸들러.
+ * 마을 공개 채팅 STOMP 핸들러.
  *
- * 클라이언트가 `/app/chat/{roomId}` 로 STOMP 메시지를 보내면
- * NPC 응답을 생성해 `/topic/chat/{roomId}` 로 broadcast한다.
+ * 클라이언트가 `/app/chat/village` 로 메시지를 보내면
+ * 마을 공개 채팅방(고정 ID)에 저장하고 NPC 응답과 함께 broadcast한다.
  *
- * REST POST /chat-rooms/{id}/messages 와 동일한 UseCase를 공유한다.
- * 실시간 UI를 위한 WebSocket 경로. Happy Path 테스트는 REST로 수행한다.
+ * 채널 개념 도입 전까지 마을 = 1개, 채팅방 = 1개로 운영한다.
  */
 @Controller
 @RequiredArgsConstructor
@@ -30,20 +31,23 @@ public class ChatMessageHandler {
     private final SendMessageUseCase sendMessageUseCase;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @MessageMapping("/chat/{roomId}")
+    @Value("${village.public-chat-room-id}")
+    private long publicChatRoomId;
+
+    @MessageMapping("/chat/village")
     public void handleMessage(
-            @DestinationVariable long roomId,
             @Payload StompSendMessageRequest request,
-            @AuthenticationPrincipal AuthenticatedUser user) {
-        if (user == null || user.isGuest()) {
+            Principal principal) {
+        if (!(principal instanceof AuthenticatedUser user) || user.isGuest()) {
             throw new GuestChatNotAllowedException();
         }
         SendMessageUseCase.Result result = sendMessageUseCase.execute(
-                new SendMessageUseCase.Command(user.userId(), roomId, request.body()));
+                new SendMessageUseCase.Command(user.userId(), publicChatRoomId, request.body()));
 
-        messagingTemplate.convertAndSend(
-                "/topic/chat/" + roomId,
-                MessageResponse.from(result.npcMessage())
+        List<MessageResponse> batch = List.of(
+                MessageResponse.fromUser(result.userMessage(), user.userId()),
+                MessageResponse.fromNpc(result.npcMessage())
         );
+        messagingTemplate.convertAndSend("/topic/chat/village", batch);
     }
 }

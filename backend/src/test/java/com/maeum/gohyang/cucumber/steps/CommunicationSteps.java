@@ -26,30 +26,15 @@ public class CommunicationSteps {
     @Autowired
     private ScenarioContext scenarioContext;
 
-    @When("게스트가 NPC 채팅방 생성을 시도한다")
-    public void 게스트가_NPC_채팅방_생성을_시도한다() {
-        chatTestAdapter.tryCreateChatRoomWithGuestToken();
+    @When("게스트가 마을 채팅에 메시지 전송을 시도한다")
+    public void 게스트가_마을_채팅에_메시지_전송을_시도한다() {
+        chatTestAdapter.trySendMessageAsGuest();
     }
 
-    @When("NPC 채팅방을 생성한다")
-    public void NPC_채팅방을_생성한다() {
-        chatTestAdapter.createNpcChatRoom("마을 방문자");
-    }
-
-    @Then("채팅방이 정상적으로 생성된다")
-    public void 채팅방이_정상적으로_생성된다() {
-        assertThat(scenarioContext.getLastStatusCode())
-                .as("채팅방 생성 응답 코드")
-                .isEqualTo(201);
-        assertThat(scenarioContext.getCurrentChatRoomId())
-                .as("채팅방 ID가 발급되어야 한다")
-                .isPositive();
-    }
-
-    @When("{string}를 NPC에게 전송한다")
-    @When("{string}을 NPC에게 전송한다")
-    public void 메시지를_NPC에게_전송한다(String message) {
-        chatTestAdapter.sendMessage(scenarioContext.getCurrentChatRoomId(), message);
+    @When("{string}를 마을 채팅에 전송한다")
+    @When("{string}을 마을 채팅에 전송한다")
+    public void 메시지를_마을_채팅에_전송한다(String message) {
+        chatTestAdapter.sendVillageMessage(message);
     }
 
     @Then("NPC로부터 응답 메시지를 받는다")
@@ -62,6 +47,7 @@ public class CommunicationSteps {
         assertThat(body)
                 .as("응답에 npcMessage가 포함되어야 한다")
                 .contains("npcMessage")
-                .contains("body");
+                .contains("body")
+                .contains("senderType");
     }
 }

@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 
 const SPEED = 200;
-const BOUNDS = { x: 800, y: 600 };
 
 export class VillageScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Text;
@@ -15,8 +14,16 @@ export class VillageScene extends Phaser.Scene {
   create() {
     this.drawBackground();
     this.createNpc(600, 280);
-    this.player = this.add.text(400, 300, '🧑', { fontSize: '40px' }).setOrigin(0.5);
+
+    const cx = this.scale.width / 2;
+    const cy = this.scale.height / 2;
+    this.player = this.add.text(cx, cy, '\uD83E\uDDD1', { fontSize: '40px' }).setOrigin(0.5);
+
     this.setupInput();
+
+    this.scale.on('resize', (gameSize: Phaser.Structs.Size) => {
+      this.cameras.main.setSize(gameSize.width, gameSize.height);
+    });
   }
 
   update(_time: number, delta: number) {
@@ -24,23 +31,26 @@ export class VillageScene extends Phaser.Scene {
   }
 
   private drawBackground() {
-    this.add.rectangle(0, 0, BOUNDS.x, BOUNDS.y, 0x87c05a).setOrigin(0);
+    const w = this.scale.width;
+    const h = this.scale.height;
+
+    this.add.rectangle(0, 0, w, h, 0x87c05a).setOrigin(0);
 
     const g = this.add.graphics();
     g.lineStyle(1, 0x6aaa40, 0.25);
-    for (let x = 0; x <= BOUNDS.x; x += 64) g.lineBetween(x, 0, x, BOUNDS.y);
-    for (let y = 0; y <= BOUNDS.y; y += 64) g.lineBetween(0, y, BOUNDS.x, y);
+    for (let x = 0; x <= w; x += 64) g.lineBetween(x, 0, x, h);
+    for (let y = 0; y <= h; y += 64) g.lineBetween(0, y, w, y);
   }
 
   private createNpc(x: number, y: number) {
-    const npc = this.add.text(x, y, '🏡', { fontSize: '48px' }).setOrigin(0.5);
+    const npc = this.add.text(x, y, '\uD83C\uDFE1', { fontSize: '48px' }).setOrigin(0.5);
     npc.setInteractive({ useHandCursor: true });
     npc.on('pointerdown', () => {
       this.onNpcClick();
     });
 
     this.add
-      .text(x, y + 36, '마을 주민', {
+      .text(x, y + 36, '\uB9C8\uC744 \uC8FC\uBBFC', {
         fontSize: '13px',
         color: '#ffffff',
         backgroundColor: '#00000099',
@@ -60,9 +70,24 @@ export class VillageScene extends Phaser.Scene {
       left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
+
+    // 캔버스 클릭 시 HTML input blur 처리 (WASD가 채팅으로 가는 문제 방지)
+    this.input.on('pointerdown', () => {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    });
   }
 
   private movePlayer(delta: number) {
+    const el = document.activeElement;
+    const uiHasFocus = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
+    if (uiHasFocus) {
+      this.releaseKeys();
+      return;
+    }
+    this.captureKeys();
+
     const step = SPEED * (delta / 1000);
     const { left, right, up, down } = this.cursors;
 
@@ -71,12 +96,36 @@ export class VillageScene extends Phaser.Scene {
     if (up.isDown || this.wasd.up.isDown) this.player.y -= step;
     if (down.isDown || this.wasd.down.isDown) this.player.y += step;
 
-    this.player.x = Phaser.Math.Clamp(this.player.x, 0, BOUNDS.x);
-    this.player.y = Phaser.Math.Clamp(this.player.y, 0, BOUNDS.y);
+    const w = this.scale.width;
+    const h = this.scale.height;
+    this.player.x = Phaser.Math.Clamp(this.player.x, 0, w);
+    this.player.y = Phaser.Math.Clamp(this.player.y, 0, h);
+  }
+
+  private captureKeys() {
+    const keyboard = this.input.keyboard;
+    if (!keyboard) return;
+    keyboard.addCapture([
+      Phaser.Input.Keyboard.KeyCodes.W,
+      Phaser.Input.Keyboard.KeyCodes.A,
+      Phaser.Input.Keyboard.KeyCodes.S,
+      Phaser.Input.Keyboard.KeyCodes.D,
+    ]);
+  }
+
+  private releaseKeys() {
+    const keyboard = this.input.keyboard;
+    if (!keyboard) return;
+    keyboard.removeCapture([
+      Phaser.Input.Keyboard.KeyCodes.W,
+      Phaser.Input.Keyboard.KeyCodes.A,
+      Phaser.Input.Keyboard.KeyCodes.S,
+      Phaser.Input.Keyboard.KeyCodes.D,
+    ]);
   }
 
   private onNpcClick() {
-    // Phase 3: 채팅 UI 진입 예정
-    console.log('NPC 클릭 — 채팅 연결 예정');
+    // TODO: NPC Conversation(1:1 대화 세션) 구현 시 활성화
+    console.log('[VillageScene] NPC clicked');
   }
 }

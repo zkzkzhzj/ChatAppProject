@@ -1,16 +1,16 @@
 package com.maeum.gohyang.communication.adapter.in.web;
 
-import org.springframework.http.HttpStatus;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.maeum.gohyang.communication.application.port.in.CreateChatRoomUseCase;
 import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
 import com.maeum.gohyang.communication.error.GuestChatNotAllowedException;
 import com.maeum.gohyang.global.security.AuthenticatedUser;
@@ -18,52 +18,41 @@ import com.maeum.gohyang.global.security.AuthenticatedUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 마을 공개 채팅 REST Controller.
+ *
+ * STOMP가 주 경로이지만, REST fallback을 유지한다.
+ * 채널 개념 도입 전까지 마을 공개 채팅방 1개를 고정 사용.
+ */
 @RestController
-@RequestMapping("/api/v1/chat-rooms")
+@RequestMapping("/api/v1/chat")
 @RequiredArgsConstructor
 public class ChatRoomController {
 
-    private final CreateChatRoomUseCase createChatRoomUseCase;
     private final SendMessageUseCase sendMessageUseCase;
     private final SimpMessagingTemplate messagingTemplate;
 
-    /**
-     * NPC 채팅방 생성.
-     * GUEST 접근 시 403.
-     */
-    @PostMapping
-    public ResponseEntity<ChatRoomResponse> createChatRoom(
-            @Valid @RequestBody CreateChatRoomRequest request,
-            @AuthenticationPrincipal AuthenticatedUser user) {
-        if (user.isGuest()) {
-            throw new GuestChatNotAllowedException();
-        }
-        CreateChatRoomUseCase.Result result = createChatRoomUseCase.execute(request.toCommand(user.userId()));
-        return ResponseEntity.status(HttpStatus.CREATED).body(ChatRoomResponse.from(result));
-    }
+    @Value("${village.public-chat-room-id}")
+    private long publicChatRoomId;
 
-    /**
-     * 메시지 전송 + NPC 응답 동기 반환.
-     * NPC 응답은 WebSocket으로도 broadcast된다 (실시간 UX용).
-     * GUEST 접근 시 403.
-     */
-    @PostMapping("/{chatRoomId}/messages")
+    @PostMapping("/messages")
     public ResponseEntity<SendMessageResponse> sendMessage(
-            @PathVariable long chatRoomId,
             @Valid @RequestBody SendMessageRequest request,
             @AuthenticationPrincipal AuthenticatedUser user) {
         if (user.isGuest()) {
             throw new GuestChatNotAllowedException();
         }
         SendMessageUseCase.Result result = sendMessageUseCase.execute(
-                request.toCommand(user.userId(), chatRoomId));
+                new SendMessageUseCase.Command(user.userId(), publicChatRoomId, request.body()));
 
-        // NPC 응답을 해당 채팅방 구독자에게 broadcast
         messagingTemplate.convertAndSend(
-                "/topic/chat/" + chatRoomId,
-                MessageResponse.from(result.npcMessage())
+                "/topic/chat/village",
+                List.of(
+                        MessageResponse.fromUser(result.userMessage(), user.userId()),
+                        MessageResponse.fromNpc(result.npcMessage())
+                )
         );
 
-        return ResponseEntity.ok(SendMessageResponse.from(result));
+        return ResponseEntity.ok(SendMessageResponse.from(result, user.userId()));
     }
 }

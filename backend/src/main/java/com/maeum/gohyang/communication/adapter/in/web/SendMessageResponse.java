@@ -4,10 +4,10 @@ import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
 
 public record SendMessageResponse(MessageResponse userMessage, MessageResponse npcMessage) {
 
-    public static SendMessageResponse from(SendMessageUseCase.Result result) {
+    public static SendMessageResponse from(SendMessageUseCase.Result result, long senderId) {
         return new SendMessageResponse(
-                MessageResponse.from(result.userMessage()),
-                MessageResponse.from(result.npcMessage())
+                MessageResponse.fromUser(result.userMessage(), senderId),
+                MessageResponse.fromNpc(result.npcMessage())
         );
     }
 }

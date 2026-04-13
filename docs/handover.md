@@ -5,16 +5,16 @@
 
 ---
 
-## 현재 상태 (2026-04-13 기준, 7차 업데이트)
+## 현재 상태 (2026-04-13 기준, 8차 업데이트)
 
-### ✅ Happy Path 완료 (Phase 0 ~ Phase 3)
+### ✅ Happy Path 완료 (Phase 0 ~ Phase 3 + 마을 공개 채팅)
 
-모든 핵심 시나리오가 Cucumber로 검증됐다.
+Cucumber 검증 + 프론트엔드 채팅 UI 구현 완료.
 
 ```
-GUEST 토큰 발급 → NPC 채팅 시도 → 403
+GUEST 토큰 발급 → 마을 공개 채팅 시도 → 403
 이메일 회원가입 → Kafka → 캐릭터/공간 자동 생성
-NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
+마을 공개 채팅방(id=1 고정) → 메시지 전송 → NPC 하드코딩 응답 → WebSocket broadcast
 ```
 
 ---
@@ -64,20 +64,22 @@ NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
 | Cucumber | 회원가입 → Kafka → 캐릭터/공간 생성 비동기 시나리오 | ✅ |
 | Cucumber | 게스트 캐릭터 조회 200 / 공간 조회 403 시나리오 | ✅ |
 
-**Phase 3 — Communication** ✅
+**Phase 3 — Communication (마을 공개 채팅으로 전환)** ✅
 
 | 레이어 | 파일 | 상태 |
 |--------|------|------|
-| Domain | `ChatRoom`, `Participant`, `Message`, enum 5종 | ✅ |
-| Error | `CommunicationErrorCode`, 예외 3종 → `communication/error/` | ✅ |
-| Port (in) | `CreateChatRoomUseCase`, `SendMessageUseCase` | ✅ |
+| Domain | `ChatRoom`, `Participant`, `Message`, enum 5종 (`ChatRoomType`에 `PUBLIC` 추가) | ✅ |
+| Error | `CommunicationErrorCode`, 예외 4종 → `communication/error/` (`InvalidMessageBodyException` 추가) | ✅ |
+| Port (in) | `CreateChatRoomUseCase` (레거시, 미사용), `SendMessageUseCase` (Command 레벨 body 검증) | ✅ |
 | Port (out) | `SaveChatRoomPort`, `SaveParticipantPort`, `LoadParticipantPort`, `SaveMessagePort`, `GenerateNpcResponsePort` | ✅ |
-| Service | `CreateChatRoomService`, `SendMessageService` | ✅ |
+| Service | `CreateChatRoomService` (레거시), `SendMessageService` (`getOrCreateParticipant()` 자동 참여) | ✅ |
 | Persistence (JPA) | `ChatRoomJpaEntity`, `ParticipantJpaEntity`, 각 Repository, `CommunicationPersistenceAdapter` | ✅ |
 | Persistence (Cassandra) | `MessageKey`, `MessageCassandraEntity`, `MessageCassandraRepository`, `MessageCassandraPersistenceAdapter` | ✅ |
 | NPC Adapter | `HardcodedNpcResponseAdapter` — Phase 5에서 AI로 교체 예정 | ✅ |
-| Web Adapter | `ChatRoomController`, `CreateChatRoomRequest`, `ChatRoomResponse`, `SendMessageRequest`, `SendMessageResponse`, `MessageResponse` | ✅ |
-| WebSocket | `ChatMessageHandler`, `StompSendMessageRequest` | ✅ |
+| Web Adapter | `ChatRoomController` (`POST /api/v1/chat/messages`), `SendMessageRequest`, `SendMessageResponse`, `MessageResponse` (senderId, senderType 필드) | ✅ |
+| WebSocket | `ChatMessageHandler` (`/app/chat/village`), `StompSendMessageRequest` | ✅ |
+| STOMP 인증 | `StompAuthChannelInterceptor` (ChannelInterceptor 기반 JWT, `global/config/`) | ✅ |
+| Migration | V2 마을 공개 채팅방 시드, V3 레거시 정리 + id=1 고정, V4 participant UNIQUE 제약조건 | ✅ |
 | Cucumber | GUEST 채팅 403 / 회원 NPC 채팅 Happy Path 시나리오 | ✅ |
 
 **4/10 — AI 하네스 구축** ✅
@@ -133,6 +135,36 @@ NPC 채팅방 생성 → 메시지 전송 → NPC 하드코딩 응답 반환
 | 스킬 | `/브랜치정리` — 머지 후 로컬+리모트 브랜치 정리 |
 | PR | #6 머지 완료 (CodeRabbit/Codex 리뷰 3라운드 대응 후 squash merge) |
 
+**4/13 — 백엔드 마을 공개 채팅 아키텍처 전환** 🔧 (uncommitted)
+
+| 항목 | 내용 |
+|------|------|
+| 채팅 모델 변경 | per-NPC-click 채팅방 생성 → 마을 공개 채팅방 1개 고정 (id=1) |
+| REST API | `POST /api/v1/chat-rooms` 제거 → `POST /api/v1/chat/messages` (body만 전송, chatRoomId는 서버 설정) |
+| WebSocket | `/app/chat/village` (send), `/topic/chat/village` (subscribe) — 고정 destination |
+| STOMP 인증 | `StompAuthChannelInterceptor` 추가 (ChannelInterceptor, CONNECT 프레임에서 JWT 추출) |
+| MessageResponse | `senderId` (Long, nullable), `senderType` ("USER"/"NPC") 필드 추가, `fromUser()`/`fromNpc()` 팩토리 |
+| 참여자 자동 생성 | `SendMessageService.getOrCreateParticipant()` — 첫 메시지 시 자동 참여, UNIQUE 제약으로 동시성 보호 |
+| 입력 검증 | `SendMessageUseCase.Command` compact constructor에서 body 검증 (REST/STOMP 통합) |
+| CORS | SecurityConfig `CorsConfigurationSource` + WebSocketConfig `setAllowedOrigins` — localhost:3000/3001 |
+| Migration | V2 시드 → V3 레거시 정리 + id=1 고정 → V4 participant UNIQUE 제약조건 |
+
+**4/13 — 프론트엔드 채팅 UI 구현** 🔧 (uncommitted)
+
+| 항목 | 내용 |
+|------|------|
+| 레이아웃 변경 | 사이드바 방식 → ZEP/Gather.town 스타일 좌측 하단 오버레이, 게임 풀스크린 (Scale.RESIZE) |
+| 채팅 컴포넌트 | ChatOverlay, ChatInput, ChatBubble, ChatMessageList, LoginPrompt (5개) |
+| 상태 관리 | Zustand 스토어 — Phaser↔React 브릿지 (getState + subscribe 패턴) |
+| STOMP 클라이언트 | `connectWithAuth()`, `subscribeToChatRoom('village')`, `sendVillageMessage()` |
+| useStomp 훅 | 토큰 존재 시 자동 STOMP 연결 + `/topic/chat/village` 구독, cleanup 시 disconnect |
+| 키보드 관리 | `document.activeElement` 기반 Phaser↔HTML 포커스 관리, Enter/Escape 토글 |
+| CORS | SecurityConfig에 CorsConfigurationSource 빈 추가 (localhost:3000/3001) |
+| 로그인 | LoginPrompt 팝업 — register 먼저 시도, 실패 시 login fallback |
+| 블로그 에이전트 | blog-writer-agent.md — zlog 블로그 글 작성 전문, 최신 글 3개 스타일 학습, ai: true |
+| 훅 업데이트 | keyword-router.js에 블로그 키워드 라우팅 추가 |
+| 학습 노트 보강 | learning/21, 22에 YouTube 아티클 추가 |
+
 **4/13 — CI/DX 5-레이어 품질 파이프라인 구축** ✅
 
 | 항목 | 내용 |
@@ -165,28 +197,40 @@ RegisterUserService
 ### 게스트 정책
 - `GET /api/v1/village/characters/me`: 게스트 → `Character.defaultGuest()` 반환 (DB 저장 없음)
 - `GET /api/v1/village/spaces/me`: 게스트 → `GuestNoPersonalSpaceException` (403)
-- `POST /api/v1/chat-rooms`: 게스트 → `GuestChatNotAllowedException` (403)
+- `POST /api/v1/chat/messages`: 게스트 → `GuestChatNotAllowedException` (403)
+- STOMP `/app/chat/village`: 게스트 → `GuestChatNotAllowedException` (ChatMessageHandler에서 Principal 검사)
+- STOMP CONNECT: 토큰 없이 연결 허용 (구독은 가능, 메시지 전송 시 403)
 
-### 채팅 흐름
+### 채팅 흐름 (마을 공개 채팅)
 ```
-POST /api/v1/chat-rooms
-  → ChatRoom (NPC 타입) 생성
-  → Participant(HOST, 유저) + Participant(NPC) 생성
+[초기 상태]
+V3 마이그레이션 → 마을 공개 채팅방 (id=1, type=PUBLIC) + NPC 참여자 고정 생성
 
-POST /api/v1/chat-rooms/{roomId}/messages
-  → 유저 참여자 확인
+[STOMP 경로 — 주 경로]
+클라이언트 STOMP CONNECT (Authorization: Bearer {token})
+  → StompAuthChannelInterceptor → JWT 파싱 → Principal 설정
+클라이언트 → /app/chat/village (body만 전송)
+  → ChatMessageHandler → SendMessageUseCase.Command(userId, publicChatRoomId, body)
+  → getOrCreateParticipant() (첫 메시지 시 자동 참여, V4 UNIQUE 보호)
   → Message(유저) → Cassandra 저장
   → HardcodedNpcResponseAdapter.generate()
   → Message(NPC) → Cassandra 저장
-  → WebSocket /topic/chat/{roomId} broadcast
+  → /topic/chat/village broadcast: [MessageResponse(user), MessageResponse(npc)]
+
+[REST 경로 — fallback]
+POST /api/v1/chat/messages {body: "..."}
+  → 동일 UseCase 실행
+  → SimpMessagingTemplate으로 /topic/chat/village broadcast
   → REST 응답: {userMessage, npcMessage}
 ```
 
 ### WebSocket 구조
-- STOMP 엔드포인트: `/ws` (SockJS fallback)
-- 클라이언트 → 서버: `/app/chat/{roomId}` (`@MessageMapping`)
-- 서버 → 클라이언트: `/topic/chat/{roomId}` (Simple Broker)
+- STOMP 엔드포인트: `/ws` (SockJS fallback, `localhost:3000,3001`만 허용)
+- STOMP 인증: `StompAuthChannelInterceptor` — CONNECT 프레임 `Authorization` 헤더에서 JWT 추출, `Principal` 설정
+- 클라이언트 → 서버: `/app/chat/village` (`@MessageMapping`, 고정)
+- 서버 → 클라이언트: `/topic/chat/village` (Simple Broker, 고정)
 - Phase 3: 인메모리 브로커. 스케일아웃 시 Redis Pub/Sub으로 교체 예정.
+- 설정 키: `village.public-chat-room-id` (`application.yml`)
 
 ### Spring Boot 4.x 주의사항
 - Kafka 자동설정: `spring-boot-kafka` 별도 의존성 필요
@@ -201,37 +245,88 @@ POST /api/v1/chat-rooms/{roomId}/messages
 
 ## 현재 진행 중
 
-없음. main 브랜치 clean 상태. PR #1~#6 전부 머지 완료.
+**백엔드 마을 공개 채팅 + 프론트엔드 채팅 UI 구현 완료 (uncommitted)**
+
+마을 공개 채팅 아키텍처 전환(per-NPC-click → 고정 공개 채팅방) + 프론트엔드 채팅 UI 구현 완료. 테스트 작성 및 커밋 필요.
+
+| 항목 | 상태 |
+|------|------|
+| 마을 공개 채팅방 id=1 고정 (V2~V4 마이그레이션) | ✅ |
+| `POST /api/v1/chat/messages` REST fallback | ✅ |
+| STOMP `/app/chat/village` → `/topic/chat/village` broadcast | ✅ |
+| `StompAuthChannelInterceptor` (ChannelInterceptor JWT 인증) | ✅ |
+| `MessageResponse` senderId/senderType 필드 | ✅ |
+| `getOrCreateParticipant()` + V4 UNIQUE 제약조건 | ✅ |
+| `SendMessageUseCase.Command` body 검증 (REST/STOMP 통합) | ✅ |
+| 게임 풀스크린 (100vw x 100vh, Scale.RESIZE) | ✅ |
+| 좌측 하단 채팅 오버레이 (pointer-events 관리) | ✅ |
+| Enter → 채팅 입력 포커스 / Escape → 해제 (document.activeElement 기반) | ✅ |
+| WASD 차단 (Phaser↔HTML 포커스 관리) | ✅ |
+| LoginPrompt 팝업 (미인증 시 register→login fallback) | ✅ |
+| Zustand Phaser↔React 브릿지 (getState/subscribe) | ✅ |
+| useStomp 훅 (자동 연결 + village 구독 + cleanup) | ✅ |
+| CORS 설정 (SecurityConfig + WebSocketConfig, localhost:3000/3001) | ✅ |
+
+**새로 생성된 파일 (untracked):**
+- `frontend/src/types/chat.ts` — ChatMessage, ChatRoom 타입
+- `frontend/src/store/useChatStore.ts` — Zustand 스토어
+- `frontend/src/lib/api/chatApi.ts` — REST API 래퍼
+- `frontend/src/lib/websocket/useStomp.ts` — STOMP lifecycle hook
+- `frontend/src/components/chat/ChatOverlay.tsx` — 메인 오버레이 컨테이너
+- `frontend/src/components/chat/ChatInput.tsx` — 입력창 (forwardRef)
+- `frontend/src/components/chat/ChatBubble.tsx` — 메시지 말풍선
+- `frontend/src/components/chat/ChatMessageList.tsx` — 스크롤 메시지 목록
+- `frontend/src/components/chat/LoginPrompt.tsx` — 로그인/회원가입 팝업
+- `.claude/agents/blog-writer-agent.md` — 블로그 글 작성 에이전트
+
+**수정된 파일:**
+- `backend/.../communication/adapter/in/web/ChatRoomController.java` — `POST /api/v1/chat/messages`로 변경, publicChatRoomId 설정 키 사용
+- `backend/.../communication/adapter/in/web/MessageResponse.java` — senderId, senderType 필드 추가, fromUser/fromNpc 팩토리
+- `backend/.../communication/adapter/in/websocket/ChatMessageHandler.java` — `/app/chat/village` 고정, Principal 기반 인증
+- `backend/.../communication/application/service/SendMessageService.java` — getOrCreateParticipant() 자동 참여
+- `backend/.../communication/application/port/in/SendMessageUseCase.java` — Command compact constructor body 검증
+- `backend/.../communication/domain/ChatRoomType.java` — PUBLIC 타입 추가
+- `backend/.../global/config/WebSocketConfig.java` — StompAuthChannelInterceptor 등록, CORS 설정
+- `backend/.../identity/adapter/in/security/SecurityConfig.java` — CorsConfigurationSource 빈 추가
+- `frontend/src/game/config.ts` — Scale.RESIZE + noAudio
+- `frontend/src/game/scenes/VillageScene.ts` — Zustand 브릿지, keyboard.enabled 토글
+- `frontend/src/game/PhaserGame.tsx` — absolute inset-0
+- `frontend/src/app/page.tsx` — fullscreen + ChatOverlay
+- `frontend/src/app/layout.tsx` — 레이아웃 수정
+- `frontend/src/app/GameLoader.tsx` — 게임 로더 수정
+- `frontend/src/lib/websocket/stompClient.ts` — JWT 인증, subscribeToChatRoom, sendVillageMessage
+- `frontend/src/lib/api/client.ts` — API 클라이언트 수정
+- `frontend/next.config.ts` — devIndicators: false
+- `docs/learning/21, 22` — YouTube 아티클 추가
+- `.claude/hooks/keyword-router.js` — 블로그 키워드 라우팅 추가
 
 ---
 
 ## 다음 할 것
 
-### 1단계 — 프론트엔드 채팅 구현 (설계 완료, 구현 시작 전)
+### 1단계 — 테스트 작성 + 커밋
 
-ZEP/Gather.town 스타일의 마을 공개 채팅을 구현한다. 설계 리서치 완료, 핵심 결정 확정됨.
+현재 uncommitted 상태의 백엔드 아키텍처 전환 + 프론트엔드 채팅 UI를 테스트 후 커밋/PR.
 
-**채팅 아키텍처 결정사항:**
+| 테스트 대상 | 내용 |
+|------------|------|
+| `SendMessageService` 단위 테스트 | getOrCreateParticipant() 정상/동시성, NPC 응답 생성, body 검증 |
+| `StompAuthChannelInterceptor` 단위 테스트 | CONNECT 프레임 JWT 파싱, 토큰 없음 허용, 유효하지 않은 토큰 거부 |
+| `ChatMessageHandler` 통합 테스트 | STOMP 메시지 수신 → UseCase 실행 → broadcast 검증 |
+| 브라우저 E2E | STOMP 연결 → 메시지 전송 → NPC 응답 → ChatBubble 렌더링 |
+| 미인증 → LoginPrompt | 팝업 표시, WASD 차단, register/login 동작 |
 
-| 항목 | 결정 | 학습노트 |
-|------|------|---------|
-| 채팅 범위 | Everyone (마을 전체) — Nearby는 Phase 2+ | `learning/21` |
-| 방 생명주기 | Persistent, Village 1:1 매핑 | `learning/21` |
-| 과거 메시지 | REST 최근 50건 + WebSocket 실시간 | `learning/21` |
-| NPC 트리거 | @멘션 방식 (Discord 봇 패턴) | `learning/21` |
-| 게스트 접근 | SUBSCRIBE permitAll, SEND authenticated | `learning/21` |
-| NPC LLM | Ollama + Qwen 2.5 7B (로컬, RTX 3080 8GB) | `learning/22` |
-| LLM 연동 | RestClient 직접 (Spring AI 대신) | `learning/22` |
-| 동시성 | Semaphore(2) + fallback 메시지 | `learning/22` |
+### 2단계 — NPC 응답 비동기 분리 (Phase 5 준비)
 
-**구현 순서:**
+| 작업 | 내용 |
+|------|------|
+| NPC 응답 비동기화 | 현재 동기 호출 → 비동기 분리 (유저 메시지 즉시 broadcast, NPC 응답 별도 broadcast) |
+| STOMP 에러 핸들러 | `@MessageExceptionHandler` 또는 `StompSubProtocolErrorHandler` 추가 |
+| `GenerateNpcResponsePort` 시그니처 확장 | NpcConversationContext 파라미터 (Phase 5 AI 교체 대비) |
 
-| 순서 | 작업 | 백엔드 변경 |
-|------|------|------------|
-| 1 | 프론트 채팅 UI (마을 하단 채팅 패널) | - |
-| 2 | 백엔드 VILLAGE 채팅방 타입 + SendMessageService 분기 | ChatRoomType.VILLAGE, @멘션 파싱 |
-| 3 | Ollama + Qwen 7B 연동 (OllamaResponseAdapter) | GenerateNpcResponsePort 시그니처 확장 |
-| 4 | 인증 UI (로그인/회원가입 폼) | - |
+### 3단계 — Ollama + Qwen 7B 연동 (선택)
+
+RTX 3080 Laptop (8GB VRAM)에서 로컬 LLM 서빙.
 
 > 상세 설계: `docs/learning/21-village-public-chat-architecture.md`, `docs/learning/22-ollama-local-llm-spring-integration.md`
 
@@ -267,9 +362,9 @@ ZEP/Gather.town 스타일의 마을 공개 채팅을 구현한다. 설계 리서
 | Phase | 목표 | 핵심 기술 과제 |
 |-------|------|--------------|
 | Phase 4 — Economy | 포인트 획득 → 아이템 구매 → 인벤토리 | 낙관적 락, 멱등성 |
-| Phase 5 — AI NPC | 하드코딩 → Claude API 교체 | `GenerateNpcResponsePort` 구현체 교체 |
+| Phase 5 — AI NPC | 하드코딩 → Ollama/Claude API 교체 | `GenerateNpcResponsePort` 구현체 교체, NPC 응답 비동기화 |
 
-> 프론트엔드 완료 후 우선순위 결정. `docs/planning/phases.md` 참조.
+> 테스트 작성 + 커밋 후 우선순위 결정. `docs/planning/phases.md` 참조.
 
 ---
 
@@ -284,6 +379,11 @@ ZEP/Gather.town 스타일의 마을 공개 채팅을 구현한다. 설계 리서
 | Cucumber | 7.34.2 |
 | JJWT | 0.12.6 |
 | Flyway | Spring BOM 관리 |
+| Node.js | v24.12.0 |
+| Next.js | 16.2.2 |
+| React | 19.2.4 |
+| Phaser | 3.90.0 |
+| Zustand | (채팅 상태 관리) |
 
 ---
 
@@ -294,7 +394,8 @@ com.maeum.gohyang/
 ├── global/
 │   ├── alert/
 │   ├── config/
-│   │   └── WebSocketConfig.java
+│   │   ├── WebSocketConfig.java
+│   │   └── StompAuthChannelInterceptor.java  ← STOMP CONNECT JWT 인증
 │   ├── error/
 │   ├── infra/
 │   │   ├── outbox/
@@ -311,16 +412,16 @@ com.maeum.gohyang/
 │   ├── application/
 │   └── adapter/
 └── communication/
-    ├── domain/          ← ChatRoom, Participant, Message, enum 5종 (순수 도메인만)
-    ├── error/           ← CommunicationErrorCode, *Exception 3종
+    ├── domain/          ← ChatRoom, Participant, Message, enum 5종 (ChatRoomType에 PUBLIC 추가)
+    ├── error/           ← CommunicationErrorCode, *Exception 4종 (InvalidMessageBodyException 추가)
     ├── application/
-    │   ├── port/in/ (UseCase 2종)
+    │   ├── port/in/ (UseCase 2종 — CreateChatRoomUseCase는 레거시)
     │   ├── port/out/ (Port 5종 + GenerateNpcResponsePort)
-    │   └── service/ (Service 2종)
+    │   └── service/ (Service 2종 — SendMessageService에 getOrCreateParticipant 추가)
     └── adapter/
         ├── in/
-        │   ├── web/ (ChatRoomController + DTO 5종)
-        │   └── websocket/ (ChatMessageHandler, StompSendMessageRequest)
+        │   ├── web/ (ChatRoomController POST /api/v1/chat/messages + DTO 4종)
+        │   └── websocket/ (ChatMessageHandler /app/chat/village, StompSendMessageRequest)
         └── out/
             ├── persistence/ (JPA 4종 + Cassandra 4종)
             └── npc/ (HardcodedNpcResponseAdapter)

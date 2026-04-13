@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.maeum.gohyang.identity.application.port.in.IssueGuestTokenUseCase;
+import com.maeum.gohyang.identity.application.port.in.LoginUseCase;
 import com.maeum.gohyang.identity.application.port.in.RegisterUserUseCase;
 
 import jakarta.validation.Valid;
@@ -20,12 +21,19 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
     private final RegisterUserUseCase registerUserUseCase;
+    private final LoginUseCase loginUseCase;
     private final IssueGuestTokenUseCase issueGuestTokenUseCase;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         RegisterUserUseCase.TokenResult result = registerUserUseCase.execute(request.toCommand());
         return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(result.accessToken()));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginUseCase.TokenResult result = loginUseCase.execute(request.toCommand());
+        return ResponseEntity.ok(new AuthResponse(result.accessToken()));
     }
 
     @PostMapping("/guest")

@@ -38,6 +38,12 @@ public class Participant {
                 ParticipantRole.HOST, EntryType.SYSTEM, LocalDateTime.now(), null);
     }
 
+    /** 공개 채팅방 일반 참여자 신규 생성. */
+    public static Participant newMember(long userId, long chatRoomId) {
+        return new Participant(null, userId, chatRoomId, "주민",
+                ParticipantRole.MEMBER, EntryType.PROXIMITY, LocalDateTime.now(), null);
+    }
+
     /** NPC 참여자 신규 생성. userId = null. */
     public static Participant newNpc(long chatRoomId) {
         return new Participant(null, null, chatRoomId, NPC_DISPLAY_NAME,

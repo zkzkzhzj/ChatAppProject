@@ -37,6 +37,7 @@
 |--------|-----------|------|
 | [Outbox + Kafka 이벤트](infra/outbox-pattern.md) | Transactional Outbox, Kafka 이벤트 흐름, 멱등성 | `infra, outbox, kafka, idempotency` |
 | [로컬 인프라](infra/docker-local.md) | Docker Compose 구성, 서비스별 설정 | `infra, docker, postgres, redis, cassandra, kafka` |
+| [Claude Code 훅 자동화](infra/hooks-automation.md) | 훅 기반 서브에이전트 라우팅, docs 검증, handover 갱신 | `infra, hooks, automation, subagent, ai-native` |
 
 ### Frontend
 | 페이지 | 한 줄 요약 | tags |

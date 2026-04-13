@@ -9,13 +9,47 @@
     ]
   },
   "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/stop-handover-check.js",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/keyword-router.js",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/pre-bash-guard.js",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"import sys,json; d=json.load(sys.stdin); c=d.get('command',''); exit_code=d.get('exitCode',1); print('[AUTO-REVIEW] git commit 성공 감지. review-agent를 사용하여 이 커밋의 변경사항을 리뷰하세요. git diff HEAD~1 --name-only 로 변경 파일을 확인하고, AGENTS.md 기준으로 Critical Rules 위반 여부를 점검하세요.' if 'git commit' in c and exit_code==0 else '', end='')\" 2>/dev/null || true"
+            "command": "node -e \"const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));const c=d.tool_input?.command||'';const ok=d.exitCode===0;if(c.includes('git commit')&&ok){process.stdout.write('[AUTO-REVIEW] git commit 성공 감지. review-agent를 사용하여 이 커밋의 변경사항을 리뷰하세요. git diff HEAD~1 --name-only 로 변경 파일을 확인하고, AGENTS.md 기준으로 Critical Rules 위반 여부를 점검하세요.')}\" 2>/dev/null || true"
           }
         ]
       }

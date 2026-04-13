@@ -43,9 +43,16 @@ process.stdin.on("end", () => {
     const recentFiles = git("log --name-only --pretty=format: -5 --since=2.hours", cwd);
     const unstaged = git("diff --name-only", cwd);
 
+    // porcelain 출력에서 파일 경로 추출 (예: " M foo.txt" → "foo.txt", "?? bar.txt" → "bar.txt")
+    const porcelainFiles = uncommitted
+      .split("\n")
+      .map((l) => l.slice(3).trim())
+      .filter(Boolean);
+
     // 정확한 경로 매칭: 줄 단위로 분리 후 docs/handover.md 확인
     const changedFiles = [unstaged, staged, recentFiles]
       .flatMap((out) => out.split("\n"))
+      .concat(porcelainFiles)
       .map((f) => f.trim())
       .filter(Boolean);
 

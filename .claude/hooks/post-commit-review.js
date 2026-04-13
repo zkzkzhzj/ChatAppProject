@@ -14,7 +14,7 @@ process.stdin.on("end", () => {
     const command = (data.tool_input && data.tool_input.command) || "";
     const exitCode = data.exitCode;
 
-    if (command.includes("git commit") && exitCode === 0) {
+    if (/^\s*git\s+commit\b/.test(command) && exitCode === 0) {
       process.stdout.write(
         "[AUTO-REVIEW] git commit 성공 감지. review-agent를 사용하여 " +
           "이 커밋의 변경사항을 리뷰하세요. git diff HEAD~1 --name-only 로 " +

@@ -37,7 +37,9 @@ process.stdin.on("end", () => {
       process.exit(0);
     }
 
-    const allFiles = [uncommitted, recentCommits, staged].join("\n");
+    // 최근 커밋에 포함된 파일명도 확인 (--name-only)
+    const recentFiles = git("log --name-only --pretty=format: -5 --since=2.hours", cwd);
+    const allFiles = [uncommitted, staged, recentFiles].join("\n");
     if (allFiles.includes("handover.md")) {
       process.exit(0);
     }

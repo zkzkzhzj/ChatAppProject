@@ -58,7 +58,7 @@ public class SendMessageService implements SendMessageUseCase {
                 .loadNpc(command.chatRoomId())
                 .orElseThrow(ChatRoomNotFoundException::new);
 
-        Message userMessage = saveMessagePort.saveUserMessage(
+        Message userMessage = saveMessagePort.saveWithUser(
                 Message.newMessage(command.chatRoomId(), userParticipant.getId(), command.body(), MessageType.TEXT),
                 command.userId()
         );

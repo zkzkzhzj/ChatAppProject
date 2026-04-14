@@ -13,5 +13,5 @@ public interface LoadMessageHistoryPort {
     List<Message> loadRecent(long chatRoomId, int limit);
 
     /** 특정 유저의 메시지만 최신순 조회 (user_message 테이블 사용) */
-    List<Message> loadRecentByUser(long chatRoomId, long userId, int limit);
+    List<Message> loadUserRecent(long chatRoomId, long userId, int limit);
 }

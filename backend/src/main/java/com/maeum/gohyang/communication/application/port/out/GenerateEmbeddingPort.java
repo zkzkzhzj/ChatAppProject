@@ -10,7 +10,7 @@ public interface GenerateEmbeddingPort {
 
     /**
      * @param text 임베딩할 텍스트
-     * @return 벡터 (float 배열). 모델에 따라 차원이 다름 (nomic-embed-text: 768)
+     * @return 벡터 (List&lt;Float&gt;). 모델에 따라 차원이 다름 (nomic-embed-text: 768)
      */
     List<Float> generate(String text);
 }

@@ -28,7 +28,7 @@ public class MessageCassandraPersistenceAdapter implements SaveMessagePort, Load
      * 대화 요약 시 특정 유저 메시지만 효율적으로 조회할 수 있다.
      */
     @Override
-    public Message saveUserMessage(Message message, long userId) {
+    public Message saveWithUser(Message message, long userId) {
         MessageCassandraEntity saved = messageRepository.save(MessageCassandraEntity.from(message));
         userMessageRepository.save(UserMessageCassandraEntity.from(message, userId));
         return saved.toDomain();
@@ -45,8 +45,8 @@ public class MessageCassandraPersistenceAdapter implements SaveMessagePort, Load
     }
 
     @Override
-    public List<Message> loadRecentByUser(long chatRoomId, long userId, int limit) {
-        return userMessageRepository.findTop10ByKeyChatRoomIdAndKeyUserId(chatRoomId, userId)
+    public List<Message> loadUserRecent(long chatRoomId, long userId, int limit) {
+        return userMessageRepository.findRecent(chatRoomId, userId, limit)
                 .stream()
                 .map(UserMessageCassandraEntity::toDomain)
                 .toList();

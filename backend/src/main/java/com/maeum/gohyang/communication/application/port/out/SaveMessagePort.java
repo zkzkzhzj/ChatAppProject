@@ -8,5 +8,5 @@ public interface SaveMessagePort {
     Message save(Message message);
 
     /** 유저 메시지 저장 (message + user_message 테이블 dual-write) */
-    Message saveUserMessage(Message message, long userId);
+    Message saveWithUser(Message message, long userId);
 }

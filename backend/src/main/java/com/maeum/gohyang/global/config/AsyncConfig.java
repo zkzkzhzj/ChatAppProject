@@ -3,6 +3,7 @@ package com.maeum.gohyang.global.config;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -20,12 +21,16 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class AsyncConfig {
 
     @Bean(name = "taskExecutor")
-    public Executor taskExecutor() {
+    public Executor taskExecutor(
+            @Value("${npc.async.core-pool-size:2}") int corePoolSize,
+            @Value("${npc.async.max-pool-size:4}") int maxPoolSize,
+            @Value("${npc.async.queue-capacity:50}") int queueCapacity,
+            @Value("${npc.async.thread-name-prefix:npc-async-}") String threadNamePrefix) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(50);
-        executor.setThreadNamePrefix("npc-async-");
+        executor.setCorePoolSize(corePoolSize);
+        executor.setMaxPoolSize(maxPoolSize);
+        executor.setQueueCapacity(queueCapacity);
+        executor.setThreadNamePrefix(threadNamePrefix);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
         return executor;

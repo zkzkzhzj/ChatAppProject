@@ -65,7 +65,7 @@ public class ConversationSummaryEventConsumer {
             long chatRoomId = root.get("chatRoomId").asLong();
 
             List<Message> userMessages = loadMessageHistoryPort
-                    .loadRecentByUser(chatRoomId, userId, MESSAGES_TO_SUMMARIZE);
+                    .loadUserRecent(chatRoomId, userId, MESSAGES_TO_SUMMARIZE);
 
             if (userMessages.isEmpty()) {
                 log.warn("요약할 유저 메시지 없음 — userId={}, chatRoomId={}", userId, chatRoomId);
@@ -92,6 +92,7 @@ public class ConversationSummaryEventConsumer {
                     "npc.conversation.summarize 처리 실패: " + e.getMessage()
             );
             log.error("대화 요약 처리 실패: key={} error={}", record.key(), e.getMessage(), e);
+            throw e;
         }
     }
 }

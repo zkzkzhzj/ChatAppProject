@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.maeum.gohyang.communication.ChatTopics;
 import com.maeum.gohyang.communication.application.port.in.LoadChatHistoryUseCase;
 import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
 import com.maeum.gohyang.communication.application.port.out.LoadParticipantPort;
@@ -57,16 +58,12 @@ public class ChatRoomController {
                 new SendMessageUseCase.Command(user.userId(), publicChatRoomId, request.body()));
 
         messagingTemplate.convertAndSend(
-                "/topic/chat/village",
+                ChatTopics.VILLAGE_CHAT,
                 MessageResponse.fromUser(result.userMessage(), user.userId()));
 
         return ResponseEntity.ok(SendMessageResponse.from(result, user.userId()));
     }
 
-    /**
-     * 채팅방 진입 시 이전 대화 10개를 조회한다.
-     * participant 정보로 USER/NPC를 구분하여 senderId, senderType을 매핑한다.
-     */
     /**
      * 채팅방 진입 시 이전 대화 10개를 조회한다.
      * participant 정보로 USER/NPC를 구분하여 senderId, senderType을 매핑한다.

@@ -70,7 +70,7 @@ class SendMessageServiceTest {
             // Given
             given(loadParticipantPort.load(USER_ID, CHAT_ROOM_ID)).willReturn(Optional.of(userParticipant()));
             given(loadParticipantPort.loadNpc(CHAT_ROOM_ID)).willReturn(Optional.of(npcParticipant()));
-            given(saveMessagePort.saveUserMessage(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
+            given(saveMessagePort.saveWithUser(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
 
             // When
             SendMessageUseCase.Result result = sendMessageService.execute(
@@ -89,7 +89,7 @@ class SendMessageServiceTest {
             given(loadParticipantPort.load(USER_ID, CHAT_ROOM_ID)).willReturn(Optional.empty());
             given(saveParticipantPort.save(any(Participant.class))).willReturn(userParticipant());
             given(loadParticipantPort.loadNpc(CHAT_ROOM_ID)).willReturn(Optional.of(npcParticipant()));
-            given(saveMessagePort.saveUserMessage(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
+            given(saveMessagePort.saveWithUser(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
 
             // When
             SendMessageUseCase.Result result = sendMessageService.execute(
@@ -111,7 +111,7 @@ class SendMessageServiceTest {
             given(saveParticipantPort.save(any(Participant.class)))
                     .willThrow(new DataIntegrityViolationException("uk_participant_user_chatroom"));
             given(loadParticipantPort.loadNpc(CHAT_ROOM_ID)).willReturn(Optional.of(npcParticipant()));
-            given(saveMessagePort.saveUserMessage(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
+            given(saveMessagePort.saveWithUser(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
 
             // When
             SendMessageUseCase.Result result = sendMessageService.execute(

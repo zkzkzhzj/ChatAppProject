@@ -16,10 +16,16 @@ public record NpcConversationContext(
         List<String> conversationMemories
 ) {
 
+    /** 방어적 복사 — 외부 가변 리스트로부터 불변성 보장. */
+    public NpcConversationContext {
+        conversationMemories = conversationMemories == null
+                ? List.of()
+                : List.copyOf(conversationMemories);
+    }
+
     /** 맥락 없는 간편 생성 (하위 호환). */
     public NpcConversationContext(long chatRoomId, long npcParticipantId,
                                   long userId, String userMessage) {
         this(chatRoomId, npcParticipantId, userId, userMessage, List.of());
     }
 }
-

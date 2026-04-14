@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+
 /**
  * user.registered 이벤트를 수신하여 유저의 기본 캐릭터와 공간을 생성한다.
  *
@@ -49,7 +50,13 @@ public class UserRegisteredEventConsumer {
                 return;
             }
             JsonNode root = objectMapper.readTree(record.value());
-            long userId = root.get("userId").asLong();
+            JsonNode userIdNode = root.get("userId");
+            if (userIdNode == null || userIdNode.isNull()) {
+                log.warn("user.registered 이벤트에 userId 누락: key={}", record.key());
+                idempotencyGuard.markAsProcessed(idempotencyKey);
+                return;
+            }
+            long userId = userIdNode.asLong();
             initializeUserVillageUseCase.execute(userId);
             idempotencyGuard.markAsProcessed(idempotencyKey);
         } catch (Exception e) {
@@ -58,6 +65,7 @@ public class UserRegisteredEventConsumer {
                     "user.registered 처리 실패: " + e.getMessage()
             );
             log.error("user.registered 처리 중 오류: key={} error={}", record.key(), e.getMessage(), e);
+            throw e;
         }
     }
 

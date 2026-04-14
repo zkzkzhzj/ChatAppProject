@@ -1,5 +1,6 @@
 package com.maeum.gohyang.communication.adapter.out.npc;
 
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -39,8 +41,13 @@ public class OllamaResponseAdapter implements GenerateNpcResponsePort {
     public OllamaResponseAdapter(OllamaProperties properties) {
         this.properties = properties;
         this.semaphore = new Semaphore(properties.maxConcurrent());
+        Duration timeout = Duration.ofSeconds(properties.timeoutSeconds());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(
+                HttpClient.newBuilder().connectTimeout(timeout).build());
+        requestFactory.setReadTimeout(timeout);
         this.restClient = RestClient.builder()
                 .baseUrl(properties.baseUrl())
+                .requestFactory(requestFactory)
                 .build();
     }
 

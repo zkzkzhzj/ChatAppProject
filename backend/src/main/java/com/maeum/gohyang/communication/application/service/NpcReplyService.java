@@ -40,8 +40,8 @@ public class NpcReplyService {
 
     @Async
     public void replyAsync(NpcConversationContext context) {
-        log.info("NPC 응답 생성 시작 — chatRoomId={}, userId={}, userMessage={}",
-                context.chatRoomId(), context.userId(), context.userMessage());
+        log.info("NPC 응답 생성 시작 — chatRoomId={}, userId={}", context.chatRoomId(), context.userId());
+        log.debug("NPC 요청 원문 — userMessage={}", context.userMessage());
         try {
             List<Float> queryEmbedding = generateEmbeddingPort.generate(context.userMessage());
 
@@ -55,7 +55,8 @@ public class NpcReplyService {
                     context.userId(), context.userMessage(), memories);
 
             String npcResponseText = generateNpcResponsePort.generate(enrichedContext);
-            log.info("NPC 응답 생성 완료 — chatRoomId={}, response={}", context.chatRoomId(), npcResponseText);
+            log.info("NPC 응답 생성 완료 — chatRoomId={}", context.chatRoomId());
+            log.debug("NPC 응답 원문 — response={}", npcResponseText);
 
             Message npcMessage = saveMessagePort.save(
                     Message.newMessage(

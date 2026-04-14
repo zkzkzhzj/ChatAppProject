@@ -8,6 +8,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import com.maeum.gohyang.communication.ChatTopics;
 import com.maeum.gohyang.communication.adapter.in.web.MessageResponse;
 import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
 import com.maeum.gohyang.communication.error.GuestChatNotAllowedException;
@@ -45,7 +46,7 @@ public class ChatMessageHandler {
                 new SendMessageUseCase.Command(user.userId(), publicChatRoomId, request.body()));
 
         messagingTemplate.convertAndSend(
-                "/topic/chat/village",
+                ChatTopics.VILLAGE_CHAT,
                 MessageResponse.fromUser(result.userMessage(), user.userId()));
     }
 }

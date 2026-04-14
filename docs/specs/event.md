@@ -11,6 +11,7 @@
 - 키(Key): 집계 루트 ID (String)
 - 값(Value): JSON 문자열. `JsonSerializer`/`__TypeId__` 헤더 없이 plain String으로 직렬화한다.
 - 멱등성: 컨슈머는 `processed_event` 테이블로 중복 처리를 방지한다.
+- 재시도: `DefaultErrorHandler` + `FixedBackOff(1초, 3회)`. 실패 시 예외를 rethrow하여 Spring Kafka가 재시도한다.
 
 ---
 

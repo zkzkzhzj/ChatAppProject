@@ -40,7 +40,11 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
     e.stopPropagation();
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      if (draft.trim()) {
+        handleSend();
+      } else {
+        (e.target as HTMLInputElement).blur();
+      }
     }
     if (e.key === 'Escape') {
       (e.target as HTMLInputElement).blur();
@@ -63,7 +67,13 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
         onBlur={() => {
           setInputFocused(false);
         }}
-        placeholder={connected ? 'Enter를 눌러 채팅하기' : '로그인 후 채팅할 수 있어요'}
+        placeholder={
+          connected
+            ? localStorage.getItem('accessToken')
+              ? 'Enter를 눌러 채팅하기'
+              : '로그인 후 채팅할 수 있어요'
+            : '연결 중...'
+        }
         className="flex-1 rounded-lg bg-black/60 px-3 py-2 text-sm text-white placeholder-zinc-400 outline-none backdrop-blur-sm focus:ring-1 focus:ring-blue-500"
         maxLength={1000}
       />

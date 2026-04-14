@@ -66,6 +66,7 @@ export default function LoginPrompt({ onClose }: LoginPromptProps) {
             }}
             placeholder="이메일"
             required
+            autoFocus
             className="rounded-lg bg-zinc-700 px-3 py-2 text-sm text-white placeholder-zinc-400 outline-none focus:ring-1 focus:ring-blue-500"
           />
           <input

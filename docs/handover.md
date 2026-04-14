@@ -244,26 +244,69 @@ POST /api/v1/chat/messages {body: "..."}
 
 ---
 
+**4/14 — Ollama LLM 연동 + 6개 모델 비교 테스트 + 프로덕션 전략 결정** ✅
+
+| 항목 | 내용 |
+|------|------|
+| Ollama 연동 | `OllamaResponseAdapter` — RestClient 직접 구현, `@ConditionalOnProperty` 전환 |
+| @Async 분리 | `AsyncConfig` + `NpcReplyService` — NPC 응답 비동기 생성 → WebSocket broadcast |
+| 시스템 프롬프트 | "김순이 할머니" → "다정한 마을 주민" 변경, 한국어 전용 지시 추가 |
+| 게스트 STOMP | `connectAnonymous()` — 토큰 없이 STOMP 연결 허용 (읽기 전용) |
+| 6개 모델 테스트 | llama3.2, phi4-mini, gemma4, qwen2.5, exaone3.5, deepseek-r1 — 72회 테스트 |
+| 보안 테스트 | 8개 공격 시나리오 (DAN 인젝션, 자해유도, 서버정보 탈취 등) |
+| 최종 선택 | 개발: EXAONE 3.5 (LG AI, 한국어 최고), 프로덕션: 상용 API (GPT-4o-mini/Claude) |
+| 맥락 유지 전략 | pgvector (PostgreSQL 벡터 확장) — Cassandra 원본 + pgvector 요약 벡터 |
+| 테스트 코드 | `llm-test/run_test.mjs`, `llm-test/run_security_test.mjs` |
+| 발표 자료 | `llm-test/presentation.md` (Marp) |
+| 학습 노트 | `learning/28-llm-model-selection-and-production-strategy.md` |
+
+**4/14~15 — Phase 5 pgvector 대화 맥락 + 요약 파이프라인 구현** ✅
+
+| 항목 | 내용 |
+|------|------|
+| V6 마이그레이션 | `V6__add_embedding_to_conversation_memory.sql` — `embedding vector(768)` 컬럼 추가 |
+| hibernate-vector 네이티브 타입 | `NpcConversationMemoryJpaEntity` — `@JdbcTypeCode(SqlTypes.VECTOR)` + `@Array(length = 768)`, `float[]` 자동 매핑 |
+| pgvector 시맨틱 검색 | `NpcConversationMemoryJpaRepository.findSimilar()` — cosine distance (`<=>`) 네이티브 쿼리. 임베딩 없으면 최신순 fallback |
+| Cassandra user_message 테이블 | `UserMessageCassandraEntity`, `UserMessageKey`, `UserMessageCassandraRepository` — (chatRoomId, userId) 파티션 비정규화 테이블. dual-write |
+| 임베딩 생성 | `GenerateEmbeddingPort`, `OllamaEmbeddingAdapter` (nomic-embed-text 768차원), `HardcodedEmbeddingAdapter` (테스트용) |
+| 대화 요약 파이프라인 | `ConversationSummaryEventConsumer` — Kafka `npc.conversation.summarize` 수신 → user_message 조회 → LLM 요약 → 임베딩 생성 → pgvector 저장 |
+| 요약 트리거 | `SendMessageService.publishSummaryEventIfNeeded()` — 유저별 3회 메시지 누적 시 Outbox 발행 |
+| NPC 맥락 주입 | `NpcReplyService` — 유저 메시지 임베딩 → `loadSimilar()` 검색 → `NpcConversationContext.conversationMemories` → 시스템 프롬프트 주입 |
+| 멱등성 키 전환 | `KafkaEventIdExtractor` — Outbox `eventId` 헤더 우선, 없으면 key+offset fallback |
+| NPC 응답 길이 제한 | `OllamaResponseAdapter` — `num_predict: 80` |
+| Port 추가 | `GenerateEmbeddingPort`, `LoadConversationMemoryPort`, `SaveConversationMemoryPort`, `PublishConversationSummaryEventPort`, `LoadMessageHistoryPort`, `BroadcastChatMessagePort`, `SummarizeConversationPort` |
+
 ## 현재 진행 중
 
-없음. PR #7 머지 완료, 브랜치 정리 완료.
+### 프론트엔드 Docker 컨테이너화 (uncommitted)
+
+| 항목 | 내용 |
+|------|------|
+| `frontend/Dockerfile` | 3-stage 빌드 (deps → build → runtime), node:22-alpine, standalone 모드 |
+| `frontend/.dockerignore` | `node_modules`, `.next` 제외 |
+| `frontend/next.config.ts` | `output: "standalone"` 추가 |
+| `docker-compose.yml` | `frontend` 서비스 추가 (app 헬스체크 통과 후 기동, port 3000) |
+| 미완료 | 프론트엔드 API URL 환경변수화 확인 필요 (하드코딩 `localhost:8080` → 환경변수) |
 
 ---
 
 ## 다음 할 것
 
-### 1단계 — NPC 응답 비동기 분리 (Phase 5 준비)
+### Phase 5 — AI NPC 고도화 (부분 완료)
 
-| 작업 | 내용 |
+| 작업 | 상태 |
 |------|------|
-| NPC 응답 비동기화 | 현재 동기 호출 → 비동기 분리 (유저 메시지 즉시 broadcast, NPC 응답 별도 broadcast) |
-| `GenerateNpcResponsePort` 시그니처 확장 | NpcConversationContext 파라미터 (Phase 5 AI 교체 대비) |
+| Ollama 로컬 LLM 연동 (EXAONE 3.5) | ✅ |
+| NPC 응답 비동기 분리 (@Async) | ✅ |
+| NPC 페르소나 (다정한 마을 주민) | ✅ |
+| 6개 모델 비교 테스트 + 보안 테스트 | ✅ |
+| 프로덕션 전략 결정 (상용 API) | ✅ |
+| 대화 맥락 유지 — pgvector 테이블 설계 | ✅ |
+| 대화 요약 파이프라인 (Kafka → LLM 요약 → pgvector) | ✅ |
+| 상용 API 어댑터 (ClaudeApiAdapter or OpenAiAdapter) | 미착수 |
+| 위험 신호 감지 → 전문 상담 안내 | 미착수 |
 
-### 2단계 — Ollama + Qwen 7B 연동 (선택)
-
-RTX 3080 Laptop (8GB VRAM)에서 로컬 LLM 서빙.
-
-> 상세 설계: `docs/learning/21-village-public-chat-architecture.md`, `docs/learning/22-ollama-local-llm-spring-integration.md`
+> 상세: `docs/learning/22-ollama-local-llm-spring-integration.md`, `docs/learning/28-llm-model-selection-and-production-strategy.md`
 
 ---
 
@@ -297,9 +340,8 @@ RTX 3080 Laptop (8GB VRAM)에서 로컬 LLM 서빙.
 | Phase | 목표 | 핵심 기술 과제 |
 |-------|------|--------------|
 | Phase 4 — Economy | 포인트 획득 → 아이템 구매 → 인벤토리 | 낙관적 락, 멱등성 |
-| Phase 5 — AI NPC | 하드코딩 → Ollama/Claude API 교체 | `GenerateNpcResponsePort` 구현체 교체, NPC 응답 비동기화 |
 
-> 테스트 작성 + 커밋 후 우선순위 결정. `docs/planning/phases.md` 참조.
+> Phase 5는 위 "다음 할 것"에서 진행 중. `docs/planning/phases.md` 참조.
 
 ---
 
@@ -351,15 +393,16 @@ com.maeum.gohyang/
     ├── error/           ← CommunicationErrorCode, *Exception 4종 (InvalidMessageBodyException 추가)
     ├── application/
     │   ├── port/in/ (UseCase 2종 — CreateChatRoomUseCase는 레거시)
-    │   ├── port/out/ (Port 5종 + GenerateNpcResponsePort)
-    │   └── service/ (Service 2종 — SendMessageService에 getOrCreateParticipant 추가)
+    │   ├── port/out/ (Port 12종: Save/Load/Generate 계열 + Broadcast/Publish/Summarize)
+    │   └── service/ (Service 3종 — SendMessageService, NpcReplyService, CreateChatRoomService)
     └── adapter/
         ├── in/
         │   ├── web/ (ChatRoomController POST /api/v1/chat/messages + DTO 4종)
-        │   └── websocket/ (ChatMessageHandler /app/chat/village, StompSendMessageRequest)
+        │   ├── websocket/ (ChatMessageHandler /app/chat/village, StompSendMessageRequest)
+        │   └── messaging/ (ConversationSummaryEventConsumer)
         └── out/
-            ├── persistence/ (JPA 4종 + Cassandra 4종)
-            └── npc/ (HardcodedNpcResponseAdapter)
+            ├── persistence/ (JPA 4종 + Cassandra 6종 + ConversationMemory/ConversationSummaryOutbox)
+            └── npc/ (OllamaResponseAdapter, OllamaEmbeddingAdapter, Hardcoded*Adapter 2종)
 ```
 
 ---

@@ -5,7 +5,9 @@ import com.maeum.gohyang.communication.error.InvalidMessageBodyException;
 
 /**
  * 메시지 전송 유스케이스.
- * 유저 메시지 저장 후 NPC 응답을 생성하여 함께 반환한다.
+ *
+ * 유저 메시지를 저장하고 즉시 반환한다.
+ * NPC 응답은 비동기로 생성되어 WebSocket으로 별도 브로드캐스트된다.
  */
 public interface SendMessageUseCase {
 
@@ -25,5 +27,5 @@ public interface SendMessageUseCase {
         }
     }
 
-    record Result(Message userMessage, Message npcMessage) { }
+    record Result(Message userMessage) { }
 }

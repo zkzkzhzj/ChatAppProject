@@ -16,6 +16,10 @@ spring:
   cassandra:
     contact-points: cassandra
 
+npc:
+  ollama:
+    base-url: ${OLLAMA_BASE_URL:http://ollama:11434}
+
 security:
   env-public-paths:
     - /actuator/health  # docker 환경에서는 헬스체크 엔드포인트만 허용

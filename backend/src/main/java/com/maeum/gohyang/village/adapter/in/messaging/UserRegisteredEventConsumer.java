@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.maeum.gohyang.global.alert.AlertContext;
 import com.maeum.gohyang.global.alert.AlertPort;
 import com.maeum.gohyang.global.infra.idempotency.IdempotencyGuard;
+import com.maeum.gohyang.global.infra.outbox.KafkaEventIdExtractor;
 import com.maeum.gohyang.village.application.port.in.InitializeUserVillageUseCase;
 
 import lombok.RequiredArgsConstructor;
@@ -22,8 +23,8 @@ import tools.jackson.databind.ObjectMapper;
  *
  * 멱등성 처리:
  * - IdempotencyGuard가 processed_event 테이블 기반으로 중복 처리를 막는다.
- * - key+offset 조합으로 idempotencyKey를 생성한다.
- *   (재가입 시나리오에서 동일 userId가 다른 이벤트일 수 있으므로 메시지 key 단독 사용 불가)
+ * - Outbox가 발행 시 Kafka 헤더에 넣은 eventId(UUID)를 멱등성 키로 사용한다.
+ *   Kafka offset에 의존하지 않으므로 Kafka 재시작 후에도 정확히 동작한다.
  */
 @Slf4j
 @Component
@@ -42,13 +43,15 @@ public class UserRegisteredEventConsumer {
     public void handle(ConsumerRecord<String, String> record) {
         log.debug("user.registered 수신: key={}", record.key());
         try {
-            var payload = UserRegisteredPayload.from(record, objectMapper);
-            if (idempotencyGuard.isAlreadyProcessed(payload.idempotencyKey())) {
-                log.debug("중복 이벤트 무시: eventId={} userId={}", payload.idempotencyKey(), payload.userId());
+            UUID idempotencyKey = KafkaEventIdExtractor.extract(record);
+            if (idempotencyGuard.isAlreadyProcessed(idempotencyKey)) {
+                log.debug("중복 이벤트 무시: eventId={}", idempotencyKey);
                 return;
             }
-            initializeUserVillageUseCase.execute(payload.userId());
-            idempotencyGuard.markAsProcessed(payload.idempotencyKey());
+            JsonNode root = objectMapper.readTree(record.value());
+            long userId = root.get("userId").asLong();
+            initializeUserVillageUseCase.execute(userId);
+            idempotencyGuard.markAsProcessed(idempotencyKey);
         } catch (Exception e) {
             alertPort.critical(
                     AlertContext.of("village-consumer", record.key(), record.key()),
@@ -58,13 +61,4 @@ public class UserRegisteredEventConsumer {
         }
     }
 
-    private record UserRegisteredPayload(long userId, UUID idempotencyKey) {
-        static UserRegisteredPayload from(ConsumerRecord<String, String> record, ObjectMapper mapper) throws Exception {
-            JsonNode root = mapper.readTree(record.value());
-            long userId = root.get("userId").asLong();
-            String eventId = record.key() + "-" + record.offset();
-            UUID idempotencyKey = UUID.nameUUIDFromBytes(eventId.getBytes());
-            return new UserRegisteredPayload(userId, idempotencyKey);
-        }
-    }
 }

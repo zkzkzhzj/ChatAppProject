@@ -22,9 +22,13 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
 
   return (
     <div className="mb-1 flex items-start gap-2">
-      <span className={`text-xs font-semibold ${nameColor}`}>{nameLabel}</span>
-      <span className="text-sm text-white drop-shadow-md">{message.body}</span>
-      <span className="ml-auto shrink-0 text-[10px] text-zinc-400">
+      <span className={`w-14 shrink-0 truncate text-xs font-semibold ${nameColor}`}>
+        {nameLabel}
+      </span>
+      <span className="min-w-0 flex-1 break-words text-sm text-white drop-shadow-md">
+        {message.body}
+      </span>
+      <span className="w-12 shrink-0 text-right text-[10px] text-zinc-400">
         {formatTime(message.createdAt)}
       </span>
     </div>

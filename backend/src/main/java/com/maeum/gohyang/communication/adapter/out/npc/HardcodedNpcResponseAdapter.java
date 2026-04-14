@@ -3,18 +3,20 @@ package com.maeum.gohyang.communication.adapter.out.npc;
 import java.util.List;
 import java.util.Random;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import com.maeum.gohyang.communication.application.port.out.GenerateNpcResponsePort;
+import com.maeum.gohyang.communication.domain.NpcConversationContext;
 
 /**
  * NPC 응답 하드코딩 구현체.
  *
- * Phase 3: 마을 주민 캐릭터의 따뜻한 응답을 고정 문장 목록에서 랜덤 반환한다.
- * Phase 5: Claude API 연동 구현체로 교체 예정. {@link GenerateNpcResponsePort} 추상화 덕분에
- *           이 파일만 교체하면 된다.
+ * npc.adapter=hardcoded(기본값) 또는 미설정 시 활성화된다.
+ * Ollama가 설정되지 않은 환경(테스트, CI)에서 사용한다.
  */
 @Component
+@ConditionalOnProperty(name = "npc.adapter", havingValue = "hardcoded", matchIfMissing = true)
 public class HardcodedNpcResponseAdapter implements GenerateNpcResponsePort {
 
     private static final List<String> RESPONSES = List.of(
@@ -31,7 +33,7 @@ public class HardcodedNpcResponseAdapter implements GenerateNpcResponsePort {
     private final Random random = new Random();
 
     @Override
-    public String generate(String userMessage) {
+    public String generate(NpcConversationContext context) {
         return RESPONSES.get(random.nextInt(RESPONSES.size()));
     }
 }

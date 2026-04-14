@@ -1,10 +1,13 @@
 package com.maeum.gohyang.global.infra.outbox;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.RecordTooLargeException;
 import org.apache.kafka.common.errors.TopicAuthorizationException;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -37,6 +40,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class OutboxKafkaRelay {
 
+    /** Kafka 헤더 키 — 컨슈머가 멱등성 키로 사용한다. */
+    public static final String EVENT_ID_HEADER = "outbox-event-id";
+
     private static final int MAX_RETRY = 5;
     private static final int SYSTEMIC_FAILURE_THRESHOLD = 10;
 
@@ -54,7 +60,12 @@ public class OutboxKafkaRelay {
 
         for (OutboxJpaEntity event : pending) {
             try {
-                kafkaTemplate.send(event.getEventType(), event.getAggregateId(), event.getPayload()).get();
+                ProducerRecord<Object, Object> producerRecord =
+                        new ProducerRecord<>(event.getEventType(), null, event.getAggregateId(), event.getPayload());
+                producerRecord.headers().add(new RecordHeader(
+                        EVENT_ID_HEADER,
+                        event.getEventId().toString().getBytes(StandardCharsets.UTF_8)));
+                kafkaTemplate.send(producerRecord).get();
                 event.markPublished();
                 consecutiveFailures = 0;
                 log.debug("Outbox 발행 완료: type={} eventId={}", event.getEventType(), event.getEventId());

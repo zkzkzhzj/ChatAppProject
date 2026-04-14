@@ -121,8 +121,8 @@ public class OllamaResponseAdapter implements GenerateNpcResponsePort {
             sb.append("- ").append(memory).append("\n");
         }
         sb.append("\n위 기억은 참고용이야. 유저의 현재 질문에만 집중해서 답해.")
-          .append("\n기억 내용을 나열하거나 여러 주제를 한꺼번에 말하지 마.")
-          .append("\n정말 관련 있는 기억이 있으면 하나만 자연스럽게 섞어서 답해.");
+                .append("\n기억 내용을 나열하거나 여러 주제를 한꺼번에 말하지 마.")
+                .append("\n정말 관련 있는 기억이 있으면 하나만 자연스럽게 섞어서 답해.");
         return sb.toString();
     }
 }

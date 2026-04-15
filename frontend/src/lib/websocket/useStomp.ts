@@ -132,8 +132,15 @@ export function useStomp(): void {
 
       const onError = (err: import('@stomp/stompjs').IFrame) => {
         console.error('[useStomp] STOMP error:', err);
-        localStorage.removeItem('accessToken');
         setConnectionStatus('error');
+        // 토큰이 만료/무효한 경우 삭제 후 게스트 토큰으로 재연결 시도
+        localStorage.removeItem('accessToken');
+        if (!cancelled) {
+          console.log('[useStomp] 재연결 시도 (게스트 토큰 재발급)');
+          setTimeout(() => {
+            if (!cancelled) void connect();
+          }, 3_000);
+        }
       };
 
       connectWithAuth(token, onConnected, onError);

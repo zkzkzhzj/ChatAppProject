@@ -1,7 +1,7 @@
 ---
 title: Outbox + Kafka 이벤트
 tags: [infra, outbox, kafka, idempotency, event]
-related: [infra/docker-local.md]
+related: [infra/docker-local.md, communication/npc-conversation.md]
 last-verified: 2026-04-13
 ---
 
@@ -48,6 +48,7 @@ markAsProcessed(eventId)     → void
 | 토픽 | 프로듀서 | 컨슈머 | 용도 |
 |------|---------|--------|------|
 | `user.registered` | Identity | Village | 회원가입 → 캐릭터/공간 자동 생성 |
+| `npc.conversation.summarize` | Communication (SendMessageService) | Communication (ConversationSummaryEventConsumer) | 유저 메시지 N회 누적 시 대화 요약 + pgvector 임베딩 저장 |
 
 ## Kafka 직렬화 전략
 
@@ -60,4 +61,5 @@ Key/Value 모두 `StringSerializer/StringDeserializer`. 도메인 코드가 `Obj
 | `global/infra/outbox/OutboxJpaEntity.java` | Outbox 테이블 매핑 |
 | `global/infra/outbox/OutboxKafkaRelay.java` | @Scheduled 1초 릴레이 |
 | `global/infra/idempotency/IdempotencyGuard.java` | 멱등성 처리 공용 |
-| `identity/adapter/out/persistence/OutboxPersistenceAdapter.java` | Outbox 저장 어댑터 |
+| `identity/adapter/out/persistence/OutboxPersistenceAdapter.java` | Outbox 저장 어댑터 (user.registered) |
+| `communication/adapter/out/persistence/ConversationSummaryOutboxAdapter.java` | Outbox 저장 어댑터 (npc.conversation.summarize) |

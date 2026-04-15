@@ -2,9 +2,9 @@ package com.maeum.gohyang.identity.application.port.out;
 
 import java.util.Optional;
 
-public interface LoadUserByEmailPort {
+public interface LoadUserCredentialsPort {
 
-    Optional<UserCredentials> loadByEmail(String email);
+    Optional<UserCredentials> load(String email);
 
     record UserCredentials(Long userId, String passwordHash) { }
 }

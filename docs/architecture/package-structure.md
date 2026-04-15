@@ -43,11 +43,13 @@ com.maeum.gohyang
 └── adapter/             # 기술 구현
     ├── in/
     │   ├── web/         # Controller, Request/Response DTO
-    │   └── websocket/   # WebSocket Handler (해당 도메인만)
+    │   ├── websocket/   # WebSocket Handler (해당 도메인만)
+    │   └── messaging/   # Kafka Consumer (이벤트 수신)
     └── out/
         ├── persistence/ # JPA Entity, Repository 구현체, Mapper
-        ├── messaging/   # Kafka Producer/Consumer
-        └── external/    # 외부 API 연동
+        ├── messaging/   # Kafka Producer, WebSocket broadcast
+        ├── npc/         # 외부 LLM 연동 (Communication 도메인 전용)
+        └── external/    # 기타 외부 API 연동
 ```
 
 `error/`는 헥사고날 3계층(`domain`, `application`, `adapter`) 밖에 위치하지만 해당 bounded context 안에 있다.

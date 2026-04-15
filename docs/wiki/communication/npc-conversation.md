@@ -1,8 +1,8 @@
 ---
 title: NPC 대화
 tags: [communication, npc, ai, llm, ollama, exaone, pgvector]
-related: [communication/chat-architecture.md]
-last-verified: 2026-04-14
+related: [communication/chat-architecture.md, infra/outbox-pattern.md, infra/docker-local.md]
+last-verified: 2026-04-15
 ---
 
 # NPC 대화
@@ -78,19 +78,31 @@ npc:
 
 로컬 LLM 한계: 언어 제어 불가 (Logit 억제 Ollama 미지원), 보안 필터 우회 가능, GPU 인스턴스 월 $384.
 
-## 대화 맥락 유지 계획 (미구현)
+## 대화 맥락 유지 (구현 완료)
 
 ```
-대화 발생 → Cassandra에 원본 저장 (기존 로직)
-         → Kafka 이벤트 → LLM이 대화 요약
-         → pgvector에 요약 벡터 저장
-다음 대화 → pgvector에서 관련 요약 검색
-         → 시스템 프롬프트에 주입 → LLM 호출
+유저 메시지 3회 누적
+  → SendMessageService.publishSummaryEventIfNeeded()
+  → Outbox → Kafka "npc.conversation.summarize"
+  → ConversationSummaryEventConsumer
+    → Cassandra user_message 테이블에서 최근 10개 메시지 로드
+    → SummarizeConversationPort (LLM) → 요약 텍스트 생성
+    → GenerateEmbeddingPort (nomic-embed-text 768차원) → 임베딩 생성
+    → npc_conversation_memory 테이블에 저장 (PostgreSQL/pgvector)
+
+다음 대화 시:
+  → NpcReplyService.replyAsync()
+    → 유저 메시지 임베딩 → pgvector cosine distance 유사도 검색
+    → 관련 요약을 NpcConversationContext.conversationMemories에 주입
+    → 시스템 프롬프트에 맥락 포함 → LLM 호출
 ```
 
-- pgvector: PostgreSQL 벡터 확장 — 별도 인프라 없이 의미 기반 검색
-- 대화 원본은 Cassandra, 요약 벡터는 pgvector — 역할 분리
-- 요약은 LLM이, 검색은 벡터 유사도로 자동 수행
+- V5 마이그레이션: npc_conversation_memory 테이블 생성 (summary, message_count)
+- V6 마이그레이션: embedding vector(768) 컬럼 추가
+- Hibernate 7.x 네이티브 벡터 타입 (`@JdbcTypeCode(SqlTypes.VECTOR)` + `float[]` 자동 매핑)
+- pgvector: PostgreSQL 벡터 확장 -- 별도 인프라 없이 의미 기반 검색
+- 대화 원본은 Cassandra (write-heavy), 요약 벡터는 pgvector (read-heavy 맥락 검색) -- 역할 분리
+- 임베딩 미존재 환경(테스트 등)에서는 최신순 fallback으로 동작
 
 ## NPC의 서비스 내 역할
 

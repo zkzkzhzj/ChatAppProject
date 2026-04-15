@@ -1,7 +1,7 @@
 'use client';
 
 import type { KeyboardEvent } from 'react';
-import { forwardRef, useCallback, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useState } from 'react';
 
 import { sendVillageMessage } from '@/lib/websocket/stompClient';
 import { useChatStore } from '@/store/useChatStore';
@@ -17,6 +17,17 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
   const [draft, setDraft] = useState('');
   const connectionStatus = useChatStore((s) => s.connectionStatus);
   const setInputFocused = useChatStore((s) => s.setInputFocused);
+  const [hasToken, setHasToken] = useState(() => !!localStorage.getItem('accessToken'));
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setHasToken(!!localStorage.getItem('accessToken'));
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
 
   const connected = connectionStatus === 'connected';
 
@@ -69,7 +80,7 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
         }}
         placeholder={
           connected
-            ? localStorage.getItem('accessToken')
+            ? hasToken
               ? 'Enter를 눌러 채팅하기'
               : '로그인 후 채팅할 수 있어요'
             : '연결 중...'

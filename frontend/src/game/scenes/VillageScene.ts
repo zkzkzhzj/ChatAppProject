@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 const SPEED = 200;
 
 export class VillageScene extends Phaser.Scene {
+  private isMovementKeysCaptured = false;
   private player!: Phaser.GameObjects.Text;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
@@ -20,6 +21,10 @@ export class VillageScene extends Phaser.Scene {
     this.player = this.add.text(cx, cy, '\uD83E\uDDD1', { fontSize: '40px' }).setOrigin(0.5);
 
     this.setupInput();
+
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.releaseKeys();
+    });
 
     this.scale.on('resize', (gameSize: Phaser.Structs.Size) => {
       this.cameras.main.setSize(gameSize.width, gameSize.height);
@@ -115,14 +120,16 @@ export class VillageScene extends Phaser.Scene {
 
   private captureKeys() {
     const keyboard = this.input.keyboard;
-    if (!keyboard) return;
+    if (!keyboard || this.isMovementKeysCaptured) return;
     keyboard.addCapture(VillageScene.MOVEMENT_KEYS);
+    this.isMovementKeysCaptured = true;
   }
 
   private releaseKeys() {
     const keyboard = this.input.keyboard;
     if (!keyboard) return;
     keyboard.removeCapture(VillageScene.MOVEMENT_KEYS);
+    this.isMovementKeysCaptured = false;
   }
 
   private onNpcClick() {

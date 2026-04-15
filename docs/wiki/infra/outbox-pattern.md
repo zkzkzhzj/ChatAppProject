@@ -37,11 +37,14 @@ DB 트랜잭션과 Kafka 발행은 원자적이지 않다. DB는 커밋됐는데
 
 ```java
 // global/infra/idempotency/IdempotencyGuard.java
-isAlreadyProcessed(eventId)  → boolean
-markAsProcessed(eventId)     → void
+tryAcquire(eventId)  → boolean   // INSERT ON CONFLICT DO NOTHING (원자적 선점)
+release(eventId)     → void      // 처리 실패 시 마킹 해제 → Kafka 재시도 허용
 ```
 
+두 메서드 모두 `@Transactional(propagation = REQUIRES_NEW)`로 호출자 트랜잭션과 독립 동작한다.
 모든 Kafka 컨슈머는 이 컴포넌트를 사용한다.
+
+> `isAlreadyProcessed()`, `markAsProcessed()`는 `@Deprecated` — 기존 코드 호환용이며 향후 삭제 예정.
 
 ## 현재 등록된 이벤트
 

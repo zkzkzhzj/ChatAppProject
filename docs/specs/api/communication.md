@@ -130,7 +130,7 @@ participant 정보로 USER/NPC를 구분하여 senderType을 매핑한다.
   {
     "id": 1,
     "name": "마을 주민",
-    "type": "npc"
+    "type": "NPC"
   }
 ]
 ```
@@ -139,6 +139,6 @@ participant 정보로 USER/NPC를 구분하여 senderType을 매핑한다.
 |------|------|------|
 | id | Long | 참여자 ID |
 | name | String | 표시명 |
-| type | String | `"npc"` (현재 NPC만 지원) |
+| type | String | `MentionableType` Enum의 `name()`. 현재 `"NPC"`만 지원 |
 
 NPC 참여자가 없는 경우 빈 배열 `[]`을 반환한다.

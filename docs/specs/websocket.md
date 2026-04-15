@@ -213,11 +213,13 @@ WebSocket 경로는 프론트엔드 실시간 UX용이다.
 | 필드 | 타입 | 비고 |
 |------|------|------|
 | id | String | MEMBER: `user-{userId}`, GUEST: `guest-{UUID}` |
-| userType | String | `"MEMBER"`, `"GUEST"`, 또는 `"LEAVE"` (퇴장) |
+| userType | PositionUserType (Enum) | `MEMBER`, `GUEST`, 또는 `LEAVE` (퇴장). JSON 직렬화 시 문자열 |
 | x | double | 퇴장 시 0 |
 | y | double | 퇴장 시 0 |
 
 퇴장 broadcast는 `PositionDisconnectListener`가 STOMP 세션 종료 이벤트를 감지하여 자동 발행한다.
+
+좌표 범위는 `application.yml`의 `village.map.max-x` (기본 2400.0), `village.map.max-y` (기본 1600.0)로 설정한다. 서버는 수신한 좌표를 `[0, max]` 범위로 clamp한다.
 
 ---
 

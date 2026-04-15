@@ -5,7 +5,7 @@
 
 ---
 
-## 현재 상태 (2026-04-15 기준, 10차 업데이트)
+## 현재 상태 (2026-04-16 기준, 11차 업데이트)
 
 ### ✅ Happy Path 완료 (Phase 0 ~ Phase 3 + 마을 공개 채팅) — PR #7 머지 완료
 
@@ -31,13 +31,13 @@ GUEST 토큰 발급 → 마을 공개 채팅 시도 → 403
 | 레이어 | 파일 | 상태 |
 |--------|------|------|
 | Domain | `User`, `UserType`(→global/security), `LocalAuthCredentials` | ✅ |
-| Error | `IdentityErrorCode`, `DuplicateEmailException` → `identity/error/` | ✅ |
-| Port (in) | `RegisterUserUseCase`, `IssueGuestTokenUseCase` | ✅ |
-| Port (out) | `SaveUserPort`, `CheckEmailDuplicatePort`, `IssueTokenPort`, `SaveOutboxEventPort` | ✅ |
-| Service | `RegisterUserService`(Outbox 포함), `IssueGuestTokenService` | ✅ |
+| Error | `IdentityErrorCode`, `DuplicateEmailException`, `InvalidCredentialsException` → `identity/error/` | ✅ |
+| Port (in) | `RegisterUserUseCase`, `IssueGuestTokenUseCase`, `LoginUseCase` | ✅ |
+| Port (out) | `SaveUserPort`, `CheckEmailDuplicatePort`, `IssueTokenPort`, `SaveOutboxEventPort`, `LoadUserCredentialsPort` | ✅ |
+| Service | `RegisterUserService`(Outbox 포함), `IssueGuestTokenService`, `LoginService` | ✅ |
 | Persistence | `UserJpaEntity`, `UserLocalAuthJpaEntity`, `UserJpaRepository`, `UserLocalAuthJpaRepository`, `UserPersistenceAdapter`, `OutboxPersistenceAdapter` | ✅ |
 | Security | `JwtProvider`(Optional\<AuthenticatedUser\>), `JwtFilter`, `SecurityConfig`, `SecurityProperties` | ✅ |
-| Web Adapter | `AuthController`, `RegisterRequest`, `AuthResponse` | ✅ |
+| Web Adapter | `AuthController`, `RegisterRequest`, `LoginRequest`, `AuthResponse` | ✅ |
 | Cucumber | 회원가입/중복/게스트 토큰 시나리오 | ✅ |
 
 **Global Infrastructure** ✅
@@ -71,9 +71,9 @@ GUEST 토큰 발급 → 마을 공개 채팅 시도 → 403
 |--------|------|------|
 | Domain | `ChatRoom`, `Participant`, `Message`, enum 5종 (`ChatRoomType`에 `PUBLIC` 추가) | ✅ |
 | Error | `CommunicationErrorCode`, 예외 4종 → `communication/error/` (`InvalidMessageBodyException` 추가) | ✅ |
-| Port (in) | `CreateChatRoomUseCase` (레거시, 미사용), `SendMessageUseCase` (Command 레벨 body 검증) | ✅ |
+| Port (in) | `CreateChatRoomUseCase` (레거시, 미사용), `SendMessageUseCase` (Command 레벨 body 검증), `LoadChatHistoryUseCase` | ✅ |
 | Port (out) | `SaveChatRoomPort`, `SaveParticipantPort`, `LoadParticipantPort`, `SaveMessagePort`, `GenerateNpcResponsePort` | ✅ |
-| Service | `CreateChatRoomService` (레거시), `SendMessageService` (`getOrCreateParticipant()` 자동 참여) | ✅ |
+| Service | `CreateChatRoomService` (레거시), `SendMessageService` (`getOrCreateParticipant()` 자동 참여), `NpcReplyService` (@Async), `LoadChatHistoryService` | ✅ |
 | Persistence (JPA) | `ChatRoomJpaEntity`, `ParticipantJpaEntity`, 각 Repository, `CommunicationPersistenceAdapter` | ✅ |
 | Persistence (Cassandra) | `MessageKey`, `MessageCassandraEntity`, `MessageCassandraRepository`, `MessageCassandraPersistenceAdapter` | ✅ |
 | NPC Adapter | `HardcodedNpcResponseAdapter` — Phase 5에서 AI로 교체 예정 | ✅ |
@@ -300,7 +300,42 @@ POST /api/v1/chat/messages {body: "..."}
 
 ## 현재 진행 중
 
-없음
+**4/15~16 — 유저 위치 실시간 공유 + PR #11 리뷰 대응** 🔧 (feat/realtime-position-sharing, PR #11 오픈)
+
+| 항목 | 내용 |
+|------|------|
+| PositionHandler | `@MessageMapping("/village/position")` → `/topic/village/positions` broadcast |
+| PositionDisconnectListener | STOMP 세션 종료 → `LEAVE` broadcast |
+| 게스트 식별자 | JWT에 `guest-UUID` subject 추가. `AuthenticatedUser.displayId()` 메서드 |
+| 프론트 | positionBridge (React↔Phaser 콜백), 100ms throttle 전송, lerp 보간 |
+| 유저 구분 | 회원: 파란 원 "이웃", 게스트: 보라 원 "손님" |
+| 미테스트 | 브라우저 2탭 멀티유저 테스트 필요 |
+
+**4/16 — CodeRabbit/Codex 리뷰 피드백 반영** ✅ (커밋 `6d4e086`)
+
+| 항목 | 내용 |
+|------|------|
+| Critical 수정 | KafkaConsumerConfig recoverer ClassCastException 수정 — `record.value()` 캐스팅 제거, `record`를 직접 `ConsumerRecord`로 사용 |
+| Critical 수정 | ConversationSummaryEventConsumer 멱등성 마킹 — 실패 시 `release()`로 Kafka 재시도 허용 |
+| Critical 수정 | IdempotencyGuard — `REQUIRES_NEW` 실제 적용 (Javadoc과 구현 일치), `release()` 메서드 추가 |
+| Enum 도입 | `PositionUserType` (MEMBER/GUEST/LEAVE) — PositionBroadcast, PositionHandler, PositionDisconnectListener 적용 |
+| Enum 도입 | `LoadMentionablesUseCase.MentionableType` (NPC) — type String → Enum |
+| 하드코딩 제거 | LoadMentionablesService — "마을 주민" → `npc.getDisplayName()` 도메인 값 사용 |
+| 매직스트링 제거 | AuthenticatedUser — `GUEST_FALLBACK`, `MEMBER_PREFIX` 상수 추출 |
+| Validation | PositionRequest — `@NotNull Double x, y` + PositionHandler `@Valid` 추가 |
+| 설정 분리 | PositionHandler MAX_X/MAX_Y → `village.map.max-x/max-y` (application.yml) |
+| 보안 | application-docker.yml — JWT secret `${JWT_SECRET:기본값}` 환경변수 주입 지원 |
+| Nitpick | NpcReplyService 폴백 메시지 상수화, toMap merge function, AtomicLong ID, sendVillageMessage connected 가드 |
+| 보류 | `ParseTokenPort` 위치 이동 (`global/security` → port 패키지) — 4개 파일 import 변경 필요, 별도 PR로 분리 예정 |
+
+**4/15 — 문서-코드 정합성 전수 검사** ✅ (PR #10 머지 완료)
+
+| 항목 | 내용 |
+|------|------|
+| 코드 | `LoadUserByEmailPort` → `LoadUserCredentialsPort` 리네임 |
+| README | 전면 재작성 (Phase 0~5 현재 상태 반영) |
+| 명세 | auth.md login 추가, overview.md 에러코드, websocket.md 단일 broadcast |
+| Wiki | npc-conversation 구현완료 재작성, chat-architecture 비동기 NPC 반영, outbox 토픽 추가 |
 
 **4/15 — 프론트엔드 UI 디자인 시스템 + 코드 품질 개선** ✅ (PR #9 머지 완료)
 
@@ -430,6 +465,7 @@ com.maeum.gohyang/
 │   ├── error/           ← VillageErrorCode, *Exception 3종
 │   ├── application/
 │   └── adapter/
+│       └── in/websocket/ ← PositionHandler, PositionDisconnectListener, PresenceNotifier, PositionUserType(enum)
 └── communication/
     ├── domain/          ← ChatRoom, Participant, Message, enum 5종 (ChatRoomType에 PUBLIC 추가)
     ├── error/           ← CommunicationErrorCode, *Exception 4종 (InvalidMessageBodyException 추가)

@@ -10,19 +10,38 @@ import java.security.Principal;
  * - identity 도메인에 두면 다른 도메인이 identity에 직접 의존하게 된다.
  *
  * userId는 GUEST 토큰일 경우 null이다.
- *
- * Principal을 구현하는 이유:
- * - STOMP WebSocket 인증 시 StompHeaderAccessor.setUser()에 Principal이 필요하다.
- * - REST에서는 SecurityContext에 Authentication.getPrincipal()로 사용된다.
+ * sessionId는 GUEST 토큰일 경우 고유 식별자(guest-UUID), MEMBER일 경우 null이다.
  */
-public record AuthenticatedUser(Long userId, UserType role) implements Principal {
+public record AuthenticatedUser(Long userId, UserType role, String sessionId) implements Principal {
+
+    private static final String GUEST_FALLBACK = "guest";
+    private static final String MEMBER_PREFIX = "user-";
+
+    /** MEMBER용 간편 생성자 (sessionId 없음). */
+    public AuthenticatedUser(Long userId, UserType role) {
+        this(userId, role, null);
+    }
 
     @Override
     public String getName() {
-        return userId != null ? String.valueOf(userId) : "guest";
+        if (userId != null) {
+            return String.valueOf(userId);
+        }
+        return sessionId != null ? sessionId : GUEST_FALLBACK;
     }
 
     public boolean isGuest() {
         return role == UserType.GUEST;
+    }
+
+    /**
+     * 위치 공유 등에서 사용하는 고유 식별자.
+     * MEMBER: "user-{userId}", GUEST: sessionId (guest-UUID).
+     */
+    public String displayId() {
+        if (userId != null) {
+            return MEMBER_PREFIX + userId;
+        }
+        return sessionId != null ? sessionId : GUEST_FALLBACK;
     }
 }

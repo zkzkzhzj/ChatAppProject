@@ -45,7 +45,7 @@ public class UserRegisteredEventConsumer {
         log.debug("user.registered 수신: key={}", record.key());
         try {
             UUID idempotencyKey = KafkaEventIdExtractor.extract(record);
-            if (idempotencyGuard.isAlreadyProcessed(idempotencyKey)) {
+            if (!idempotencyGuard.tryAcquire(idempotencyKey)) {
                 log.debug("중복 이벤트 무시: eventId={}", idempotencyKey);
                 return;
             }
@@ -53,12 +53,10 @@ public class UserRegisteredEventConsumer {
             JsonNode userIdNode = root.get("userId");
             if (userIdNode == null || userIdNode.isNull()) {
                 log.warn("user.registered 이벤트에 userId 누락: key={}", record.key());
-                idempotencyGuard.markAsProcessed(idempotencyKey);
                 return;
             }
             long userId = userIdNode.asLong();
             initializeUserVillageUseCase.execute(userId);
-            idempotencyGuard.markAsProcessed(idempotencyKey);
         } catch (Exception e) {
             alertPort.critical(
                     AlertContext.of("village-consumer", record.key(), record.key()),

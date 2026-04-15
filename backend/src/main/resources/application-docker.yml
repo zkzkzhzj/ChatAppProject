@@ -2,6 +2,9 @@
 # 컨테이너 간 통신은 서비스명을 호스트명으로 사용한다.
 # 연결 정보는 application.yml의 환경변수 기본값을 오버라이드한다.
 
+jwt:
+  secret: ${JWT_SECRET:docker-dev-only-secret-key-must-be-at-least-256-bits-long!!}
+
 spring:
   datasource:
     url: jdbc:postgresql://postgres:5432/gohyang

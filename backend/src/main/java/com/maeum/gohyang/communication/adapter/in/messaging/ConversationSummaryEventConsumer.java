@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.maeum.gohyang.communication.application.port.out.GenerateEmbeddingPort;
 import com.maeum.gohyang.communication.application.port.out.LoadMessageHistoryPort;
@@ -49,27 +48,41 @@ public class ConversationSummaryEventConsumer {
     private final AlertPort alertPort;
     private final ObjectMapper objectMapper;
 
+    /**
+     * LLM 요약 + 임베딩 생성은 트랜잭션 밖에서 수행한다.
+     * 외부 API 호출이 수 초~수십 초 소요되므로 트랜잭션 안에 두면
+     * DB 커넥션을 불필요하게 점유한다.
+     *
+     * 순서: 중복 확인(tryAcquire) → 외부 API 호출 → 결과 저장 → 멱등성 마킹(markProcessed)
+     * tryAcquire()는 REQUIRES_NEW 독립 트랜잭션으로 선점하고,
+     * 처리 실패 시 markFailed()로 마킹을 해제하여 Kafka 재시도가 가능하도록 한다.
+     */
     @KafkaListener(topics = TOPIC)
-    @Transactional
     public void handle(ConsumerRecord<String, String> record) {
         log.debug("npc.conversation.summarize 수신: key={}", record.key());
+        UUID idempotencyKey = null;
         try {
-            UUID idempotencyKey = KafkaEventIdExtractor.extract(record);
-            if (idempotencyGuard.isAlreadyProcessed(idempotencyKey)) {
+            idempotencyKey = KafkaEventIdExtractor.extract(record);
+            if (!idempotencyGuard.tryAcquire(idempotencyKey)) {
                 log.debug("중복 요약 이벤트 무시: key={}", record.key());
                 return;
             }
 
             JsonNode root = objectMapper.readTree(record.value());
-            long userId = root.get("userId").asLong();
-            long chatRoomId = root.get("chatRoomId").asLong();
+            JsonNode userIdNode = root.get("userId");
+            JsonNode chatRoomIdNode = root.get("chatRoomId");
+            if (userIdNode == null || chatRoomIdNode == null) {
+                log.warn("npc.conversation.summarize 이벤트 페이로드 누락: key={}", record.key());
+                return;
+            }
+            long userId = userIdNode.asLong();
+            long chatRoomId = chatRoomIdNode.asLong();
 
             List<Message> userMessages = loadMessageHistoryPort
                     .loadUserRecent(chatRoomId, userId, MESSAGES_TO_SUMMARIZE);
 
             if (userMessages.isEmpty()) {
                 log.warn("요약할 유저 메시지 없음 — userId={}, chatRoomId={}", userId, chatRoomId);
-                idempotencyGuard.markAsProcessed(idempotencyKey);
                 return;
             }
 
@@ -77,16 +90,21 @@ public class ConversationSummaryEventConsumer {
                     .map(Message::getBody)
                     .toList();
 
+            // 외부 API 호출 — 트랜잭션 밖
             String summary = summarizeConversationPort.summarize(messageTexts);
             List<Float> embedding = generateEmbeddingPort.generate(summary);
 
+            // 결과 저장만 트랜잭션으로
             saveConversationMemoryPort.save(
                     NpcConversationMemory.create(userId, summary, userMessages.size(), embedding));
 
-            idempotencyGuard.markAsProcessed(idempotencyKey);
-            log.info("대화 요약 저장 완료 — userId={}, messageCount={}, hasEmbedding={}, summary={}",
-                    userId, userMessages.size(), !embedding.isEmpty(), summary);
+            log.info("대화 요약 저장 완료 — userId={}, messageCount={}, hasEmbedding={}",
+                    userId, userMessages.size(), !embedding.isEmpty());
         } catch (Exception e) {
+            // 처리 실패 시 멱등성 마킹 해제 → Kafka 재시도 허용
+            if (idempotencyKey != null) {
+                idempotencyGuard.release(idempotencyKey);
+            }
             alertPort.critical(
                     AlertContext.of("communication-consumer", record.key(), record.key()),
                     "npc.conversation.summarize 처리 실패: " + e.getMessage()

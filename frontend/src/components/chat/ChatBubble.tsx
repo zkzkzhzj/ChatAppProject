@@ -38,7 +38,34 @@ function resolveSender(message: ChatMessage, myUserId: number | null) {
   };
 }
 
+/** 멘션 마크업을 하이라이트된 @이름으로 렌더링 */
+function renderBody(body: string) {
+  const parts = body.split(/(@\[[^\]]+\]\([^)]+\))/g);
+  return parts.map((part, i) => {
+    const match = /@\[([^\]]+)\]\([^)]+\)/.exec(part);
+    if (match) {
+      return (
+        <span key={i} className="font-semibold text-leaf">
+          @{match[1]}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
 export default function ChatBubble({ message }: ChatBubbleProps) {
+  // 시스템 메시지 (입장/퇴장)
+  if (message.senderType === 'SYSTEM') {
+    return (
+      <div className="mb-2 flex justify-center">
+        <span className="rounded-full bg-sand/30 px-3 py-1 text-[11px] text-bark-muted">
+          {message.body}
+        </span>
+      </div>
+    );
+  }
+
   const myUserId = getUserIdFromToken();
   const { name, nameClass, bubbleClass, isMine } = resolveSender(message, myUserId);
 
@@ -50,7 +77,7 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
           isMine ? 'rounded-br-sm' : 'rounded-bl-sm'
         }`}
       >
-        {message.body}
+        {renderBody(message.body)}
       </div>
       <span className="mt-0.5 text-[10px] text-bark-muted">{formatTime(message.createdAt)}</span>
     </div>

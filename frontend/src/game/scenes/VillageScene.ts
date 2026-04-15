@@ -1,5 +1,16 @@
 import Phaser from 'phaser';
 
+import type { PositionBroadcast } from '@/lib/websocket/stompClient';
+
+import {
+  onMyTypingUpdate,
+  onNpcTypingUpdate,
+  onPositionUpdate,
+  onTypingUpdate,
+} from '../../lib/websocket/positionBridge';
+import type { TypingBroadcast } from '../../lib/websocket/stompClient';
+import { sendPosition } from '../../lib/websocket/stompClient';
+
 const SPEED = 160;
 const PLAYER_RADIUS = 14;
 const WORLD_WIDTH = 2400;
@@ -8,6 +19,9 @@ const CAMERA_LERP = 0.08;
 const GRASS_DOT_COUNT = 800;
 const PATH_TEXTURE_COUNT = 100;
 const FLOWER_COUNT = 60;
+const POSITION_SEND_INTERVAL = 100;
+const HEARTBEAT_INTERVAL = 5_000;
+const OTHER_PLAYER_LERP = 0.15;
 
 /**
  * 마을 씬.
@@ -21,6 +35,31 @@ export class VillageScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Container;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
+
+  /** 다른 유저들의 렌더링 컨테이너. key = displayId */
+  private otherPlayers = new Map<
+    string,
+    {
+      container: Phaser.GameObjects.Container;
+      targetX: number;
+      targetY: number;
+      lastSeen: number;
+      bubble?: Phaser.GameObjects.Container;
+    }
+  >();
+  private lastPositionSentAt = 0;
+  private lastHeartbeatAt = 0;
+  private lastSentX = -1;
+  private lastSentY = -1;
+  private unsubscribePosition: (() => void) | null = null;
+  private unsubscribeTyping: (() => void) | null = null;
+  private unsubscribeNpcTyping: (() => void) | null = null;
+  private unsubscribeMyTyping: (() => void) | null = null;
+  private myDisplayId: string | null = null;
+  private npcContainer: Phaser.GameObjects.Container | null = null;
+  private npcBubble: Phaser.GameObjects.Container | null = null;
+  private myBubble: Phaser.GameObjects.Container | null = null;
+  private static readonly STALE_PLAYER_MS = 30_000;
 
   constructor() {
     super({ key: 'VillageScene' });
@@ -59,8 +98,35 @@ export class VillageScene extends Phaser.Scene {
 
     this.setupInput();
 
+    // 위치 브릿지 구독
+    this.unsubscribePosition = onPositionUpdate((pos) => {
+      this.handleRemotePosition(pos);
+    });
+
+    // 내 displayId 결정 (토큰에서 추출)
+    this.resolveMyDisplayId();
+
+    // 다른 유저 타이핑 구독
+    this.unsubscribeTyping = onTypingUpdate((data) => {
+      this.handleRemoteTyping(data);
+    });
+
+    // NPC 타이핑 구독
+    this.unsubscribeNpcTyping = onNpcTypingUpdate((typing) => {
+      this.showNpcBubble(typing);
+    });
+
+    // 내 타이핑 구독 (채팅 입력창 포커스)
+    this.unsubscribeMyTyping = onMyTypingUpdate((typing) => {
+      this.showMyBubble(typing);
+    });
+
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.releaseKeys();
+      this.unsubscribePosition?.();
+      this.unsubscribeTyping?.();
+      this.unsubscribeNpcTyping?.();
+      this.unsubscribeMyTyping?.();
     });
 
     this.scale.on('resize', (gameSize: Phaser.Structs.Size) => {
@@ -68,8 +134,11 @@ export class VillageScene extends Phaser.Scene {
     });
   }
 
-  update(_time: number, delta: number) {
+  update(time: number, delta: number) {
     this.movePlayer(delta);
+    this.sendPositionThrottled(time);
+    this.interpolateOtherPlayers();
+    this.sweepStalePlayers();
   }
 
   /** 풀밭 + 흙길 배경 */
@@ -257,7 +326,7 @@ export class VillageScene extends Phaser.Scene {
   }
 
   private createNpc(x: number, y: number) {
-    this.createCharacter(x, y, 0xc4884d, '마을 주민');
+    this.npcContainer = this.createCharacter(x, y, 0xc4884d, '마을 주민');
     const hitArea = this.add.circle(x, y, PLAYER_RADIUS + 4);
     hitArea.setInteractive({ useHandCursor: true });
     hitArea.setAlpha(0.001);
@@ -315,6 +384,9 @@ export class VillageScene extends Phaser.Scene {
     // 월드 경계 내로 제한
     this.player.x = Phaser.Math.Clamp(this.player.x, PLAYER_RADIUS, WORLD_WIDTH - PLAYER_RADIUS);
     this.player.y = Phaser.Math.Clamp(this.player.y, PLAYER_RADIUS, WORLD_HEIGHT - PLAYER_RADIUS);
+
+    // Y좌표 기반 depth — 아래에 있는 캐릭터가 앞에 그려짐
+    this.player.setDepth(this.player.y);
   }
 
   private static readonly MOVEMENT_KEYS = [
@@ -345,5 +417,175 @@ export class VillageScene extends Phaser.Scene {
   private onNpcClick() {
     // TODO: NPC 1:1 대화 세션 — 클릭 시 채팅 모달 열기
     console.log('[VillageScene] NPC clicked');
+  }
+
+  // --- 위치 공유 ---
+
+  private resolveMyDisplayId() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      this.myDisplayId = null;
+      return;
+    }
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const payload: { role: string; sub: string } = JSON.parse(atob(base64)) as {
+        role: string;
+        sub: string;
+      };
+      this.myDisplayId = payload.role === 'GUEST' ? payload.sub : `user-${payload.sub}`;
+    } catch {
+      this.myDisplayId = null;
+    }
+  }
+
+  private sendPositionThrottled(time: number) {
+    if (time - this.lastPositionSentAt < POSITION_SEND_INTERVAL) return;
+
+    const x = Math.round(this.player.x);
+    const y = Math.round(this.player.y);
+    const moved = x !== this.lastSentX || y !== this.lastSentY;
+    const heartbeatDue = time - this.lastHeartbeatAt >= HEARTBEAT_INTERVAL;
+
+    if (!moved && !heartbeatDue) return;
+
+    this.lastPositionSentAt = time;
+    this.lastSentX = x;
+    this.lastSentY = y;
+    if (heartbeatDue) this.lastHeartbeatAt = time;
+    sendPosition(x, y);
+  }
+
+  private handleRemotePosition(pos: PositionBroadcast) {
+    // 내 위치는 무시
+    if (pos.id === this.myDisplayId) return;
+
+    if (pos.userType === 'LEAVE') {
+      this.removeOtherPlayer(pos.id);
+      return;
+    }
+
+    const existing = this.otherPlayers.get(pos.id);
+    if (existing) {
+      existing.targetX = pos.x;
+      existing.targetY = pos.y;
+      existing.lastSeen = Date.now();
+    } else {
+      this.addOtherPlayer(pos);
+    }
+  }
+
+  private addOtherPlayer(pos: PositionBroadcast) {
+    const color = pos.userType === 'GUEST' ? 0x9b8bb4 : 0x6b8cae;
+    const label = pos.userType === 'GUEST' ? '손님' : '이웃';
+    const container = this.createCharacter(pos.x, pos.y, color, label);
+
+    this.otherPlayers.set(pos.id, {
+      container,
+      targetX: pos.x,
+      targetY: pos.y,
+      lastSeen: Date.now(),
+    });
+  }
+
+  private removeOtherPlayer(id: string) {
+    const entry = this.otherPlayers.get(id);
+    if (!entry) return;
+    entry.container.destroy();
+    this.otherPlayers.delete(id);
+  }
+
+  private interpolateOtherPlayers() {
+    for (const entry of this.otherPlayers.values()) {
+      const { container, targetX, targetY } = entry;
+      container.x += (targetX - container.x) * OTHER_PLAYER_LERP;
+      container.y += (targetY - container.y) * OTHER_PLAYER_LERP;
+      container.setDepth(container.y);
+      if (entry.bubble) {
+        entry.bubble.setPosition(container.x, container.y - PLAYER_RADIUS - 18);
+      }
+    }
+    if (this.npcBubble && this.npcContainer) {
+      this.npcBubble.setPosition(this.npcContainer.x, this.npcContainer.y - PLAYER_RADIUS - 18);
+    }
+    if (this.myBubble) {
+      this.myBubble.setPosition(this.player.x, this.player.y - PLAYER_RADIUS - 18);
+    }
+  }
+
+  /** 30초 이상 업데이트 없는 유저를 제거 (LEAVE 누락 방어) */
+  private sweepStalePlayers() {
+    const now = Date.now();
+    for (const [id, entry] of this.otherPlayers) {
+      if (now - entry.lastSeen > VillageScene.STALE_PLAYER_MS) {
+        entry.container.destroy();
+        this.otherPlayers.delete(id);
+      }
+    }
+  }
+
+  // --- 말풍선 ---
+
+  /** 애니메이션 ... 말풍선 컨테이너 생성 */
+  private createBubble(x: number, y: number): Phaser.GameObjects.Container {
+    const bg = this.add.graphics();
+    bg.fillStyle(0xfaf6f0, 0.93);
+    bg.fillRoundedRect(-20, -14, 40, 20, 8);
+    bg.lineStyle(1, 0xc4a56e, 0.4);
+    bg.strokeRoundedRect(-20, -14, 40, 20, 8);
+
+    const dots: Phaser.GameObjects.Arc[] = [];
+    for (let i = 0; i < 3; i++) {
+      const dot = this.add.circle(-8 + i * 8, -4, 3, 0x8b7355);
+      dots.push(dot);
+      this.tweens.add({
+        targets: dot,
+        y: { from: -4, to: -8 },
+        alpha: { from: 1, to: 0.4 },
+        duration: 400,
+        yoyo: true,
+        repeat: -1,
+        delay: i * 150,
+        ease: 'Sine.easeInOut',
+      });
+    }
+
+    const container = this.add.container(x, y - PLAYER_RADIUS - 18, [bg, ...dots]);
+    container.setDepth(9999);
+    return container;
+  }
+
+  private showNpcBubble(typing: boolean) {
+    if (typing) {
+      if (!this.npcBubble && this.npcContainer) {
+        this.npcBubble = this.createBubble(this.npcContainer.x, this.npcContainer.y);
+      }
+    } else {
+      this.npcBubble?.destroy();
+      this.npcBubble = null;
+    }
+  }
+
+  showMyBubble(typing: boolean) {
+    if (typing) {
+      this.myBubble ??= this.createBubble(this.player.x, this.player.y);
+    } else {
+      this.myBubble?.destroy();
+      this.myBubble = null;
+    }
+  }
+
+  private handleRemoteTyping(data: TypingBroadcast) {
+    if (data.id === this.myDisplayId) return;
+    const entry = this.otherPlayers.get(data.id);
+    if (!entry) return;
+
+    if (data.typing) {
+      entry.bubble ??= this.createBubble(entry.container.x, entry.container.y);
+    } else {
+      entry.bubble?.destroy();
+      entry.bubble = undefined;
+    }
   }
 }

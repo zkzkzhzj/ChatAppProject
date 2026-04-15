@@ -2,7 +2,7 @@
 title: 게스트 정책
 tags: [identity, guest, policy]
 related: [identity/auth-flow.md, village/character-system.md, village/space-system.md]
-last-verified: 2026-04-13
+last-verified: 2026-04-15
 ---
 
 # 게스트 정책
@@ -28,8 +28,9 @@ last-verified: 2026-04-13
 | 엔드포인트 | 게스트 응답 |
 |-----------|-----------|
 | `GET /api/v1/village/characters/me` | 200 + 기본 캐릭터 JSON |
-| `GET /api/v1/village/spaces/me` | 403 `GUEST_NO_PERSONAL_SPACE` |
-| `POST /api/v1/chat-rooms` | 403 `GUEST_CHAT_NOT_ALLOWED` |
+| `GET /api/v1/village/spaces/me` | 403 `VILLAGE_003` (게스트는 개인 공간을 가질 수 없습니다) |
+| `POST /api/v1/chat/messages` | 403 `COMM_003` (게스트는 채팅 기능을 사용할 수 없습니다) |
+| STOMP `/app/chat/village` | 403 `COMM_003` (게스트는 채팅 기능을 사용할 수 없습니다) |
 
 ## 설계 결정 (ADR-005)
 

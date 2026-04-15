@@ -26,7 +26,7 @@
 | 컨슈머 | Village (`UserRegisteredEventConsumer`) |
 | 발행 시점 | 이메일 회원가입 완료 시 |
 | 전달 보장 | At-least-once (Outbox 기반) |
-| 멱등성 키 | `outbox_event.id` (UUID) |
+| 멱등성 키 | `outbox_event.event_id` (UUID, Kafka 헤더 `outbox-event-id`) |
 
 ### Payload
 
@@ -55,8 +55,8 @@ RegisterUserService
 
 ### 컨슈머 에러 처리
 
-- JSON 파싱 오류: 로그 후 스킵 (메시지 손실 허용 — 이미 DB에 유저 존재)
-- 비즈니스 예외: AlertPort로 운영 알람 발행 후 스킵
+- `userId` 필드 누락(null): 로그 경고 후 멱등성 마킹하고 스킵 (메시지 손실 허용 -- 이미 DB에 유저 존재)
+- JSON 파싱 오류 / 비즈니스 예외: `AlertPort.critical()`로 운영 알람 발행 후 **예외를 rethrow**한다. Spring Kafka 재시도 정책에 따라 재처리된다. poison pill 메시지는 자동 스킵되지 않으므로 DLT(Dead Letter Topic) 또는 수동 개입이 필요하다.
 - 중복 이벤트: `processed_event` 테이블 확인 후 무시
 
 ---
@@ -103,5 +103,5 @@ SendMessageService (3회 누적 시)
 
 ### 컨슈머 에러 처리
 
-- LLM 호출 실패: 로그 후 스킵 (원본 메시지는 Cassandra에 보존)
+- LLM 호출 실패 / 기타 예외: `AlertPort.critical()`로 운영 알람 발행 후 **예외를 rethrow**한다. Spring Kafka 재시도 정책에 따라 재처리된다. 원본 메시지는 Cassandra에 보존되므로 데이터 손실은 없지만, 반복 실패 시 컨슈머 지연이 발생할 수 있다.
 - 중복 이벤트: `processed_event` 테이블 확인 후 무시

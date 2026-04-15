@@ -78,10 +78,10 @@
 - 게스트 유저의 마을 입장 처리
 
 **핵심 모델:**
-- Space — 마을 또는 개인 공간
-- Presence — 유저의 현재 위치 및 상태
-- Avatar — 유저의 캐릭터 외형
-- WorldObject — NPC, 가구, 배경 오브젝트
+- Space — 마을 또는 개인 공간 (SpaceTheme으로 테마 구분)
+- Character — 유저의 캐릭터 (게스트는 `defaultGuest()` 인메모리)
+- *(향후 추가 예정)* Presence — 유저의 현재 위치 및 상태
+- *(향후 추가 예정)* WorldObject — NPC, 가구, 배경 오브젝트
 
 **불변조건:**
 - 유저는 동시에 하나의 Space에만 존재할 수 있다.
@@ -209,9 +209,10 @@ public PurchaseResult execute(PurchaseItemCommand command) {
 - 게스트 → 회원 전환 시 데이터 마이그레이션
 
 **핵심 모델:**
-- UserIdentity — 로그인 주체
-- AuthCredential — 인증 수단 (소셜 계정 연결)
-- GuestSession — 비로그인 세션
+- User — 로그인 주체 (현재 구현: `identity/domain/User.java`)
+- LocalAuthCredentials — 이메일/비밀번호 인증 수단 (현재 구현: `identity/domain/LocalAuthCredentials.java`)
+- *(향후 추가 예정)* SocialAuthCredential — 소셜 인증 수단 (Google, Kakao)
+- *(향후 추가 예정)* GuestSession — 비로그인 세션 (현재는 JWT 클레임으로 관리)
 
 **불변조건:**
 - 하나의 소셜 계정은 하나의 UserIdentity에만 연결된다.

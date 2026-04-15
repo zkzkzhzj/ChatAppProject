@@ -31,8 +31,9 @@ frontend/src/
 ├── lib/
 │   ├── api/chatApi.ts    ← REST 채팅 API 래퍼
 │   └── websocket/
-│       ├── stompClient.ts ← STOMP 클라이언트 (JWT 인증)
-│       └── useStomp.ts   ← STOMP lifecycle hook
+│       ├── stompClient.ts    ← STOMP 클라이언트 (JWT 인증 + 위치 공유)
+│       ├── useStomp.ts       ← STOMP lifecycle hook (채팅 + 위치 구독)
+│       └── positionBridge.ts ← STOMP↔Phaser 위치 데이터 콜백 브릿지
 └── types/
     └── chat.ts           ← ChatMessage, ChatRoom 타입
 ```

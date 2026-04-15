@@ -27,11 +27,9 @@ import com.maeum.gohyang.communication.application.port.out.SaveMessagePort;
 import com.maeum.gohyang.communication.application.port.out.SaveParticipantPort;
 import com.maeum.gohyang.communication.domain.EntryType;
 import com.maeum.gohyang.communication.domain.Message;
-import com.maeum.gohyang.communication.domain.MessageType;
 import com.maeum.gohyang.communication.domain.NpcConversationContext;
 import com.maeum.gohyang.communication.domain.Participant;
 import com.maeum.gohyang.communication.domain.ParticipantRole;
-import com.maeum.gohyang.communication.error.ChatRoomNotFoundException;
 import com.maeum.gohyang.communication.error.InvalidMessageBodyException;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,19 +63,19 @@ class SendMessageServiceTest {
     class Success {
 
         @Test
-        @DisplayName("기존 참여자가 있으면 메시지를 전송하고 NPC 비동기 응답을 트리거한다")
-        void 기존_참여자가_있으면_메시지를_전송하고_NPC_비동기_응답을_트리거한다() {
+        @DisplayName("기존 참여자가 @멘션 메시지를 보내면 NPC 비동기 응답을 트리거한다")
+        void 기존_참여자가_멘션_메시지를_보내면_NPC_비동기_응답을_트리거한다() {
             // Given
+            String mentionBody = "@[마을 주민](npc:" + NPC_PARTICIPANT_ID + ") 안녕하세요";
             given(loadParticipantPort.load(USER_ID, CHAT_ROOM_ID)).willReturn(Optional.of(userParticipant()));
-            given(loadParticipantPort.loadNpc(CHAT_ROOM_ID)).willReturn(Optional.of(npcParticipant()));
             given(saveMessagePort.saveWithUser(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
 
             // When
             SendMessageUseCase.Result result = sendMessageService.execute(
-                    new SendMessageUseCase.Command(USER_ID, CHAT_ROOM_ID, "안녕하세요"));
+                    new SendMessageUseCase.Command(USER_ID, CHAT_ROOM_ID, mentionBody));
 
             // Then
-            assertThat(result.userMessage().getBody()).isEqualTo("안녕하세요");
+            assertThat(result.userMessage().getBody()).isEqualTo(mentionBody);
             verify(npcReplyService).replyAsync(any(NpcConversationContext.class));
             verify(saveParticipantPort, never()).save(any());
         }
@@ -88,17 +86,16 @@ class SendMessageServiceTest {
             // Given
             given(loadParticipantPort.load(USER_ID, CHAT_ROOM_ID)).willReturn(Optional.empty());
             given(saveParticipantPort.save(any(Participant.class))).willReturn(userParticipant());
-            given(loadParticipantPort.loadNpc(CHAT_ROOM_ID)).willReturn(Optional.of(npcParticipant()));
             given(saveMessagePort.saveWithUser(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
 
-            // When
+            // When — 멘션 없는 일반 메시지
             SendMessageUseCase.Result result = sendMessageService.execute(
                     new SendMessageUseCase.Command(USER_ID, CHAT_ROOM_ID, "첫 메시지"));
 
             // Then
             assertThat(result.userMessage().getBody()).isEqualTo("첫 메시지");
             verify(saveParticipantPort).save(any(Participant.class));
-            verify(npcReplyService).replyAsync(any(NpcConversationContext.class));
+            verify(npcReplyService, never()).replyAsync(any(NpcConversationContext.class));
         }
 
         @Test
@@ -110,7 +107,6 @@ class SendMessageServiceTest {
                     .willReturn(Optional.of(userParticipant())); // 재조회: 있음 (다른 스레드가 먼저 생성)
             given(saveParticipantPort.save(any(Participant.class)))
                     .willThrow(new DataIntegrityViolationException("uk_participant_user_chatroom"));
-            given(loadParticipantPort.loadNpc(CHAT_ROOM_ID)).willReturn(Optional.of(npcParticipant()));
             given(saveMessagePort.saveWithUser(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
 
             // When
@@ -128,16 +124,19 @@ class SendMessageServiceTest {
     class Failure {
 
         @Test
-        @DisplayName("NPC 참여자가 없으면 ChatRoomNotFoundException")
-        void NPC_참여자가_없으면_ChatRoomNotFoundException() {
+        @DisplayName("멘션 없는 일반 메시지는 NPC 응답을 트리거하지 않는다")
+        void 멘션_없는_일반_메시지는_NPC_응답을_트리거하지_않는다() {
             // Given
             given(loadParticipantPort.load(USER_ID, CHAT_ROOM_ID)).willReturn(Optional.of(userParticipant()));
-            given(loadParticipantPort.loadNpc(CHAT_ROOM_ID)).willReturn(Optional.empty());
+            given(saveMessagePort.saveWithUser(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
 
-            // When & Then
-            assertThatThrownBy(() -> sendMessageService.execute(
-                    new SendMessageUseCase.Command(USER_ID, CHAT_ROOM_ID, "안녕")))
-                    .isInstanceOf(ChatRoomNotFoundException.class);
+            // When
+            SendMessageUseCase.Result result = sendMessageService.execute(
+                    new SendMessageUseCase.Command(USER_ID, CHAT_ROOM_ID, "안녕"));
+
+            // Then
+            assertThat(result.userMessage().getBody()).isEqualTo("안녕");
+            verify(npcReplyService, never()).replyAsync(any(NpcConversationContext.class));
         }
 
         @Test

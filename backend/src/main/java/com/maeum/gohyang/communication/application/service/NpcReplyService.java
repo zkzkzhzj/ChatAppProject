@@ -14,6 +14,8 @@ import com.maeum.gohyang.communication.domain.Message;
 import com.maeum.gohyang.communication.domain.MessageType;
 import com.maeum.gohyang.communication.domain.NpcConversationContext;
 import com.maeum.gohyang.communication.domain.NpcConversationMemory;
+import com.maeum.gohyang.global.alert.AlertContext;
+import com.maeum.gohyang.global.alert.AlertPort;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,12 +33,14 @@ import lombok.extern.slf4j.Slf4j;
 public class NpcReplyService {
 
     private static final int MAX_MEMORY_COUNT = 3;
+    private static final String NPC_FALLBACK_MESSAGE = "죄송해요, 지금은 대화하기 어려운 상태예요. 잠시 후 다시 말을 걸어주세요.";
 
     private final GenerateNpcResponsePort generateNpcResponsePort;
     private final SaveMessagePort saveMessagePort;
     private final BroadcastChatMessagePort broadcastChatMessagePort;
     private final LoadConversationMemoryPort loadConversationMemoryPort;
     private final GenerateEmbeddingPort generateEmbeddingPort;
+    private final AlertPort alertPort;
 
     @Async
     public void replyAsync(NpcConversationContext context) {
@@ -69,6 +73,17 @@ public class NpcReplyService {
         } catch (Exception e) {
             log.error("NPC 응답 생성 실패 — chatRoomId={}, error={}",
                     context.chatRoomId(), e.getMessage(), e);
+            alertPort.warning(
+                    AlertContext.of("npc-reply", null, String.valueOf(context.userId())),
+                    "NPC 응답 생성 실패 — chatRoomId=" + context.chatRoomId());
+
+            // 유저에게 시스템 메시지로 피드백
+            broadcastChatMessagePort.broadcastNpcReply(
+                    Message.newMessage(
+                            context.chatRoomId(),
+                            context.npcParticipantId(),
+                            NPC_FALLBACK_MESSAGE,
+                            MessageType.TEXT));
         }
     }
 }

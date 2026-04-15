@@ -11,6 +11,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     width: '100%',
     height: '100%',
   },
-  backgroundColor: '#87c05a',
+  backgroundColor: '#7eb86a',
+  pixelArt: true,
   audio: { noAudio: true },
 };

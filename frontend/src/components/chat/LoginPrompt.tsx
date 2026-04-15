@@ -9,6 +9,24 @@ interface LoginPromptProps {
   onClose: () => void;
 }
 
+async function authenticate(email: string, password: string): Promise<string> {
+  try {
+    const { data } = await apiClient.post<{ accessToken: string }>('/api/v1/auth/register', {
+      email,
+      password,
+    });
+    return data.accessToken;
+  } catch {
+    // 회원가입 실패(이미 가입됨 등) → 로그인 시도
+  }
+
+  const { data } = await apiClient.post<{ accessToken: string }>('/api/v1/auth/login', {
+    email,
+    password,
+  });
+  return data.accessToken;
+}
+
 export default function LoginPrompt({ onClose }: LoginPromptProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,34 +47,22 @@ export default function LoginPrompt({ onClose }: LoginPromptProps) {
     setLoading(true);
 
     try {
-      const { data } = await apiClient.post<{ accessToken: string }>('/api/v1/auth/register', {
-        email,
-        password,
-      });
-      localStorage.setItem('accessToken', data.accessToken);
+      const token = await authenticate(email, password);
+      localStorage.setItem('accessToken', token);
       onClose();
       window.location.reload();
     } catch {
-      try {
-        const { data } = await apiClient.post<{ accessToken: string }>('/api/v1/auth/login', {
-          email,
-          password,
-        });
-        localStorage.setItem('accessToken', data.accessToken);
-        onClose();
-        window.location.reload();
-      } catch {
-        setError('로그인에 실패했습니다. 다시 시도해 주세요.');
-      }
+      setError('로그인에 실패했습니다. 다시 시도해 주세요.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-80 rounded-xl bg-zinc-800 p-6 shadow-2xl">
-        <h2 className="mb-4 text-lg font-semibold text-white">로그인 / 회원가입</h2>
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+      <div className="w-80 rounded-3xl border-2 border-sand bg-cream p-6 shadow-xl">
+        <h2 className="mb-1 font-display text-lg font-semibold text-bark">마을에 들어가기</h2>
+        <p className="mb-4 text-xs text-bark-muted">처음이면 자동으로 가입돼요</p>
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-3">
           <input
             type="email"
@@ -67,7 +73,7 @@ export default function LoginPrompt({ onClose }: LoginPromptProps) {
             placeholder="이메일"
             required
             autoFocus
-            className="rounded-lg bg-zinc-700 px-3 py-2 text-sm text-white placeholder-zinc-400 outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-xl border-[1.5px] border-sand bg-warm-white px-3 py-2.5 text-sm text-bark outline-none transition-all focus:border-leaf/40"
           />
           <input
             type="password"
@@ -78,22 +84,22 @@ export default function LoginPrompt({ onClose }: LoginPromptProps) {
             placeholder="비밀번호"
             required
             minLength={8}
-            className="rounded-lg bg-zinc-700 px-3 py-2 text-sm text-white placeholder-zinc-400 outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-xl border-[1.5px] border-sand bg-warm-white px-3 py-2.5 text-sm text-bark outline-none transition-all focus:border-leaf/40"
           />
-          {error && <p className="text-xs text-red-400">{error}</p>}
+          {error && <p className="text-xs text-hearth">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50 transition-colors"
+            className="rounded-xl bg-leaf py-2.5 font-display text-sm font-medium text-cream transition-all hover:bg-leaf-dark disabled:opacity-50"
           >
-            {loading ? '처리 중...' : '시작하기'}
+            {loading ? '들어가는 중...' : '마을 들어가기'}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="text-sm text-bark-muted transition-colors hover:text-bark"
           >
-            닫기
+            나중에 할게요
           </button>
         </form>
       </div>

@@ -67,6 +67,12 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
     }
   };
 
+  const placeholder = connected
+    ? hasToken
+      ? 'Enter를 눌러 이야기하기...'
+      : '로그인 후 대화할 수 있어요'
+    : '마을에 연결 중...';
+
   return (
     <div className="flex gap-2">
       <input
@@ -83,20 +89,14 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
         onBlur={() => {
           setInputFocused(false);
         }}
-        placeholder={
-          connected
-            ? hasToken
-              ? 'Enter를 눌러 채팅하기'
-              : '로그인 후 채팅할 수 있어요'
-            : '연결 중...'
-        }
-        className="flex-1 rounded-lg bg-black/60 px-3 py-2 text-sm text-white placeholder-zinc-400 outline-none backdrop-blur-sm focus:ring-1 focus:ring-blue-500"
+        placeholder={placeholder}
+        className="flex-1 rounded-2xl border-[1.5px] border-sand/50 bg-cream/92 px-4 py-2.5 text-sm text-bark outline-none backdrop-blur-sm transition-all focus:border-leaf/40"
         maxLength={1000}
       />
       <button
         onClick={handleSend}
         disabled={!draft.trim() || !connected}
-        className="rounded-lg bg-blue-600/80 px-3 py-2 text-sm font-medium text-white backdrop-blur-sm hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="rounded-2xl bg-leaf px-4 py-2.5 text-sm font-medium text-cream transition-all hover:bg-leaf-dark disabled:cursor-not-allowed disabled:opacity-40"
       >
         전송
       </button>

@@ -27,14 +27,17 @@ export default function ChatMessageList({ height, onResizeStart }: ChatMessageLi
 
   return (
     <div className="pointer-events-auto mb-2 flex flex-col">
-      {/* 리사이즈 핸들 — 위로 드래그하면 채팅 영역이 커진다 */}
       <div
         onMouseDown={onResizeStart}
-        className="flex h-3 cursor-ns-resize items-center justify-center"
+        className="flex h-4 cursor-ns-resize items-center justify-center"
       >
-        <div className="h-0.5 w-10 rounded-full bg-zinc-500/60" />
+        <div className="h-1 w-10 rounded-full bg-sand/50" />
       </div>
-      <div ref={scrollRef} className="overflow-y-auto pr-2" style={{ maxHeight: height }}>
+      <div
+        ref={scrollRef}
+        className="overflow-y-auto rounded-2xl bg-cream/88 px-3 py-2 backdrop-blur-sm"
+        style={{ maxHeight: height }}
+      >
         {messages.map((msg) => (
           <ChatBubble key={msg.id} message={msg} />
         ))}

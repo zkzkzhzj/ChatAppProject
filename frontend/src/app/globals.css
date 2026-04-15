@@ -1,26 +1,52 @@
 @import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* 마음의 고향 — 따뜻한 안식처 팔레트 */
+  --color-cream: #faf6f0;
+  --color-warm-white: #f5efe6;
+  --color-sand: #e8dcc8;
+  --color-bark: #5c4a3a;
+  --color-bark-light: #7d6b5a;
+  --color-bark-muted: #b0a090;
+  --color-leaf: #6a9c5b;
+  --color-leaf-dark: #4a7c3b;
+  --color-sky: #87ceeb;
+  --color-sunset: #f4a460;
+  --color-hearth: #e07a5f;
+  --color-hearth-soft: #f2a58f;
+  --color-neighbor: #c4884d;
+  --color-bubble-user: #e8dcc8;
+  --color-bubble-npc: #d4e8d0;
+  --color-bubble-neighbor: #dde4f0;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* 폰트 */
+  --font-sans: var(--font-body), 'Apple SD Gothic Neo', sans-serif;
+  --font-display: var(--font-display), 'Apple SD Gothic Neo', serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #faf6f0;
+  color: #5c4a3a;
+}
+
+canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e8dcc8;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7d6b5a;
 }

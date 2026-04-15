@@ -34,6 +34,7 @@ backend/.gradle/
 
 # Claude Code local settings (개인 설정)
 .claude/settings.local.json
+.mcp.json
 
 # Gradle home cache
 backend/.gradle-home/

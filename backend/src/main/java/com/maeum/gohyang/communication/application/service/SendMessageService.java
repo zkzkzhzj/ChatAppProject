@@ -72,11 +72,28 @@ public class SendMessageService implements SendMessageUseCase {
         return new Result(userMessage);
     }
 
+    /**
+     * 유저별 메시지 카운터를 원자적으로 증가시키고, 임계값 도달 시 리셋 + 이벤트 발행.
+     *
+     * 동시성 전략: compareAndSet 루프로 increment-and-reset을 원자적으로 수행.
+     * - 두 스레드가 동시에 임계값에 도달해도 하나만 리셋에 성공하고 이벤트를 발행한다.
+     * - 서버 재시작 시 카운터 초기화는 허용 — 요약 이벤트가 한두 번 지연될 뿐 데이터 유실 아님.
+     * - 멀티 인스턴스 배포 시 Redis INCR로 전환 필요 (현재 단일 인스턴스).
+     */
     private void publishSummaryEventIfNeeded(long userId, long chatRoomId) {
         AtomicInteger counter = messageCounters.computeIfAbsent(userId, k -> new AtomicInteger(0));
-        int count = counter.incrementAndGet();
-        if (count >= SUMMARY_TRIGGER_COUNT) {
-            counter.set(0);
+
+        int current;
+        int next;
+        do {
+            current = counter.get();
+            next = current + 1;
+            if (next >= SUMMARY_TRIGGER_COUNT) {
+                next = 0;
+            }
+        } while (!counter.compareAndSet(current, next));
+
+        if (current + 1 >= SUMMARY_TRIGGER_COUNT) {
             publishConversationSummaryEventPort.publish(userId, chatRoomId);
             log.info("대화 요약 이벤트 발행 — userId={}, messageCount={}", userId, SUMMARY_TRIGGER_COUNT);
         }

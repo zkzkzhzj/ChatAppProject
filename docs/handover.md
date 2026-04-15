@@ -302,6 +302,15 @@ POST /api/v1/chat/messages {body: "..."}
 
 없음 (PR #8 머지 대기)
 
+**4/15 — 웹 게임 엔진 비교 학습노트** ✅
+
+| 항목 | 내용 |
+|------|------|
+| 기술 비교 | Phaser.js vs Three.js + 2D/3D 생태계 전체 비교 (PixiJS, Kaplay, Excalibur, Babylon.js, R3F 등) |
+| 결론 | Phaser.js가 프로젝트에 적합 확인. 2D 타일맵 + 스프라이트 + Tiled 네이티브 지원 |
+| 발견 사항 | Gather Town은 PixiJS 기반 (Phaser가 아님), Phaser v4.0.0 "Caladan" 2026-04-10 출시 |
+| 학습 노트 | `learning/32-web-2d-game-engine-comparison.md` |
+
 ---
 
 ## 다음 할 것

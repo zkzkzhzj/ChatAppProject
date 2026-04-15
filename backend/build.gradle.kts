@@ -59,6 +59,9 @@ dependencies {
 	// DB Drivers
 	runtimeOnly("org.postgresql:postgresql")
 
+	// pgvector — Hibernate 네이티브 벡터 타입 지원 (SqlTypes.VECTOR → PostgreSQL vector)
+	implementation("org.hibernate.orm:hibernate-vector")
+
 	// ── Error Prone + NullAway (컴파일 타임 버그 탐지) ──
 	errorprone(libs.errorprone.core)
 	errorprone(libs.nullaway)

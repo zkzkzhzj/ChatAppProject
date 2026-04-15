@@ -53,6 +53,11 @@
    - `exists()` 확인 후 처리하는 패턴 금지
    - `INSERT ... ON CONFLICT DO NOTHING` (insertIfAbsent) 기반으로 보장
 
+7. **비원자적 복합 연산 금지**
+   - `incrementAndGet()` 후 별도 `set(0)` 호출 → 두 연산 사이에 다른 스레드가 끼어들 수 있음
+   - `containsKey()` 후 `put()` → `computeIfAbsent`, `merge` 등 원자적 API 사용
+   - `ConcurrentHashMap`에 비즈니스 상태 저장 시 재시작/멀티 인스턴스 영향 반드시 주석으로 명시
+
 ---
 
 ## 코딩 컨벤션 체크리스트

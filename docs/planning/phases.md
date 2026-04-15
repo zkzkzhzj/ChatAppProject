@@ -139,17 +139,28 @@ Scenario: GUEST가 마을에 입장하고 NPC와 채팅 후 회원가입한다
 
 ---
 
-## Phase 5 — AI NPC 고도화 [ ]
+## Phase 5 — AI NPC 고도화 [~]
 
-**목표:** 하드코딩 응답 → 실제 AI 응답으로 교체
+**목표:** 하드코딩 응답 → 실제 AI 응답으로 교체 + 대화 맥락 유지
 
-**이유:** Phase 3에서 NPC 인터페이스를 미리 Port로 뽑아두면, 이 Phase에서는 구현체만 교체하면 된다.
+**이유:** Phase 3에서 NPC 인터페이스를 미리 Port로 뽑아두었고, 구현체만 교체하면 된다.
+
+**전략 결정 (2026-04-14):**
+- 개발/데모: Ollama + EXAONE 3.5 (LG AI Research, 한국어 특화)
+- 프로덕션: 상용 API (GPT-4o-mini $2.7/월 or Claude Haiku $16.8/월)
+- 대화 맥락: pgvector (PostgreSQL 벡터 확장) — Cassandra 원본 + pgvector 요약 벡터
+- 6개 모델 비교 테스트 (72회) + 보안 테스트 (8개 시나리오) 완료
 
 | 작업 | 상태 |
 |------|------|
-| Claude API 연동 (또는 로컬 LLM 검토) | [ ] |
-| NPC 페르소나 정의 | [ ] |
-| 대화 맥락 기억 (Redis) | [ ] |
+| Ollama 로컬 LLM 연동 (EXAONE 3.5) | [x] |
+| NPC 응답 비동기 분리 (@Async) | [x] |
+| NPC 페르소나 정의 (다정한 마을 주민) | [x] |
+| 6개 모델 비교 테스트 + 보안 테스트 | [x] |
+| 프로덕션 전략 결정 (로컬→API 이중 전략) | [x] |
+| 대화 맥락 유지 — pgvector 테이블 설계 | [x] |
+| 대화 요약 파이프라인 (Kafka → LLM 요약 → pgvector) | [x] |
+| 상용 API 어댑터 (ClaudeApiAdapter or OpenAiAdapter) | [ ] |
 | 위험 신호 감지 → 전문 상담 안내 | [ ] |
 
 ---

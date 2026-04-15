@@ -20,7 +20,7 @@
 | Village | space, space_placement, character*, character_equipment* |
 | Economy - Wallet | point_wallet, point_transaction |
 | Economy - Inventory | item_definition, user_item_inventory |
-| Communication | chat_room, participant, category, chat_room_category |
+| Communication | chat_room, participant, category, chat_room_category, npc_conversation_memory |
 | Safety | report, sanction |
 | Infra | outbox_event, processed_event, idempotency_request |
 
@@ -193,10 +193,25 @@ CHAT_ROOM_CATEGORY {
     PRIMARY KEY (chat_room_id, category_id)
 }
 
+NPC_CONVERSATION_MEMORY {
+    Long id PK
+    Long user_id             -- ID 참조 (FK 아님)
+    Text summary             -- LLM이 생성한 대화 요약
+    vector(768) embedding    -- 요약 텍스트의 임베딩 벡터 (nomic-embed-text, nullable)
+    Int message_count        -- 요약에 포함된 메시지 수
+    DateTime created_at
+}
+
 CHAT_ROOM ||--|{ PARTICIPANT
 CHAT_ROOM ||--|{ CHAT_ROOM_CATEGORY
 CATEGORY ||--o{ CHAT_ROOM_CATEGORY
 ```
+
+> **NPC_CONVERSATION_MEMORY 설계 결정:** pgvector 확장을 사용하여 요약 텍스트의 임베딩 벡터(768차원, nomic-embed-text)를 저장한다.
+> NPC 응답 시 유저 메시지를 임베딩하여 cosine distance(`<=>`)로 가장 관련 있는 요약을 검색하고, 시스템 프롬프트에 주입한다.
+> 임베딩이 없는 환경(테스트 등)에서는 최신순 fallback으로 동작한다.
+> V6 마이그레이션으로 `embedding vector(768)` 컬럼 추가. Hibernate 7.x 네이티브 벡터 타입(`@JdbcTypeCode(SqlTypes.VECTOR)`)으로 `float[]` 자동 매핑.
+> Cassandra의 원본 메시지와 역할이 다르다: Cassandra = 원본 저장(write-heavy), pgvector = 요약 저장(read-heavy 맥락 검색).
 
 ---
 
@@ -223,6 +238,29 @@ Clustering Key: created_at DESC, id DESC
 메시지에는 `participant_id`만 저장한다. 발신자 닉네임은 메시지 조회 시 `participant_id`로 현재 닉네임을 조회하여 표시한다. 닉네임을 변경하면 과거 메시지도 새 닉네임으로 보인다. 신고/감사 추적은 `participant_id`로 수행한다.
 
 **조회:** `WHERE chat_room_id = ? ORDER BY created_at DESC LIMIT ?`
+
+### USER_MESSAGE (비정규화 테이블)
+
+대화 요약 시 특정 유저의 메시지만 효율적으로 조회하기 위한 비정규화 테이블.
+MESSAGE 테이블과 동일한 데이터를 `(chat_room_id, user_id)` 파티션으로 저장한다.
+유저 메시지 저장 시 MESSAGE + USER_MESSAGE에 dual-write한다.
+
+```
+USER_MESSAGE {
+    Long chat_room_id        -- Partition Key
+    Long user_id             -- Partition Key
+    UUID id                  -- TimeUUID
+    Long participant_id
+    String body
+    Enum message_type        -- TEXT / IMAGE / SYSTEM
+    Timestamp created_at     -- Clustering Key (DESC)
+}
+
+Primary Key: ((chat_room_id, user_id), created_at, id)
+Clustering Key: created_at DESC, id DESC
+```
+
+**조회:** `WHERE chat_room_id = ? AND user_id = ? ORDER BY created_at DESC LIMIT ?`
 
 ---
 
@@ -336,6 +374,7 @@ IDEMPOTENCY_REQUEST {
 | CHARACTER_EQUIPMENT | item_definition_id | ITEM_DEFINITION.id | N:1 | 아이템 중복 장착 슬롯별 1개 |
 | SPACE_PLACEMENT | item_definition_id | ITEM_DEFINITION.id | N:1 | 동일 아이템 무제한 배치 가능 |
 | PARTICIPANT | user_id | USER.id | N:1 | NPC일 경우 null 가능 |
+| NPC_CONVERSATION_MEMORY | user_id | USER.id | N:1 | 유저별 대화 요약 |
 
 ### 아이템 장착/배치 설계 결정 기록
 

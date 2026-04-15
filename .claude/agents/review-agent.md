@@ -57,3 +57,9 @@ Read로 `$TMPFILE` 전체를 읽고 Write로 `$REVIEW_FILE`에 저장.
 - 테스트 누락 (실패 케이스 없음)
 - 각 항목은 파일명:라인번호 형식
 - 출력: [CRITICAL] / [WARNING] / [INFO] / LGTM
+
+### 동시성·레이스 컨디션 심화 체크
+- **인메모리 상태 저장**: `ConcurrentHashMap`, `static Map`, `AtomicInteger` 등에 비즈니스 상태를 저장하면 [WARNING] — 서버 재시작/멀티 인스턴스 영향 분석 필요
+- **비원자적 복합 연산**: `incrementAndGet()` 후 `set(0)` 분리, `containsKey()` 후 `put()` 등은 [CRITICAL] — CAS 루프 또는 원자적 API 사용 필수
+- **Kafka Consumer 예외 처리**: catch 블록에서 `throw` 없이 예외를 삼키면 [CRITICAL] — 이벤트가 영구 유실됨
+- **트랜잭션 외부 부수효과**: `@Transactional` 메서드 안에서 외부 API 호출, 메시지 발행이 있으면 [WARNING] — 트랜잭션 롤백 시 외부 호출은 되돌릴 수 없음

@@ -1,5 +1,6 @@
 package com.maeum.gohyang.communication.adapter.out.persistence;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
@@ -41,5 +42,12 @@ public class CommunicationPersistenceAdapter
     public Optional<Participant> loadNpc(long chatRoomId) {
         return participantJpaRepository.findByParticipantRoleAndChatRoomId(ParticipantRole.NPC, chatRoomId)
                 .map(ParticipantJpaEntity::toDomain);
+    }
+
+    @Override
+    public List<Participant> loadAll(long chatRoomId) {
+        return participantJpaRepository.findByChatRoomId(chatRoomId).stream()
+                .map(ParticipantJpaEntity::toDomain)
+                .toList();
     }
 }

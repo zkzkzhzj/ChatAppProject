@@ -14,6 +14,9 @@
     ],
     "frontend/src/**/*.{json,css}": [
       "npx --prefix frontend prettier --write --config frontend/.prettierrc"
+    ],
+    "backend/src/**/*.java": [
+      "bash -c './backend/gradlew -p backend checkstyleMain checkstyleTest'"
     ]
   }
 }

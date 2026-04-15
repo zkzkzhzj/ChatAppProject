@@ -7,7 +7,12 @@ import type { StompSubscription } from '@stomp/stompjs';
 import { useChatStore } from '@/store/useChatStore';
 import type { ChatMessage, MessageResponse } from '@/types/chat';
 
-import { connectWithAuth, disconnectStomp, subscribeToChatRoom } from './stompClient';
+import {
+  connectAnonymous,
+  connectWithAuth,
+  disconnectStomp,
+  subscribeToChatRoom,
+} from './stompClient';
 
 const VILLAGE_CHAT_TOPIC = 'village';
 
@@ -25,7 +30,9 @@ function toMessage(msg: MessageResponse): ChatMessage {
 /**
  * 마을 공개 채팅 STOMP 훅.
  *
- * 토큰이 있으면 마운트 시 즉시 STOMP 연결 + 마을 채팅방 구독.
+ * 마운트 시 즉시 STOMP 연결 + 마을 채팅방 구독.
+ * 토큰이 있으면 인증 헤더를 포함하고, 없으면(게스트) 인증 없이 연결한다.
+ * 게스트도 다른 사람의 채팅을 볼 수 있어야 하므로 토큰 유무와 관계없이 구독한다.
  * 채널 개념 도입 전까지 토픽은 /topic/chat/village 고정.
  */
 export function useStomp(): void {
@@ -35,32 +42,34 @@ export function useStomp(): void {
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    if (!token) {
-      console.warn('[useStomp] No token found, skipping STOMP connect');
-      return;
-    }
 
-    console.log('[useStomp] Connecting to STOMP server');
+    console.log('[useStomp] Connecting to STOMP server', token ? '(authenticated)' : '(guest)');
     setConnectionStatus('connecting');
 
-    connectWithAuth(
-      token,
-      () => {
-        console.log('[useStomp] STOMP connected, subscribing to village chat');
-        setConnectionStatus('connected');
+    const onConnected = () => {
+      console.log('[useStomp] STOMP connected, subscribing to village chat');
+      setConnectionStatus('connected');
 
-        subscriptionRef.current = subscribeToChatRoom(VILLAGE_CHAT_TOPIC, (msg) => {
-          console.log('[useStomp] Received message:', msg);
-          addMessage(toMessage(msg));
-        });
-      },
-      (err) => {
-        console.error('[useStomp] STOMP error:', err);
+      subscriptionRef.current = subscribeToChatRoom(VILLAGE_CHAT_TOPIC, (msg) => {
+        console.log('[useStomp] Received message:', msg);
+        addMessage(toMessage(msg));
+      });
+    };
+
+    const onError = (err: import('@stomp/stompjs').IFrame) => {
+      console.error('[useStomp] STOMP error:', err);
+      if (token) {
         // 토큰 만료/유효하지 않은 경우 제거
         localStorage.removeItem('accessToken');
-        setConnectionStatus('error');
-      },
-    );
+      }
+      setConnectionStatus('error');
+    };
+
+    if (token) {
+      connectWithAuth(token, onConnected, onError);
+    } else {
+      connectAnonymous(onConnected, onError);
+    }
 
     return () => {
       console.log('[useStomp] Cleanup: disconnecting');

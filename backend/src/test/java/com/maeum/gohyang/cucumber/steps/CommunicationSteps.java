@@ -37,16 +37,16 @@ public class CommunicationSteps {
         chatTestAdapter.sendVillageMessage(message);
     }
 
-    @Then("NPC로부터 응답 메시지를 받는다")
-    public void NPC로부터_응답_메시지를_받는다() {
+    @Then("유저 메시지가 성공적으로 전송된다")
+    public void 유저_메시지가_성공적으로_전송된다() {
         assertThat(scenarioContext.getLastStatusCode())
                 .as("메시지 전송 응답 코드")
                 .isEqualTo(200);
 
         String body = scenarioContext.getLastResponseBody();
         assertThat(body)
-                .as("응답에 npcMessage가 포함되어야 한다")
-                .contains("npcMessage")
+                .as("응답에 userMessage가 포함되어야 한다")
+                .contains("userMessage")
                 .contains("body")
                 .contains("senderType");
     }

@@ -4,6 +4,11 @@
 
 ---
 
+## [2026-04-14] update | NPC 대화 페이지 — LLM 선택 결과 및 프로덕션 전략 반영
+
+- `communication/npc-conversation.md` — 6개 모델 비교 결과, EXAONE 3.5 선택, 프로덕션 API 전략, pgvector 맥락 유지 계획, 어댑터 구조 현행화
+- tags에 `llm`, `ollama`, `exaone`, `pgvector` 추가
+
 ## [2026-04-13] update | 프론트엔드 Wiki 갱신 (채팅 UI 반영)
 
 - `frontend/phaser-setup.md` — Scale.RESIZE 풀스크린, noAudio, Phaser↔React 브릿지 구조, 채팅 컴포넌트 트리 추가

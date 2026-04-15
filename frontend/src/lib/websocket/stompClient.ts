@@ -32,6 +32,16 @@ export function connectWithAuth(
   client.activate();
 }
 
+export function connectAnonymous(onConnected: () => void, onError?: (err: IFrame) => void): void {
+  const client = getStompClient();
+  client.connectHeaders = {};
+  client.onConnect = onConnected;
+  if (onError) {
+    client.onStompError = onError;
+  }
+  client.activate();
+}
+
 export function disconnectStomp(): void {
   void stompClient?.deactivate();
   stompClient = null;

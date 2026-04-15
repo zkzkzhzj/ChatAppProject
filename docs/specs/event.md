@@ -11,6 +11,7 @@
 - 키(Key): 집계 루트 ID (String)
 - 값(Value): JSON 문자열. `JsonSerializer`/`__TypeId__` 헤더 없이 plain String으로 직렬화한다.
 - 멱등성: 컨슈머는 `processed_event` 테이블로 중복 처리를 방지한다.
+- 재시도: `DefaultErrorHandler` + `FixedBackOff(1초, 3회)`. 실패 시 예외를 rethrow하여 Spring Kafka가 재시도한다.
 
 ---
 
@@ -56,4 +57,51 @@ RegisterUserService
 
 - JSON 파싱 오류: 로그 후 스킵 (메시지 손실 허용 — 이미 DB에 유저 존재)
 - 비즈니스 예외: AlertPort로 운영 알람 발행 후 스킵
+- 중복 이벤트: `processed_event` 테이블 확인 후 무시
+
+---
+
+## npc.conversation.summarize
+
+### 개요
+
+| 항목 | 값 |
+|------|-----|
+| 토픽 | `npc.conversation.summarize` |
+| 프로듀서 | Communication (`ConversationSummaryOutboxAdapter`) |
+| 컨슈머 | Communication (`ConversationSummaryEventConsumer`) |
+| 발행 시점 | 유저별 3회 메시지 누적 시 |
+| 전달 보장 | At-least-once (Outbox 기반) |
+| 멱등성 키 | `outbox_event.event_id` (UUID, Kafka 헤더). 헤더 미존재 시 `key + offset` 조합 UUID fallback |
+
+### Payload
+
+```json
+{
+  "userId": 42,
+  "chatRoomId": 1
+}
+```
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| userId | Long | 대화 요약 대상 유저 ID |
+| chatRoomId | Long | 채팅방 ID |
+
+### 처리 흐름
+
+```
+SendMessageService (3회 누적 시)
+  → outbox_event 저장 (같은 트랜잭션)
+  → OutboxKafkaRelay (1초 주기) → Kafka "npc.conversation.summarize"
+  → ConversationSummaryEventConsumer
+      → processed_event 중복 체크
+      → Cassandra에서 최근 10개 메시지 로드
+      → SummarizeConversationPort (LLM) → 요약 텍스트 생성
+      → npc_conversation_memory 테이블에 저장 (PostgreSQL/pgvector)
+```
+
+### 컨슈머 에러 처리
+
+- LLM 호출 실패: 로그 후 스킵 (원본 메시지는 Cassandra에 보존)
 - 중복 이벤트: `processed_event` 테이블 확인 후 무시

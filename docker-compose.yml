@@ -12,7 +12,8 @@
 services:
 
   postgres:
-    image: postgres:16-alpine
+    # pgvector 확장 포함 — 대화 맥락 요약 벡터 저장용
+    image: pgvector/pgvector:pg16
     container_name: gohyang-postgres
     environment:
       POSTGRES_DB: gohyang
@@ -92,6 +93,37 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  ollama:
+    # 로컬 LLM 서빙 — Qwen 2.5 7B 기본. GPU 사용 시 NVIDIA Container Toolkit 필요.
+    # 프로필: ollama 서비스 없이 로컬 Ollama를 직접 실행해도 된다.
+    # entrypoint로 서버 시작 후 필요한 모델을 자동 pull한다.
+    image: ollama/ollama:latest
+    container_name: gohyang-ollama
+    entrypoint: ["/bin/bash", "/ollama-entrypoint.sh"]
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./ollama-entrypoint.sh:/ollama-entrypoint.sh:ro
+    environment:
+      OLLAMA_NUM_PARALLEL: 2
+      # 자동 pull할 모델 목록 (공백 구분). OLLAMA_MODELS는 Ollama 예약어이므로 사용 금지.
+      OLLAMA_PULL_MODELS: ${OLLAMA_PULL_MODELS:-exaone3.5:7.8b nomic-embed-text}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
   app:
     build:
       context: ./backend
@@ -103,6 +135,9 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_USERNAME: gohyang
       SPRING_DATASOURCE_PASSWORD: gohyang
+      # NPC_ADAPTER: ollama로 설정하면 Ollama LLM 사용. 기본값은 hardcoded.
+      NPC_ADAPTER: ${NPC_ADAPTER:-hardcoded}
+      OLLAMA_BASE_URL: http://ollama:11434
     depends_on:
       postgres:
         condition: service_healthy
@@ -120,8 +155,29 @@ services:
       start_period: 60s
     restart: unless-stopped
 
+  frontend:
+    # Next.js 프론트엔드 — standalone 모드 빌드, 백엔드 API를 app:8080으로 프록시
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      # NEXT_PUBLIC_* 는 빌드 타임에 번들에 인라인된다.
+      # 브라우저에서 직접 백엔드에 요청하므로 호스트 관점 주소를 사용한다.
+      # 값은 .env 파일에서 관리. 기본값(localhost)은 로컬 개발 전용.
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8080}
+        NEXT_PUBLIC_WS_URL: ${PUBLIC_WS_URL:-http://localhost:8080/ws}
+    container_name: gohyang-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres_data:
     driver: local
   cassandra_data:
+    driver: local
+  ollama_data:
     driver: local

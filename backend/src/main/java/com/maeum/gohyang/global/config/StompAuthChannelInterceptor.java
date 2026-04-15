@@ -11,7 +11,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
-import com.maeum.gohyang.identity.adapter.in.security.JwtProvider;
+import com.maeum.gohyang.global.security.ParseTokenPort;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +27,7 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
 
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private final JwtProvider jwtProvider;
+    private final ParseTokenPort parseTokenPort;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -38,18 +38,17 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
 
         List<String> authHeaders = accessor.getNativeHeader("Authorization");
         if (authHeaders == null || authHeaders.isEmpty()) {
-            // 토큰 없이 연결 허용 (게스트 접속, 채팅은 불가)
-            return message;
+            throw new MessageDeliveryException("Authorization header is required");
         }
 
         String authHeader = authHeaders.get(0);
         if (!authHeader.startsWith(BEARER_PREFIX)) {
-            return message;
+            throw new MessageDeliveryException("Authorization header must start with 'Bearer '");
         }
 
         String token = authHeader.substring(BEARER_PREFIX.length());
         accessor.setUser(
-                jwtProvider.parse(token)
+                parseTokenPort.parse(token)
                         .orElseThrow(() -> new MessageDeliveryException("Invalid or expired token"))
         );
 

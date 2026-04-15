@@ -60,7 +60,7 @@ management:
       show-details: when-authorized
 
 jwt:
-  secret: ${JWT_SECRET:change-me-in-production-this-is-a-256-bit-secret-key-placeholder}
+  secret: ${JWT_SECRET}  # 환경변수 필수. 미설정 시 앱 시작 실패 (JwtProvider @PostConstruct 검증)
   access-token-expiry-ms: ${JWT_ACCESS_EXPIRY:3600000}    # 1시간
   refresh-token-expiry-ms: ${JWT_REFRESH_EXPIRY:604800000} # 7일
 

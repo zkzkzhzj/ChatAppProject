@@ -1,5 +1,6 @@
 package com.maeum.gohyang.identity.application.service;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +38,14 @@ public class RegisterUserService implements RegisterUserUseCase {
                 command.email(),
                 passwordEncoder.encode(command.rawPassword())
         );
-        User savedUser = saveUserPort.saveWithLocalAuth(newUser, credentials);
+
+        User savedUser;
+        try {
+            savedUser = saveUserPort.saveWithLocalAuth(newUser, credentials);
+        } catch (DataIntegrityViolationException e) {
+            // 동시 요청으로 isEmailTaken 통과 후 UNIQUE 제약 위반 시
+            throw new DuplicateEmailException();
+        }
 
         // user.registered 이벤트를 Outbox에 저장한다.
         // 같은 트랜잭션 내에 있으므로 회원가입 롤백 시 이벤트도 함께 롤백된다.

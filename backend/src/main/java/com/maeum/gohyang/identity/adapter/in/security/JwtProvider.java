@@ -3,6 +3,7 @@ package com.maeum.gohyang.identity.adapter.in.security;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.maeum.gohyang.global.security.AuthenticatedUser;
+import com.maeum.gohyang.global.security.ParseTokenPort;
 import com.maeum.gohyang.global.security.UserType;
 import com.maeum.gohyang.identity.application.port.out.IssueTokenPort;
 
@@ -22,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class JwtProvider implements IssueTokenPort {
+public class JwtProvider implements IssueTokenPort, ParseTokenPort {
 
     @Value("${jwt.secret}")
     private String secret;
@@ -34,6 +36,11 @@ public class JwtProvider implements IssueTokenPort {
 
     @PostConstruct
     void init() {
+        if (secret == null || secret.startsWith("change-me")) {
+            throw new IllegalStateException(
+                    "JWT_SECRET 환경변수가 설정되지 않았습니다. "
+                    + "프로덕션 환경에서는 반드시 안전한 시크릿 키를 설정하세요.");
+        }
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -44,7 +51,7 @@ public class JwtProvider implements IssueTokenPort {
 
     @Override
     public String issueGuestToken() {
-        return buildToken(null, UserType.GUEST);
+        return buildToken("guest-" + UUID.randomUUID(), UserType.GUEST);
     }
 
     /**
@@ -62,12 +69,11 @@ public class JwtProvider implements IssueTokenPort {
             String roleStr = claims.get("role", String.class);
             UserType role = UserType.valueOf(roleStr);
 
-            Long userId = null;
-            if (role == UserType.MEMBER) {
-                userId = Long.valueOf(claims.getSubject());
-            }
+            String subject = claims.getSubject();
+            Long userId = (role == UserType.MEMBER) ? Long.valueOf(subject) : null;
+            String sessionId = (role == UserType.GUEST) ? subject : null;
 
-            return Optional.of(new AuthenticatedUser(userId, role));
+            return Optional.of(new AuthenticatedUser(userId, role, sessionId));
         } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
         }

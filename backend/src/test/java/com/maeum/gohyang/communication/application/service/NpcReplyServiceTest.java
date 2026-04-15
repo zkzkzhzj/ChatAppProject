@@ -24,6 +24,7 @@ import com.maeum.gohyang.communication.application.port.out.LoadConversationMemo
 import com.maeum.gohyang.communication.application.port.out.SaveMessagePort;
 import com.maeum.gohyang.communication.domain.Message;
 import com.maeum.gohyang.communication.domain.NpcConversationContext;
+import com.maeum.gohyang.global.alert.AlertPort;
 
 @ExtendWith(MockitoExtension.class)
 class NpcReplyServiceTest {
@@ -33,6 +34,7 @@ class NpcReplyServiceTest {
     @Mock BroadcastChatMessagePort broadcastChatMessagePort;
     @Mock LoadConversationMemoryPort loadConversationMemoryPort;
     @Mock GenerateEmbeddingPort generateEmbeddingPort;
+    @Mock AlertPort alertPort;
 
     @InjectMocks NpcReplyService npcReplyService;
 
@@ -69,8 +71,8 @@ class NpcReplyServiceTest {
     class Failure {
 
         @Test
-        @DisplayName("NPC 응답 생성 실패 시 예외를 잡고 브로드캐스트하지 않는다")
-        void NPC_응답_생성_실패_시_예외를_잡고_브로드캐스트하지_않는다() {
+        @DisplayName("NPC 응답 생성 실패 시 에러 시스템 메시지를 브로드캐스트한다")
+        void NPC_응답_생성_실패_시_에러_시스템_메시지를_브로드캐스트한다() {
             // Given
             NpcConversationContext context = new NpcConversationContext(
                     CHAT_ROOM_ID, NPC_PARTICIPANT_ID, 42L, "안녕하세요");
@@ -82,9 +84,10 @@ class NpcReplyServiceTest {
             // When — 예외가 밖으로 전파되지 않아야 한다
             npcReplyService.replyAsync(context);
 
-            // Then
+            // Then — 정상 저장은 안 되지만, 에러 피드백 메시지는 브로드캐스트된다
             verify(saveMessagePort, never()).save(any());
-            verify(broadcastChatMessagePort, never()).broadcastNpcReply(any());
+            verify(broadcastChatMessagePort).broadcastNpcReply(any(Message.class));
+            verify(alertPort).warning(any(), any());
         }
     }
 }

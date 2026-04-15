@@ -2,7 +2,6 @@ package com.maeum.gohyang.communication.adapter.in.web;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.maeum.gohyang.communication.ChatTopics;
 import com.maeum.gohyang.communication.application.port.in.LoadChatHistoryUseCase;
+import com.maeum.gohyang.communication.application.port.in.LoadMentionablesUseCase;
 import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
-import com.maeum.gohyang.communication.application.port.out.LoadParticipantPort;
 import com.maeum.gohyang.communication.domain.Message;
 import com.maeum.gohyang.communication.domain.Participant;
 import com.maeum.gohyang.communication.error.GuestChatNotAllowedException;
@@ -41,7 +40,7 @@ public class ChatRoomController {
 
     private final SendMessageUseCase sendMessageUseCase;
     private final LoadChatHistoryUseCase loadChatHistoryUseCase;
-    private final LoadParticipantPort loadParticipantPort;
+    private final LoadMentionablesUseCase loadMentionablesUseCase;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Value("${village.public-chat-room-id}")
@@ -75,17 +74,30 @@ public class ChatRoomController {
             throw new GuestChatNotAllowedException();
         }
 
-        Map<Long, Participant> participantMap = loadParticipantPort.loadAll(publicChatRoomId).stream()
-                .collect(Collectors.toMap(Participant::getId, p -> p));
+        LoadChatHistoryUseCase.Result result =
+                loadChatHistoryUseCase.execute(publicChatRoomId, DEFAULT_HISTORY_LIMIT);
 
-        List<Message> messages = loadChatHistoryUseCase.execute(publicChatRoomId, DEFAULT_HISTORY_LIMIT);
-
-        List<MessageResponse> response = messages.stream()
-                .map(msg -> toMessageResponse(msg, participantMap))
+        List<MessageResponse> response = result.messages().stream()
+                .map(msg -> toMessageResponse(msg, result.participantMap()))
                 .toList();
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * @멘션 드롭다운에 표시할 대상 목록.
+     * 현재는 NPC(마을 주민)만 반환한다. 추후 유저 목록도 추가 가능.
+     */
+    @GetMapping("/mentionables")
+    public ResponseEntity<List<MentionableResponse>> getMentionables() {
+        List<MentionableResponse> mentionables = loadMentionablesUseCase.execute(publicChatRoomId)
+                .stream()
+                .map(m -> new MentionableResponse(m.id(), m.name(), m.type()))
+                .toList();
+        return ResponseEntity.ok(mentionables);
+    }
+
+    public record MentionableResponse(long id, String name, String type) { }
 
     private MessageResponse toMessageResponse(Message message, Map<Long, Participant> participantMap) {
         Participant participant = participantMap.get(message.getParticipantId());

@@ -2,6 +2,9 @@
 # 연결 정보(datasource, redis, kafka)는 BaseTestContainers의 @DynamicPropertySource가 주입한다.
 # 여기서는 Testcontainers가 다루지 않는 설정만 오버라이드한다.
 
+jwt:
+  secret: test-only-secret-key-must-be-at-least-256-bits-long-value!!
+
 spring:
   # Cassandra: Phase 3 (Communication) 구현으로 이제 Testcontainers에서 기동한다.
   # 연결 정보는 BaseTestContainers의 @DynamicPropertySource가 주입한다.

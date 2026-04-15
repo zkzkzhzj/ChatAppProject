@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.maeum.gohyang.communication.application.port.out.GenerateEmbeddingPort;
 import com.maeum.gohyang.communication.application.port.out.LoadMessageHistoryPort;
@@ -49,27 +48,38 @@ public class ConversationSummaryEventConsumer {
     private final AlertPort alertPort;
     private final ObjectMapper objectMapper;
 
+    /**
+     * LLM 요약 + 임베딩 생성은 트랜잭션 밖에서 수행한다.
+     * 외부 API 호출이 수 초~수십 초 소요되므로 트랜잭션 안에 두면
+     * DB 커넥션을 불필요하게 점유하고, 롤백 시 idempotency 마킹도 함께 사라진다.
+     *
+     * 순서: 멱등성 확보(tryAcquire) → 외부 API 호출 → 결과 저장(@Transactional)
+     */
     @KafkaListener(topics = TOPIC)
-    @Transactional
     public void handle(ConsumerRecord<String, String> record) {
         log.debug("npc.conversation.summarize 수신: key={}", record.key());
         try {
             UUID idempotencyKey = KafkaEventIdExtractor.extract(record);
-            if (idempotencyGuard.isAlreadyProcessed(idempotencyKey)) {
+            if (!idempotencyGuard.tryAcquire(idempotencyKey)) {
                 log.debug("중복 요약 이벤트 무시: key={}", record.key());
                 return;
             }
 
             JsonNode root = objectMapper.readTree(record.value());
-            long userId = root.get("userId").asLong();
-            long chatRoomId = root.get("chatRoomId").asLong();
+            JsonNode userIdNode = root.get("userId");
+            JsonNode chatRoomIdNode = root.get("chatRoomId");
+            if (userIdNode == null || chatRoomIdNode == null) {
+                log.warn("npc.conversation.summarize 이벤트 페이로드 누락: key={}", record.key());
+                return;
+            }
+            long userId = userIdNode.asLong();
+            long chatRoomId = chatRoomIdNode.asLong();
 
             List<Message> userMessages = loadMessageHistoryPort
                     .loadUserRecent(chatRoomId, userId, MESSAGES_TO_SUMMARIZE);
 
             if (userMessages.isEmpty()) {
                 log.warn("요약할 유저 메시지 없음 — userId={}, chatRoomId={}", userId, chatRoomId);
-                idempotencyGuard.markAsProcessed(idempotencyKey);
                 return;
             }
 
@@ -77,15 +87,16 @@ public class ConversationSummaryEventConsumer {
                     .map(Message::getBody)
                     .toList();
 
+            // 외부 API 호출 — 트랜잭션 밖
             String summary = summarizeConversationPort.summarize(messageTexts);
             List<Float> embedding = generateEmbeddingPort.generate(summary);
 
+            // 결과 저장만 트랜잭션으로
             saveConversationMemoryPort.save(
                     NpcConversationMemory.create(userId, summary, userMessages.size(), embedding));
 
-            idempotencyGuard.markAsProcessed(idempotencyKey);
-            log.info("대화 요약 저장 완료 — userId={}, messageCount={}, hasEmbedding={}, summary={}",
-                    userId, userMessages.size(), !embedding.isEmpty(), summary);
+            log.info("대화 요약 저장 완료 — userId={}, messageCount={}, hasEmbedding={}",
+                    userId, userMessages.size(), !embedding.isEmpty());
         } catch (Exception e) {
             alertPort.critical(
                     AlertContext.of("communication-consumer", record.key(), record.key()),

@@ -1,10 +1,25 @@
 'use client';
 
 import type { KeyboardEvent } from 'react';
-import { forwardRef, useCallback, useEffect, useState } from 'react';
+import { forwardRef, useCallback, useState, useSyncExternalStore } from 'react';
 
 import { sendVillageMessage } from '@/lib/websocket/stompClient';
 import { useChatStore } from '@/store/useChatStore';
+
+function subscribeToStorage(callback: () => void) {
+  window.addEventListener('storage', callback);
+  return () => {
+    window.removeEventListener('storage', callback);
+  };
+}
+
+function getTokenSnapshot() {
+  return !!localStorage.getItem('accessToken');
+}
+
+function getServerSnapshot() {
+  return false;
+}
 
 interface ChatInputProps {
   onLoginRequired: () => void;
@@ -17,17 +32,7 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
   const [draft, setDraft] = useState('');
   const connectionStatus = useChatStore((s) => s.connectionStatus);
   const setInputFocused = useChatStore((s) => s.setInputFocused);
-  const [hasToken, setHasToken] = useState(() => !!localStorage.getItem('accessToken'));
-
-  useEffect(() => {
-    const handleStorage = () => {
-      setHasToken(!!localStorage.getItem('accessToken'));
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-    };
-  }, []);
+  const hasToken = useSyncExternalStore(subscribeToStorage, getTokenSnapshot, getServerSnapshot);
 
   const connected = connectionStatus === 'connected';
 

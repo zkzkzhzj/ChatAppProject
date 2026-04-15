@@ -80,7 +80,7 @@ PixiJS를 고르지 않은 이유:
 
 ### Phaser의 구조
 
-```
+```text
 Game
 └── Scene (VillageScene, InventoryScene 등)
     ├── preload()  — 에셋 로드
@@ -99,7 +99,7 @@ Scene 안에서:
 
 이 프로젝트에서 사용하는 패턴은 "분리된 세계" 방식이다:
 
-```
+```text
 ┌─────────────────────────────────────┐
 │  Next.js (React)                    │
 │  ├── ChatOverlay (채팅 UI)          │

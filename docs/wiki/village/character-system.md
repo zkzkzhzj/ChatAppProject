@@ -2,7 +2,7 @@
 title: 캐릭터 시스템
 tags: [village, character, equipment, sprite]
 related: [village/space-system.md, identity/guest-policy.md]
-last-verified: 2026-04-13
+last-verified: 2026-04-15
 ---
 
 # 캐릭터 시스템
@@ -42,6 +42,30 @@ last-verified: 2026-04-13
 | 엔드포인트 | 설명 | 게스트 |
 |-----------|------|--------|
 | `GET /api/v1/village/characters/me` | 내 캐릭터 조회 | 200 (기본 캐릭터) |
+
+## 실시간 위치 공유
+
+캐릭터는 마을 내에서 실시간으로 위치를 공유한다. 위치 데이터는 비영속(DB 저장 없음)이며 STOMP WebSocket으로만 전파된다.
+
+### 구성 요소
+
+| 클래스 | 패키지 | 역할 |
+|--------|--------|------|
+| `PositionHandler` | `village.adapter.in.websocket` | `/app/village/position`으로 수신한 좌표를 `/topic/village/positions`로 broadcast |
+| `PositionRequest` | 〃 | 클라이언트 전송 DTO (`x`, `y`) |
+| `PositionBroadcast` | 〃 | broadcast DTO (`id`, `userType`, `x`, `y`) |
+| `PositionDisconnectListener` | 〃 | STOMP 세션 종료 시 `userType=LEAVE` broadcast로 퇴장 알림 |
+
+### 흐름
+
+```
+클라이언트 → /app/village/position (PositionRequest)
+    → PositionHandler → /topic/village/positions (PositionBroadcast)
+
+세션 종료 → PositionDisconnectListener → /topic/village/positions (userType=LEAVE)
+```
+
+게스트 포함 모든 인증된 유저가 위치 전송 가능. `AuthenticatedUser.displayId()`를 식별자로 사용한다.
 
 ## 향후 계획
 

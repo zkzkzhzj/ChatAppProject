@@ -10,7 +10,8 @@ Docker Compose로 외부 인프라를 로컬에서 구동한다.
 # docker-compose.yml (개발용 요약)
 services:
   postgres:
-    image: postgres:16-alpine
+    # pgvector 확장 포함 — 대화 맥락 요약 벡터 저장용 (V6 마이그레이션 필수)
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_DB: gohyang
       POSTGRES_USER: gohyang
@@ -51,10 +52,10 @@ WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 
 | 인프라 | 용도 | 소유 Context |
 |--------|------|-------------|
-| PostgreSQL | 핵심 도메인 데이터 (Identity, Village, Economy, Safety) | 다수 |
-| Redis | 세션 캐싱, 위치 데이터 캐싱, Pub/Sub (서버 간 WebSocket 동기화) | Village, Identity |
+| PostgreSQL | 핵심 도메인 데이터 (Identity, Village, Economy, Safety) + pgvector 대화 맥락 벡터 | 다수 |
+| Redis | 세션 캐싱 (현재 미사용, 스케일아웃 시 WebSocket Pub/Sub 교체용으로 도입 예정) | — |
 | Cassandra | 채팅 메시지 저장 (파티션 키: chat_room_id) | Communication |
-| Kafka | 도메인 간 비동기 이벤트 (현재: user.registered) | Identity → Village |
+| Kafka | 도메인 간 비동기 이벤트 (현재: `user.registered`, `npc.conversation.summarize`) | Identity → Village, Communication 내부 |
 
 ---
 
@@ -88,7 +89,7 @@ static {
 
 | 인프라 | 이미지 | 이유 |
 |--------|--------|------|
-| PostgreSQL | `postgres:16-alpine` | 안정 버전, alpine으로 경량화 |
+| PostgreSQL | `pgvector/pgvector:pg16` | pgvector 확장 포함 (V6 마이그레이션의 `vector(768)` 컬럼 필수) |
 | Redis | `redis:7.2-alpine` | 8.0부터 라이선스 변경(RSALv2/SSPLv1)으로 7.x 고정 |
 | Cassandra | `cassandra:4.1` | Phase 3 도입 시점 LTS 버전 |
 | Kafka | `apache/kafka:3.7.0` | KRaft 모드 기본 지원, Zookeeper 불필요 |

@@ -28,8 +28,9 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "code": "IDENTITY_001",
-  "message": "이미 사용 중인 이메일입니다"
+  "errorCode": "IDENTITY_001",
+  "message": "이미 사용 중인 이메일입니다",
+  "timestamp": "2026-04-15T12:00:00.000Z"
 }
 ```
 

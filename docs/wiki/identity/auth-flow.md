@@ -23,8 +23,8 @@ JWT 기반 토큰 인증. Spring Security + 커스텀 `JwtFilter`로 구현.
 ### JwtFilter 동작
 
 1. `Authorization: Bearer <token>` 헤더에서 토큰 추출
-2. `JwtProvider.validateAndExtract()` → `Optional<JwtClaims>` 반환
-3. 유효하면 `AuthenticatedUser` 생성 → `SecurityContext`에 저장
+2. `JwtProvider.parse()` ��� `Optional<AuthenticatedUser>` 반환
+3. ��효하면 `SecurityContext`에 저장
 4. 유효하지 않으면 Anonymous로 진행 (Spring Security가 접근 제어)
 
 ### 공개 경로 (인증 불필요)
@@ -33,6 +33,7 @@ JWT 기반 토큰 인증. Spring Security + 커스텀 `JwtFilter`로 구현.
 
 ```
 /api/v1/auth/register    — 회원가입
+/api/v1/auth/login       — 로그인
 /api/v1/auth/guest       — 게스트 토큰 발급
 /ws/**                   — WebSocket 연결
 /swagger-ui/**           — Swagger UI
@@ -45,8 +46,8 @@ Docker 환경에서는 `/actuator/health`가 추가로 공개.
 
 | 타입 | 생성 방식 | DB 저장 | 토큰 발급 |
 |------|---------|---------|----------|
-| MEMBER | 이메일 회원가입 | `users` + `user_local_auth` | Access + Refresh |
-| GUEST | `/api/v1/auth/guest` 호출 | `users` (type=GUEST) | Access만 |
+| MEMBER | 이메일 회원가입 | `users` + `user_local_auth` | Access만 (Refresh 미구현) |
+| GUEST | `/api/v1/auth/guest` 호출 | DB 저장 없음 (JWT subject에 guest-UUID) | Access만 |
 
 ## 회원가입 흐름
 

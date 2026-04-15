@@ -2,7 +2,7 @@
 title: Claude Code 훅 자동화
 tags: [infra, hooks, automation, subagent, ai-native]
 related: [infra/docker-local.md, infra/outbox-pattern.md]
-last-verified: 2026-04-13
+last-verified: 2026-04-15
 ---
 
 # Claude Code 훅 자동화
@@ -47,7 +47,32 @@ Claude Code의 훅 시스템을 활용하여 서브에이전트 라우팅, docs 
     └── pre-bash-guard.js
 ```
 
+## Codex CLI 리뷰 에이전트
+
+`.claude/agents/`에 Codex CLI 기반 리뷰 에이전트 6개가 추가되었다.
+
+| 에이전트 | 파일 | 역할 |
+|----------|------|------|
+| review-agent | `review-agent.md` | uncommitted 변경사항 코드 리뷰 (`codex review --uncommitted`) |
+| full-review-agent | `full-review-agent.md` | 전체 프로젝트 전수 리뷰 (Critical Rules, 동시성, 테스트) |
+| concurrency-review-agent | `concurrency-review-agent.md` | 동시성/데이터 정합성/성능 전문 리뷰 |
+| security-review-agent | `security-review-agent.md` | 보안 전문 리뷰 (인증/인가, CORS, WebSocket 등) |
+| test-quality-agent | `test-quality-agent.md` | 테스트 품질 전문 리뷰 (BDD, 커버리지, 독립성) |
+| docs-agent | `docs-agent.md` | 문서 정합성 리뷰 (docs와 코드 교차검증) |
+
+### PR 리뷰 게이트 (5단계)
+
+`pr-agent.md`에 리뷰 게이트가 추가되었다. PR 생성 전에 위 6개 에이전트를 순차 실행하여 **CRITICAL 0건**을 확인해야 PR을 생성할 수 있다.
+
+```
+6개 codex review 실행 → CRITICAL 추출 → 0건이면 통과 → PR 생성
+                                      → 1건 이상이면 수정 루프 (최대 3회)
+```
+
+리뷰 결과는 `docs/reviews/{DATE}/`에 저장된다.
+
 ## 런타임 의존성
 
 - Node.js (python3 아님). 모든 훅 스크립트가 Node.js 기반.
 - `git`, `gh` CLI — pre-bash-guard에서 사용.
+- `codex` CLI — 리뷰 에이전트에서 사용 (`codex review` 명령).

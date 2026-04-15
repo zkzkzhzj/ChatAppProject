@@ -110,9 +110,31 @@ NPC 응답 예시 (비동기, 별도 broadcast):
 | id | UUID | 메시지 ID (Cassandra) |
 | participantId | Long | 참여자 ID |
 | senderId | Long (nullable) | 유저 메시지: 유저 ID, NPC 메시지: `null` |
-| senderType | String | `"USER"` 또는 `"NPC"` |
+| senderType | String | `"USER"`, `"NPC"`, 또는 `"SYSTEM"` |
 | body | String | 메시지 본문 |
 | createdAt | Instant (ISO 8601 UTC) | 메시지 생성 시각 |
+
+### SYSTEM 메시지 (입/퇴장 알림)
+
+`PresenceNotifier`가 WebSocket 연결/해제 이벤트를 감지하여 같은 `/topic/chat/village`로 SYSTEM 메시지를 broadcast한다.
+
+```json
+{
+  "id": "system-1712345678901",
+  "participantId": 0,
+  "senderId": null,
+  "senderType": "SYSTEM",
+  "body": "손님이 입장하셨습니다!",
+  "createdAt": "2026-04-08T12:00:00.000Z"
+}
+```
+
+| 필드 | 값 | 비고 |
+|------|-----|------|
+| id | `"system-{timestamp}"` | 밀리초 기반 고유 ID |
+| participantId | `0` | SYSTEM 메시지 고정값 |
+| senderId | `null` | SYSTEM 메시지에는 발신자 없음 |
+| senderType | `"SYSTEM"` | 입장/퇴장 알림 구분용 |
 
 ---
 
@@ -139,8 +161,117 @@ WebSocket 경로는 프론트엔드 실시간 UX용이다.
 
 ---
 
+## 위치 공유 (Village Position)
+
+채널 개념 도입 전까지 마을 전체에서 1개 위치 공유 채널을 사용한다. 게스트 포함 모든 인증된 유저가 전송/수신 가능하다.
+위치는 비영속 -- 메모리에만 존재하며 DB 저장하지 않는다.
+
+### `/app/village/position` -- 위치 전송
+
+**Payload (JSON)**
+
+```json
+{
+  "x": 120.5,
+  "y": 340.0
+}
+```
+
+| 필드 | 타입 | 제약 |
+|------|------|------|
+| x | double | 필수 |
+| y | double | 필수 |
+
+### `/topic/village/positions` -- 위치 수신
+
+모든 유저의 위치 변경과 퇴장이 broadcast된다.
+
+**Payload (JSON) -- `PositionBroadcast`**
+
+이동 예시:
+
+```json
+{
+  "id": "user-42",
+  "userType": "MEMBER",
+  "x": 120.5,
+  "y": 340.0
+}
+```
+
+퇴장 예시:
+
+```json
+{
+  "id": "guest-a1b2c3d4",
+  "userType": "LEAVE",
+  "x": 0,
+  "y": 0
+}
+```
+
+| 필드 | 타입 | 비고 |
+|------|------|------|
+| id | String | MEMBER: `user-{userId}`, GUEST: `guest-{UUID}` |
+| userType | String | `"MEMBER"`, `"GUEST"`, 또는 `"LEAVE"` (퇴장) |
+| x | double | 퇴장 시 0 |
+| y | double | 퇴장 시 0 |
+
+퇴장 broadcast는 `PositionDisconnectListener`가 STOMP 세션 종료 이벤트를 감지하여 자동 발행한다.
+
+---
+
+## 타이핑 상태 (Typing Indicator)
+
+`TypingHandler`가 유저의 타이핑 상태를 broadcast한다. 게스트 포함 모든 인증된 유저가 전송/수신 가능하다.
+
+### `/app/village/typing` -- 타이핑 상태 전송
+
+**Payload (JSON)**
+
+```json
+{
+  "typing": true
+}
+```
+
+| 필드 | 타입 | 제약 |
+|------|------|------|
+| typing | boolean | 필수 |
+
+### `/topic/village/typing` -- 타이핑 상태 수신
+
+**Payload (JSON) -- `TypingBroadcastMessage`**
+
+```json
+{
+  "id": "user-42",
+  "typing": true
+}
+```
+
+| 필드 | 타입 | 비고 |
+|------|------|------|
+| id | String | `AuthenticatedUser.displayId()` 기반 |
+| typing | boolean | 입력 중 여부 |
+
+---
+
+## 목적지 요약
+
+| 구분 | 방향 | 목적지 |
+|------|------|--------|
+| 채팅 전송 | 클라이언트 → 서버 | `/app/chat/village` |
+| 채팅 수신 | 서버 → 클라이언트 | `/topic/chat/village` |
+| 위치 전송 | 클라이언트 → 서버 | `/app/village/position` |
+| 위치 수신 | 서버 → 클라이언트 | `/topic/village/positions` |
+| 타이핑 전송 | 클라이언트 → 서버 | `/app/village/typing` |
+| 타이핑 수신 | 서버 → 클라이언트 | `/topic/village/typing` |
+
+---
+
 ## Phase 3 제약사항
 
 - **인메모리 브로커**: 단일 노드에서만 동작. 다중 인스턴스 배포 시 broadcast가 각 인스턴스 내부에서만 전달됨.
 - **스케일아웃**: Redis Pub/Sub 기반 외부 브로커 교체 필요 (운영 환경 전환 시 결정).
-- **인증**: WebSocket 연결 시 `StompAuthChannelInterceptor`(ChannelInterceptor)가 STOMP CONNECT 프레임에서 JWT를 검증한다. Spring Security 필터 체인이 아닌 STOMP 메시징 레이어에서 처리된다. 토큰 없이 연결 시 게스트로 취급(채팅 불가). 게스트가 메시지 전송 시 `GuestChatNotAllowedException` 발생.
+- **인증**: WebSocket 연결 시 `StompAuthChannelInterceptor`(ChannelInterceptor)가 STOMP CONNECT 프레임에서 JWT를 검증한다. Spring Security 필터 체인이 아닌 STOMP 메시징 레이어에서 처리된다. 토큰 없이 연결 시 STOMP 연결 자체는 허용되지만 `Principal`이 설정되지 않는다. 이 경우 `PositionHandler`, `ChatMessageHandler` 등 핸들러에서 `principal instanceof AuthenticatedUser` 체크에 실패하여 메시지가 무시되거나 예외가 발생한다. 게스트 JWT를 전달하면 게스트로 인증되며, 위치 공유는 가능하지만 채팅 전송 시 `GuestChatNotAllowedException`이 발생한다.

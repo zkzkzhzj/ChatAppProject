@@ -123,10 +123,15 @@ public Space getSpace(@PathVariable Long id) { ... }
 ```
 global/error/
 ├── BusinessException.java        # 비즈니스 예외 베이스
-├── ErrorCode.java                # 에러 코드 Enum
 ├── ErrorResponse.java            # API 에러 응답 형식
 └── GlobalExceptionHandler.java   # @RestControllerAdvice
+
+[도메인]/error/
+├── [Domain]ErrorCode.java        # 도메인별 에러 코드 Enum (code, message, HttpStatus)
+└── [Domain]Exception.java        # BusinessException 구현체
 ```
+
+에러 코드 enum은 global에 단일 파일로 두지 않고, 각 도메인의 `error/` 패키지에 분산 정의한다. 예: `IdentityErrorCode`, `VillageErrorCode`, `CommunicationErrorCode`.
 
 ### 4.2 규칙
 

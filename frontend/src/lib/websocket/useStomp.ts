@@ -4,17 +4,30 @@ import { useEffect, useRef } from 'react';
 
 import type { StompSubscription } from '@stomp/stompjs';
 
+import apiClient from '@/lib/api/client';
 import { useChatStore } from '@/store/useChatStore';
 import type { ChatMessage, MessageResponse } from '@/types/chat';
 
+import { emitNpcTypingUpdate, emitPositionUpdate, emitTypingUpdate } from './positionBridge';
 import {
-  connectAnonymous,
   connectWithAuth,
   disconnectStomp,
   subscribeToChatRoom,
+  subscribeToPositions,
+  subscribeToTyping,
 } from './stompClient';
 
 const VILLAGE_CHAT_TOPIC = 'village';
+
+function parseTokenRole(token: string | null): string | null {
+  if (!token) return null;
+  try {
+    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return (JSON.parse(atob(base64)) as { role?: string }).role ?? null;
+  } catch {
+    return null;
+  }
+}
 
 function toMessage(msg: MessageResponse): ChatMessage {
   return {
@@ -37,46 +50,108 @@ function toMessage(msg: MessageResponse): ChatMessage {
  */
 export function useStomp(): void {
   const addMessage = useChatStore((s) => s.addMessage);
+  const prependMessages = useChatStore((s) => s.prependMessages);
   const setConnectionStatus = useChatStore((s) => s.setConnectionStatus);
-  const subscriptionRef = useRef<StompSubscription | null>(null);
+  const setNpcTyping = useChatStore((s) => s.setNpcTyping);
+  const chatSubRef = useRef<StompSubscription | null>(null);
+  const posSubRef = useRef<StompSubscription | null>(null);
+  const typingSubRef = useRef<StompSubscription | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
+    let cancelled = false;
 
-    console.log('[useStomp] Connecting to STOMP server', token ? '(authenticated)' : '(guest)');
-    setConnectionStatus('connecting');
+    const connect = async () => {
+      let token = localStorage.getItem('accessToken');
 
-    const onConnected = () => {
-      console.log('[useStomp] STOMP connected, subscribing to village chat');
-      setConnectionStatus('connected');
-
-      subscriptionRef.current = subscribeToChatRoom(VILLAGE_CHAT_TOPIC, (msg) => {
-        console.log('[useStomp] Received message:', msg);
-        addMessage(toMessage(msg));
-      });
-    };
-
-    const onError = (err: import('@stomp/stompjs').IFrame) => {
-      console.error('[useStomp] STOMP error:', err);
-      if (token) {
-        // 토큰 만료/유효하지 않은 경우 제거
-        localStorage.removeItem('accessToken');
+      // 토큰이 없으면 게스트 토큰 자동 발급 (게스트 토큰 = 익명 접속)
+      if (!token) {
+        try {
+          const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
+          const res = await fetch(`${apiBase}/api/v1/auth/guest`, { method: 'POST' });
+          if (res.ok) {
+            const data = (await res.json()) as { accessToken: string };
+            token = data.accessToken;
+            localStorage.setItem('accessToken', token);
+          }
+        } catch (err) {
+          console.warn('[useStomp] 게스트 토큰 발급 실패', err);
+        }
       }
-      setConnectionStatus('error');
+
+      if (cancelled) return;
+
+      if (!token) {
+        console.error('[useStomp] 토큰 없이 STOMP 연결 불가');
+        setConnectionStatus('error');
+        return;
+      }
+
+      console.log('[useStomp] Connecting to STOMP server');
+      setConnectionStatus('connecting');
+
+      const onConnected = () => {
+        if (cancelled) return;
+        console.log('[useStomp] STOMP connected, subscribing to village chat');
+        setConnectionStatus('connected');
+
+        // 이전 대화 10개 로드 (멤버만 — 게스트는 403)
+        const tokenPayload = parseTokenRole(token);
+        if (tokenPayload !== 'GUEST') {
+          apiClient
+            .get<MessageResponse[]>('/api/v1/chat/messages')
+            .then(({ data }) => {
+              if (!cancelled) {
+                // Cassandra는 최신순(DESC)으로 반환하므로 역순으로 뒤집어 시간순 배치
+                prependMessages(data.map(toMessage).reverse());
+              }
+            })
+            .catch((err: unknown) => {
+              console.warn('[useStomp] 히스토리 로드 실패', err);
+            });
+        }
+
+        chatSubRef.current = subscribeToChatRoom(VILLAGE_CHAT_TOPIC, (msg) => {
+          console.log('[useStomp] Received message:', msg);
+          const chatMsg = toMessage(msg);
+          // NPC 응답이 오면 타이핑 표시 해제
+          if (chatMsg.senderType === 'NPC') {
+            setNpcTyping(false);
+            emitNpcTypingUpdate(false);
+          }
+          addMessage(chatMsg);
+        });
+
+        posSubRef.current = subscribeToPositions((pos) => {
+          emitPositionUpdate(pos);
+        });
+
+        typingSubRef.current = subscribeToTyping((data) => {
+          emitTypingUpdate(data);
+        });
+      };
+
+      const onError = (err: import('@stomp/stompjs').IFrame) => {
+        console.error('[useStomp] STOMP error:', err);
+        localStorage.removeItem('accessToken');
+        setConnectionStatus('error');
+      };
+
+      connectWithAuth(token, onConnected, onError);
     };
 
-    if (token) {
-      connectWithAuth(token, onConnected, onError);
-    } else {
-      connectAnonymous(onConnected, onError);
-    }
+    void connect();
 
     return () => {
+      cancelled = true;
       console.log('[useStomp] Cleanup: disconnecting');
-      subscriptionRef.current?.unsubscribe();
-      subscriptionRef.current = null;
+      chatSubRef.current?.unsubscribe();
+      chatSubRef.current = null;
+      posSubRef.current?.unsubscribe();
+      posSubRef.current = null;
+      typingSubRef.current?.unsubscribe();
+      typingSubRef.current = null;
       disconnectStomp();
       setConnectionStatus('disconnected');
     };
-  }, [addMessage, setConnectionStatus]);
+  }, [addMessage, prependMessages, setConnectionStatus, setNpcTyping]);
 }

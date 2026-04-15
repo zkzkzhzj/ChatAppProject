@@ -6,15 +6,15 @@
 
 ```
 com.maeum.gohyang
-├── communication/       # Core — 채팅, 메시지, 참여자
-├── village/             # Core — 공간, 위치, 캐릭터, NPC
-├── economy/             # Core — 포인트(Wallet) + 아이템(Inventory)
+├── communication/       # Core — 채팅, 메시지, 참여자 ✅
+├── village/             # Core — 공간, 위치, 캐릭터, NPC ✅
+├── economy/             # Core — 포인트(Wallet) + 아이템(Inventory) (미구현, Phase 4 예정)
 │   ├── wallet/          # 서브 도메인 — 포인트 지갑, 거래
 │   └── inventory/       # 서브 도메인 — 아이템, 인벤토리
-├── safety/              # Support — 신고, 제재
-├── identity/            # Generic — 인증/인가, 게스트 세션, Security 설정
-├── notification/        # 인프라 서비스 — 이벤트 구독 기반 알림 발송 (독립 모듈)
-└── global/              # 최소한의 cross-cutting만
+├── safety/              # Support — 신고, 제재 (미구현, Phase 7 예정)
+├── identity/            # Generic — 인증/인가, 게스트 세션, Security 설정 ✅
+├── notification/        # 인프라 서비스 — 이벤트 구독 기반 알림 발송 (미구현, Phase 6 예정)
+└── global/              # 최소한의 cross-cutting만 ✅
     ├── config/          # Spring Configuration (WebSocket, Kafka, Redis 등)
     └── error/           # GlobalExceptionHandler, 커스텀 예외 베이스 클래스
 ```
@@ -58,7 +58,9 @@ com.maeum.gohyang
 
 ---
 
-## 3. 구체 예시 — Economy (Wallet + Inventory)
+## 3. 구체 예시 — Economy (Wallet + Inventory) [설계 초안, 미구현]
+
+> 아래는 Phase 4에서 구현 예정인 Economy 도메인의 **설계 초안**이다. 현재 코드베이스에는 존재하지 않는다.
 
 ```
 economy/
@@ -130,12 +132,19 @@ economy/
 
 ```
 global/
-├── config/              # Spring Configuration (WebSocket, Kafka, Redis 등)
+├── config/              # Spring Configuration
+│   ├── WebSocketConfig              # STOMP/SockJS 설정 (브로커, 엔드포인트)
+│   ├── StompAuthChannelInterceptor  # STOMP CONNECT JWT 인증 (ChannelInterceptor)
+│   ├── StompErrorHandler            # STOMP 에러 핸들링
+│   ├── CassandraConfig              # Cassandra 설정
+│   ├── KafkaConsumerConfig          # Kafka 컨슈머 에러 핸들링/재시도 설정
+│   ├── AsyncConfig                  # @Async 스레드풀 설정
+│   └── OpenApiConfig                # Swagger/OpenAPI 설정
 ├── error/               # GlobalExceptionHandler, 커스텀 예외 베이스 클래스
 ├── alert/               # AlertPort, LogAlertAdapter — 운영 알람 (개발자/운영팀 향)
 ├── infra/
-│   ├── outbox/          # OutboxJpaEntity, OutboxKafkaRelay — Transactional Outbox 인프라
-│   └── idempotency/     # ProcessedEventJpaEntity — Kafka 컨슈머 멱등성
+│   ├── outbox/          # OutboxJpaEntity, OutboxKafkaRelay, KafkaEventIdExtractor — Transactional Outbox 인프라
+│   └── idempotency/     # ProcessedEventJpaEntity, IdempotencyGuard — Kafka 컨슈머 멱등성
 └── security/            # AuthenticatedUser, UserType — 도메인 간 공유되는 인증 타입만
 ```
 

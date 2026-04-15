@@ -300,15 +300,36 @@ POST /api/v1/chat/messages {body: "..."}
 
 ## 현재 진행 중
 
-없음 (PR #8 머지 대기)
+**4/15 — 프론트엔드 UI 초기 디자인 + 에셋 적용** 🔧 (uncommitted)
+
+| 항목 | 내용 |
+|------|------|
+| 메타데이터 | title/description/OG 태그 → "마음의 고향" 서비스 정보로 교체, `lang="ko"` |
+| 폰트 | Geist → **Gowun Dodum** (제목) + **IBM Plex Sans KR** (본문) — 따뜻한 한글 폰트 |
+| 디자인 시스템 | globals.css — 자연 기반 컬러 팔레트 (cream/sand/bark/leaf/hearth), pixelated 렌더링 |
+| 캐릭터 스프라이트 | 이모지 → Modern Interiors Premade Character 32x32 (player: 01, npc: 05) |
+| 마을 배경 | 단색 초록 → 풀밭 체커보드 + 흙길 + 나무 + 집 |
+| 채팅 UI | 검정 반투명 → 크림색 glass morphism, 둥근 말풍선, 발신자별 색상 구분 |
+| 로그인 모달 | 다크 → 크림색 "마을에 들어가기" 톤앤매너 |
+| 이동 로직 | 대각선 이동 지원 + 속도 정규화 (√2 보정) |
+| 미해결 | 스프라이트시트 프레임 레이아웃 매핑 필요 — 디버그 모드(숫자키 0-9) 추가, 사용자 확인 대기 |
+| 에셋 | pixel-assets-all 폴더 수령 → .gitignore 등록 완료 |
+| 플러그인 | frontend-design 플러그인 설치 완료 |
+| 학습 노트 | `learning/32-web-2d-game-engine-comparison.md`, `learning/33-ai-agent-evaluation-methodology.md` |
+
+**4/15 — PR #8 레이스 컨디션 수정 + 리뷰 대응** ✅ (PR #8 머지 완료)
+
+| 항목 | 내용 |
+|------|------|
+| CAS 수정 | `SendMessageService.publishSummaryEventIfNeeded()` — compareAndSet 루프로 이중 발행 방지 |
+| 리뷰 에이전트 | concurrency-review-agent [CONC-7][CONC-8], review-agent 동시성 심화, AGENTS.md Rule #7 추가 |
+| CodeRabbit 대응 | Dockerfile HEALTHCHECK, ChatInput SSR(useSyncExternalStore), VillageScene 키 캡처 누수, MD 린트 |
 
 **4/15 — 웹 게임 엔진 비교 학습노트** ✅
 
 | 항목 | 내용 |
 |------|------|
-| 기술 비교 | Phaser.js vs Three.js + 2D/3D 생태계 전체 비교 (PixiJS, Kaplay, Excalibur, Babylon.js, R3F 등) |
-| 결론 | Phaser.js가 프로젝트에 적합 확인. 2D 타일맵 + 스프라이트 + Tiled 네이티브 지원 |
-| 발견 사항 | Gather Town은 PixiJS 기반 (Phaser가 아님), Phaser v4.0.0 "Caladan" 2026-04-10 출시 |
+| 기술 비교 | Phaser.js vs Three.js + 2D/3D 생태계 전체 비교 |
 | 학습 노트 | `learning/32-web-2d-game-engine-comparison.md` |
 
 ---

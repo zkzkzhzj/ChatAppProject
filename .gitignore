@@ -37,3 +37,8 @@ backend/.gradle/
 
 # Gradle home cache
 backend/.gradle-home/
+
+# Pixel assets (외부 구매 에셋, 라이선스 제한)
+pixel-assets-all/
+pixel-assets-all.zip
+frontend/public/assets/

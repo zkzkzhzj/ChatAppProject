@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import com.maeum.gohyang.identity.application.port.out.CheckEmailDuplicatePort;
-import com.maeum.gohyang.identity.application.port.out.LoadUserByEmailPort;
+import com.maeum.gohyang.identity.application.port.out.LoadUserCredentialsPort;
 import com.maeum.gohyang.identity.application.port.out.SaveUserPort;
 import com.maeum.gohyang.identity.domain.LocalAuthCredentials;
 import com.maeum.gohyang.identity.domain.User;
@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class UserPersistenceAdapter implements SaveUserPort, CheckEmailDuplicatePort, LoadUserByEmailPort {
+public class UserPersistenceAdapter implements SaveUserPort, CheckEmailDuplicatePort, LoadUserCredentialsPort {
 
     private final UserJpaRepository userJpaRepository;
     private final UserLocalAuthJpaRepository userLocalAuthJpaRepository;
@@ -32,7 +32,7 @@ public class UserPersistenceAdapter implements SaveUserPort, CheckEmailDuplicate
     }
 
     @Override
-    public Optional<UserCredentials> loadByEmail(String email) {
+    public Optional<UserCredentials> load(String email) {
         return userLocalAuthJpaRepository.findByEmail(email)
                 .map(entity -> new UserCredentials(entity.getUserId(), entity.getPasswordHash()));
     }

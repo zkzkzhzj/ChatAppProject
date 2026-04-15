@@ -4,6 +4,11 @@
 
 ---
 
+## [2026-04-15] lint | Wiki 정기 점검
+
+- `infra/outbox-pattern.md` — 현재 등록된 이벤트 테이블에 `npc.conversation.summarize` 토픽 추가 (Phase 5에서 구현되었으나 누락)
+- `infra/docker-local.md` — PostgreSQL 역할에 pgvector 확장 언급 추가
+
 ## [2026-04-14] update | NPC 대화 페이지 — LLM 선택 결과 및 프로덕션 전략 반영
 
 - `communication/npc-conversation.md` — 6개 모델 비교 결과, EXAONE 3.5 선택, 프로덕션 API 전략, pgvector 맥락 유지 계획, 어댑터 구조 현행화

@@ -144,7 +144,7 @@ global/error/
 throw new BusinessException("이미 사용 중인 이메일입니다", HttpStatus.CONFLICT, "IDENTITY_001");
 
 // ✅ 도메인별 enum — 자기 에러를 자기가 관리
-// identity/domain/IdentityErrorCode.java
+// identity/error/IdentityErrorCode.java
 @Getter
 @RequiredArgsConstructor
 public enum IdentityErrorCode {
@@ -155,7 +155,7 @@ public enum IdentityErrorCode {
     private final HttpStatus httpStatus;
 }
 
-// identity/domain/DuplicateEmailException.java
+// identity/error/DuplicateEmailException.java
 public class DuplicateEmailException extends BusinessException {
     public DuplicateEmailException() {
         super(

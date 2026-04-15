@@ -63,40 +63,44 @@ stompClient.connect(
 
 ## 서버 → 클라이언트
 
-### `/topic/chat/village` — 메시지 배치 수신
+### `/topic/chat/village` — 메시지 수신
 
-메시지 전송 후 유저 메시지 + NPC 응답이 `List<MessageResponse>` 배치로 구독자 전체에게 broadcast된다.
+유저 메시지와 NPC 응답이 **개별 `MessageResponse`**로 구독자 전체에게 broadcast된다.
+유저 메시지는 전송 즉시, NPC 응답은 비동기 생성 후 별도로 broadcast된다.
 
 **구독 예시 (JavaScript)**
 
 ```javascript
 stompClient.subscribe('/topic/chat/village', (message) => {
-  const messages = JSON.parse(message.body); // List<MessageResponse>
-  messages.forEach(msg => console.log(msg.senderType, msg.body));
+  const msg = JSON.parse(message.body); // MessageResponse (단일)
+  console.log(msg.senderType, msg.body);
 });
 ```
 
-**Payload (JSON) — `List<MessageResponse>`**
+**Payload (JSON) — `MessageResponse` (단일 객체)**
 
+유저 메시지 예시:
 ```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "participantId": 1,
-    "senderId": 42,
-    "senderType": "USER",
-    "body": "안녕하세요",
-    "createdAt": "2026-04-08T12:00:00.000Z"
-  },
-  {
-    "id": "660f9511-f30c-52e5-b827-557766551111",
-    "participantId": 2,
-    "senderId": null,
-    "senderType": "NPC",
-    "body": "어서오세요, 마을에 오신 것을 환영합니다!",
-    "createdAt": "2026-04-08T12:00:00.001Z"
-  }
-]
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "participantId": 1,
+  "senderId": 42,
+  "senderType": "USER",
+  "body": "안녕하세요",
+  "createdAt": "2026-04-08T12:00:00.000Z"
+}
+```
+
+NPC 응답 예시 (비동기, 별도 broadcast):
+```json
+{
+  "id": "660f9511-f30c-52e5-b827-557766551111",
+  "participantId": 2,
+  "senderId": null,
+  "senderType": "NPC",
+  "body": "어서오세요, 마을에 오신 것을 환영합니다!",
+  "createdAt": "2026-04-08T12:00:00.001Z"
+}
 ```
 
 | 필드 | 타입 | 비고 |
@@ -117,13 +121,15 @@ stompClient.subscribe('/topic/chat/village', (message) => {
 ```
 REST POST /api/v1/chat/messages
   → SendMessageUseCase 실행
-  → List<MessageResponse>를 /topic/chat/village로 broadcast
-  → REST 응답으로 SendMessageResponse(userMessage + npcMessage) 반환
+  → 유저 MessageResponse를 /topic/chat/village로 broadcast (단일 객체)
+  → REST 응답으로 SendMessageResponse(userMessage만) 반환
+  → NPC 응답은 @Async 비동기 → 별도 MessageResponse broadcast
 
 STOMP /app/chat/village
   → 동일한 SendMessageUseCase 실행
-  → List<MessageResponse>를 /topic/chat/village로 broadcast
+  → 유저 MessageResponse를 /topic/chat/village로 broadcast (단일 객체)
   → STOMP 응답 없음 (구독 채널로만 수신)
+  → NPC 응답은 @Async 비동기 → 별도 MessageResponse broadcast
 ```
 
 Happy Path Cucumber 테스트는 REST로 수행한다.

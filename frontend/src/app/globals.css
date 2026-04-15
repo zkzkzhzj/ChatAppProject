@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-@theme inline {
+@theme {
   /* 마음의 고향 — 따뜻한 안식처 팔레트 */
   --color-cream: #faf6f0;
   --color-warm-white: #f5efe6;

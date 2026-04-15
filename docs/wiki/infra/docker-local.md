@@ -11,7 +11,7 @@ last-verified: 2026-04-13
 
 | 서비스 | 이미지 | 포트 | 역할 |
 |--------|--------|------|------|
-| postgres | postgres:16-alpine | 5432 | 메인 RDBMS (Identity, Village, Economy, Safety) |
+| postgres | postgres:16-alpine | 5432 | 메인 RDBMS (Identity, Village, Economy, Safety) + pgvector 확장 (NPC 대화 임베딩) |
 | redis | redis:7.2-alpine | 6379 | 캐시, 세션, Pub/Sub (스케일아웃 시) |
 | cassandra | cassandra:4.1 | 9042 | 채팅 메시지 저장 |
 | kafka | apache/kafka:3.7.0 | 9092 | 도메인 간 이벤트 (KRaft, ZK 없음) |

@@ -2,7 +2,7 @@
 title: 채팅 아키텍처
 tags: [communication, websocket, cassandra, chat, stomp]
 related: [communication/npc-conversation.md, infra/outbox-pattern.md, frontend/websocket-client.md]
-last-verified: 2026-04-13
+last-verified: 2026-04-15
 ---
 
 # 채팅 아키텍처
@@ -19,17 +19,17 @@ last-verified: 2026-04-13
 [REST] 메시지 전송 (fallback)
 POST /api/v1/chat/messages
   → getOrCreateParticipant()로 첫 메시지 시 유저 참여자 자동 생성
-  → Message(유저) → Cassandra 저장
-  → NPC 응답 생성 (현재 하드코딩)
-  → Message(NPC) → Cassandra 저장
-  → WebSocket /topic/chat/village broadcast
-  → REST 응답: {userMessage, npcMessage}
+  → Message(유저) → Cassandra 저장 (message + user_message dual-write)
+  → /topic/chat/village broadcast: MessageResponse(user) — 즉시
+  → REST 응답: {userMessage} (유저 메시지만 동기 반환)
+  → [비동기] NpcReplyService.replyAsync() → NPC 응답 생성 → Cassandra 저장 → broadcast
 
 [WebSocket] 실시간 메시지 전송 (주 경로)
 /app/chat/village
   → ChatMessageHandler (@MessageMapping)
   → SendMessageService (REST와 동일 로직)
-  → /topic/chat/village broadcast (유저 메시지 + NPC 응답 배열)
+  → /topic/chat/village broadcast: MessageResponse(user) — 즉시
+  → [비동기] NpcReplyService.replyAsync() → NPC 응답 별도 broadcast
 ```
 
 ## 저장소 전략
@@ -67,7 +67,7 @@ CLUSTERING ORDER BY (created_at DESC, id DESC)
 |------|----------|
 | ChatRoom | id, title, type(PUBLIC/DIRECT/GROUP/NPC), status(ACTIVE/CLOSED) |
 | Participant | userId, chatRoomId, displayName, role(HOST/MEMBER/NPC), entryType |
-| Message | chatRoomId, participantId, body, messageType(TEXT/SYSTEM/NPC_REPLY) |
+| Message | chatRoomId, participantId, body, messageType(TEXT/IMAGE/SYSTEM) |
 
 ## 핵심 코드 위치
 

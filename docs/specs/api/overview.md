@@ -10,7 +10,7 @@
 Authorization: Bearer <accessToken>
 ```
 
-토큰은 `POST /api/v1/auth/register` 또는 `POST /api/v1/auth/guest`로 발급받는다.
+토큰은 `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, 또는 `POST /api/v1/auth/guest`로 발급받는다.
 
 ---
 
@@ -49,11 +49,13 @@ Authorization: Bearer <accessToken>
 | 코드 | HTTP | 도메인 | 설명 |
 |------|------|--------|------|
 | IDENTITY_001 | 409 | Identity | 이미 사용 중인 이메일 |
+| IDENTITY_002 | 401 | Identity | 이메일 또는 비밀번호가 올바르지 않음 |
 | VILLAGE_001 | 404 | Village | 캐릭터 없음 |
 | VILLAGE_002 | 404 | Village | 공간 없음 |
 | VILLAGE_003 | 403 | Village | 게스트는 개인 공간 없음 |
 | COMM_001 | 404 | Communication | 채팅방 없음 |
 | COMM_002 | 403 | Communication | 해당 채팅방의 참여자가 아님 |
 | COMM_003 | 403 | Communication | 게스트는 채팅 불가 |
+| COMM_004 | 400 | Communication | 메시지 내용이 비어있거나 허용 길이(1000자) 초과 |
 | VALIDATION_ERROR | 400 | 공통 | 요청 필드 유효성 오류 |
 | INTERNAL_SERVER_ERROR | 500 | 공통 | 서버 내부 오류 |

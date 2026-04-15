@@ -42,6 +42,43 @@
 
 ---
 
+## POST `/api/v1/auth/login` — 로그인
+
+인증 불필요 (Public).
+
+이메일/비밀번호로 로그인하여 JWT를 발급받는다.
+
+**Request**
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+| 필드 | 타입 | 제약 |
+|------|------|------|
+| email | String | 필수, 이메일 형식 |
+| password | String | 필수 |
+
+**Response** `200 OK`
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+**에러**
+
+| 코드 | HTTP | 사유 |
+|------|------|------|
+| IDENTITY_002 | 401 | 이메일 또는 비밀번호가 올바르지 않음 |
+| VALIDATION_ERROR | 400 | 필드 형식 오류 |
+
+---
+
 ## POST `/api/v1/auth/guest` — 게스트 토큰 발급
 
 인증 불필요 (Public). DB 저장 없음.

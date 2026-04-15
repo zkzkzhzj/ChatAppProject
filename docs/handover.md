@@ -300,22 +300,20 @@ POST /api/v1/chat/messages {body: "..."}
 
 ## 현재 진행 중
 
-**4/15 — 프론트엔드 UI 초기 디자인 + 에셋 적용** 🔧 (uncommitted)
+없음
+
+**4/15 — 프론트엔드 UI 디자인 시스템 + 코드 품질 개선** ✅ (PR #9 머지 완료)
 
 | 항목 | 내용 |
 |------|------|
-| 메타데이터 | title/description/OG 태그 → "마음의 고향" 서비스 정보로 교체, `lang="ko"` |
-| 폰트 | Geist → **Gowun Dodum** (제목) + **IBM Plex Sans KR** (본문) — 따뜻한 한글 폰트 |
-| 디자인 시스템 | globals.css — 자연 기반 컬러 팔레트 (cream/sand/bark/leaf/hearth), pixelated 렌더링 |
-| 캐릭터 스프라이트 | 이모지 → Modern Interiors Premade Character 32x32 (player: 01, npc: 05) |
-| 마을 배경 | 단색 초록 → 풀밭 체커보드 + 흙길 + 나무 + 집 |
-| 채팅 UI | 검정 반투명 → 크림색 glass morphism, 둥근 말풍선, 발신자별 색상 구분 |
-| 로그인 모달 | 다크 → 크림색 "마을에 들어가기" 톤앤매너 |
-| 이동 로직 | 대각선 이동 지원 + 속도 정규화 (√2 보정) |
-| 미해결 | 스프라이트시트 프레임 레이아웃 매핑 필요 — 디버그 모드(숫자키 0-9) 추가, 사용자 확인 대기 |
-| 에셋 | pixel-assets-all 폴더 수령 → .gitignore 등록 완료 |
-| 플러그인 | frontend-design 플러그인 설치 완료 |
-| 학습 노트 | `learning/32-web-2d-game-engine-comparison.md`, `learning/33-ai-agent-evaluation-methodology.md` |
+| 메타데이터 | Next.js metadata API + `next/font/google` (Gowun Dodum + IBM Plex Sans KR) |
+| 디자인 시스템 | Tailwind v4 `@theme` 디자인 토큰 — cream/sand/bark/leaf 팔레트. 인라인 style 전면 제거 |
+| 마을 씬 | 월드 2400x1600 + 카메라 팔로우 + Modern Exteriors 에셋 배경 (나무/벤치/가로등/텐트) |
+| 캐릭터 | 플레이스홀더 원형 (걷기 에셋 미확보 — Modern Interiors는 실내 전용) |
+| 채팅 UI | 크림 팔레트, 둥근 말풍선, 발신자별 색상, glass morphism |
+| 코드 품질 | useResize 커스텀 훅, authenticate() 헬퍼, useSyncExternalStore |
+| 에셋 | pixel-assets-all + frontend/public/assets/ gitignore 등록 (유료 에셋 보호) |
+| 학습 노트 | `learning/32` 게임 엔진 비교, `learning/33` AI 평가, `learning/34` React 패턴 |
 
 **4/15 — PR #8 레이스 컨디션 수정 + 리뷰 대응** ✅ (PR #8 머지 완료)
 
@@ -436,9 +434,9 @@ com.maeum.gohyang/
     ├── domain/          ← ChatRoom, Participant, Message, enum 5종 (ChatRoomType에 PUBLIC 추가)
     ├── error/           ← CommunicationErrorCode, *Exception 4종 (InvalidMessageBodyException 추가)
     ├── application/
-    │   ├── port/in/ (UseCase 2종 — CreateChatRoomUseCase는 레거시)
+    │   ├── port/in/ (UseCase 3종 — CreateChatRoomUseCase 레거시, SendMessageUseCase, LoadChatHistoryUseCase)
     │   ├── port/out/ (Port 12종: Save/Load/Generate 계열 + Broadcast/Publish/Summarize)
-    │   └── service/ (Service 3종 — SendMessageService, NpcReplyService, CreateChatRoomService)
+    │   └── service/ (Service 4종 — SendMessageService, NpcReplyService, LoadChatHistoryService, CreateChatRoomService)
     └── adapter/
         ├── in/
         │   ├── web/ (ChatRoomController POST /api/v1/chat/messages + DTO 4종)
@@ -446,7 +444,7 @@ com.maeum.gohyang/
         │   └── messaging/ (ConversationSummaryEventConsumer)
         └── out/
             ├── persistence/ (JPA 4종 + Cassandra 6종 + ConversationMemory/ConversationSummaryOutbox)
-            └── npc/ (OllamaResponseAdapter, OllamaEmbeddingAdapter, Hardcoded*Adapter 2종)
+            └── npc/ (Ollama*Adapter 3종 + Hardcoded*Adapter 3종 + OllamaProperties)
 ```
 
 ---

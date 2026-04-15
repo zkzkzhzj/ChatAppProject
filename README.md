@@ -14,6 +14,9 @@
 | 회원가입/로그인 | 이메일 기반 인증 + 게스트 토큰 | ✅ 구현 완료 |
 | 마을 공간 | 인터랙티브 2D 마을 (Phaser.js). 카메라 팔로우, 대각선 이동 | ✅ 구현 완료 |
 | 마을 공개 채팅 | WebSocket(STOMP) 실시간 채팅. 유저/NPC/이웃 메시지 구분 | ✅ 구현 완료 |
+| @멘션 NPC | 채팅에서 `@마을 주민`으로 NPC에게 말 걸기 | ✅ 구현 완료 |
+| 실시간 위치 공유 | STOMP 기반 캐릭터 위치 broadcast + 입퇴장 감지 | ✅ 구현 완료 |
+| 타이핑 인디케이터 | 상대방 입력 중 표시 | ✅ 구현 완료 |
 | AI NPC | Ollama 로컬 LLM (exaone3.5:7.8b) + 시맨틱 검색 대화 맥락 유지 | ✅ 구현 완료 |
 | 대화 요약 | Kafka → LLM 요약 → pgvector 임베딩 저장. 3회 누적 시 자동 트리거 | ✅ 구현 완료 |
 | 공간 꾸미기 | 아이템으로 내 집을 꾸미는 경험 | 미착수 |
@@ -87,8 +90,8 @@ Kafka Consumer  →     Domain Entity         →  Kafka Producer (Outbox)
 
 ```text
 identity/        # Generic — 인증/인가, 게스트 세션
-village/         # Core — 캐릭터, 공간
-communication/   # Core — 채팅, 메시지, NPC 대화, 대화 요약
+village/         # Core — 캐릭터, 공간, 위치 공유, 타이핑 인디케이터
+communication/   # Core — 채팅, 메시지, NPC 대화, @멘션, 대화 요약
 global/          # Cross-cutting — 설정, 예외, Outbox, 멱등성
 ```
 

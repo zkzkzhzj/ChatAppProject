@@ -5,7 +5,7 @@
 
 ---
 
-## 현재 상태 (2026-04-15 기준, 10차 업데이트)
+## 현재 상태 (2026-04-16 기준, 11차 업데이트)
 
 ### ✅ Happy Path 완료 (Phase 0 ~ Phase 3 + 마을 공개 채팅) — PR #7 머지 완료
 
@@ -300,7 +300,7 @@ POST /api/v1/chat/messages {body: "..."}
 
 ## 현재 진행 중
 
-**4/15 — 유저 위치 실시간 공유** 🔧 (uncommitted, feat/realtime-position-sharing)
+**4/15~16 — 유저 위치 실시간 공유 + PR #11 리뷰 대응** 🔧 (feat/realtime-position-sharing, PR #11 오픈)
 
 | 항목 | 내용 |
 |------|------|
@@ -310,7 +310,23 @@ POST /api/v1/chat/messages {body: "..."}
 | 프론트 | positionBridge (React↔Phaser 콜백), 100ms throttle 전송, lerp 보간 |
 | 유저 구분 | 회원: 파란 원 "이웃", 게스트: 보라 원 "손님" |
 | 미테스트 | 브라우저 2탭 멀티유저 테스트 필요 |
-| Codex MCP | `.mcp.json` 설정 완료, 재시작 후 연결 확인 필요 |
+
+**4/16 — CodeRabbit/Codex 리뷰 피드백 반영** ✅ (커밋 `6d4e086`)
+
+| 항목 | 내용 |
+|------|------|
+| Critical 수정 | KafkaConsumerConfig recoverer ClassCastException 수정 — `record.value()` 캐스팅 제거, `record`를 직접 `ConsumerRecord`로 사용 |
+| Critical 수정 | ConversationSummaryEventConsumer 멱등성 마킹 — 실패 시 `release()`로 Kafka 재시도 허용 |
+| Critical 수정 | IdempotencyGuard — `REQUIRES_NEW` 실제 적용 (Javadoc과 구현 일치), `release()` 메서드 추가 |
+| Enum 도입 | `PositionUserType` (MEMBER/GUEST/LEAVE) — PositionBroadcast, PositionHandler, PositionDisconnectListener 적용 |
+| Enum 도입 | `LoadMentionablesUseCase.MentionableType` (NPC) — type String → Enum |
+| 하드코딩 제거 | LoadMentionablesService — "마을 주민" → `npc.getDisplayName()` 도메인 값 사용 |
+| 매직스트링 제거 | AuthenticatedUser — `GUEST_FALLBACK`, `MEMBER_PREFIX` 상수 추출 |
+| Validation | PositionRequest — `@NotNull Double x, y` + PositionHandler `@Valid` 추가 |
+| 설정 분리 | PositionHandler MAX_X/MAX_Y → `village.map.max-x/max-y` (application.yml) |
+| 보안 | application-docker.yml — JWT secret `${JWT_SECRET:기본값}` 환경변수 주입 지원 |
+| Nitpick | NpcReplyService 폴백 메시지 상수화, toMap merge function, AtomicLong ID, sendVillageMessage connected 가드 |
+| 보류 | `ParseTokenPort` 위치 이동 (`global/security` → port 패키지) — 4개 파일 import 변경 필요, 별도 PR로 분리 예정 |
 
 **4/15 — 문서-코드 정합성 전수 검사** ✅ (PR #10 머지 완료)
 
@@ -449,6 +465,7 @@ com.maeum.gohyang/
 │   ├── error/           ← VillageErrorCode, *Exception 3종
 │   ├── application/
 │   └── adapter/
+│       └── in/websocket/ ← PositionHandler, PositionDisconnectListener, PresenceNotifier, PositionUserType(enum)
 └── communication/
     ├── domain/          ← ChatRoom, Participant, Message, enum 5종 (ChatRoomType에 PUBLIC 추가)
     ├── error/           ← CommunicationErrorCode, *Exception 4종 (InvalidMessageBodyException 추가)

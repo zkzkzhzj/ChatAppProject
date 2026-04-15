@@ -13,7 +13,9 @@ export function getStompClient(): Client {
     reconnectDelay: 5_000,
     debug:
       process.env.NODE_ENV === 'development'
-        ? (msg: string) => { console.log('[STOMP]', msg); }
+        ? (msg: string) => {
+            console.log('[STOMP]', msg);
+          }
         : () => undefined,
   });
   return stompClient;

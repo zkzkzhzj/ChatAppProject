@@ -29,7 +29,7 @@ public class PositionDisconnectListener {
         }
 
         PositionBroadcast leave = new PositionBroadcast(
-                user.displayId(), "LEAVE", 0, 0
+                user.displayId(), PositionUserType.LEAVE, 0, 0
         );
         messagingTemplate.convertAndSend(PositionHandler.TOPIC_POSITIONS, leave);
 

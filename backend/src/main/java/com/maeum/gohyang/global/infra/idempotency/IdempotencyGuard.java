@@ -23,12 +23,21 @@ public class IdempotencyGuard {
 
     /**
      * 이벤트를 처리 완료로 원자적으로 마킹한다.
-     * 자체 트랜잭션(REQUIRES_NEW)을 사용하여 호출자의 트랜잭션 유무와 무관하게 동작한다.
+     * REQUIRES_NEW를 사용하여 호출자의 트랜잭션 유무와 무관하게 독립 커밋된다.
      * @return true면 최초 처리(비즈니스 로직 실행 가능), false면 이미 처리됨(스킵)
      */
-    @Transactional
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public boolean tryAcquire(UUID key) {
         return repository.insertIfAbsent(key) > 0;
+    }
+
+    /**
+     * 처리 실패 시 멱등성 마킹을 해제하여 재시도를 허용한다.
+     * tryAcquire()로 선점한 뒤 비즈니스 로직이 실패했을 때 호출한다.
+     */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    public void release(UUID key) {
+        repository.deleteByEventId(key);
     }
 
     /** @deprecated tryAcquire()로 대체. 기존 코드 마이그레이션 후 삭제 예정. */

@@ -27,7 +27,7 @@ public class LoadChatHistoryService implements LoadChatHistoryUseCase {
     public Result execute(long chatRoomId, int limit) {
         List<Message> messages = loadMessageHistoryPort.loadRecent(chatRoomId, limit);
         Map<Long, Participant> participantMap = loadParticipantPort.loadAll(chatRoomId).stream()
-                .collect(Collectors.toMap(Participant::getId, p -> p));
+                .collect(Collectors.toMap(Participant::getId, p -> p, (existing, replacement) -> existing));
         return new Result(messages, participantMap);
     }
 }

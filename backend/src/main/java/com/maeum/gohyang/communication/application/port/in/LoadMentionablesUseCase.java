@@ -6,5 +6,9 @@ public interface LoadMentionablesUseCase {
 
     List<Mentionable> execute(long chatRoomId);
 
-    record Mentionable(long id, String name, String type) { }
+    enum MentionableType {
+        NPC
+    }
+
+    record Mentionable(long id, String name, MentionableType type) { }
 }

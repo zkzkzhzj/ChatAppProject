@@ -20,4 +20,8 @@ public interface ProcessedEventJpaRepository extends JpaRepository<ProcessedEven
             + "VALUES (:eventId, NOW()) ON CONFLICT (event_id) DO NOTHING",
             nativeQuery = true)
     int insertIfAbsent(@Param("eventId") UUID eventId);
+
+    @Modifying
+    @Query("DELETE FROM ProcessedEventJpaEntity e WHERE e.eventId = :eventId")
+    void deleteByEventId(@Param("eventId") UUID eventId);
 }

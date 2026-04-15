@@ -57,6 +57,7 @@ export function subscribeToChatRoom(
 
 export function sendVillageMessage(body: string, onSent?: () => void): void {
   const client = getStompClient();
+  if (!client.connected) return;
   console.log('[STOMP] Publishing to /app/chat/village', { body });
   client.publish({
     destination: '/app/chat/village',

@@ -20,7 +20,7 @@ public class LoadMentionablesService implements LoadMentionablesUseCase {
     @Override
     public List<Mentionable> execute(long chatRoomId) {
         return loadParticipantPort.loadNpc(chatRoomId)
-                .map(npc -> List.of(new Mentionable(npc.getId(), "마을 주민", "npc")))
+                .map(npc -> List.of(new Mentionable(npc.getId(), npc.getDisplayName(), MentionableType.NPC)))
                 .orElse(List.of());
     }
 }

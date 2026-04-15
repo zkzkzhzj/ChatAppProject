@@ -92,7 +92,7 @@ public class ChatRoomController {
     public ResponseEntity<List<MentionableResponse>> getMentionables() {
         List<MentionableResponse> mentionables = loadMentionablesUseCase.execute(publicChatRoomId)
                 .stream()
-                .map(m -> new MentionableResponse(m.id(), m.name(), m.type()))
+                .map(m -> new MentionableResponse(m.id(), m.name(), m.type().name()))
                 .toList();
         return ResponseEntity.ok(mentionables);
     }

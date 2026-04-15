@@ -51,15 +51,18 @@ public class ConversationSummaryEventConsumer {
     /**
      * LLM 요약 + 임베딩 생성은 트랜잭션 밖에서 수행한다.
      * 외부 API 호출이 수 초~수십 초 소요되므로 트랜잭션 안에 두면
-     * DB 커넥션을 불필요하게 점유하고, 롤백 시 idempotency 마킹도 함께 사라진다.
+     * DB 커넥션을 불필요하게 점유한다.
      *
-     * 순서: 멱등성 확보(tryAcquire) → 외부 API 호출 → 결과 저장(@Transactional)
+     * 순서: 중복 확인(tryAcquire) → 외부 API 호출 → 결과 저장 → 멱등성 마킹(markProcessed)
+     * tryAcquire()는 REQUIRES_NEW 독립 트랜잭션으로 선점하고,
+     * 처리 실패 시 markFailed()로 마킹을 해제하여 Kafka 재시도가 가능하도록 한다.
      */
     @KafkaListener(topics = TOPIC)
     public void handle(ConsumerRecord<String, String> record) {
         log.debug("npc.conversation.summarize 수신: key={}", record.key());
+        UUID idempotencyKey = null;
         try {
-            UUID idempotencyKey = KafkaEventIdExtractor.extract(record);
+            idempotencyKey = KafkaEventIdExtractor.extract(record);
             if (!idempotencyGuard.tryAcquire(idempotencyKey)) {
                 log.debug("중복 요약 이벤트 무시: key={}", record.key());
                 return;
@@ -98,6 +101,10 @@ public class ConversationSummaryEventConsumer {
             log.info("대화 요약 저장 완료 — userId={}, messageCount={}, hasEmbedding={}",
                     userId, userMessages.size(), !embedding.isEmpty());
         } catch (Exception e) {
+            // 처리 실패 시 멱등성 마킹 해제 → Kafka 재시도 허용
+            if (idempotencyKey != null) {
+                idempotencyGuard.release(idempotencyKey);
+            }
             alertPort.critical(
                     AlertContext.of("communication-consumer", record.key(), record.key()),
                     "npc.conversation.summarize 처리 실패: " + e.getMessage()

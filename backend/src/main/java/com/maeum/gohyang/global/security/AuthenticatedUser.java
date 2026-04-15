@@ -14,6 +14,9 @@ import java.security.Principal;
  */
 public record AuthenticatedUser(Long userId, UserType role, String sessionId) implements Principal {
 
+    private static final String GUEST_FALLBACK = "guest";
+    private static final String MEMBER_PREFIX = "user-";
+
     /** MEMBER용 간편 생성자 (sessionId 없음). */
     public AuthenticatedUser(Long userId, UserType role) {
         this(userId, role, null);
@@ -24,7 +27,7 @@ public record AuthenticatedUser(Long userId, UserType role, String sessionId) im
         if (userId != null) {
             return String.valueOf(userId);
         }
-        return sessionId != null ? sessionId : "guest";
+        return sessionId != null ? sessionId : GUEST_FALLBACK;
     }
 
     public boolean isGuest() {
@@ -37,8 +40,8 @@ public record AuthenticatedUser(Long userId, UserType role, String sessionId) im
      */
     public String displayId() {
         if (userId != null) {
-            return "user-" + userId;
+            return MEMBER_PREFIX + userId;
         }
-        return sessionId != null ? sessionId : "guest";
+        return sessionId != null ? sessionId : GUEST_FALLBACK;
     }
 }

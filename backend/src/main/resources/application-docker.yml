@@ -3,7 +3,7 @@
 # 연결 정보는 application.yml의 환경변수 기본값을 오버라이드한다.
 
 jwt:
-  secret: docker-dev-only-secret-key-must-be-at-least-256-bits-long!!
+  secret: ${JWT_SECRET:docker-dev-only-secret-key-must-be-at-least-256-bits-long!!}
 
 spring:
   datasource:

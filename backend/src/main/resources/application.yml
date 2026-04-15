@@ -77,6 +77,9 @@ security:
 
 village:
   public-chat-room-id: ${VILLAGE_PUBLIC_CHAT_ROOM_ID:1}
+  map:
+    max-x: ${VILLAGE_MAP_MAX_X:2400.0}
+    max-y: ${VILLAGE_MAP_MAX_Y:1600.0}
 
 npc:
   # hardcoded: 고정 문장 랜덤 반환 (기본값, 테스트)

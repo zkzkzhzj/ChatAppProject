@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 
 import com.maeum.gohyang.global.security.AuthenticatedUser;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -28,11 +29,14 @@ public class PositionHandler {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    private static final double MAX_X = 2400.0;
-    private static final double MAX_Y = 1600.0;
+    @org.springframework.beans.factory.annotation.Value("${village.map.max-x:2400.0}")
+    private double maxX;
+
+    @org.springframework.beans.factory.annotation.Value("${village.map.max-y:1600.0}")
+    private double maxY;
 
     @MessageMapping("/village/position")
-    public void handlePosition(@Payload PositionRequest request, Principal principal) {
+    public void handlePosition(@Valid @Payload PositionRequest request, Principal principal) {
         if (!(principal instanceof AuthenticatedUser user)) {
             return;
         }
@@ -41,12 +45,12 @@ public class PositionHandler {
             return;
         }
 
-        double clampedX = Math.max(0, Math.min(request.x(), MAX_X));
-        double clampedY = Math.max(0, Math.min(request.y(), MAX_Y));
+        double clampedX = Math.max(0, Math.min(request.x(), maxX));
+        double clampedY = Math.max(0, Math.min(request.y(), maxY));
 
         PositionBroadcast broadcast = new PositionBroadcast(
                 user.displayId(),
-                user.isGuest() ? "GUEST" : "MEMBER",
+                user.isGuest() ? PositionUserType.GUEST : PositionUserType.MEMBER,
                 clampedX,
                 clampedY
         );

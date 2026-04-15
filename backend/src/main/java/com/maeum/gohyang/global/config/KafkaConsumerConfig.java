@@ -33,7 +33,8 @@ public class KafkaConsumerConfig {
     public DefaultErrorHandler kafkaErrorHandler() {
         DefaultErrorHandler handler = new DefaultErrorHandler(
                 (record, exception) -> {
-                    ConsumerRecord<?, ?> consumerRecord = (ConsumerRecord<?, ?>) record.value();
+                    @SuppressWarnings("unchecked")
+                    ConsumerRecord<?, ?> consumerRecord = (ConsumerRecord<?, ?>) record;
                     String topic = consumerRecord.topic();
                     String key = String.valueOf(consumerRecord.key());
 

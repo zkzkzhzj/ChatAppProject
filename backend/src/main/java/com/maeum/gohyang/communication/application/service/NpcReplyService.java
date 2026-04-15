@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class NpcReplyService {
 
     private static final int MAX_MEMORY_COUNT = 3;
+    private static final String NPC_FALLBACK_MESSAGE = "죄송해요, 지금은 대화하기 어려운 상태예요. 잠시 후 다시 말을 걸어주세요.";
 
     private final GenerateNpcResponsePort generateNpcResponsePort;
     private final SaveMessagePort saveMessagePort;
@@ -81,7 +82,7 @@ public class NpcReplyService {
                     Message.newMessage(
                             context.chatRoomId(),
                             context.npcParticipantId(),
-                            "죄송해요, 지금은 대화하기 어려운 상태예요. 잠시 후 다시 말을 걸어주세요.",
+                            NPC_FALLBACK_MESSAGE,
                             MessageType.TEXT));
         }
     }

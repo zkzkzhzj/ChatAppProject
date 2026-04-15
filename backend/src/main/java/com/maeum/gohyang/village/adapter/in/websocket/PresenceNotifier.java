@@ -24,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 public class PresenceNotifier {
 
     private static final String TOPIC_CHAT = "/topic/chat/village";
+    private static final java.util.concurrent.atomic.AtomicLong MESSAGE_COUNTER =
+            new java.util.concurrent.atomic.AtomicLong(0);
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -64,7 +66,7 @@ public class PresenceNotifier {
     ) {
         SystemMessage(String body) {
             this(
-                    "system-" + System.currentTimeMillis(),
+                    "system-" + System.currentTimeMillis() + "-" + MESSAGE_COUNTER.incrementAndGet(),
                     0,
                     null,
                     "SYSTEM",

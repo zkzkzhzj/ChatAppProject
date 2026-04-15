@@ -21,7 +21,7 @@
 
   /* 폰트 */
   --font-sans: var(--font-body), 'Apple SD Gothic Neo', sans-serif;
-  --font-display: var(--font-display), 'Apple SD Gothic Neo', serif;
+  --font-display: var(--font-gowun), 'Apple SD Gothic Neo', serif;
 }
 
 body {

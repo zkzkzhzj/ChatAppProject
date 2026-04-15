@@ -7,7 +7,7 @@ import './globals.css';
 const gowunDodum = Gowun_Dodum({
   weight: '400',
   subsets: ['latin'],
-  variable: '--font-display',
+  variable: '--font-gowun',
   display: 'swap',
 });
 

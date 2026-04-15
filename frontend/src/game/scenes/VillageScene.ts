@@ -26,12 +26,19 @@ export class VillageScene extends Phaser.Scene {
     super({ key: 'VillageScene' });
   }
 
+  /** 에셋 사용 가능 여부. 로드 실패 시 프로시저럴 배경만 사용. */
+  private assetsLoaded = false;
+
   preload() {
     this.load.image('tree1', '/assets/village/tree1.png');
     this.load.image('tree2', '/assets/village/tree2.png');
     this.load.image('bench', '/assets/village/bench.png');
     this.load.image('lamp', '/assets/village/lamp.png');
     this.load.image('tent', '/assets/village/tent.png');
+
+    this.load.on('complete', () => {
+      this.assetsLoaded = this.textures.exists('tree1');
+    });
   }
 
   create() {
@@ -39,7 +46,9 @@ export class VillageScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
     this.drawGround();
-    this.placeDecorations();
+    if (this.assetsLoaded) {
+      this.placeDecorations();
+    }
     this.createNpc(WORLD_WIDTH * 0.65, WORLD_HEIGHT * 0.35);
 
     // 플레이어 — 월드 중앙에서 시작

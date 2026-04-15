@@ -34,7 +34,7 @@ stompClient.connect(
 | Application Prefix | — | `/app` |
 | Broker Destinations | — | `/topic`, `/queue` |
 | 메시지 전송 | 클라이언트 → 서버 | `/app/chat/village` |
-| 메시지 수신 (배치) | 서버 → 클라이언트 | `/topic/chat/village` |
+| 메시지 수신 | 서버 → 클라이언트 | `/topic/chat/village` |
 
 채널 개념 도입 전까지 마을 공개 채팅방 1개를 고정 사용한다. roomId 변수는 없다.
 
@@ -80,6 +80,7 @@ stompClient.subscribe('/topic/chat/village', (message) => {
 **Payload (JSON) — `MessageResponse` (단일 객체)**
 
 유저 메시지 예시:
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -92,6 +93,7 @@ stompClient.subscribe('/topic/chat/village', (message) => {
 ```
 
 NPC 응답 예시 (비동기, 별도 broadcast):
+
 ```json
 {
   "id": "660f9511-f30c-52e5-b827-557766551111",

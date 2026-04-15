@@ -14,7 +14,7 @@
 | 회원가입/로그인 | 이메일 기반 인증 + 게스트 토큰 | ✅ 구현 완료 |
 | 마을 공간 | 인터랙티브 2D 마을 (Phaser.js). 카메라 팔로우, 대각선 이동 | ✅ 구현 완료 |
 | 마을 공개 채팅 | WebSocket(STOMP) 실시간 채팅. 유저/NPC/이웃 메시지 구분 | ✅ 구현 완료 |
-| AI NPC | Ollama 로컬 LLM (EXAONE 3.5) + 시맨틱 검색 대화 맥락 유지 | ✅ 구현 완료 |
+| AI NPC | Ollama 로컬 LLM (exaone3.5:7.8b) + 시맨틱 검색 대화 맥락 유지 | ✅ 구현 완료 |
 | 대화 요약 | Kafka → LLM 요약 → pgvector 임베딩 저장. 3회 누적 시 자동 트리거 | ✅ 구현 완료 |
 | 공간 꾸미기 | 아이템으로 내 집을 꾸미는 경험 | 미착수 |
 | 포인트/아이템 | 포인트 획득 → 아이템 구매 → 인벤토리 | 미착수 |
@@ -42,7 +42,7 @@
 | Redis 7.2 | 세션/캐시 |
 | Cassandra 4.1 | 채팅 메시지 저장 (write-heavy) |
 | Kafka 3.7 (KRaft) | 도메인 간 비동기 이벤트 + Transactional Outbox |
-| Ollama | 로컬 LLM 서빙 (EXAONE 3.5) |
+| Ollama | 로컬 LLM 서빙 (exaone3.5:7.8b) |
 
 ### Frontend
 

@@ -61,4 +61,5 @@ Key/Value 모두 `StringSerializer/StringDeserializer`. 도메인 코드가 `Obj
 | `global/infra/outbox/OutboxJpaEntity.java` | Outbox 테이블 매핑 |
 | `global/infra/outbox/OutboxKafkaRelay.java` | @Scheduled 1초 릴레이 |
 | `global/infra/idempotency/IdempotencyGuard.java` | 멱등성 처리 공용 |
-| `identity/adapter/out/persistence/OutboxPersistenceAdapter.java` | Outbox 저장 어댑터 |
+| `identity/adapter/out/persistence/OutboxPersistenceAdapter.java` | Outbox 저장 어댑터 (user.registered) |
+| `communication/adapter/out/persistence/ConversationSummaryOutboxAdapter.java` | Outbox 저장 어댑터 (npc.conversation.summarize) |

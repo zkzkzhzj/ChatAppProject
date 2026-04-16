@@ -12,6 +12,18 @@ tools: Read, Glob, Grep, Bash
 
 ## PR 생성 워크플로우
 
+### 0단계 — 문서 최신화 체크 (Critical Rule #8)
+
+PR 생성 전에 아래 문서들이 현재 작업 내용을 반영하고 있는지 확인한다.
+반영이 안 되어있으면 **PR 생성 전에 먼저 업데이트한다.**
+
+```
+1. docs/handover.md — 현재 작업 상태, 다음 할 것이 최신인가?
+2. memory/ — 프로젝트 상태 메모리가 현재를 반영하는가?
+3. docs/wiki/ — 새로운 기능이 wiki에 반영되었는가? (해당 시)
+4. docs/specs/ — API/WebSocket/이벤트 명세가 코드와 일치하는가? (해당 시)
+```
+
 ### 1단계 — git.md 히트
 ```
 Read docs/conventions/git.md

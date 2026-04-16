@@ -386,25 +386,59 @@ POST /api/v1/chat/messages {body: "..."}
 | Part 4 | 데이터 인프라 (PostgreSQL + Cassandra dual-write, pgvector 시맨틱 검색, Kafka 이벤트) |
 | 면접 Q&A | 주제별 면접 예상 질문 + 모범 답안 포함 |
 
+**4/17 — OpenAI API 어댑터 + 설정 프로필 분리 + 보안 강화** ✅ (PR #13)
+
+| 항목 | 내용 |
+|------|------|
+| OpenAI 어댑터 | `OpenAiResponseAdapter`, `OpenAiEmbeddingAdapter`, `OpenAiSummarizeAdapter` — GPT-4o-mini + text-embedding-3-small (768차원) |
+| system-prompt 공통화 | `@Value("${npc.system-prompt}")` — Ollama/OpenAI 중복 제거 |
+| 설정 프로필 분리 | application.yml 최소화 (shoe-auction 패턴), local/prod gitignore 처리 |
+| 삭제 | application-docker.yml, docker-compose.prod.yml — .env 기반 통합 |
+| Docker | ollama 프로필 분리 (`COMPOSE_PROFILES=ollama`), JWT 기본값 추가 |
+| 버그 수정 | MentionParser `CASE_INSENSITIVE` (프론트 NPC: 대문자 호환) |
+| CLAUDE.md | Workflow 승인 게이트 추가 |
+| JaCoCo | 50% → 40% 일시 조정 (OpenAI 어댑터 테스트 추가 후 복원 예정) |
+
+### 현재 설정 파일 구조
+
+```
+application.yml              ← Git 공개. 공통 최소 (앱 이름, JPA, 서버 포트)
+application-local.yml        ← gitignore. 로컬 전체 (DB, Kafka, JWT, NPC, swagger 열림)
+application-prod.yml         ← gitignore. 프로덕션 전체 (환경변수 필수, swagger 닫힘, INFO 로그)
+application-test.yml         ← Git 공개. 테스트 (Testcontainers + 더미 시크릿)
+application-local.example.yml ← 삭제됨. 보안상 local 설정 전체 노출 방지
+.env.example                 ← Git 공개. 환경변수 템플릿
+.env                         ← gitignore. 실제 시크릿
+docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 차이는 .env로)
+```
+
 ---
 
 ## 다음 할 것 — 프로덕션 로드맵
 
-### Step 1 — 상용 API 어댑터 (Phase 5 완성)
+### Step 1 — 상용 API 어댑터 (Phase 5 완성) ✅ (PR #13)
 
 | 작업 | 상태 |
 |------|------|
-| ClaudeApiAdapter or OpenAiAdapter 구현 | 미착수 |
-| `@ConditionalOnProperty`로 Ollama/상용 API 전환 | 미착수 |
+| OpenAI API 어댑터 3종 (Response, Embedding, Summarize) | ✅ GPT-4o-mini + text-embedding-3-small |
+| `@ConditionalOnProperty`로 hardcoded/ollama/openai 전환 | ✅ `NPC_ADAPTER` 환경변수 |
+| system-prompt 공통화 (중복 제거) | ✅ `@Value("${npc.system-prompt}")` |
+| MentionParser 대소문자 호환 수정 | ✅ `CASE_INSENSITIVE` |
+| 설정 프로필 분리 (application.yml 최소화) | ✅ local/prod/test 분리, gitignore 처리 |
+| docker-compose ollama 프로필 분리 | ✅ `COMPOSE_PROFILES=ollama` |
+| docker-compose.prod.yml 삭제, .env 통합 | ✅ |
 | 위험 신호 감지 → 전문 상담 안내 | 미착수 |
 
-### Step 2 — AWS 배포 (단일 서버)
+### Step 2 — AWS 배포 (단일 서버) ← 다음 작업
 
 | 작업 | 상태 |
 |------|------|
-| Docker 이미지 빌드 (backend + frontend) | 미착수 |
-| AWS 인프라 구성 (EC2/ECS, RDS, ElastiCache 등) | 미착수 |
-| CI/CD 파이프라인 고도화 (GitHub Actions → 자동 배포) | 미착수 |
+| EC2 인스턴스 생성 (t3.medium) | 미착수 |
+| Docker + Docker Compose 설치 | 미착수 |
+| repo 클론 + `.env` + `application-local.yml` 생성 | 미착수 |
+| `SPRING_PROFILES_ACTIVE=prod` + `application-prod.yml` 수동 생성 | 미착수 |
+| `docker compose up -d --build` 정상 기동 확인 | 미착수 |
+| Security Group 설정 (80/443/8080 만 개방) | 미착수 |
 
 ### Step 3 — 1차 부하 테스트 (병목 찾기)
 

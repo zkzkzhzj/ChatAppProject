@@ -1,10 +1,13 @@
 package com.maeum.gohyang.communication.adapter.out.npc;
 
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -33,9 +36,14 @@ public class OpenAiSummarizeAdapter implements SummarizeConversationPort {
 
     public OpenAiSummarizeAdapter(OpenAiProperties properties) {
         this.properties = properties;
+        Duration timeout = Duration.ofSeconds(properties.timeoutSeconds());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(
+                HttpClient.newBuilder().connectTimeout(timeout).build());
+        requestFactory.setReadTimeout(timeout);
         this.restClient = RestClient.builder()
                 .baseUrl("https://api.openai.com")
                 .defaultHeader("Authorization", "Bearer " + properties.apiKey())
+                .requestFactory(requestFactory)
                 .build();
     }
 

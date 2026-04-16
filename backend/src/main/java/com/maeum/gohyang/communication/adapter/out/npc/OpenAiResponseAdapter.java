@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -41,7 +42,7 @@ public class OpenAiResponseAdapter implements GenerateNpcResponsePort {
 
     public OpenAiResponseAdapter(
             OpenAiProperties properties,
-            @org.springframework.beans.factory.annotation.Value("${npc.system-prompt}") String systemPrompt) {
+            @Value("${npc.system-prompt}") String systemPrompt) {
         this.properties = properties;
         this.systemPrompt = systemPrompt;
         this.semaphore = new Semaphore(properties.maxConcurrent());

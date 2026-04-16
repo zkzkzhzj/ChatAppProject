@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * OpenAI Embeddings API를 사용한 텍스트 임베딩 생성 Adapter.
  *
- * text-embedding-3-small 모델 기준 1536차원 벡터를 반환한다.
+ * text-embedding-3-small 모델 기준 768차원 벡터를 반환한다 (dimensions 파라미터로 축소).
  * OpenAI 호출 실패 시 빈 리스트를 반환하여 recency fallback을 유도한다.
  *
  * @see <a href="https://platform.openai.com/docs/api-reference/embeddings">OpenAI Embeddings API</a>
@@ -29,6 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnProperty(name = "npc.adapter", havingValue = "openai")
 @EnableConfigurationProperties(OpenAiProperties.class)
 public class OpenAiEmbeddingAdapter implements GenerateEmbeddingPort {
+
+    /** pgvector 스키마(768차원)와 일치시키기 위한 임베딩 차원 수. */
+    private static final int EMBEDDING_DIMENSIONS = 768;
 
     private final RestClient restClient;
     private final OpenAiProperties properties;
@@ -52,7 +55,7 @@ public class OpenAiEmbeddingAdapter implements GenerateEmbeddingPort {
             Map<String, Object> requestBody = Map.of(
                     "model", properties.embeddingModel(),
                     "input", text,
-                    "dimensions", 768
+                    "dimensions", EMBEDDING_DIMENSIONS
             );
 
             @SuppressWarnings("unchecked")

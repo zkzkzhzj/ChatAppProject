@@ -25,11 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @EnableConfigurationProperties(OpenAiProperties.class)
 public class OpenAiSummarizeAdapter implements SummarizeConversationPort {
 
-    private static final String SUMMARIZE_PROMPT = """
-            아래 대화 내용을 2~3문장으로 요약해줘.
-            요약은 "이 유저는 ~에 대해 이야기했다" 형식으로, 유저의 관심사와 감정을 중심으로 써줘.
-            반드시 한국어로만 답변해.
-            """;
+    private static final String SUMMARIZE_PROMPT = NpcPrompts.SUMMARIZE;
 
     private final RestClient restClient;
     private final OpenAiProperties properties;
@@ -41,7 +37,7 @@ public class OpenAiSummarizeAdapter implements SummarizeConversationPort {
                 HttpClient.newBuilder().connectTimeout(timeout).build());
         requestFactory.setReadTimeout(timeout);
         this.restClient = RestClient.builder()
-                .baseUrl("https://api.openai.com")
+                .baseUrl(properties.baseUrl())
                 .defaultHeader("Authorization", "Bearer " + properties.apiKey())
                 .requestFactory(requestFactory)
                 .build();

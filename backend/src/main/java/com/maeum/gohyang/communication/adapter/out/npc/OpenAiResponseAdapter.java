@@ -51,7 +51,7 @@ public class OpenAiResponseAdapter implements GenerateNpcResponsePort {
                 HttpClient.newBuilder().connectTimeout(timeout).build());
         requestFactory.setReadTimeout(timeout);
         this.restClient = RestClient.builder()
-                .baseUrl("https://api.openai.com")
+                .baseUrl(properties.baseUrl())
                 .defaultHeader("Authorization", "Bearer " + properties.apiKey())
                 .requestFactory(requestFactory)
                 .build();

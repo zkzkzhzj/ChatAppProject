@@ -386,7 +386,7 @@ POST /api/v1/chat/messages {body: "..."}
 | Part 4 | 데이터 인프라 (PostgreSQL + Cassandra dual-write, pgvector 시맨틱 검색, Kafka 이벤트) |
 | 면접 Q&A | 주제별 면접 예상 질문 + 모범 답안 포함 |
 
-**4/17 — OpenAI API 어댑터 + 설정 프로필 분리 + 보안 강화** ✅ (PR #13)
+**4/16 — OpenAI API 어댑터 + 설정 프로필 분리 + 보안 강화** 🔄 (PR #13 오픈, 머지 시 완료 처리)
 
 | 항목 | 내용 |
 |------|------|
@@ -401,7 +401,7 @@ POST /api/v1/chat/messages {body: "..."}
 
 ### 현재 설정 파일 구조
 
-```
+```text
 application.yml              ← Git 공개. 공통 최소 (앱 이름, JPA, 서버 포트)
 application-local.yml        ← gitignore. 로컬 전체 (DB, Kafka, JWT, NPC, swagger 열림)
 application-prod.yml         ← gitignore. 프로덕션 전체 (환경변수 필수, swagger 닫힘, INFO 로그)
@@ -514,7 +514,7 @@ docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 
 | Bugs (백엔드) | **Error Prone + NullAway** — 컴파일 타임 통합, warn 모드 | ✅ |
 | Bugs (프론트엔드) | **ESLint** — `typescript-eslint/strictTypeChecked` + `simple-import-sort` 적용 | ✅ |
 | Architecture | **ArchUnit** — Critical Rule #1, #2 + 레이어 의존 방향 검증 동작 중 | ✅ |
-| Coverage | **JaCoCo** — 라인 커버리지 50% 이상 강제 | ✅ |
+| Coverage | **JaCoCo** — 라인 커버리지 40% 이상 (임시, OpenAI 어댑터 테스트 보강 후 50% 복원 예정) | ✅ |
 | Process | **CodeRabbit** — assertive 프로필, 13개 `path_instructions`, tools 연동 | ✅ |
 | Process | **Husky + lint-staged** — pre-commit: 프론트 Prettier+ESLint + 백엔드 Checkstyle 자동 실행 | ✅ |
 | Process | **GitHub Actions CI** — push/PR 시 Gradle 빌드 + 테스트 자동 실행 | ✅ |

@@ -97,9 +97,11 @@ spring:
       - org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration
 ```
 
+> **[2026-04 업데이트]** 현재는 Testcontainers로 Cassandra를 실제 기동하므로 이 설정은 더 이상 사용하지 않는다. Communication 도메인에서 채팅 메시지 저장에 Cassandra를 사용 중이며, 테스트 환경에서도 Testcontainers가 Cassandra 컨테이너를 띄운다.
+
 classpath에 의존성이 있어도 특정 자동 설정을 끌 수 있다.
 언제 쓰는가:
-- 해당 인프라가 아직 구현되지 않았을 때 (Cassandra: 현재 비즈니스 코드 없음)
+- 해당 인프라가 아직 구현되지 않았을 때
 - 테스트에서 특정 인프라 연결이 필요 없을 때
 - 해당 인프라의 자동 연결이 기동을 방해할 때
 

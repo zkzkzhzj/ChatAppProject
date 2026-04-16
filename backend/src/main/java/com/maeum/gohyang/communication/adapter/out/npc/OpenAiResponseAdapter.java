@@ -19,28 +19,28 @@ import com.maeum.gohyang.communication.domain.NpcConversationContext;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Ollama REST API 기반 NPC 응답 생성 Adapter.
+ * OpenAI Chat Completions API 기반 NPC 응답 생성 Adapter.
  *
- * Ollama의 /api/chat 엔드포인트를 호출하여 LLM 응답을 받는다.
- * Semaphore로 동시 호출 수를 제한하여 GPU 자원을 보호한다.
+ * GPT-4o-mini를 호출하여 NPC 응답을 생성한다.
+ * Semaphore로 동시 호출 수를 제한하여 API rate limit을 보호한다.
  *
- * @see <a href="https://github.com/ollama/ollama/blob/main/docs/api.md">Ollama API Docs</a>
+ * @see <a href="https://platform.openai.com/docs/api-reference/chat">OpenAI Chat API</a>
  */
 @Slf4j
 @Component
-@ConditionalOnProperty(name = "npc.adapter", havingValue = "ollama")
-@EnableConfigurationProperties(OllamaProperties.class)
-public class OllamaResponseAdapter implements GenerateNpcResponsePort {
+@ConditionalOnProperty(name = "npc.adapter", havingValue = "openai")
+@EnableConfigurationProperties(OpenAiProperties.class)
+public class OpenAiResponseAdapter implements GenerateNpcResponsePort {
 
     private static final String FALLBACK_MESSAGE = "아이고, 잠깐 딴 생각을 했나 봐. 다시 한 번 말해줄래?";
 
     private final RestClient restClient;
-    private final OllamaProperties properties;
+    private final OpenAiProperties properties;
     private final Semaphore semaphore;
     private final String systemPrompt;
 
-    public OllamaResponseAdapter(
-            OllamaProperties properties,
+    public OpenAiResponseAdapter(
+            OpenAiProperties properties,
             @org.springframework.beans.factory.annotation.Value("${npc.system-prompt}") String systemPrompt) {
         this.properties = properties;
         this.systemPrompt = systemPrompt;
@@ -50,7 +50,8 @@ public class OllamaResponseAdapter implements GenerateNpcResponsePort {
                 HttpClient.newBuilder().connectTimeout(timeout).build());
         requestFactory.setReadTimeout(timeout);
         this.restClient = RestClient.builder()
-                .baseUrl(properties.baseUrl())
+                .baseUrl("https://api.openai.com")
+                .defaultHeader("Authorization", "Bearer " + properties.apiKey())
                 .requestFactory(requestFactory)
                 .build();
     }
@@ -61,16 +62,16 @@ public class OllamaResponseAdapter implements GenerateNpcResponsePort {
         try {
             acquired = semaphore.tryAcquire(5, TimeUnit.SECONDS);
             if (!acquired) {
-                log.warn("Ollama 동시 호출 한도 초과 — fallback 응답 반환");
+                log.warn("OpenAI 동시 호출 한도 초과 — fallback 응답 반환");
                 return FALLBACK_MESSAGE;
             }
-            return callOllama(context);
+            return callOpenAi(context);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.warn("Ollama 호출 대기 중 인터럽트 — fallback 응답 반환");
+            log.warn("OpenAI 호출 대기 중 인터럽트 — fallback 응답 반환");
             return FALLBACK_MESSAGE;
         } catch (Exception e) {
-            log.error("Ollama 호출 실패 — fallback 응답 반환, error={}", e.getMessage(), e);
+            log.error("OpenAI 호출 실패 — fallback 응답 반환, error={}", e.getMessage(), e);
             return FALLBACK_MESSAGE;
         } finally {
             if (acquired) {
@@ -79,7 +80,7 @@ public class OllamaResponseAdapter implements GenerateNpcResponsePort {
         }
     }
 
-    private String callOllama(NpcConversationContext context) {
+    private String callOpenAi(NpcConversationContext context) {
         String systemPrompt = buildSystemPrompt(context);
 
         List<Map<String, String>> messages = List.of(
@@ -90,31 +91,35 @@ public class OllamaResponseAdapter implements GenerateNpcResponsePort {
         Map<String, Object> requestBody = Map.of(
                 "model", properties.model(),
                 "messages", messages,
-                "stream", false,
-                "options", Map.of(
-                        "temperature", 0.7,
-                        "top_p", 0.9,
-                        "num_predict", 80
-                )
+                "temperature", 0.7,
+                "top_p", 0.9,
+                "max_tokens", 80
         );
 
         @SuppressWarnings("unchecked")
         Map<String, Object> response = restClient.post()
-                .uri("/api/chat")
+                .uri("/v1/chat/completions")
                 .header("Content-Type", "application/json")
                 .body(requestBody)
                 .retrieve()
                 .body(Map.class);
 
         if (response == null) {
-            log.warn("Ollama 응답이 null — fallback 응답 반환");
+            log.warn("OpenAI 응답이 null — fallback 응답 반환");
             return FALLBACK_MESSAGE;
         }
 
         @SuppressWarnings("unchecked")
-        Map<String, String> message = (Map<String, String>) response.get("message");
+        List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+        if (choices == null || choices.isEmpty()) {
+            log.warn("OpenAI 응답에 choices 없음 — fallback 응답 반환");
+            return FALLBACK_MESSAGE;
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, String> message = (Map<String, String>) choices.getFirst().get("message");
         if (message == null || message.get("content") == null) {
-            log.warn("Ollama 응답에 message.content 없음 — fallback 응답 반환");
+            log.warn("OpenAI 응답에 message.content 없음 — fallback 응답 반환");
             return FALLBACK_MESSAGE;
         }
 

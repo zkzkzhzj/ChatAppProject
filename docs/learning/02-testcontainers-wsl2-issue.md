@@ -106,6 +106,10 @@ HealthCheck 같은 인프라 수준 테스트는 임베디드로 충분하다.
 PostgreSQL 전용 기능을 쓰는 도메인 통합 테스트가 필요해지면
 그때 Testcontainers를 별도 슈트(`@Tag("integration")`)로 분리하는 방향으로 간다.
 
+### 후일담 — Testcontainers 2.0.3으로 해결
+
+이 문서 작성 시점에는 Testcontainers를 포기했지만, 이후 Testcontainers 2.0.3 업그레이드에서 WSL2 named pipe 문제가 해결되었다. 현재 프로젝트는 `BaseTestContainers.java`에서 PostgreSQL, Redis, Kafka, Cassandra를 모두 Testcontainers로 기동하고 있다.
+
 ---
 
 ## `~/.testcontainers.properties` 파일에 대해

@@ -78,8 +78,8 @@ clientInboundChannel
     ▼
 StompAuthChannelInterceptor.preSend()
     ├── CONNECT가 아닌 프레임 → 그냥 통과
-    ├── 토큰 없음 → 게스트로 통과 (Principal 미설정)
-    ├── 토큰 유효 → accessor.setUser(authenticatedUser)
+    ├── 토큰 없음 → MessageDeliveryException throw (연결 거부)
+    ├── 토큰 유효 → accessor.setUser(authenticatedUser) (게스트 JWT 포함)
     └── 토큰 만료/위조 → MessageDeliveryException throw
                           → 클라이언트에 STOMP ERROR 프레임 전달
     │
@@ -126,20 +126,32 @@ if (!(principal instanceof AuthenticatedUser user) || user.isGuest()) {
 }
 ```
 
-### 게스트 접속 허용 -- 왜 토큰 없이 CONNECT를 허용하는가
+### 게스트 접속 -- 게스트도 JWT를 발급받아 CONNECT한다
+
+현재 `StompAuthChannelInterceptor`는 토큰이 없으면 `MessageDeliveryException`을 던진다. 즉, 토큰 없이 CONNECT하는 것은 허용되지 않는다.
 
 ```java
 if (authHeaders == null || authHeaders.isEmpty()) {
-    // 토큰 없이 연결 허용 (게스트 접속, 채팅은 불가)
-    return message;
+    throw new MessageDeliveryException("Authorization header is required");
 }
 ```
 
-토큰 없이도 WebSocket 연결 자체는 허용한다. 이렇게 하면:
-- 비로그인 유저도 마을에 들어가서 공개 채팅을 **읽을** 수 있다
-- 메시지를 **보내려고** 하면 `@MessageMapping` 핸들러에서 `Principal`이 null이므로 거부당한다
+대신, 프론트엔드(`useStomp.ts`)에서 토큰이 없으면 `/api/v1/auth/guest` 엔드포인트로 게스트 JWT를 자동 발급받아 STOMP CONNECT 시 전달한다. 게스트 JWT에는 `isGuest=true` 정보가 포함되어 있다.
 
-"읽기는 되고 쓰기는 안 되는" 게스트 모드를 자연스럽게 구현할 수 있다.
+```typescript
+// useStomp.ts — 토큰이 없으면 게스트 JWT를 먼저 발급받는다
+if (!token) {
+  const guestToken = await fetch('/api/v1/auth/guest', { method: 'POST' });
+  token = guestToken.accessToken;
+}
+stompClient.connect({ Authorization: 'Bearer ' + token }, callback);
+```
+
+이렇게 하면:
+- 게스트도 유효한 JWT를 가지고 STOMP CONNECT하므로, 서버 측에서 인증 파이프라인이 일관된다
+- `@MessageMapping` 핸들러에서 `Principal`이 항상 존재하고, `AuthenticatedUser.isGuest()`로 게스트 여부를 판별한다
+- 게스트는 메시지를 **보내려고** 하면 `GuestChatNotAllowedException`으로 거부당한다
+- 게스트도 구독(SUBSCRIBE)을 통해 공개 채팅을 **읽을** 수 있다
 
 ### 인증 이중 체계 -- REST와 STOMP
 

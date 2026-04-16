@@ -13,6 +13,8 @@ out/
 # Environment
 .env
 *.env.local
+**/application-local.yml
+**/application-prod.yml
 
 # OS
 .DS_Store

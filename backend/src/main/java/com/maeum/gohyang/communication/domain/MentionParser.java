@@ -14,7 +14,8 @@ import java.util.regex.Pattern;
  */
 public final class MentionParser {
 
-    private static final Pattern NPC_MENTION = Pattern.compile("@\\[([^]]+)]\\(npc:(\\d+)\\)");
+    private static final Pattern NPC_MENTION =
+            Pattern.compile("@\\[([^]]+)]\\(npc:(\\d+)\\)", Pattern.CASE_INSENSITIVE);
 
     private MentionParser() {
     }

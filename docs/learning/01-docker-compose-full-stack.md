@@ -54,19 +54,11 @@ Spring Boot가 classpath에 `spring-boot-starter-data-cassandra`가 있으면
 Cassandra는 초기 기동에 **60초 이상** 걸리기 때문에, Spring Boot가 준비된 Cassandra를 찾지 못한 것.
 
 ### 해결
-현재 Cassandra를 사용하는 비즈니스 코드가 없으므로 자동 설정을 제외한다.
+현재 Communication 도메인에서 채팅 메시지 저장에 Cassandra를 사용 중이므로 자동 설정 제외 없이 정상 연결한다.
 
-```yaml
-# application-docker.yml
-spring:
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
-```
+> **[2026-04 업데이트]** 초기에는 Cassandra 비즈니스 코드가 없어서 `CassandraAutoConfiguration`을 exclude했으나, 현재는 채팅 메시지 저장에 Cassandra를 실제 사용하므로 exclude가 불필요하다. Testcontainers로 Cassandra를 실제 기동하므로 테스트 환경에서도 exclude 없이 동작한다.
 
-Cassandra 도메인 구현 시 이 exclusion을 제거하고,
-`docker-compose.yml`의 `depends_on`에 Cassandra를 추가한다.
+`docker-compose.yml`의 `depends_on`에 Cassandra가 포함되어 있다.
 
 ### 배운 것
 Spring Boot 자동 설정은 편리하지만, 사용하지 않는 인프라가 classpath에 있으면

@@ -1,29 +1,65 @@
 # 테스트 프로파일 설정.
-# 연결 정보(datasource, redis, kafka)는 BaseTestContainers의 @DynamicPropertySource가 주입한다.
+# 연결 정보(datasource, redis, kafka, cassandra)는 BaseTestContainers의 @DynamicPropertySource가 주입한다.
 # 여기서는 Testcontainers가 다루지 않는 설정만 오버라이드한다.
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+  cassandra:
+    keyspace-name: gohyang
+    local-datacenter: datacenter1
+    schema-action: create_if_not_exists
+
+  kafka:
+    consumer:
+      group-id: gohyang
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+  jpa:
+    show-sql: true
 
 jwt:
   secret: test-only-secret-key-must-be-at-least-256-bits-long-value!!
-
-spring:
-  # Cassandra: Phase 3 (Communication) 구현으로 이제 Testcontainers에서 기동한다.
-  # 연결 정보는 BaseTestContainers의 @DynamicPropertySource가 주입한다.
-
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: true
+  access-token-expiry-ms: 3600000
+  refresh-token-expiry-ms: 604800000
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
   health:
-    # Redis: GenericContainer로 실제 기동되지만 health indicator 연동이 불안정하므로 비활성화.
-    # 실제 Redis 연결 자체는 @DynamicPropertySource로 정상 주입된다.
     redis:
       enabled: false
 
 security:
+  common-public-paths:
+    - /api/v1/auth/register
+    - /api/v1/auth/login
+    - /api/v1/auth/guest
+    - /ws/**
+    - /swagger-ui/**
+    - /swagger-ui.html
+    - /v3/api-docs/**
+    - /webjars/**
   env-public-paths:
     - /actuator/health
+
+village:
+  public-chat-room-id: 1
+  map:
+    max-x: 2400.0
+    max-y: 1600.0
+
+npc:
+  adapter: hardcoded
+  system-prompt: 테스트용 시스템 프롬프트
 
 logging:
   level:

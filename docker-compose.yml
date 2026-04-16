@@ -17,8 +17,8 @@ services:
     container_name: gohyang-postgres
     environment:
       POSTGRES_DB: gohyang
-      POSTGRES_USER: gohyang
-      POSTGRES_PASSWORD: gohyang
+      POSTGRES_USER: ${DB_USERNAME:-gohyang}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-gohyang}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
@@ -94,9 +94,10 @@ services:
     restart: unless-stopped
 
   ollama:
-    # 로컬 LLM 서빙 — Qwen 2.5 7B 기본. GPU 사용 시 NVIDIA Container Toolkit 필요.
-    # 프로필: ollama 서비스 없이 로컬 Ollama를 직접 실행해도 된다.
-    # entrypoint로 서버 시작 후 필요한 모델을 자동 pull한다.
+    # 로컬 LLM 서빙. NPC_ADAPTER=ollama 일 때만 필요.
+    # 명시적으로 프로필을 지정해야 뜸: docker compose --profile ollama up
+    profiles:
+      - ollama
     image: ollama/ollama:latest
     container_name: gohyang-ollama
     entrypoint: ["/bin/bash", "/ollama-entrypoint.sh"]
@@ -132,11 +133,16 @@ services:
     ports:
       - "${APP_PORT:-8080}:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_USERNAME: gohyang
-      SPRING_DATASOURCE_PASSWORD: gohyang
-      # NPC_ADAPTER: ollama로 설정하면 Ollama LLM 사용. 기본값은 hardcoded.
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      DB_HOST: postgres
+      REDIS_HOST: redis
+      CASSANDRA_HOST: cassandra
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      DB_USERNAME: ${DB_USERNAME:-gohyang}
+      DB_PASSWORD: ${DB_PASSWORD:-gohyang}
+      JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-must-be-at-least-256-bits-long!!}
       NPC_ADAPTER: ${NPC_ADAPTER:-hardcoded}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OLLAMA_BASE_URL: http://ollama:11434
     depends_on:
       postgres:

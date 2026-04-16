@@ -229,35 +229,28 @@ NPC가 응답을 생성하는 동안 유저에게 "NPC가 대화 중" 상태를 
 
 - **7B가 부족하다고 느끼는 시점**: NPC 대화 품질에 대한 유저 불만이 쌓이면 14B 또는 클라우드 API(Claude Haiku 등)로 전환을 고려한다. Port 추상화 덕분에 Adapter만 교체하면 된다.
 - **프로덕션에서 로컬 LLM은 현실적인가?**: GPU 서버 비용(A10G 등)과 API 호출 비용을 비교해봐야 한다. 일정 트래픽 이하에서는 API가 더 쌀 수 있다.
-- **NPC별 성격 분화**: 현재는 단일 system prompt이지만, NPC마다 다른 캐릭터 시트가 필요하다. DB에 NPC 프로필을 저장하고, 대화 시 동적으로 system prompt를 구성하는 구조로 발전시킨다.
-- **RAG(검색 증강 생성)**: NPC가 마을의 역사나 이벤트 정보를 알아야 한다면, 단순 프롬프트로는 한계가 있다. 벡터 DB에 마을 정보를 저장하고 RAG로 주입하는 것을 검토한다.
+- **NPC별 성격 분화 (구현 완료)**: DB에 NPC 프로필을 저장하고, 대화 시 동적으로 system prompt를 구성하는 구조가 구현되어 있다.
+- **RAG/시맨틱 검색 (구현 완료)**: 임베딩 검색을 통해 NPC가 마을 정보와 대화 맥락을 참조할 수 있다. 대화 요약 파이프라인도 구현되어 있다.
 - **파인튜닝**: Qwen 2.5는 LoRA 파인튜닝이 가능하다. NPC 말투와 성격을 더 정교하게 만들고 싶다면, 대화 예시 데이터를 모아 파인튜닝하는 것도 선택지다. 다만 파인튜닝은 유지보수 비용이 크므로 프롬프트 엔지니어링을 먼저 최대한 활용한다.
 
 ---
 
-## `GenerateNpcResponsePort` 확장 방향
+## `GenerateNpcResponsePort` 시그니처 (구현 완료)
 
 현재 시그니처:
 ```java
 public interface GenerateNpcResponsePort {
-    String generate(String userMessage);
-}
-```
-
-VILLAGE 타입 공개 채팅을 지원하려면 대화 맥락이 필요하다:
-```java
-public interface GenerateNpcResponsePort {
     String generate(NpcConversationContext context);
 }
-
-// NpcConversationContext에 포함될 것들:
-// - npcId (어떤 NPC에게 말 걸었는가)
-// - userMessage (현재 메시지)
-// - recentHistory (최근 대화 히스토리)
-// - villageId (마을 컨텍스트)
 ```
 
-이 변경은 `HardcodedNpcResponseAdapter`에서 `context.getUserMessage()`만 쓰면 되므로 하위 호환성을 유지할 수 있다.
+`NpcConversationContext`는 다음을 포함한다:
+- npcId (어떤 NPC에게 말 걸었는가)
+- userMessage (현재 메시지)
+- recentHistory (최근 대화 히스토리)
+- villageId (마을 컨텍스트)
+
+`HardcodedNpcResponseAdapter`에서는 `context.getUserMessage()`만 사용하여 하위 호환성을 유지하고 있다.
 
 ---
 

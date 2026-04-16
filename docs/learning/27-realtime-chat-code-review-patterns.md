@@ -16,7 +16,9 @@
 
 ---
 
-## 이슈 1: check-then-act 레이스 컨디션
+## 이슈 1: check-then-act 레이스 컨디션 [해결됨]
+
+> **[해결됨]** `IdempotencyGuard`로 멱등성 문제가 해결되었다.
 
 ### 문제
 
@@ -115,7 +117,9 @@ void execute() {
 
 ---
 
-## 이슈 3: STOMP 메시지 입력값 검증 부재
+## 이슈 3: STOMP 메시지 입력값 검증 부재 [해결됨]
+
+> **[해결됨]** `SendMessageUseCase.Command`의 compact constructor에서 body 검증이 구현되었다.
 
 ### 문제
 
@@ -166,7 +170,9 @@ public record Command(long userId, long chatRoomId, String body) {
 
 ---
 
-## 이슈 4: WebSocket CORS와 REST CORS 불일치
+## 이슈 4: WebSocket CORS와 REST CORS 불일치 [해결됨]
+
+> **[해결됨]** `setAllowedOriginPatterns("*")`는 `setAllowedOrigins("http://localhost:3000", "http://localhost:3001")`로 수정되었다.
 
 ### 문제
 
@@ -174,7 +180,7 @@ public record Command(long userId, long chatRoomId, String body) {
 // REST (SecurityConfig)
 config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3001"));
 
-// WebSocket (WebSocketConfig)
+// WebSocket (WebSocketConfig) — 당시 코드
 registry.addEndpoint("/ws").setAllowedOriginPatterns("*");  // 모든 origin 허용
 ```
 
@@ -196,7 +202,9 @@ app:
 
 ---
 
-## 이슈 5: STOMP 에러 핸들러 미등록
+## 이슈 5: STOMP 에러 핸들러 미등록 [해결됨]
+
+> **[해결됨]** `StompErrorHandler.java`가 구현되어 등록되었다.
 
 ### 문제
 

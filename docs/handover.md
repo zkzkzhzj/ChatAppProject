@@ -414,7 +414,7 @@ docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 
 
 ---
 
-**4/17 — AWS 배포 준비: CORS 외부화 + 메모리 튜닝** 🔧 (uncommitted)
+**4/17 — AWS 배포 준비: CORS 외부화 + 메모리 튜닝** ✅ (커밋 `8865255` 푸시 완료)
 
 | 항목 | 내용 |
 |------|------|
@@ -423,6 +423,23 @@ docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 
 | 설정 추가 | application-test.yml — `app.cors.allowed-origins` 추가 |
 | .env.example | CORS 허용 오리진 + JVM 메모리 튜닝 가이드 추가 |
 | 검증 | `compileJava` + `test` + `checkstyleMain` 전부 통과 |
+
+**4/17 — AWS EC2 서울 리전 배포 + 도메인 연결** ✅
+
+| 항목 | 내용 |
+|------|------|
+| EC2 | ap-northeast-2 (서울), t3.medium (4GB), Ubuntu 24.04, 20GB gp3 |
+| Docker | Docker 29.4.0 + Compose v5.1.3 설치, ubuntu 유저 docker 그룹 추가 |
+| 배포 | 6개 컨테이너 전부 가동 (postgres, redis, cassandra, kafka, app, frontend) |
+| Cassandra | keyspace 수동 생성 필요 (`CREATE KEYSPACE IF NOT EXISTS gohyang`) |
+| NPC | OpenAI API (GPT-4o-mini) 전환 완료 |
+| nginx | 호스트에 직접 설치, 리버스 프록시 — `/api/` → 8080, `/ws` → WebSocket, `/` → 3000 |
+| 도메인 | `ghworld.co` — Cloudflare DNS A 레코드 (@, www), Proxied 모드 |
+| SSL | Cloudflare Flexible SSL — 서버 인증서 불필요 |
+| 비용 | AWS Budgets 월 $40 알림 설정 |
+| 에셋 | `frontend/public/assets/` 8개 파일 scp로 업로드 후 프론트 리빌드 |
+| 학습노트 | `docs/learning/35-aws-ec2-first-deployment.md` |
+| application-local.yml | PR #13에서 삭제된 것 발견 → 복원 (gitignore, CORS 포함) |
 
 ---
 
@@ -441,17 +458,20 @@ docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 
 | docker-compose.prod.yml 삭제, .env 통합 | ✅ |
 | 위험 신호 감지 → 전문 상담 안내 | 미착수 |
 
-### Step 2 — AWS 배포 (단일 서버) ← 진행 중
+### Step 2 — AWS 배포 (단일 서버) ✅
 
 | 작업 | 상태 |
 |------|------|
 | CORS 외부화 (`app.cors.allowed-origins` 프로퍼티) | ✅ |
 | docker-compose 메모리 튜닝 (4GB 서버 대응) | ✅ |
-| EC2 인스턴스 생성 (t3.medium) | 미착수 |
-| Docker + Docker Compose 설치 | 미착수 |
-| repo 클론 + `.env` + `application-prod.yml` 생성 | 미착수 |
-| `SPRING_PROFILES_ACTIVE=prod` docker compose up 확인 | 미착수 |
-| Security Group 설정 (80/443/8080 만 개방) | 미착수 |
+| EC2 인스턴스 생성 (t3.medium, 서울 리전) | ✅ |
+| Docker + Docker Compose 설치 | ✅ |
+| repo 클론 + `.env` + `application-prod.yml` 생성 | ✅ |
+| `SPRING_PROFILES_ACTIVE=prod` docker compose up 확인 | ✅ |
+| Security Group 설정 (22/80/443/3000/8080) | ✅ |
+| nginx 리버스 프록시 (포트 없이 접속) | ✅ |
+| 도메인 연결 (ghworld.co + Cloudflare SSL) | ✅ |
+| OpenAI NPC 전환 | ✅ |
 
 ### Step 3 — 1차 부하 테스트 (병목 찾기)
 

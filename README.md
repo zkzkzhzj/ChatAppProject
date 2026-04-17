@@ -1,6 +1,8 @@
-# 마음의 고향
+# ghworld — 마음의 고향
 
 > 대화가 그리운 사람을 위한 장소 기반 의사소통 서비스
+
+**https://ghworld.co**
 
 누군가의 온기가 필요할 때, 고향에 온 듯한 편안함을 느끼며 대화할 수 있는 **마을**을 제공한다.
 인터랙티브 2D 공간에서 캐릭터가 마을을 돌아다니고, 자기 공간을 꾸미며, 이웃(유저 또는 AI 주민)과 자연스럽게 소통하는 서비스다.
@@ -17,11 +19,12 @@
 | @멘션 NPC | 채팅에서 `@마을 주민`으로 NPC에게 말 걸기 | ✅ 구현 완료 |
 | 실시간 위치 공유 | STOMP 기반 캐릭터 위치 broadcast + 입퇴장 감지 | ✅ 구현 완료 |
 | 타이핑 인디케이터 | 상대방 입력 중 표시 | ✅ 구현 완료 |
-| AI NPC | Ollama 로컬 LLM (exaone3.5:7.8b) + 시맨틱 검색 대화 맥락 유지 | ✅ 구현 완료 |
+| AI NPC | OpenAI GPT-4o-mini + 시맨틱 검색 대화 맥락 유지 (개발: Ollama EXAONE 3.5) | ✅ 구현 완료 |
 | 대화 요약 | Kafka → LLM 요약 → pgvector 임베딩 저장. 3회 누적 시 자동 트리거 | ✅ 구현 완료 |
 | 공간 꾸미기 | 아이템으로 내 집을 꾸미는 경험 | 미착수 |
 | 포인트/아이템 | 포인트 획득 → 아이템 구매 → 인벤토리 | 미착수 |
 | 음성/화면 공유 | WebRTC 기반 | 미착수 |
+| AWS 배포 | EC2 서울 리전 + nginx + Cloudflare SSL | ✅ 운영 중 |
 
 ---
 
@@ -162,7 +165,8 @@ ChatAppProject/
 │   ├── specs/                  # API/WebSocket/이벤트 명세
 │   ├── conventions/            # 코딩/테스팅/Git 컨벤션
 │   ├── wiki/                   # 시스템 동작 원리
-│   ├── learning/               # 기술 학습 노트 (34건)
+│   ├── feedback/               # 유저 피드백 & 기술 부채 트래커
+│   ├── learning/               # 기술 학습 노트 (35건)
 │   └── planning/               # 기획, Phase 로드맵
 ├── llm-test/                   # LLM 모델 비교 테스트
 └── docker-compose.yml          # 전체 인프라 + 서버 구성
@@ -186,3 +190,4 @@ ChatAppProject/
 | Git 전략 | `docs/conventions/git.md` |
 | 기술 학습 노트 | `docs/learning/` |
 | Phase 로드맵 | `docs/planning/phases.md` |
+| 유저 피드백 | `docs/feedback/` |

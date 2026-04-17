@@ -414,6 +414,18 @@ docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 
 
 ---
 
+**4/17 — AWS 배포 준비: CORS 외부화 + 메모리 튜닝** 🔧 (uncommitted)
+
+| 항목 | 내용 |
+|------|------|
+| CORS 외부화 | `SecurityConfig`, `WebSocketConfig` — `localhost` 하드코딩 → `@Value("${app.cors.allowed-origins}")` 프로퍼티 주입 |
+| 메모리 튜닝 | docker-compose.yml — `CASSANDRA_MAX_HEAP`, `KAFKA_HEAP_OPTS`, `JAVA_TOOL_OPTIONS` 환경변수 추가 (t3.medium 4GB 대응) |
+| 설정 추가 | application-test.yml — `app.cors.allowed-origins` 추가 |
+| .env.example | CORS 허용 오리진 + JVM 메모리 튜닝 가이드 추가 |
+| 검증 | `compileJava` + `test` + `checkstyleMain` 전부 통과 |
+
+---
+
 ## 다음 할 것 — 프로덕션 로드맵
 
 ### Step 1 — 상용 API 어댑터 (Phase 5 완성) ✅ (PR #13)
@@ -429,15 +441,16 @@ docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 
 | docker-compose.prod.yml 삭제, .env 통합 | ✅ |
 | 위험 신호 감지 → 전문 상담 안내 | 미착수 |
 
-### Step 2 — AWS 배포 (단일 서버) ← 다음 작업
+### Step 2 — AWS 배포 (단일 서버) ← 진행 중
 
 | 작업 | 상태 |
 |------|------|
+| CORS 외부화 (`app.cors.allowed-origins` 프로퍼티) | ✅ |
+| docker-compose 메모리 튜닝 (4GB 서버 대응) | ✅ |
 | EC2 인스턴스 생성 (t3.medium) | 미착수 |
 | Docker + Docker Compose 설치 | 미착수 |
-| repo 클론 + `.env` + `application-local.yml` 생성 | 미착수 |
-| `SPRING_PROFILES_ACTIVE=prod` + `application-prod.yml` 수동 생성 | 미착수 |
-| `docker compose up -d --build` 정상 기동 확인 | 미착수 |
+| repo 클론 + `.env` + `application-prod.yml` 생성 | 미착수 |
+| `SPRING_PROFILES_ACTIVE=prod` docker compose up 확인 | 미착수 |
 | Security Group 설정 (80/443/8080 만 개방) | 미착수 |
 
 ### Step 3 — 1차 부하 테스트 (병목 찾기)

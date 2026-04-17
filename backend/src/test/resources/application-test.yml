@@ -61,6 +61,10 @@ npc:
   adapter: hardcoded
   system-prompt: 테스트용 시스템 프롬프트
 
+app:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:3001
+
 logging:
   level:
     com.maeum.gohyang: DEBUG

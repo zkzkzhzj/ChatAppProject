@@ -103,9 +103,12 @@ jobs:
           tags: |
             ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
             ${{ env.IMAGE_FRONTEND }}:latest
+          # NEXT_PUBLIC_* 는 빌드 타임에 Next.js 번들에 인라인된다.
+          # staging/prod 분리 시 환경별 vars로 오버라이드하려면 이 build-args를
+          # `${{ vars.NEXT_PUBLIC_API_URL }}` 형태로 바꾸면 된다. 지금은 단일 환경(prod)이라 하드코딩.
           build-args: |
-            NEXT_PUBLIC_API_URL=https://ghworld.co
-            NEXT_PUBLIC_WS_URL=https://ghworld.co/ws
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'https://ghworld.co' }}
+            NEXT_PUBLIC_WS_URL=${{ vars.NEXT_PUBLIC_WS_URL || 'https://ghworld.co/ws' }}
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
 
@@ -128,38 +131,45 @@ jobs:
       - name: 배포 태그 결정
         id: tags
         run: |
-          # 변경되지 않은 영역은 이전 sha가 아니라 현재 sha를 사용.
-          # 이유: docker compose pull은 "image:TAG" 이름이 로컬에 있으면 스킵하지만,
-          # 없으면 에러. 양쪽 다 현재 sha로 지정해두면 변경 없는 쪽도 안전하게 동작함
-          # (GHCR에 이미 올라간 동일 sha 이미지를 찾거나, latest fallback).
-          echo "app_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-          echo "frontend_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          # 빌드가 성공한 컴포넌트만 현재 sha 태그로 배포.
+          # 스킵된(변경 없는) 컴포넌트는 빈 문자열을 넘겨 deploy.sh가 현재 실행 중인 태그를 유지하게 함.
+          # (latest fallback은 이전 실패 배포가 남긴 bad 이미지를 가리킬 수 있어 비결정적)
+          if [ "${{ needs.build-backend.result }}" = "success" ]; then
+            echo "app_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "app_tag=" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "${{ needs.build-frontend.result }}" = "success" ]; then
+            echo "frontend_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "frontend_tag=" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: SSM으로 배포 명령 실행
         id: ssm
         env:
+          COMMIT_SHA: ${{ github.sha }}
           APP_TAG: ${{ steps.tags.outputs.app_tag }}
           FRONTEND_TAG: ${{ steps.tags.outputs.frontend_tag }}
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
         run: |
           set -euo pipefail
 
-          # backend가 skip됐는데 frontend만 변경됐을 때도 APP_TAG가 GHCR에 없을 수 있음.
-          # → latest 태그로 fallback
-          if [ "${{ needs.build-backend.result }}" != "success" ]; then
-            APP_TAG="latest"
-          fi
-          if [ "${{ needs.build-frontend.result }}" != "success" ]; then
-            FRONTEND_TAG="latest"
-          fi
+          echo "▶ Deploying commit=$COMMIT_SHA APP_TAG=${APP_TAG:-<keep>} FRONTEND_TAG=${FRONTEND_TAG:-<keep>} to $INSTANCE_ID"
 
-          echo "▶ Deploying APP_TAG=$APP_TAG FRONTEND_TAG=$FRONTEND_TAG to $INSTANCE_ID"
+          # deploy.sh 인자를 양끝 따옴표로 감싸 안전 확보.
+          # COMMIT_SHA는 git SHA(hex)라 안전하지만 방어적 quoting.
+          PARAMS=$(jq -n \
+            --arg sha "$COMMIT_SHA" \
+            --arg app "$APP_TAG" \
+            --arg front "$FRONTEND_TAG" \
+            '{commands: ["sudo -u ubuntu bash /home/ubuntu/ChatAppProject/scripts/deploy.sh \"\($sha)\" \"\($app)\" \"\($front)\""]}')
 
           CMD_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --comment "CD ${{ github.sha }}" \
-            --parameters "{\"commands\":[\"sudo -u ubuntu bash /home/ubuntu/ChatAppProject/scripts/deploy.sh $APP_TAG $FRONTEND_TAG\"]}" \
+            --comment "CD $COMMIT_SHA" \
+            --parameters "$PARAMS" \
             --query 'Command.CommandId' \
             --output text)
 

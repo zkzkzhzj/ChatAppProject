@@ -899,6 +899,67 @@ git clean -fd
 - "결정적 상태"는 reset만으로 부족. **clean까지 포함해야 완전체**
 - 병렬 실행이 가능한 CI 환경에서 **명시적 직렬화**는 옵션이 아니라 필수
 
+### 14.7.4 3차 자체 audit — 롤백 경로 안전성
+
+리뷰가 못 잡은 걸 선제적으로 잡으려고 한 번 더 훑어봤다. 세 가지 버그 발견.
+
+**① `docker inspect | awk || echo latest` 패턴의 함정**
+
+```bash
+# 틀린 패턴 (초기 구현)
+PREV_APP_TAG=$(docker inspect ... 2>/dev/null | awk -F: '{print $NF}' || echo "latest")
+```
+
+의도: "inspect 실패 시 latest 사용".
+실제: inspect가 실패해도 **파이프 뒤의 awk가 성공 처리**. awk는 빈 입력에서 exit 0, 빈 출력. `||` 트리거 안 됨. **첫 배포/컨테이너 삭제 상황에서 PREV가 빈 문자열**.
+
+```bash
+# 고친 패턴
+get_current_tag() {
+  local container="$1" image
+  image=$(docker inspect --format='{{.Config.Image}}' "$container" 2>/dev/null || true)
+  if [ -z "$image" ]; then
+    echo "latest"
+  else
+    echo "${image##*:}"
+  fi
+}
+```
+
+파이프 체인으로 exit code를 추적하려면 **`set -o pipefail`**만으로 부족하고, 명시적 검증이 필요할 때가 있다.
+
+**② compose up 자체 실패 시 롤백 미수행**
+
+초기 구현은 헬스체크 실패에만 롤백. `docker compose up`이 이미지 이슈·port conflict·cgroup 오류로 **즉시 실패**하면 `set -e`가 스크립트를 바로 종료 → 롤백 기회 없음 → "새 컨테이너 없음 + 구 컨테이너 stop됨" 반쪽 상태.
+
+```bash
+# 고친 구조
+if ! docker compose up -d --no-deps --no-build app frontend; then
+  log "❌ docker compose up 실패. 롤백 수행."
+  rollback
+  exit 1
+fi
+```
+
+**③ 롤백 `compose up`도 `set -e`에 당하면 로그 유실**
+
+롤백 시도 자체가 실패하면 "수동 개입 필요" 로그를 찍을 기회도 없이 스크립트가 죽는다. 롤백 함수로 분리하고 각 단계마다 exit code 체크:
+
+```bash
+rollback() {
+  if ! docker compose up -d --no-deps --no-build app frontend; then
+    log "⚠ 롤백 compose up 자체 실패. 수동 개입 필요."
+    return 1
+  fi
+  ...
+}
+```
+
+**배운 점**:
+- **파이프 체인의 exit 전파**는 직관과 다르다. 끝 단계의 성공이 앞 단계 실패를 가린다
+- **`set -e`는 "기본 실패 처리"지만 분기가 필요한 지점은 명시적 `if !`로 랩핑**해야 함
+- **롤백 경로 자체가 실패할 가능성**을 항상 염두에 두고 로그 visibility를 보존할 것
+
 ### 14.8 배포 완료 폴링 패턴
 
 SSM SendCommand는 비동기다. GitHub Actions는 polling으로 완료를 기다려야 함.

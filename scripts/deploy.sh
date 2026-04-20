@@ -42,6 +42,11 @@ log() {
   echo "[deploy $(date +%H:%M:%S)] $*"
 }
 
+die() {
+  log "$*"
+  exit 1
+}
+
 check_health() {
   # 백엔드와 프론트엔드 모두 OK일 때만 성공.
   curl --connect-timeout "$HEALTH_CONNECT_TIMEOUT" --max-time "$HEALTH_MAX_TIME" \
@@ -50,11 +55,55 @@ check_health() {
             -sfo /dev/null "$FRONTEND_HEALTH_URL" 2>/dev/null
 }
 
-cd "$REPO_DIR"
+# 컨테이너가 존재하면 실행 중 이미지의 태그를, 없으면 "latest"를 반환.
+# (docker inspect 실패 시 awk에 빈 입력이 가는데 awk는 성공 반환하므로
+#  단순 `inspect | awk || echo latest` 패턴은 안 동작한다. 명시적으로 체크.)
+get_current_tag() {
+  local container="$1"
+  local image
+  image=$(docker inspect --format='{{.Config.Image}}' "$container" 2>/dev/null || true)
+  if [ -z "$image" ]; then
+    echo "latest"
+  else
+    echo "${image##*:}"
+  fi
+}
+
+poll_health() {
+  local retries="$1"
+  local label="$2"
+  local i
+  for i in $(seq 1 "$retries"); do
+    if check_health; then
+      log "✅ $label 헬스체크 통과. (시도 $i회)"
+      return 0
+    fi
+    sleep "$SLEEP_SEC"
+  done
+  return 1
+}
+
+rollback() {
+  log "▶ 이전 태그로 롤백 시도: APP_TAG=$PREV_APP_TAG FRONTEND_TAG=$PREV_FRONTEND_TAG"
+  export APP_TAG="$PREV_APP_TAG"
+  export FRONTEND_TAG="$PREV_FRONTEND_TAG"
+  if ! docker compose up -d --no-deps --no-build app frontend; then
+    log "⚠ 롤백 compose up 자체 실패. 수동 개입 필요."
+    return 1
+  fi
+  if poll_health 15 "롤백"; then
+    log "✅ 롤백 성공. 이전 버전으로 복구됨."
+    return 0
+  fi
+  log "⚠ 롤백 이후에도 헬스체크 실패. 수동 개입 필요."
+  return 1
+}
+
+cd "$REPO_DIR" || die "❌ REPO_DIR 없음: $REPO_DIR"
 
 log "▶ 현재 실행 중인 이미지 태그 기록 (롤백 + skipped 컴포넌트 유지)"
-PREV_APP_TAG=$(docker inspect --format='{{.Config.Image}}' gohyang-app 2>/dev/null | awk -F: '{print $NF}' || echo "latest")
-PREV_FRONTEND_TAG=$(docker inspect --format='{{.Config.Image}}' gohyang-frontend 2>/dev/null | awk -F: '{print $NF}' || echo "latest")
+PREV_APP_TAG=$(get_current_tag gohyang-app)
+PREV_FRONTEND_TAG=$(get_current_tag gohyang-frontend)
 log "  이전 APP_TAG=$PREV_APP_TAG"
 log "  이전 FRONTEND_TAG=$PREV_FRONTEND_TAG"
 
@@ -66,43 +115,32 @@ FRONTEND_TAG="${FRONTEND_TAG_INPUT:-$PREV_FRONTEND_TAG}"
 log "▶ 이 배포가 기반할 커밋: $COMMIT_SHA"
 log "  적용 APP_TAG=$APP_TAG FRONTEND_TAG=$FRONTEND_TAG"
 
-log "▶ 정확한 SHA로 체크아웃 (main 헤드 이동 방지)"
-git fetch origin "$COMMIT_SHA"
-git reset --hard "$COMMIT_SHA"
+log "▶ 정확한 SHA로 체크아웃 (main 헤드 이동 방지) + 작업트리 정리"
+git fetch origin "$COMMIT_SHA" || die "❌ git fetch 실패"
+git reset --hard "$COMMIT_SHA" || die "❌ git reset 실패"
 # reset은 tracked 파일만 되돌린다. 남아있는 untracked 파일
 # (예: 이전 수동 디버깅 중 만든 docker-compose.override.yml)이 다음 배포를 오염시킬 수 있으므로 제거.
-git clean -fd
+git clean -fd || die "❌ git clean 실패"
 
 log "▶ 새 이미지 pull"
 export APP_TAG FRONTEND_TAG
-docker compose pull app frontend
+if ! docker compose pull app frontend; then
+  die "❌ docker compose pull 실패 — 배포 중단 (현재 실행 중 컨테이너는 유지됨)"
+fi
 
 log "▶ app/frontend 재기동 (stateful 컨테이너는 유지)"
-docker compose up -d --no-deps --no-build app frontend
+if ! docker compose up -d --no-deps --no-build app frontend; then
+  log "❌ docker compose up 실패. 롤백 수행."
+  rollback
+  exit 1
+fi
 
 log "▶ 헬스체크 폴링 (백엔드 + 프론트엔드, 최대 $((MAX_RETRIES * SLEEP_SEC))초)"
-for i in $(seq 1 $MAX_RETRIES); do
-  if check_health; then
-    log "✅ 백엔드·프론트엔드 헬스체크 통과. 배포 성공. (시도 $i회)"
-    exit 0
-  fi
-  sleep $SLEEP_SEC
-done
+if poll_health "$MAX_RETRIES" "본 배포"; then
+  log "🎉 배포 성공."
+  exit 0
+fi
 
-log "❌ 헬스체크 실패. 이전 태그로 롤백."
-log "  롤백 APP_TAG=$PREV_APP_TAG FRONTEND_TAG=$PREV_FRONTEND_TAG"
-export APP_TAG=$PREV_APP_TAG
-export FRONTEND_TAG=$PREV_FRONTEND_TAG
-docker compose up -d --no-deps --no-build app frontend
-
-log "롤백 후 헬스체크 재확인"
-for i in $(seq 1 15); do
-  if check_health; then
-    log "✅ 롤백 성공. 이전 버전으로 복구됨. (시도 $i회)"
-    exit 1
-  fi
-  sleep $SLEEP_SEC
-done
-
-log "⚠ 롤백 이후에도 헬스체크 실패. 수동 개입 필요."
+log "❌ 헬스체크 실패. 롤백 수행."
+rollback
 exit 1

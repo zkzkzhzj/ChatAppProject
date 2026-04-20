@@ -620,7 +620,7 @@ flowchart LR
 
 ### 공식 문서
 
-- [GitHub Actions — Deploying to Amazon EC2](https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-amazon-elastic-container-service)
+- [GitHub Actions — Deploying with AWS (OIDC 포함)](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)
 - [AWS SSM Run Command](https://docs.aws.amazon.com/systems-manager/latest/userguide/execute-remote-commands.html)
 - [GHCR — Working with the Container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
 - [Docker Compose — the --no-deps option](https://docs.docker.com/reference/cli/docker/compose/up/)
@@ -861,6 +861,43 @@ APP_TAG="${APP_TAG_INPUT:-$PREV_APP_TAG}"
 ```
 
 **배운 점**: `latest` 태그는 **"지금 무엇이 가리키는지 모호"**한 움직이는 타겟이다. 결정적 배포에서는 sha 고정이 원칙.
+
+### 14.7.3 2차 리뷰 — 동시 배포·타임아웃·untracked 파일
+
+2차 CodeRabbit 리뷰에서 운영 안전성 관련 3가지가 추가로 지적됨.
+
+**① 동시 배포 직렬화 (Critical)**
+
+```yaml
+# .github/workflows/deploy.yml
+concurrency:
+  group: prod-deploy
+  cancel-in-progress: false
+```
+
+`main`에 연속 푸시가 들어오면 두 워크플로우가 병렬로 돌며 **같은 EC2에서 두 `deploy.sh`가 서로의 `git reset`·`docker compose up`·롤백을 덮어쓰는** 레이스가 가능. GitHub Actions의 `concurrency`로 동일 그룹 내 직렬화. **`cancel-in-progress: false`**가 중요 — 진행 중 배포를 취소하면 중간 상태로 서비스가 멈출 수 있다.
+
+**② 헬스체크 curl 타임아웃**
+
+```bash
+curl --connect-timeout 1 --max-time 2 -sf ...
+```
+
+기본 curl은 타임아웃이 없어 **컨테이너가 응답 없이 매달리면** 한 번의 `check_health`가 수분 걸릴 수 있음 → `MAX_RETRIES * SLEEP_SEC` 예산(90초)이 무력화. 개별 요청에 짧은 타임아웃을 두어 실패를 빠르게 감지.
+
+**③ `git reset` 후 `git clean -fd`**
+
+```bash
+git reset --hard "$COMMIT_SHA"
+git clean -fd
+```
+
+`git reset --hard`는 **tracked 파일만** 되돌린다. EC2에 남은 untracked 파일(예: 디버깅 중 만든 `docker-compose.override.yml`)은 그대로 살아남아 다음 배포를 오염시킴. `git clean -fd`로 완전히 결정적 상태 확보.
+
+**배운 점 종합**:
+- "빠른 실패"와 "예산 준수"를 위해 **모든 네트워크 호출에 타임아웃**
+- "결정적 상태"는 reset만으로 부족. **clean까지 포함해야 완전체**
+- 병렬 실행이 가능한 CI 환경에서 **명시적 직렬화**는 옵션이 아니라 필수
 
 ### 14.8 배포 완료 폴링 패턴
 

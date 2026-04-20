@@ -33,6 +33,10 @@ BACKEND_HEALTH_URL="http://localhost:8080/actuator/health"
 FRONTEND_HEALTH_URL="http://localhost:3000/"
 MAX_RETRIES=45
 SLEEP_SEC=2
+# 컨테이너가 올라오는 동안 응답이 멈추면 curl이 무한정 대기할 수 있다.
+# SLEEP_SEC 예산을 지키려면 개별 HTTP 요청에도 타임아웃이 필요.
+HEALTH_CONNECT_TIMEOUT=1
+HEALTH_MAX_TIME=2
 
 log() {
   echo "[deploy $(date +%H:%M:%S)] $*"
@@ -40,8 +44,10 @@ log() {
 
 check_health() {
   # 백엔드와 프론트엔드 모두 OK일 때만 성공.
-  curl -sf "$BACKEND_HEALTH_URL" 2>/dev/null | grep -q '"status":"UP"' \
-    && curl -sfo /dev/null "$FRONTEND_HEALTH_URL" 2>/dev/null
+  curl --connect-timeout "$HEALTH_CONNECT_TIMEOUT" --max-time "$HEALTH_MAX_TIME" \
+       -sf "$BACKEND_HEALTH_URL" 2>/dev/null | grep -q '"status":"UP"' \
+    && curl --connect-timeout "$HEALTH_CONNECT_TIMEOUT" --max-time "$HEALTH_MAX_TIME" \
+            -sfo /dev/null "$FRONTEND_HEALTH_URL" 2>/dev/null
 }
 
 cd "$REPO_DIR"
@@ -63,6 +69,9 @@ log "  적용 APP_TAG=$APP_TAG FRONTEND_TAG=$FRONTEND_TAG"
 log "▶ 정확한 SHA로 체크아웃 (main 헤드 이동 방지)"
 git fetch origin "$COMMIT_SHA"
 git reset --hard "$COMMIT_SHA"
+# reset은 tracked 파일만 되돌린다. 남아있는 untracked 파일
+# (예: 이전 수동 디버깅 중 만든 docker-compose.override.yml)이 다음 배포를 오염시킬 수 있으므로 제거.
+git clean -fd
 
 log "▶ 새 이미지 pull"
 export APP_TAG FRONTEND_TAG

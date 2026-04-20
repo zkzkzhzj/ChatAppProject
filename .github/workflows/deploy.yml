@@ -1,5 +1,12 @@
 name: CD
 
+# 같은 EC2에 두 배포가 동시에 실행되면 서로의 git reset·docker up·롤백을 덮어쓴다.
+# 동일 그룹 내에서 직렬화하되, 진행 중 배포는 취소하지 않고 큐잉한다
+# (cancel-in-progress: false) — 배포 도중 중단되면 중간 상태로 서비스가 멈출 수 있음.
+concurrency:
+  group: prod-deploy
+  cancel-in-progress: false
+
 on:
   push:
     branches: [main]

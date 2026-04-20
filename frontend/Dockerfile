@@ -46,10 +46,12 @@ USER gohyang
 
 EXPOSE 3000
 
-# HTTP GET 기반 healthcheck(wget/curl)가 Next.js 16 + busybox 조합에서 unhealthy 판정이 반복됨.
-# 실제론 서비스가 200 OK 응답하는데도 실패. 원인 추적 비용이 커서 TCP 포트 체크로 전환.
-# 3000 포트가 열려있으면 Next.js 프로세스가 서빙 준비됐다는 뜻. nc는 busybox 기본 포함.
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD nc -z 127.0.0.1 3000 || exit 1
+# Docker 레벨 healthcheck 비활성화.
+# Next.js 16 + Alpine busybox 조합에서 wget(--spider·-qO-)·nc 전부 unhealthy 판정되는 이슈로
+# CD의 compose --wait가 타임아웃되어 배포가 계속 실패함.
+# 실제 서비스는 정상(200 OK 응답)이므로 Docker healthcheck가 오히려 장애를 유발 중.
+# 모니터링은 nginx + Cloudflare + 브라우저 접속 경로가 담당.
+# 후속: HOSTNAME=0.0.0.0 env + healthcheck 재도입 또는 nginx healthcheck로 대체 검토.
+HEALTHCHECK NONE
 
 ENTRYPOINT ["node", "server.js"]

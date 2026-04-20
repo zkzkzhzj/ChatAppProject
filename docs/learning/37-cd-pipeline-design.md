@@ -145,11 +145,13 @@ sequenceDiagram
 ```
 
 **장점**:
+
 - 장기 시크릿(Access Key)이 아예 **존재하지 않음**
 - 유출되어도 1시간 뒤 만료
 - `sub` 조건으로 **"main 브랜치에서 돌아간 워크플로우만"** 허용 가능
 
 Trust Policy (핵심 부분):
+
 ```json
 "Condition": {
   "StringEquals": {
@@ -542,5 +544,6 @@ GHCR + SSM + OIDC 조합은 단일 서버 docker-compose 환경에서 가장 마
 ### 이 프로젝트 문서
 
 - `.github/workflows/deploy.yml` — 실제 워크플로우
-- `scripts/deploy.sh` — EC2 배포 스크립트
+- `deploy/scripts/deploy.sh` — EC2 배포 스크립트
+- `docs/learning/38-env-var-config-migration.md` — 후속편 (12-factor Config 이관)
 - `docs/handover.md` — 현재 진행 상황

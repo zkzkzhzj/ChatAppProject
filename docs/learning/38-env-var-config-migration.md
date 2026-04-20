@@ -144,6 +144,7 @@ application.yml (공개, git committed)
 - `application-prod.yml` (gitignored, 프로덕션 전체 설정)
 
 통합 후:
+
 ```yaml
 # application.yml (유일한 설정 파일, git 공개)
 spring:

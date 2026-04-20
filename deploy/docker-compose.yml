@@ -113,7 +113,8 @@ services:
       - "${OLLAMA_PORT:-11434}:11434"
     volumes:
       - ollama_data:/root/.ollama
-      - ./ollama-entrypoint.sh:/ollama-entrypoint.sh:ro
+      # compose 파일이 deploy/ 하위라 ollama-entrypoint.sh는 레포 루트(상위) 참조.
+      - ../ollama-entrypoint.sh:/ollama-entrypoint.sh:ro
     environment:
       OLLAMA_NUM_PARALLEL: 2
       OLLAMA_PULL_MODELS: ${OLLAMA_PULL_MODELS:-exaone3.5:7.8b nomic-embed-text}

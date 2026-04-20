@@ -1,0 +1,233 @@
+name: CD
+
+# 같은 EC2에 두 배포가 동시에 실행되면 서로의 git reset·docker up·롤백을 덮어쓴다.
+# 동일 그룹 내에서 직렬화하되, 진행 중 배포는 취소하지 않고 큐잉한다
+# (cancel-in-progress: false) — 배포 도중 중단되면 중간 상태로 서비스가 멈출 수 있음.
+concurrency:
+  group: prod-deploy
+  cancel-in-progress: false
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.claude/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - 'llm-test/**'
+  workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: '변경 감지 무시하고 강제 재빌드'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write    # OIDC 토큰 발급
+  contents: read
+  packages: write    # GHCR push
+
+env:
+  AWS_REGION: ap-northeast-2
+  IMAGE_APP: ghcr.io/zkzkzhzj/gohyang-app
+  IMAGE_FRONTEND: ghcr.io/zkzkzhzj/gohyang-frontend
+
+jobs:
+  detect-changes:
+    name: 변경 영역 감지
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'docker-compose.yml'
+              - 'scripts/deploy.sh'
+              - '.github/workflows/deploy.yml'
+            frontend:
+              - 'frontend/**'
+              - 'docker-compose.yml'
+              - '.github/workflows/deploy.yml'
+
+  build-backend:
+    name: Backend 이미지 빌드
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true' || inputs.force_rebuild
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: GHCR 로그인
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Backend 이미지 빌드·푸시
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.IMAGE_APP }}:${{ github.sha }}
+            ${{ env.IMAGE_APP }}:latest
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+  build-frontend:
+    name: Frontend 이미지 빌드
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true' || inputs.force_rebuild
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: GHCR 로그인
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Frontend 이미지 빌드·푸시
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+            ${{ env.IMAGE_FRONTEND }}:latest
+          # NEXT_PUBLIC_* 는 빌드 타임에 Next.js 번들에 인라인된다.
+          # staging/prod 분리 시 환경별 vars로 오버라이드하려면 이 build-args를
+          # `${{ vars.NEXT_PUBLIC_API_URL }}` 형태로 바꾸면 된다. 지금은 단일 환경(prod)이라 하드코딩.
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'https://ghworld.co' }}
+            NEXT_PUBLIC_WS_URL=${{ vars.NEXT_PUBLIC_WS_URL || 'https://ghworld.co/ws' }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+  deploy:
+    name: EC2 배포 (SSM)
+    needs: [detect-changes, build-backend, build-frontend]
+    if: |
+      always() &&
+      (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
+      (needs.build-frontend.result == 'success' || needs.build-frontend.result == 'skipped') &&
+      (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true' || inputs.force_rebuild)
+    runs-on: ubuntu-latest
+    steps:
+      - name: AWS 자격 증명 (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 배포 태그 결정
+        id: tags
+        run: |
+          # 빌드가 성공한 컴포넌트만 현재 sha 태그로 배포.
+          # 스킵된(변경 없는) 컴포넌트는 빈 문자열을 넘겨 deploy.sh가 현재 실행 중인 태그를 유지하게 함.
+          # (latest fallback은 이전 실패 배포가 남긴 bad 이미지를 가리킬 수 있어 비결정적)
+          if [ "${{ needs.build-backend.result }}" = "success" ]; then
+            echo "app_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "app_tag=" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "${{ needs.build-frontend.result }}" = "success" ]; then
+            echo "frontend_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "frontend_tag=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: SSM으로 배포 명령 실행
+        id: ssm
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          APP_TAG: ${{ steps.tags.outputs.app_tag }}
+          FRONTEND_TAG: ${{ steps.tags.outputs.frontend_tag }}
+          INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+        run: |
+          set -euo pipefail
+
+          echo "▶ Deploying commit=$COMMIT_SHA APP_TAG=${APP_TAG:-<keep>} FRONTEND_TAG=${FRONTEND_TAG:-<keep>} to $INSTANCE_ID"
+
+          # deploy.sh 인자를 양끝 따옴표로 감싸 안전 확보.
+          # COMMIT_SHA는 git SHA(hex)라 안전하지만 방어적 quoting.
+          PARAMS=$(jq -n \
+            --arg sha "$COMMIT_SHA" \
+            --arg app "$APP_TAG" \
+            --arg front "$FRONTEND_TAG" \
+            '{commands: ["sudo -u ubuntu bash /home/ubuntu/ChatAppProject/scripts/deploy.sh \"\($sha)\" \"\($app)\" \"\($front)\""]}')
+
+          CMD_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "CD $COMMIT_SHA" \
+            --parameters "$PARAMS" \
+            --query 'Command.CommandId' \
+            --output text)
+
+          echo "Command ID: $CMD_ID"
+          echo "command_id=$CMD_ID" >> "$GITHUB_OUTPUT"
+
+      - name: 배포 완료 대기 + 로그 수집
+        env:
+          INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+          CMD_ID: ${{ steps.ssm.outputs.command_id }}
+        run: |
+          set -euo pipefail
+
+          for i in $(seq 1 60); do
+            STATUS=$(aws ssm get-command-invocation \
+              --command-id "$CMD_ID" \
+              --instance-id "$INSTANCE_ID" \
+              --query 'Status' \
+              --output text 2>/dev/null || echo "Pending")
+
+            echo "[$i/60] Status: $STATUS"
+
+            case "$STATUS" in
+              Success)
+                echo "── stdout ──"
+                aws ssm get-command-invocation \
+                  --command-id "$CMD_ID" \
+                  --instance-id "$INSTANCE_ID" \
+                  --query 'StandardOutputContent' \
+                  --output text
+                exit 0
+                ;;
+              Failed|Cancelled|TimedOut)
+                echo "── stdout ──"
+                aws ssm get-command-invocation \
+                  --command-id "$CMD_ID" \
+                  --instance-id "$INSTANCE_ID" \
+                  --query 'StandardOutputContent' \
+                  --output text || true
+                echo "── stderr ──"
+                aws ssm get-command-invocation \
+                  --command-id "$CMD_ID" \
+                  --instance-id "$INSTANCE_ID" \
+                  --query 'StandardErrorContent' \
+                  --output text || true
+                exit 1
+                ;;
+            esac
+
+            sleep 10
+          done
+
+          echo "❌ 배포 타임아웃 (10분)"
+          exit 1

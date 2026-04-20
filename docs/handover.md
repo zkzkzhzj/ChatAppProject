@@ -5,7 +5,7 @@
 
 ---
 
-## 현재 상태 (2026-04-17 기준, 13차 업데이트)
+## 현재 상태 (2026-04-20 기준, 16차 업데이트)
 
 ### ✅ Happy Path 완료 (Phase 0 ~ Phase 3 + 마을 공개 채팅) — PR #7 머지 완료
 
@@ -424,6 +424,76 @@ docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 
 | .env.example | CORS 허용 오리진 + JVM 메모리 튜닝 가이드 추가 |
 | 검증 | `compileJava` + `test` + `checkstyleMain` 전부 통과 |
 
+**4/19 — 발표 리뷰 피드백: NPC 대화 엔지니어링 방향 정리** 🔧 (구현 미착수, 기록만)
+
+| 항목 | 내용 |
+|------|------|
+| 맥락 | 발표 후 리뷰 — "NPC 대화가 GPT 프록시 수준이라 중간 서버가 있는 이유가 약하다" |
+| 리뷰 키워드 | 디바운스, 단발성 타자, 동시성, 메시지 요약, 메시지 검증/커스텀, "모르는 것을 잘 이야기하기" |
+| 학습 노트 | `docs/learning/36-npc-conversation-engineering-patterns.md` |
+| 정리한 4개 축 | A) 입력 측(디바운스·배칭·동시성 3전략) B) 컨텍스트 측(요약·페르소나 주입) C) 검증/필터 측(사전/사후·"모르는 것" 표현) D) 캐싱 측(pgvector semantic cache) |
+| 추후 처리란 | 우선순위 결정 3건 + 설계 결정 9건 체크리스트로 보존 — 다음 세션에서 바로 꺼내쓸 수 있게 |
+| 현재 상태 | 구현 미착수. 유저가 별도 작업을 우선 진행할 예정 |
+
+**4/20 — CD 파이프라인 설계·구현 (Week 7 Step A)** ✅ (Phase 1·2 완료, Phase 3 테스트 대기)
+
+| 항목 | 내용 |
+|------|------|
+| 맥락 | Week 7 Assetization 스프린트. 부하 테스트 사이클 단축 위해 CD 우선 |
+| 옵션 비교 | 8개 옵션 → **B(GHCR) + E(SSM) + paths-filter + OIDC** 채택 |
+| 인증 전환 | Access Key → **GitHub Actions OIDC Federation**. 장기 시크릿 제거 |
+| 태깅 전략 | sha + latest 이중 태그. 롤백은 sha 재지정 |
+| 조건부 빌드 | dorny/paths-filter로 backend/frontend 변경 감지. docs만 바뀌면 전체 스킵 |
+| 배포 전략 | Recreate(2~5초 다운타임). `--no-deps --no-build`로 stateful 보호 |
+| 롤백 | 헬스체크 실패 시 이전 sha 태그로 자동 복구 |
+| 헬스체크 | 백엔드(`/actuator/health`) + 프론트엔드(`:3000/`) 양쪽 검증 |
+| 학습 노트 | `docs/learning/37-cd-pipeline-design.md` — 15개 섹션, 설계+구현 통합 |
+
+### Phase 1 — AWS 콘솔 + GitHub 준비 ✅ 완료
+
+| # | 작업 | 상태 |
+|---|------|:-:|
+| 1 | Elastic IP 할당 + Cloudflare DNS 갱신 | ✅ |
+| 2 | EC2 IAM Role (`AmazonSSMManagedInstanceCore`) | ✅ |
+| 3 | SSM Agent Online 확인 | ✅ |
+| 4 | OIDC Identity Provider + `GitHubActionsDeployRole` + 정책 | ✅ |
+| 5 | GHCR Classic PAT (`read:packages`) | ✅ |
+| 6 | GitHub Secrets 4개: `AWS_DEPLOY_ROLE_ARN`, `AWS_REGION`, `EC2_INSTANCE_ID`, `GHCR_PAT` | ✅ |
+| 7 | EC2에서 `docker login ghcr.io` | ✅ |
+
+### Phase 2 — 코드 작성 ✅ 완료
+
+| 파일 | 변경 |
+|------|------|
+| `docker-compose.yml` | app/frontend에 `image: ghcr.io/zkzkzhzj/gohyang-app:${APP_TAG:-latest}` 추가 (build 블록 유지) |
+| `.env.example` | `APP_TAG`, `FRONTEND_TAG` 주석 추가 |
+| `scripts/deploy.sh` | 신규. 이전 태그 기록 → git reset → pull → up → 양쪽 헬스체크 → 실패 시 자동 롤백 |
+| `.github/workflows/deploy.yml` | 신규. OIDC + paths-filter + 조건부 빌드 + SSM SendCommand + 10분 폴링 |
+
+### Phase 3 — 실전 검증 (다음 세션 또는 PR 머지 후)
+
+| # | 작업 | 담당 |
+|---|------|------|
+| 1 | 이 PR을 main에 머지 | 유저 |
+| 2 | EC2 Session Manager로 접속 → `cd ChatAppProject && git reset --hard origin/main && chmod +x scripts/deploy.sh` | 유저 |
+| 3 | GitHub Actions → CD → **Run workflow** → `force_rebuild: true` 체크 → Run | 유저 |
+| 4 | Actions 로그 관찰 (빌드 시간·배포 시간·실패 여부) | 유저 + 나 |
+| 5 | `https://ghworld.co/actuator/health` 응답 확인 + 브라우저 접속 | 유저 |
+| 6 | backend만 변경하는 테스트 커밋 → frontend 빌드 스킵 확인 | 나 |
+| 7 | docs/*.md만 변경하는 테스트 커밋 → 배포 자체 스킵 확인 | 나 |
+| 8 | 헬스체크 고의 실패 → 자동 롤백 검증 | 나 |
+| 9 | 포트 22 Security Group 제거 (SSM Session Manager 전환) | 유저 |
+| 10 | 실측치로 `learning/37` 섹션 14.10, 14.11 업데이트 | 나 |
+
+### 주의할 점 (Phase 3 시작 전 읽기)
+
+- **첫 배포는 반드시 `force_rebuild=true`**. 그래야 sha + latest 태그가 GHCR에 처음 생성됨
+- **`git reset --hard`가 deploy.sh에 포함**됨 → EC2에서 수동 디버깅 중이던 변경은 날아감 (의도된 동작, 결정적 상태 보장)
+- **docker-compose 이미지 모드**: 로컬에서 `docker compose up`은 build 블록을 사용. CD는 image 블록 + pull 사용. 두 경로 공존
+- **마이그레이션 호환성**: 롤백 시 DB 스키마는 복구되지 않으므로 모든 Flyway 마이그레이션은 **backward-compatible**하게 작성 유지
+
+---
+
 **4/17 — AWS EC2 서울 리전 배포 + 도메인 연결** ✅
 
 | 항목 | 내용 |
@@ -444,6 +514,55 @@ docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 
 ---
 
 ## 다음 할 것 — 프로덕션 로드맵
+
+---
+
+### 🔥 [최우선] Week 7 스프린트 — Assetization (2026-04-20 ~ 04-26)
+
+> **원칙: "솔루션이 아니라 증거로 말한다."**
+> Week 7 블로그·README·영상은 Week 6 부하 테스트 데이터가 전제다. 없으면 쓸 수 없다.
+> 따라서 Week 6 미완료(CD + 부하 테스트 + 모니터링)를 먼저 채우고, 그 데이터로 Week 7 산출물을 만든다.
+
+**Week 6 미완료 과제 (선행 필수)**
+- Task 2: CI/CD 자동화 — 현재 CI만 있고 CD는 수동 SSH (`git pull` + `docker compose up`)
+- Task 3: 부하 테스트 + 모니터링 — k6/Prometheus/Grafana 없음
+
+**Week 7 과제**
+- Task 0: 『일의 감각』 에세이 1,000자 (성실한 왜 / 빼는 선택 / 오너의 고민 중 1개)
+- Task 1: 데이터 기반 기술 블로그 — **문제 → 증거(그래프/로그) → 대안 비교 → Before/After 수치** 4단 구조
+- Task 2: README 리브랜딩 — 배너, 인프라 도식, 3분 데모 영상, 성능 그래프
+- Task 3: 이력서 초안 (Problem-Action-Result)
+- Task 4 (선택): Post-Mortem 리포트 (실제 장애 유발 → 5 Whys → Timeline → Action Item)
+
+#### 실행 순서 (역산: Week 7 블로그를 증명하기 위해 필요한 뎁스)
+
+| Step | 목표 | 산출물 | 상태 |
+|------|------|--------|------|
+| **A. CD 자동화** | main push → EC2 자동 반영 | `.github/workflows/deploy.yml` + deploy.sh + 성공 로그 | 🔧 설계·구현 완료, Phase 3 실전 테스트 대기 |
+| **B. 관측 가능성** | Actuator + Micrometer → Prometheus → Grafana | 대시보드 (JVM/Latency/DB Pool/Kafka Lag/WS 세션) | 미착수 |
+| **C. 부하 테스트 + 병목 식별** | k6로 채팅+WebSocket 시나리오 VUser 10→500 | k6 리포트 + Grafana 캡처 + 병목 진단 | 미착수 |
+| **D. 기술 블로그 (Task 1)** | Step C에서 찾은 병목 1개 집중 서사 | Velog/Tistory 글 + LinkedIn 공유 | 미착수 |
+| **E. README + 영상 + 에세이 + 이력서** | Week 7 나머지 산출물 | README, 3분 영상, 에세이, 이력서 초안 | 미착수 |
+| (선택) F. Post-Mortem | Step C에서 실제 장애 재현 → 리포트 | Post-Mortem 문서 | 미착수 |
+
+#### 유력 병목 후보 (블로그 소재 후보)
+
+1. **NPC 응답 파이프라인** — 임베딩 → pgvector 검색 → LLM → broadcast (외부 호출 직렬화)
+2. **WebSocket Simple Broker** — 단일 서버·인메모리, 동접 증가 시 1차 병목
+3. **Cassandra dual-write** (message + user_message) — 쓰기 증폭
+4. **Outbox @Scheduled 1s polling** — 요약 이벤트 지연 + DB 부하
+5. **메시지 카운터 `ConcurrentHashMap`** — 서버 재시작 시 초기화, 스케일아웃 시 깨짐
+
+#### 결정 필요 항목
+
+- [ ] 모니터링 스택 호스팅 위치 — EC2(t3.medium 4GB에 추가) vs 로컬(캡처만) vs t3.large 일시 확대
+- [ ] 부하 테스트 타겟 — 채팅(+NPC) vs 회원가입 Outbox vs pgvector 검색 (현재는 채팅 유력)
+- [ ] 블로그 플랫폼 — Velog / Tistory / zlog
+- [ ] Post-Mortem 수행 여부 (선택이지만 서사 강도 큰 차이)
+
+> 상세 맥락 / 대안 분석은 이 스프린트 착수 시점의 대화 참조. Week 6 과제 원문 스펙은 그릿모먼츠 Week 6 과제 문서.
+
+---
 
 ### Step 1 — 상용 API 어댑터 (Phase 5 완성) ✅ (PR #13)
 
@@ -473,13 +592,13 @@ docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 
 | 도메인 연결 (ghworld.co + Cloudflare SSL) | ✅ |
 | OpenAI NPC 전환 | ✅ |
 
-### Step 3 — 1차 부하 테스트 (병목 찾기)
+### Step 3 — 1차 부하 테스트 (병목 찾기) → **🔥 Week 7 스프린트 Step B/C로 흡수**
 
 | 작업 | 상태 |
 |------|------|
-| k6 또는 Gatling으로 WebSocket 채팅 부하 테스트 | 미착수 |
-| 병목 지점 식별 및 기록 | 미착수 |
-| 현재 단일 서버 한계 수치 확보 | 미착수 |
+| k6 또는 Gatling으로 WebSocket 채팅 부하 테스트 | 미착수 (Week 7 Step C) |
+| 병목 지점 식별 및 기록 | 미착수 (Week 7 Step C) |
+| 현재 단일 서버 한계 수치 확보 | 미착수 (Week 7 Step C) |
 
 ### Step 4 — 스케일아웃 구조 전환
 
@@ -491,12 +610,12 @@ docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 
 | JWT 블랙리스트 (로그아웃) | 미착수 | stateless, 블랙리스트 없음 |
 | 서버 2대 구성 | 미착수 | — |
 
-### Step 5 — 2차 부하 테스트 (개선 효과 증명)
+### Step 5 — 2차 부하 테스트 (개선 효과 증명) → **🔥 Week 7 스프린트 Step D의 Before/After 근거로 흡수**
 
 | 작업 | 상태 |
 |------|------|
-| 동일 시나리오로 재테스트 | 미착수 |
-| Before/After 비교 기록 | 미착수 |
+| 동일 시나리오로 재테스트 | 미착수 (Week 7 Step D의 After 데이터) |
+| Before/After 비교 기록 | 미착수 (블로그 Task 1 핵심 증거) |
 | 스케일아웃 효과 수치 확보 | 미착수 |
 
 ### Step 6 — 코드 분석 + Phase 4 직접 구현

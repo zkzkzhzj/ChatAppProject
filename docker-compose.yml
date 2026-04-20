@@ -129,6 +129,10 @@ services:
     restart: unless-stopped
 
   app:
+    # 프로덕션(CD)에서는 GHCR 이미지를 pull해서 사용.
+    # 로컬 개발에서는 build 블록이 사용된다 (docker compose build 시).
+    # APP_TAG 미지정 시 latest 기본값.
+    image: ghcr.io/zkzkzhzj/gohyang-app:${APP_TAG:-latest}
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -168,6 +172,8 @@ services:
 
   frontend:
     # Next.js 프론트엔드 — standalone 모드 빌드, 백엔드 API를 app:8080으로 프록시
+    # 프로덕션(CD)에서는 GHCR 이미지를 pull. 로컬에서는 build.
+    image: ghcr.io/zkzkzhzj/gohyang-frontend:${FRONTEND_TAG:-latest}
     build:
       context: ./frontend
       dockerfile: Dockerfile

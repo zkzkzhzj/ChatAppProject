@@ -1,13 +1,18 @@
-# 로컬 전체 스택 실행 정의.
+# 전체 스택 실행 정의 (로컬 개발 + 프로덕션 공용).
 #
 # 사용법:
-#   docker-compose up --build     전체 빌드 후 시작 (Spring Boot 포함)
-#   docker-compose up -d          백그라운드 실행
-#   docker-compose down           종료 (볼륨 유지)
-#   docker-compose down -v        종료 + 볼륨 삭제
+#   docker compose up --build     # 전체 빌드 + 시작 (로컬 개발)
+#   docker compose up -d --wait   # 백그라운드 + healthcheck 대기
+#   docker compose down           # 종료 (볼륨 유지)
+#   docker compose down -v        # 종료 + 볼륨 삭제
 #
-# 포트 충돌 시 .env 파일로 오버라이드 가능.
-#   예) POSTGRES_PORT=5433
+# 경로 규칙:
+#   이 파일 위치: deploy/docker-compose.yml
+#   build context는 레포 루트 기준 상대경로 (../backend, ../frontend)
+#   docker compose 명령은 deploy/ 디렉토리에서 실행해야 함.
+#
+# 환경변수 오버라이드: .env 파일 (이 디렉토리의).
+# 참고: docs/learning/38-env-var-config-migration.md
 
 services:
 
@@ -111,7 +116,6 @@ services:
       - ./ollama-entrypoint.sh:/ollama-entrypoint.sh:ro
     environment:
       OLLAMA_NUM_PARALLEL: 2
-      # 자동 pull할 모델 목록 (공백 구분). OLLAMA_MODELS는 Ollama 예약어이므로 사용 금지.
       OLLAMA_PULL_MODELS: ${OLLAMA_PULL_MODELS:-exaone3.5:7.8b nomic-embed-text}
     deploy:
       resources:
@@ -129,29 +133,53 @@ services:
     restart: unless-stopped
 
   app:
-    # 프로덕션(CD)에서는 GHCR 이미지를 pull해서 사용.
-    # 로컬 개발에서는 build 블록이 사용된다 (docker compose build 시).
-    # APP_TAG 미지정 시 latest 기본값.
+    # 프로덕션(CD): GHCR 이미지를 pull해서 사용
+    # 로컬: docker compose build 시 ../backend 에서 빌드 (build 블록 사용)
     image: ghcr.io/zkzkzhzj/gohyang-app:${APP_TAG:-latest}
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: Dockerfile
     container_name: gohyang-app
     ports:
       - "${APP_PORT:-8080}:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
-      DB_HOST: postgres
-      REDIS_HOST: redis
-      CASSANDRA_HOST: cassandra
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # ── Spring 표준 매핑 (자동으로 spring.datasource.url 등에 바인딩) ──
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gohyang
       DB_USERNAME: ${DB_USERNAME:-gohyang}
       DB_PASSWORD: ${DB_PASSWORD:-gohyang}
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+
+      CASSANDRA_HOST: cassandra
+      CASSANDRA_PORT: 9042
+
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+      # ── 시크릿 (로컬은 기본값, 운영은 .env에서 덮어씀) ──
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-must-be-at-least-256-bits-long!!}
+
+      # ── NPC / OpenAI ──
       NPC_ADAPTER: ${NPC_ADAPTER:-hardcoded}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OLLAMA_BASE_URL: http://ollama:11434
+
+      # ── 네트워크 / CORS ──
       APP_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001}
+
+      # ── 운영 보안 강화용 (로컬 기본값은 개발 편의, .env에서 엄격하게) ──
+      ACTUATOR_ENDPOINTS: ${ACTUATOR_ENDPOINTS:-health,info,metrics}
+      ACTUATOR_HEALTH_DETAILS: ${ACTUATOR_HEALTH_DETAILS:-when-authorized}
+      HEALTH_REDIS_ENABLED: ${HEALTH_REDIS_ENABLED:-false}
+      SECURITY_COMMON_PUBLIC_PATHS: ${SECURITY_COMMON_PUBLIC_PATHS:-/api/v1/auth/register,/api/v1/auth/login,/api/v1/auth/guest,/ws/**,/swagger-ui/**,/swagger-ui.html,/v3/api-docs/**,/webjars/**}
+      SECURITY_ENV_PUBLIC_PATHS: ${SECURITY_ENV_PUBLIC_PATHS:-/actuator/**}
+
+      # ── 로깅 ──
+      LOG_LEVEL_ROOT: ${LOG_LEVEL_ROOT:-INFO}
+      LOG_LEVEL_APP: ${LOG_LEVEL_APP:-DEBUG}
+
+      # ── JVM ──
       JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--Xmx384m -Xms256m}
     depends_on:
       postgres:
@@ -172,14 +200,13 @@ services:
 
   frontend:
     # Next.js 프론트엔드 — standalone 모드 빌드, 백엔드 API를 app:8080으로 프록시
-    # 프로덕션(CD)에서는 GHCR 이미지를 pull. 로컬에서는 build.
+    # 프로덕션(CD)에서는 GHCR 이미지를 pull. 로컬에서는 ../frontend 에서 빌드.
     image: ghcr.io/zkzkzhzj/gohyang-frontend:${FRONTEND_TAG:-latest}
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile
-      # NEXT_PUBLIC_* 는 빌드 타임에 번들에 인라인된다.
+      # NEXT_PUBLIC_* 는 빌드 타임에 Next.js 번들에 인라인된다.
       # 브라우저에서 직접 백엔드에 요청하므로 호스트 관점 주소를 사용한다.
-      # 값은 .env 파일에서 관리. 기본값(localhost)은 로컬 개발 전용.
       args:
         NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8080}
         NEXT_PUBLIC_WS_URL: ${PUBLIC_WS_URL:-http://localhost:8080/ws}

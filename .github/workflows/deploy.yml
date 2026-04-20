@@ -49,12 +49,12 @@ jobs:
           filters: |
             backend:
               - 'backend/**'
-              - 'docker-compose.yml'
-              - 'scripts/deploy.sh'
+              - 'deploy/docker-compose.yml'
+              - 'deploy/scripts/deploy.sh'
               - '.github/workflows/deploy.yml'
             frontend:
               - 'frontend/**'
-              - 'docker-compose.yml'
+              - 'deploy/docker-compose.yml'
               - '.github/workflows/deploy.yml'
 
   build-backend:
@@ -170,7 +170,7 @@ jobs:
             --arg sha "$COMMIT_SHA" \
             --arg app "$APP_TAG" \
             --arg front "$FRONTEND_TAG" \
-            '{commands: ["sudo -u ubuntu bash /home/ubuntu/ChatAppProject/scripts/deploy.sh \"\($sha)\" \"\($app)\" \"\($front)\""]}')
+            '{commands: ["sudo -u ubuntu bash /home/ubuntu/ChatAppProject/deploy/scripts/deploy.sh \"\($sha)\" \"\($app)\" \"\($front)\""]}')
 
           CMD_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \

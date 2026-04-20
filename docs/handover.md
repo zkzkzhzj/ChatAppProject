@@ -5,7 +5,7 @@
 
 ---
 
-## 현재 상태 (2026-04-20 기준, 16차 업데이트)
+## 현재 상태 (2026-04-21 기준, 17차 업데이트)
 
 ### ✅ Happy Path 완료 (Phase 0 ~ Phase 3 + 마을 공개 채팅) — PR #7 머지 완료
 
@@ -434,6 +434,21 @@ docker-compose.yml           ← Git 공개. 로컬/프로덕션 공용 (환경 
 | 정리한 4개 축 | A) 입력 측(디바운스·배칭·동시성 3전략) B) 컨텍스트 측(요약·페르소나 주입) C) 검증/필터 측(사전/사후·"모르는 것" 표현) D) 캐싱 측(pgvector semantic cache) |
 | 추후 처리란 | 우선순위 결정 3건 + 설계 결정 9건 체크리스트로 보존 — 다음 세션에서 바로 꺼내쓸 수 있게 |
 | 현재 상태 | 구현 미착수. 유저가 별도 작업을 우선 진행할 예정 |
+
+**4/21 — 12-factor Config 이관 + deploy/ 디렉토리 분리** 🔧 (PR 진행 중)
+
+| 항목 | 내용 |
+|------|------|
+| 맥락 | CD 첫 실전 배포에서 "이미지 안에 application-prod.yml 없음" 문제 발견 |
+| 근본 원인 | 빌드 위치 전환 (EC2 → GHA Runner)으로 gitignored 파일 접근 불가 |
+| 해결 방향 | Option B — 모든 설정을 env var로 이관 (12-factor) + 접근 2 (deploy/ 디렉토리 분리) |
+| application.yml | 단일 통합 파일. 모든 값이 `${ENV_VAR:로컬_기본값}` 형태 |
+| 삭제 | application-prod.yml, application-local.yml |
+| docker-compose.yml | deploy/로 이동. Spring 표준 env var (SPRING_DATASOURCE_URL 등) 전면 사용 |
+| scripts/deploy.sh | deploy/scripts/로 이동. DEPLOY_DIR 추가 |
+| .github/workflows/deploy.yml | paths-filter + SSM 명령 경로를 deploy/*로 수정 |
+| 학습 노트 | `docs/learning/38-env-var-config-migration.md` |
+| EC2 후속 작업 | 머지 후 1회: `rm backend/src/main/resources/application-{prod,local}.yml`, deploy/.env 생성 |
 
 **4/20 — CD 파이프라인 설계·구현 (Week 7 Step A)** ✅ (Phase 1·2 완료, Phase 3 테스트 대기)
 

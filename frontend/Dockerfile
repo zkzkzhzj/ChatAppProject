@@ -46,7 +46,9 @@ USER gohyang
 
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+# Alpine busybox wget의 `--spider`가 Next.js 응답과 호환성 문제를 일으키는 케이스가 있어
+# 실제 GET 방식으로 변경. localhost 대신 127.0.0.1 고정으로 IPv6 경로 문제도 회피.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/ > /dev/null 2>&1 || exit 1
 
 ENTRYPOINT ["node", "server.js"]

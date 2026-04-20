@@ -14,6 +14,10 @@
 # 환경변수 오버라이드: .env 파일 (이 디렉토리의).
 # 참고: docs/learning/38-env-var-config-migration.md
 
+# compose 파일 위치가 바뀌어도 프로젝트명 고정 → 기존 볼륨·컨테이너 이름 충돌 방지.
+# 이전에 루트에서 돌던 chatappproject 스택과 연속성 유지.
+name: chatappproject
+
 services:
 
   postgres:

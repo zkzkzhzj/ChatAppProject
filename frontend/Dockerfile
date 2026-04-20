@@ -46,9 +46,10 @@ USER gohyang
 
 EXPOSE 3000
 
-# Alpine busybox wget의 `--spider`가 Next.js 응답과 호환성 문제를 일으키는 케이스가 있어
-# 실제 GET 방식으로 변경. localhost 대신 127.0.0.1 고정으로 IPv6 경로 문제도 회피.
+# HTTP GET 기반 healthcheck(wget/curl)가 Next.js 16 + busybox 조합에서 unhealthy 판정이 반복됨.
+# 실제론 서비스가 200 OK 응답하는데도 실패. 원인 추적 비용이 커서 TCP 포트 체크로 전환.
+# 3000 포트가 열려있으면 Next.js 프로세스가 서빙 준비됐다는 뜻. nc는 busybox 기본 포함.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:3000/ > /dev/null 2>&1 || exit 1
+  CMD nc -z 127.0.0.1 3000 || exit 1
 
 ENTRYPOINT ["node", "server.js"]

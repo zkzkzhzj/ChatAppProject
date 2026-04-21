@@ -44,9 +44,13 @@ COPY --from=builder /workspace/public ./public
 
 USER gohyang
 
+# Next.js 16 standalone은 기본 IPv6(::1) 바인딩이라 Alpine busybox wget의 127.0.0.1 접근이 실패한다.
+# 이미지 단독 실행(docker run / 다른 compose)에서도 healthcheck가 동작하도록 이미지 레벨에서 강제.
+# Vercel 공식 with-docker 예제도 동일 기본값 사용. compose의 environment는 override 용도로 유지.
+ENV HOSTNAME=0.0.0.0
+
 EXPOSE 3000
 
-# HOSTNAME=0.0.0.0 (compose에서 주입)으로 IPv4 바인딩 강제 → busybox wget 127.0.0.1 접근 가능.
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
   CMD wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1
 

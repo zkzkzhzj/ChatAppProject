@@ -191,7 +191,7 @@ STOMP 인증:
 
 ### 직접 관련
 - 관련 학습노트: [15-websocket-stomp-deep-dive.md](./15-websocket-stomp-deep-dive.md) -- STOMP 프로토콜 동작 원리, Simple Broker, 메시지 흐름
-- 관련 학습노트: [11-security-config-patterns.md](./11-security-config-patterns.md) -- Spring Security 설정 패턴, SecurityFilterChain 구성
+- 관련 학습노트: [08-phase1-layer-patterns.md](./08-phase1-layer-patterns.md) -- Spring Security 설정 패턴 (섹션 3), SecurityFilterChain 구성
 - 관련 학습노트: [23-chatroom-structure-space-equals-room.md](./23-chatroom-structure-space-equals-room.md) -- 채팅방 구조와 STOMP 토픽 설계
 
 ### 공식 문서

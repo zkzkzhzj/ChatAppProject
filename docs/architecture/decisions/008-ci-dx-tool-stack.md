@@ -47,7 +47,7 @@
 ### 2. Error Prone + NullAway — 컴파일 타임 버그 탐지
 
 **왜 Error Prone인가 (vs SpotBugs, PMD):**
-- 상세 비교는 `docs/learning/18-java-static-analysis-tools.md` 참조.
+- 상세 비교는 `docs/learning/18-java-static-analysis-stack.md` 참조.
 - 핵심: javac 플러그인으로 동작하여 별도 빌드 단계 불필요. 점진적 도입(`warn` → `error`) 가능. SpotBugs는 바이트코드 분석이라 빌드 후 별도 실행이 필요하고, 초기 도입 시 false positive로 빌드가 바로 깨진다.
 
 **NullAway 설정:**
@@ -57,7 +57,7 @@
 
 **테스트 코드 `UnicodeInCode` 비활성화:**
 - BDD 한글 메서드명이 non-ASCII 규칙에 걸린다. `compileTestJava`에서만 `disable("UnicodeInCode")`.
-- 상세 근거는 `docs/learning/19-checkstyle-test-suppression-strategy.md` 참조.
+- 상세 근거는 `docs/learning/18-java-static-analysis-stack.md` 섹션 5~6 참조.
 
 ### 3. ArchUnit — 아키텍처 규칙 자동 검증
 

@@ -1,6 +1,6 @@
 # 지식 베이스 인덱스
 
-> 마지막 업데이트: 2026-04-13
+> 마지막 업데이트: 2026-04-21
 > 새 세션 시작 시 이 파일을 읽어 최신 AI Native 개발 맥락을 파악한다.
 
 ---
@@ -32,6 +32,14 @@
 | 문서 | 내용 | 최종 업데이트 |
 |------|------|-------------|
 | [실시간 기술 인덱스](realtime/INDEX.md) | 채팅·WebRTC·스트리밍 기술 지식 베이스 | 2026-04-13 |
+
+---
+
+## 인프라 / 배포 트러블슈팅
+
+| 문서 | 내용 | 최종 업데이트 |
+|------|------|-------------|
+| [Next.js Standalone + Docker Healthcheck IPv6 바인딩 이슈](infra/nextjs-docker-healthcheck-ipv6-binding.md) | Node 17+ localhost IPv6 우선 해석 + Next.js standalone 기본 hostname + Alpine BusyBox IPv6 미지원의 삼중 교착. `HOSTNAME=0.0.0.0` 표준 해결 검증. | 2026-04-21 |
 
 ---
 

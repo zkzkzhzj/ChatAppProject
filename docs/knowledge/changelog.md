@@ -2,6 +2,36 @@
 
 ---
 
+## 2026-04-21
+
+### Next.js Standalone + Docker Healthcheck IPv6 바인딩 이슈 정리
+
+PR #17/#18/#19 CD 파이프라인 연속 실패를 해결한 과정을 리서치 기반 의사결정 기록으로 정리.
+
+#### 신규 문서: `infra/nextjs-docker-healthcheck-ipv6-binding.md`
+- 근본 원인 삼중 교착 분석
+  - Next.js standalone `server.js` 기본 hostname이 `localhost` (Issue #44043)
+  - Node 17+ `localhost` IPv6(`::1`) 우선 해석 (Node Issue #40537, #48712)
+  - Alpine BusyBox `wget`/`nc` IPv6 미지원 (Alpine aports #10937, #16286)
+- 우리 해결 `HOSTNAME=0.0.0.0`이 Vercel 공식 `examples/with-docker` 패턴과 일치함을 1차 출처로 검증
+- 대안 6개 비교 (CLI flag, server.js 패치, curl 설치, `node -e "..."`, `/api/health` 라우트, nginx 프록시)
+- 보안 고려사항: 컨테이너 내부 `0.0.0.0` 바인딩은 공격 면 증가 없음
+- 블로그 소재로서의 가치 평가 — "세 레이어 우연의 교집합" 스토리
+
+#### 리서치 핵심 출처 (1차)
+- Next.js #44043 Hostname configuration: https://github.com/vercel/next.js/issues/44043
+- Next.js #54025 13.4.15 listening host issue: https://github.com/vercel/next.js/discussions/54025
+- Next.js #46090 next dev vs start IPv6: https://github.com/vercel/next.js/issues/46090
+- Next.js PR #77612 bind address: https://github.com/vercel/next.js/pull/77612
+- Node #40537 localhost IPv6 breaking change: https://github.com/nodejs/node/issues/40537
+- Node #48712 Why IPv6 default: https://github.com/nodejs/node/issues/48712
+- Alpine aports #10937 BusyBox wget IPv6 미지원: https://gitlab.alpinelinux.org/alpine/aports/-/issues/10937
+- Alpine aports #16286 BusyBox netstat IPv6: https://gitlab.alpinelinux.org/alpine/aports/-/issues/16286
+- Vercel with-docker Dockerfile (canary): https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
+- Next.js Self-Hosting 공식 문서: https://nextjs.org/docs/app/guides/self-hosting
+
+---
+
 ## 2026-04-13
 
 ### 2026-02 / 2026-03 누락 데이터 소급 수집

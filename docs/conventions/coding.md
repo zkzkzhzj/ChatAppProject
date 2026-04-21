@@ -203,7 +203,7 @@ public class User {
 new User(null, UserType.MEMBER, LocalDateTime.now())
 ```
 
-> 자세한 배경: `docs/learning/08-domain-entity-design.md`
+> 자세한 배경: `docs/learning/08-phase1-layer-patterns.md`
 
 ```java
 public class PointWallet {

@@ -96,11 +96,19 @@ CD 첫 실전 배포에서 "이미지 안에 application-prod.yml 없음" 문제
 | 리서치 | Spring Boot 4.x의 DHMC(Default Host Management) SSM Agent 이슈 해결 기록 |
 | 학습노트 | [40](./learning/40-observability-stack-decisions.md) — 호스팅 위치·도구·보안 결정의 트레이드오프 |
 
+**검증 완료** (로컬):
+
+- `/actuator/prometheus` HTTP 200 + 209개 메트릭 노출
+- monitor EC2에서 sparse-checkout + Prometheus + Grafana 스택 기동 완료
+- Grafana 로그인·Prometheus 데이터소스 연결·`up{job="prometheus"}=1` 쿼리 성공
+
 **남은 작업**:
 
-- monitor EC2에서 git sparse-checkout + docker compose up 실행
-- Grafana에 JVM Micrometer 대시보드(ID 4701) import
-- k6 부하 테스트 스크립트 작성 (Step C)
+- [ ] PR #21 CodeRabbit 2차 리뷰 대응 (✅ 진행 중 — application.yml 기본값 일관성, .env.example 주석 보강, 리뷰 스냅샷 표기 등)
+- [ ] PR #21 머지 → CD 자동 재배포로 운영 EC2에 `/actuator/prometheus` 활성화
+- [ ] 머지 후 `up{job="gohyang-app"}=1` 전환 확인 (monitor EC2의 Grafana)
+- [ ] Grafana에 JVM Micrometer 대시보드(ID 4701) import
+- [ ] Week 7 Step C 착수 — k6 부하 테스트 (상세 가이드: [learning/41](./learning/41-k6-load-testing-setup.md))
 
 ---
 

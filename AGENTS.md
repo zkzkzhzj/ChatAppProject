@@ -19,6 +19,7 @@
 ## 프로젝트 개요
 
 **마음의 고향** — 장소 기반 의사소통 서비스.
+
 - Java 21 / Spring Boot 4.x / Hexagonal Architecture
 - PostgreSQL · Redis · Cassandra · Kafka · WebSocket(STOMP)
 
@@ -133,7 +134,7 @@
 
 ### 의존 방향
 
-```
+```text
 Adapter → Application → Domain
 ```
 
@@ -198,7 +199,7 @@ Adapter → Application → Domain
 
 ## 리뷰 출력 형식
 
-```
+```text
 ## Codex 코드 리뷰
 
 ### [CRITICAL] 아키텍처 위반

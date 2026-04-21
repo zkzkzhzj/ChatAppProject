@@ -9,7 +9,7 @@
 
 Spring Security의 `SecurityFilterChain`은 HTTP 요청에 대해 동작한다. WebSocket 핸드셰이크도 HTTP 요청이므로 여기서는 필터가 동작한다. 그런데 핸드셰이크 이후에는?
 
-```
+```text
 [HTTP GET /ws]  ← SecurityFilterChain 동작 (Upgrade 요청)
     │
     ▼ 101 Switching Protocols
@@ -43,6 +43,7 @@ Spring Security의 `SecurityFilterChain`은 HTTP 요청에 대해 동작한다. 
 **선택: B. ChannelInterceptor**
 
 이유:
+
 1. **SockJS를 쓰고 있다.** SockJS의 HTTP fallback(Long Polling, HTTP Streaming)에서는 커스텀 HTTP 헤더를 보낼 수 없다. 그래서 HandshakeInterceptor에서 `Authorization` 헤더를 읽는 건 불가능하다. 쿼리 파라미터에 토큰을 넣을 수 있지만 보안 리스크가 있다.
 2. **STOMP 네이티브 헤더는 SockJS와 무관하게 동작한다.** STOMP CONNECT 프레임의 헤더는 STOMP 프로토콜 레벨이므로, 전송 방식(WebSocket이든 Long Polling이든)에 상관없이 항상 전달된다.
 3. **Spring 공식 문서가 이 방식을 권장한다.** [Token Authentication 공식 문서](https://docs.spring.io/spring-framework/reference/web/websocket/stomp/authentication-token-based.html)에서 ChannelInterceptor를 사용한 STOMP CONNECT 인증을 설명하고 있다.
@@ -55,7 +56,7 @@ Spring Security의 `SecurityFilterChain`은 HTTP 요청에 대해 동작한다. 
 
 이해하려면 Spring의 두 가지 메시지 처리 파이프라인을 알아야 한다.
 
-```
+```text
 HTTP 파이프라인 (Servlet Filter Chain):
     요청 → Filter1 → Filter2 → ... → DispatcherServlet → Controller
 
@@ -69,7 +70,7 @@ Spring은 STOMP 프레임을 `clientInboundChannel`이라는 메시지 채널로
 
 ### ChannelInterceptor 동작 흐름
 
-```
+```text
 클라이언트 STOMP CONNECT (Authorization: Bearer xxx)
     │
     ▼
@@ -148,6 +149,7 @@ stompClient.connect({ Authorization: 'Bearer ' + token }, callback);
 ```
 
 이렇게 하면:
+
 - 게스트도 유효한 JWT를 가지고 STOMP CONNECT하므로, 서버 측에서 인증 파이프라인이 일관된다
 - `@MessageMapping` 핸들러에서 `Principal`이 항상 존재하고, `AuthenticatedUser.isGuest()`로 게스트 여부를 판별한다
 - 게스트는 메시지를 **보내려고** 하면 `GuestChatNotAllowedException`으로 거부당한다
@@ -155,7 +157,7 @@ stompClient.connect({ Authorization: 'Bearer ' + token }, callback);
 
 ### 인증 이중 체계 -- REST와 STOMP
 
-```
+```text
 REST API 인증:
     HTTP 요청 → JwtFilter (SecurityFilterChain) → SecurityContextHolder에 Authentication 세팅
     → @AuthenticationPrincipal로 접근
@@ -190,21 +192,25 @@ STOMP 인증:
 ## 더 공부할 거리
 
 ### 직접 관련
+
 - 관련 학습노트: [15-websocket-stomp-deep-dive.md](./15-websocket-stomp-deep-dive.md) -- STOMP 프로토콜 동작 원리, Simple Broker, 메시지 흐름
 - 관련 학습노트: [08-phase1-layer-patterns.md](./08-phase1-layer-patterns.md) -- Spring Security 설정 패턴 (섹션 3), SecurityFilterChain 구성
 - 관련 학습노트: [23-chatroom-structure-space-equals-room.md](./23-chatroom-structure-space-equals-room.md) -- 채팅방 구조와 STOMP 토픽 설계
 
 ### 공식 문서
+
 - [Spring Framework: Token Authentication for WebSocket STOMP](https://docs.spring.io/spring-framework/reference/web/websocket/stomp/authentication-token-based.html) -- ChannelInterceptor를 이용한 토큰 인증의 공식 가이드
 - [Spring Framework: Authentication in WebSocket](https://docs.spring.io/spring-framework/reference/web/websocket/stomp/authentication.html) -- WebSocket 인증의 전체 그림
 - [Spring Security: WebSocket Security](https://docs.spring.io/spring-security/reference/servlet/integrations/websocket.html) -- `@EnableWebSocketSecurity`, 메시지 레벨 권한 제어
 
 ### 실전 가이드
+
 - [Overcome WebSocket's Authentication and Authorization Issues (Softbinator)](https://blog.softbinator.com/overcome-websocket-authentication-issues-stomp/) -- HandshakeInterceptor vs ChannelInterceptor 비교, 실전 코드 예시
 - [Intro to Security and WebSockets (Baeldung)](https://www.baeldung.com/spring-security-websockets) -- Spring Security + WebSocket 통합 튜토리얼
 - [WebSocket에서 JWT 인증 구현 (velog)](https://velog.io/@hyunsoo730/WebSocket%EC%97%90%EC%84%9C-JWT-%EC%9D%B8%EC%A6%9D-%EA%B5%AC%ED%98%84) -- 한글 자료, SockJS + STOMP + JWT 조합의 실전 구현기
 
 ### 더 깊이 파려면
+
 - STOMP 프로토콜 스펙: [STOMP 1.2 Specification](https://stomp.github.io/stomp-specification-1.2.html) -- CONNECT 프레임의 정확한 동작, ERROR 프레임 스펙
 - Spring의 `AbstractBrokerMessageHandler` 소스코드 -- Simple Broker가 세션과 Principal을 어떻게 매핑하는지 이해하려면 이 코드를 읽어야 한다
 - WebSocket 보안 위협: CSWSH(Cross-Site WebSocket Hijacking) -- Origin 검증을 `setAllowedOriginPatterns("*")`로 열어둔 상태에서의 보안 리스크. 프로덕션 전에 반드시 제한해야 한다

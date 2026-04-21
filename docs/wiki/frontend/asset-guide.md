@@ -35,9 +35,9 @@ last-verified: 2026-04-13
 
 | 에셋/작가 | URL | 이유 |
 |-----------|-----|------|
-| **Cainos** | https://cainos.itch.io/ | 따뜻한 색감의 마을 타일셋 + 인테리어. 32x32. "안식처" 컨셉에 가장 적합 |
-| **Cup Nooble - Sprout Lands** | https://cupnooble.itch.io/ | 귀여운 탑다운 인테리어/가구. 따뜻한 마을 느낌 |
-| **LPC Generator** | https://sanderfrenken.github.io/Universal-LPC-Spritesheet-Character-Generator/ | 캐릭터 커스터마이징 자동 생성. 아바타 시스템 활용 가능 |
+| **Cainos** | <https://cainos.itch.io/> | 따뜻한 색감의 마을 타일셋 + 인테리어. 32x32. "안식처" 컨셉에 가장 적합 |
+| **Cup Nooble - Sprout Lands** | <https://cupnooble.itch.io/> | 귀여운 탑다운 인테리어/가구. 따뜻한 마을 느낌 |
+| **LPC Generator** | <https://sanderfrenken.github.io/Universal-LPC-Spritesheet-Character-Generator/> | 캐릭터 커스터마이징 자동 생성. 아바타 시스템 활용 가능 |
 
 ### 무료 / 오픈소스
 
@@ -62,7 +62,7 @@ last-verified: 2026-04-13
 
 ### 레이어 구성
 
-```
+```text
 Layer 7: Overhead     (캐릭터 위에 렌더링 — 나뭇잎, 지붕 위쪽)
 Layer 6: Decoration   (꽃, 나무, 소품)
 Layer 5: Objects      (오브젝트 레이어 — 충돌, 스폰, 인터랙션 존)
@@ -135,7 +135,7 @@ this.physics.add.collider(this.player, wallLayer!);
 
 ## 에셋 디렉토리 구조
 
-```
+```text
 frontend/public/assets/
 ├── maps/              # Tiled JSON 맵 파일
 ├── tilesets/           # 타일셋 이미지 (terrain, buildings, furniture, decoration)

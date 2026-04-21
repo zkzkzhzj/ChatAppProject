@@ -58,7 +58,7 @@ last-verified: 2026-04-15
 
 ### 흐름
 
-```
+```text
 클라이언트 → /app/village/position (PositionRequest)
     → PositionHandler → /topic/village/positions (PositionBroadcast)
 

@@ -1,7 +1,7 @@
 # CLAUDE.md — 마음의 고향
 
 > 이 문서는 AI 에이전트의 행동 강령이다.
-> 
+>
 > 기술 명세나 상세 규칙은 `/docs/`에 있다. 여기에는 "어떻게 행동할 것인가"만 정의한다.
 
 ---
@@ -38,7 +38,7 @@
 
 ## 3. Tech Baseline
 
-```
+```text
 Java 21 / Spring Boot 4.x / Gradle Kotlin DSL / Hexagonal Architecture
 PostgreSQL · Redis · Cassandra · Kafka · WebSocket(STOMP) · WebRTC (추후 추가 예정)
 Frontend: Next.js (React) + Phaser.js (2D 공간 렌더링)
@@ -76,7 +76,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 
 **Phase A — 계획 (코드 작성 금지)**
 
-```
+```text
 1. 요구사항 확인
    → 관련 기획 문서 확인 (/docs/planning/)
    → 불명확한 점이 있으면 반드시 질문
@@ -96,7 +96,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 
 **Phase B — 단계별 구현 (승인된 계획만 실행)**
 
-```
+```text
 각 단계마다:
 
 4. 단계 N 구현
@@ -118,7 +118,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 
 **Phase C — 완료**
 
-```
+```text
 7. 자기 검증
    → 아래 "Verification Checklist" 수행
 
@@ -135,7 +135,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 
 ### 5.2 버그 수정
 
-```
+```text
 1. 원인 분석 결과 보고 → 🔒 사용자 확인
    → 재현 조건, 원인 추정, 수정 방향 제시
 2. 버그 재현 테스트 작성 (실패하는 테스트를 먼저 만든다)
@@ -147,7 +147,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 
 ### 5.3 리팩토링
 
-```
+```text
 1. 리팩토링 계획 제시 → 🔒 사용자 승인 필요
    → 무엇을, 왜, 어떻게 바꾸는지 명시
 2. 기존 테스트가 모두 통과하는 상태에서 시작한다
@@ -171,6 +171,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 아래 상황에서는 **멈추고 질문한다.** 추측으로 진행하지 않는다.
 
 ### 반드시 질문해야 하는 상황
+
 - 요구사항에 명시되지 않은 **비즈니스 엣지케이스**를 발견했을 때
 - 구현 방식이 2개 이상이고, 각각의 **트레이드오프가 명확할 때**
 - 기존 구조나 컨벤션과 **충돌하는 구현**이 필요해 보일 때
@@ -178,6 +179,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 - **ERD 변경**이 필요한 상황일 때
 
 ### 스스로 판단해도 되는 상황
+
 - 컨벤션 문서에 명시된 규칙을 따르는 것
 - 기존 코드에 동일한 패턴이 이미 존재하는 것
 - 변수명, 메서드명 같은 로컬 범위의 네이밍
@@ -190,11 +192,13 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 작업 완료 후, 다음을 스스로 점검한다. **모든 항목을 통과해야 완료다.**
 
 ### 아키텍처
+
 - [ ] Domain Entity가 인프라 기술에 의존하지 않는가?
 - [ ] 도메인 간 직접 참조가 발생하지 않았는가?
 - [ ] 새로운 Port가 올바른 위치(in/out)에 정의되었는가?
 
 ### 코드 품질
+
 - [ ] 컨벤션 문서(`/docs/conventions/`)의 규칙을 준수했는가?
 - [ ] 메서드가 하나의 책임만 가지는가?
 - [ ] 매직 넘버/스트링 없이 상수 또는 Enum을 사용했는가?
@@ -207,21 +211,25 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 - [ ] 하드코딩된 설정값(URL, 타임아웃, 사이즈 등)이 코드에 박혀있지 않은가? (`application.yml`로 분리)
 
 ### 테스트
+
 - [ ] 성공 케이스와 실패 케이스가 모두 존재하는가?
 - [ ] BDD 스타일(Given-When-Then)로 작성되었는가?
 - [ ] N+1 쿼리 문제가 발생하지 않는가?
 - [ ] 테스트 간 독립성이 보장되는가? (실행 순서나 DB 상태에 의존하지 않는가)
 
 ### 동시성 / 데이터 정합성
+
 - [ ] 상태 변경 로직에 동시 요청이 들어오면 데이터가 꼬이지 않는가?
 - [ ] 동시성 전략(락, CAS 등)이 적용되었다면 그 선택 이유가 명확한가?
 - [ ] 트랜잭션 범위가 적절한가? (너무 넓으면 성능, 너무 좁으면 정합성 문제)
 
 ### 성능
+
 - [ ] 이 기능에서 병목이 될 수 있는 지점을 식별했는가?
 - [ ] 캐싱이 필요한 조회 패턴이 있는가? (Redis 활용 검토)
 
 ### 문서 정합성
+
 - [ ] 새 Entity 추가 시 ERD 문서와 일치하는가?
 - [ ] 새 API 추가 시 API 명세 문서에 반영했는가?
 - [ ] 새 이벤트 추가 시 이벤트 명세 문서에 반영했는가?
@@ -233,6 +241,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 작업 유형에 따라 아래 문서를 참조한다.
 
 ### 기획 / 비즈니스 맥락이 필요할 때
+
 | 문서 | 경로 | 내용 |
 |------|------|------|
 | 프로젝트 개요 | `/docs/planning/project-overview.md` | 서비스 목표, 핵심 기능, 서비스 흐름 |
@@ -240,6 +249,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 | 윤리 정책 | `/docs/planning/ethics.md` | 대화 퀄리티 관리, 비난 방지 정책 |
 
 ### 설계 / 구조를 확인해야 할 때
+
 | 문서 | 경로 | 내용 |
 |------|------|------|
 | 아키텍처 | `/docs/architecture/architecture.md` | 아키텍처 원칙, 계층 간 의존 방향 |
@@ -249,6 +259,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 | 의사결정 기록 | `/docs/architecture/decisions/` | 기술 선택의 이유와 트레이드오프 (ADR) |
 
 ### 코드를 작성할 때
+
 | 문서 | 경로 | 내용 |
 |------|------|------|
 | 코딩 컨벤션 | `/docs/conventions/coding.md` | 명명 규칙, Lombok, DTO, 예외 처리 |
@@ -256,6 +267,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 | Git 전략 | `/docs/conventions/git.md` | 브랜치 전략, 커밋 메시지, PR 규칙 |
 
 ### API / 프로토콜을 다룰 때
+
 | 문서 | 경로 | 내용 |
 |------|------|------|
 | REST API | `/docs/specs/api.md` (인덱스) / `/docs/specs/api/` (도메인별 상세) | 엔드포인트 정의, 요청/응답 형식 |
@@ -263,6 +275,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 | Kafka 이벤트 | `/docs/specs/event.md` | 토픽 정의, 이벤트 페이로드 |
 
 ### 프론트엔드 공간을 다룰 때
+
 | 문서 | 경로 | 내용 |
 |------|------|------|
 | Phaser + Next.js | `/docs/wiki/frontend/phaser-setup.md` | Phaser 설정, Next.js 통합, 현재 구조 |
@@ -270,11 +283,13 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 | WebSocket 클라이언트 | `/docs/wiki/frontend/websocket-client.md` | STOMP 연결, 메시지 송수신 |
 
 ### 시스템 동작 원리를 빠르게 파악할 때
+
 | 문서 | 경로 | 내용 |
 |------|------|------|
 | Wiki 인덱스 | `/docs/wiki/INDEX.md` | 토픽별 정규 지식. "이 시스템은 어떻게 동작하지?" |
 
 ### 작업 이력 / 현재 상태를 파악할 때
+
 | 문서 | 경로 | 내용 |
 |------|------|------|
 | 현재 상태 | `/docs/handover.md` | 지금 어디까지 왔는가. 새 세션 시작 시 먼저 읽는 것. |
@@ -282,11 +297,13 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 | 작업 히스토리 | `/docs/history/YYYY-MM-DD.md` | 날짜별 결정 맥락. 왜 이렇게 됐는가. |
 
 ### 학습 / 기술 기록이 필요할 때
+
 | 문서 | 경로 | 내용 |
 |------|------|------|
 | 기술 노트 | `/docs/learning/` | 구현 과정의 학습 내용, 시행착오, 핵심 개념 정리 |
 
 ### AI Native 개발 환경 / 에이전트 운영이 필요할 때
+
 | 문서 | 경로 | 내용 |
 |------|------|------|
 | 지식 베이스 인덱스 | `/docs/knowledge/INDEX.md` | AI Native 개발, Claude Code 실천법, Anthropic 연구 동향 |

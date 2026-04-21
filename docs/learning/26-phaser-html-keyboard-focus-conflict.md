@@ -34,6 +34,7 @@ Phaser의 `addCapture()`로 WASD를 캡처하면 HTML input에 'w', 'a', 's', 'd
 **선택: B. document.activeElement 기반**
 
 이유:
+
 1. **확장성.** 채팅 입력창 외에도 로그인 폼, 설정 창, 닉네임 입력 등 HTML input이 계속 추가될 예정이다. 새 input마다 store 연동을 하는 건 실수가 예정된 구조다.
 2. **비용이 거의 없다.** `document.activeElement`는 DOM 쿼리가 아니라 브라우저가 이미 관리하고 있는 프로퍼티 접근이다. 매 프레임 읽어도 성능 영향이 없다.
 3. **초기에 A를 시도했다가 B로 전환했다.** 실제로 zustand의 `isInputFocused` 방식을 먼저 구현했는데, 채팅 입력 외의 다른 HTML input(로그인 폼)에서 캐릭터가 움직이는 버그가 나왔다. 그때 "모든 input에 대응하려면 DOM 수준에서 판단해야 한다"는 결론에 도달했다.
@@ -46,7 +47,7 @@ Phaser의 `addCapture()`로 WASD를 캡처하면 HTML input에 'w', 'a', 's', 'd
 
 Phaser의 `KeyboardPlugin`은 브라우저의 `keydown`/`keyup` 이벤트를 가로채서 게임 로직에 전달한다. `addCapture()`를 호출하면 해당 키코드에 대해 `preventDefault()`를 걸어서 **브라우저 기본 동작을 막는다.**
 
-```
+```text
 브라우저 keydown 이벤트
     │
     ├── addCapture된 키? ──Yes──→ preventDefault() 호출 → HTML input에 문자 전달 안 됨
@@ -61,7 +62,7 @@ Phaser의 `KeyboardPlugin`은 브라우저의 `keydown`/`keyup` 이벤트를 가
 
 매 프레임(`update()`)에서 현재 포커스가 어디에 있는지 확인하고, 그에 따라 캡처를 동적으로 전환한다.
 
-```
+```text
 update() 매 프레임 호출
     │
     ├── document.activeElement가 HTMLInputElement 또는 HTMLTextAreaElement?
@@ -124,19 +125,23 @@ keyboard.removeCapture([KeyCodes.W, KeyCodes.A, KeyCodes.S, KeyCodes.D]);
 ## 더 공부할 거리
 
 ### Phaser 키보드 시스템
+
 - [Phaser 3 KeyboardPlugin 공식 문서](https://photonstorm.github.io/phaser3-docs/Phaser.Input.Keyboard.KeyboardPlugin.html) -- addCapture, removeCapture, clearCaptures의 정확한 시그니처와 동작
 - [Phaser KeyboardManager 문서](https://docs.phaser.io/api-documentation/class/input-keyboard-keyboardmanager) -- KeyboardPlugin과 KeyboardManager의 차이. Manager는 전역, Plugin은 Scene 단위
 - [addCapture 상세 문서](https://newdocs.phaser.io/docs/3.80.0/focus/Phaser.Input.Keyboard.KeyboardPlugin-addCapture) -- 캡처가 글로벌로 동작하는 이유 설명
 - [Phaser 포럼: Temporarily disable key captures](https://phaser.discourse.group/t/temporarry-disable-key-captures-in-game/4524) -- 같은 문제로 고민한 사람들의 토론. `disableGlobalCapture()`가 왜 기대대로 동작하지 않는지
 
 ### 게임 엔진 + 웹 UI 통합
+
 - [Phaser GitHub Issue #4447: Mouse input goes through overlay HTML](https://github.com/photonstorm/phaser/issues/4447) -- 마우스 이벤트의 동일한 문제. 키보드만이 아니라 마우스 클릭도 캔버스와 HTML 오버레이 간 충돌 가능
 - [Phaser Input 공식 가이드](https://docs.phaser.io/phaser/concepts/input) -- Phaser의 입력 시스템 전반. 마우스, 키보드, 터치의 이벤트 흐름
 
 ### 관련 학습노트
+
 - [21-village-public-chat-architecture.md](./21-village-public-chat-architecture.md) -- 마을 공개 채팅의 전체 아키텍처. 채팅 입력 UI가 이 키보드 충돌 문제의 직접 원인이었다
 - [15-websocket-stomp-deep-dive.md](./15-websocket-stomp-deep-dive.md) -- STOMP 메시지 전송 구조. 채팅 메시지를 보내려면 input에 타이핑이 되어야 하니까
 
 ### 더 깊이 파려면
+
 - **브라우저의 포커스 모델 자체를 이해하기:** [MDN - Focus management](https://developer.mozilla.org/en-US/docs/Web/API/Document/activeElement)와 [focusin/focusout 이벤트](https://developer.mozilla.org/en-US/docs/Web/API/Element/focusin_event). `document.activeElement`가 정확히 어떤 시점에 바뀌는지, `<canvas>`가 포커스를 받을 수 있는지(`tabindex` 속성)를 알면 엣지케이스를 예측할 수 있다
 - **Unity WebGL의 동일 문제:** Unity도 WebGL 빌드에서 HTML 오버레이와 키보드 충돌이 발생한다. Unity는 `WebGLInput.captureAllKeyboardInput`이라는 플래그로 제어한다. 다른 엔진들이 같은 문제를 어떻게 해결했는지 보면 패턴이 보인다

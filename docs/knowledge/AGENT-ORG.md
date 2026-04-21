@@ -6,7 +6,7 @@
 
 ## 조직 구조
 
-```
+```text
 사용자 (방향 설정 + 최종 승인)
         ↓
 ┌──────────────────────────────────────────────────┐
@@ -41,6 +41,7 @@
 ## HQ 에이전트
 
 ### hq-agent
+
 - **역할**: 전체 조직 오케스트레이션. 요청 분석 → 에이전트 위임 → 결과 종합
 - **재활용 핵심**: 매 세션 시작 시 4개 파일 읽어 상태 복원
   - `docs/handover.md`
@@ -54,36 +55,42 @@
 ## 리서치 본부
 
 ### research-agent (기술 리서치)
+
 - **역할**: AI Native 개발, Claude Code, Anthropic 연구 동향 추적
 - **출력**: `docs/knowledge/ai-native/` 누적
 - **자율성**: 높음 (스케줄 자동 실행 가능)
 - **파일**: `.claude/agents/research-agent.md`
 
 ### market-research-agent (시장 리서치)
+
 - **역할**: 소셜/감성케어/버추얼 시장 규모, 트렌드 분석
 - **출력**: `docs/knowledge/market/market-trends.md` 누적
 - **자율성**: 높음 (스케줄 자동 실행 가능)
 - **파일**: `.claude/agents/market-research-agent.md`
 
 ### competitor-agent (경쟁사 분석)
+
 - **역할**: Replika, Character.ai, Gather.town 등 경쟁/유사 서비스 심층 분석
 - **출력**: `docs/knowledge/market/competitors/[서비스명].md` 누적
 - **자율성**: 중간 (분석 대상 지정 필요)
 - **파일**: `.claude/agents/competitor-agent.md`
 
 ### user-research-agent (유저 리서치)
+
 - **역할**: 타겟 유저 페르소나, 유저 니즈, 행동 패턴 분석
 - **출력**: `docs/knowledge/market/user-personas.md`, `user-insights.md` 누적
 - **자율성**: 중간
 - **파일**: `.claude/agents/user-research-agent.md`
 
 ### job-market-agent (JD 인텔리전스)
+
 - **역할**: 마플코퍼레이션/SOOP/치지직 채용 공고 분석, 요구 기술 트렌드 추적, 액션 아이템 도출
 - **출력**: `docs/knowledge/job-market/` 누적
 - **자율성**: 높음 (주간 크론 등록 예정)
 - **파일**: `.claude/agents/job-market-agent.md`
 
 ### dependency-tracker-agent (의존성 버전 추적)
+
 - **역할**: Spring Boot/Java/Kafka/Next.js 최신 릴리즈 및 CVE 보안 패치 추적
 - **출력**: `docs/knowledge/dependencies/` 누적
 - **자율성**: 높음 (격주 크론 등록 예정)
@@ -91,11 +98,13 @@
 - **상태**: 🔒 잠금 — 플랜 트리거 한도(3개) 초과로 크론 미등록. 슬롯 여유 생기면 재등록 예정.
 
 ### context-health-agent (AI Native 컨텍스트 건강 검사)
+
 - **역할**: CLAUDE.md 토큰 수, handover.md 최신성, 에이전트 프롬프트 품질, 지식 베이스 노화 감지
 - **자율성**: 중간 (주간 실행 권장)
 - **파일**: `.claude/agents/context-health-agent.md`
 
 ### realtime-tech-agent (실시간 기술 리서치 + 어드바이저)
+
 - **역할**: 채팅·음성·라이브스트리밍·화면공유 기술 동향 수집 및 구현 어드바이저
 - **모드 1 (수집)**: WebSocket/Kafka/WebRTC/HLS 등 최신 기술 동향 수집
 - **모드 2 (어드바이저)**: 구현 중 기술 선택, 아키텍처 결정, 트레이드오프 조언
@@ -108,42 +117,52 @@
 ## 개발 본부
 
 ### domain-agent
+
 - **역할**: Domain Entity, VO, Port(in/out) 설계
 - **파일**: `.claude/agents/domain-agent.md`
 
 ### adapter-agent
+
 - **역할**: Controller, JPA Adapter, Kafka Adapter 구현
 - **파일**: `.claude/agents/adapter-agent.md`
 
 ### test-agent
+
 - **역할**: Cucumber BDD 시나리오 작성
 - **파일**: `.claude/agents/test-agent.md`
 
 ### test-quality-agent
+
 - **역할**: 테스트 품질 검증. BDD 형식, 성공/실패 케이스, 독립성, 의미 없는 테스트 탐지
 - **파일**: `.claude/agents/test-quality-agent.md`
 
 ### review-agent
+
 - **역할**: uncommitted 변경사항 Codex 리뷰. git commit PostToolUse 훅으로 자동 트리거
 - **파일**: `.claude/agents/review-agent.md`
 
 ### full-review-agent
+
 - **역할**: 전체 프로젝트 Codex 전수 점검 (커밋 무관)
 - **파일**: `.claude/agents/full-review-agent.md`
 
 ### docs-agent
+
 - **역할**: 문서↔코드 정합성 Codex 검증. API명세, ERD, 이벤트 명세 교차검증
 - **파일**: `.claude/agents/docs-agent.md`
 
 ### concurrency-review-agent
+
 - **역할**: 동시성·성능 전문 검증. check-then-act, 락 전략, Kafka 멱등성, N+1
 - **파일**: `.claude/agents/concurrency-review-agent.md`
 
 ### security-review-agent
+
 - **역할**: 보안 전문 검증. 인증/인가 누락, 민감 정보 노출, OWASP Top 10
 - **파일**: `.claude/agents/security-review-agent.md`
 
 ### learning-agent
+
 - **역할**: 기술 학습 노트 작성. 트레이드오프 비교, 선택지 분석, 시야 확장 정보 포함. 사람이 공부하기 좋은 포맷
 - **출력**: `docs/learning/NN-주제.md` 또는 `docs/architecture/decisions/NNN-제목.md`
 - **트리거**: `/학습노트` 스킬 또는 Stop Hook 리마인드
@@ -166,7 +185,7 @@
 
 ## 셀프러닝 루프
 
-```
+```text
 [리서치 본부 — 자동]
 research-agent (매주) → docs/knowledge/ai-native/ 업데이트
 market-research-agent (격주) → docs/knowledge/market/ 업데이트

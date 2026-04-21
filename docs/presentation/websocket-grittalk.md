@@ -41,7 +41,7 @@ style: |
 3. 타이핑 표시  →  상대방이 입력 중인지 실시간 확인
 ```
 
-> 💡 라이브 데모: **https://ghworld.co**
+> 💡 라이브 데모: **<https://ghworld.co>**
 
 ---
 
@@ -172,6 +172,7 @@ public Message<?> preSend(Message<?> message, MessageChannel channel) {
 │ → 403        │               │ /app/chat/   │
 └──────────────┘               └──────────────┘
 ```
+
 ---
 
 ### 왜 이렇게 했나?
@@ -370,9 +371,9 @@ ghworld.co에서 **실제 운영 중**
 
 # Q&A
 
-### 프로젝트
+## 프로젝트
 
-- 서비스: **https://ghworld.co**
+- 서비스: **<https://ghworld.co>**
 - GitHub: `zkzkzhzj/ChatAppProject`
 
 ### 핵심 코드

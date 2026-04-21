@@ -29,6 +29,7 @@ java {
 ```
 
 Gradle이 이 선언을 보고:
+
 1. 시스템에 Java 21이 있으면 그걸 사용
 2. 없으면 자동으로 다운로드 (Foojay Resolver가 담당)
 
@@ -71,6 +72,7 @@ Toolchain은 Gradle 빌드 범위에만 적용된다.
 IntelliJ에서 실행할 때는 IntelliJ 자체의 JDK 설정을 따른다.
 
 즉:
+
 - `./gradlew build` → 반드시 Java 21 사용 (Toolchain이 보장)
 - IntelliJ 실행 버튼 → IntelliJ Project SDK 설정을 따름
 
@@ -95,5 +97,6 @@ Gradle 자체(wrapper 실행)는 Java 17+이면 되고,
 실제 컴파일/테스트에 쓰이는 JDK는 Toolchain 선언에 따라 Java 21이 별도로 사용된다.
 
 이 두 가지 JDK 역할을 혼동하지 않는 게 중요하다:
+
 - **Gradle 데몬 실행 JDK**: `JAVA_HOME` 또는 시스템 Java (17+이면 됨)
 - **프로젝트 빌드/테스트 JDK**: `toolchain { languageVersion = 21 }` (Foojay가 자동 설치)

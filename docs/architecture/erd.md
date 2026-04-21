@@ -32,7 +32,7 @@
 
 ## 3. Identity Context
 
-```
+```text
 USERS {
     Long id PK
     Enum type                -- MEMBER / GUEST
@@ -64,7 +64,7 @@ USERS ||--|{ USER_SOCIAL_AUTH
 ```
 
 > **구현 상태:** `USER_SOCIAL_AUTH` 테이블은 V1 마이그레이션에서 생성되었으나, 소셜 로그인 기능은 아직 **미구현**이다. JPA Entity, Repository, Service가 존재하지 않는다. 소셜 로그인은 향후 Phase에서 구현 예정이다.
-
+>
 > **설계 결정:** 이메일/비밀번호 인증 정보는 `USERS` 테이블이 아닌 `USER_LOCAL_AUTH`에 분리 저장한다.
 > `USER_SOCIAL_AUTH`와 대칭 구조를 유지하여 인증 수단이 추가되어도 `USERS` 테이블은 변경이 없다.
 > 소셜 전용 계정은 `USER_LOCAL_AUTH` 행이 없을 수 있으므로 1:0..1 관계다.
@@ -73,7 +73,7 @@ USERS ||--|{ USER_SOCIAL_AUTH
 
 ## 4. Village Context
 
-```
+```text
 SPACE {
     Long id PK
     Long user_id             -- ID 참조 (FK 아님)
@@ -114,7 +114,7 @@ CHARACTER ||--o{ CHARACTER_EQUIPMENT : "1:0..N"
 
 ## 5. Economy — Wallet
 
-```
+```text
 POINT_WALLET {
     Long id PK
     Long user_id             -- ID 참조 (FK 아님)
@@ -138,7 +138,7 @@ POINT_TRANSACTION {
 
 ## 6. Economy — Inventory
 
-```
+```text
 ITEM_DEFINITION {
     Long id PK
     String name
@@ -162,7 +162,7 @@ ITEM_DEFINITION ||--|{ USER_ITEM_INVENTORY
 
 ## 7. Communication — PostgreSQL
 
-```
+```text
 CHAT_ROOM {
     Long id PK
     String title
@@ -198,7 +198,7 @@ CHAT_ROOM_CATEGORY {
 
 > **구현 상태:** `CATEGORY`와 `CHAT_ROOM_CATEGORY` 테이블은 V1 마이그레이션에서 생성되었으나, 채팅방 카테고리 기능은 아직 **미구현**이다. JPA Entity, Repository, UseCase가 존재하지 않는다. 채널/카테고리 개념 도입 시 구현 예정이다.
 
-```
+```text
 NPC_CONVERSATION_MEMORY {
     Long id PK
     Long user_id             -- ID 참조 (FK 아님)
@@ -225,7 +225,7 @@ CATEGORY ||--o{ CHAT_ROOM_CATEGORY
 
 Cassandra에 저장. write-heavy 특성과 고정된 조회 패턴에 적합.
 
-```
+```text
 MESSAGE {
     UUID id                  -- TimeUUID 권장
     Long chat_room_id        -- Partition Key
@@ -251,7 +251,7 @@ Clustering Key: created_at DESC, id DESC
 MESSAGE 테이블과 동일한 데이터를 `(chat_room_id, user_id)` 파티션으로 저장한다.
 유저 메시지 저장 시 MESSAGE + USER_MESSAGE에 dual-write한다.
 
-```
+```text
 USER_MESSAGE {
     Long chat_room_id        -- Partition Key
     Long user_id             -- Partition Key
@@ -272,7 +272,7 @@ Clustering Key: created_at DESC, id DESC
 
 ## 9. Safety Context
 
-```
+```text
 REPORT {
     Long id PK
     Long reporter_user_id    -- ID 참조
@@ -298,7 +298,7 @@ SANCTION {
 
 ## 10. 인프라 테이블
 
-```
+```text
 OUTBOX_EVENT {
     Long id PK
     String aggregate_id

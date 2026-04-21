@@ -5,6 +5,7 @@
 ---
 
 ## [2026-04-15] lint | Wiki 정기 점검 (2차)
+
 - CRITICAL: 0개, WARNING: 4개, LGTM: 5개
 - WARNING: character-system에 위치 공유 미반영, hooks-automation에 Codex CLI 리뷰 에이전트 미반영, docker-local pgvector 이미지 미확인
 - 전체 12개 페이지 모두 4주 이내. 고아 페이지·교차참조·스키마 모두 통과.

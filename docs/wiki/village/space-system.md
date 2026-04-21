@@ -36,7 +36,7 @@ last-verified: 2026-04-13
 
 ## 생성 흐름
 
-```
+```text
 회원가입 → Kafka "user.registered"
   → UserRegisteredEventConsumer (멱등성 보장)
   → InitializeUserVillageService

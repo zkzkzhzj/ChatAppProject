@@ -42,7 +42,7 @@
 
 ### 처리 흐름
 
-```
+```text
 RegisterUserService
   → outbox_event 저장 (같은 트랜잭션)
   → OutboxKafkaRelay (1초 주기 @Scheduled) → Kafka "user.registered"
@@ -90,7 +90,7 @@ RegisterUserService
 
 ### 처리 흐름
 
-```
+```text
 SendMessageService (3회 누적 시)
   → outbox_event 저장 (같은 트랜잭션)
   → OutboxKafkaRelay (1초 주기) → Kafka "npc.conversation.summarize"

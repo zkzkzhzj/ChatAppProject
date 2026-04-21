@@ -49,7 +49,7 @@ void saveWithEmbedding(@Param("embedding") String embedding);
 
 JDBC URL에 `?stringtype=unspecified`를 붙이면, PostgreSQL JDBC 드라이버가 String 파라미터를 보낼 때 타입을 지정하지 않는다. PostgreSQL 서버가 알아서 타입을 추론해준다.
 
-```
+```text
 jdbc:postgresql://localhost:5432/mydb?stringtype=unspecified
 ```
 
@@ -92,6 +92,7 @@ private float[] embedding;
 **선택: D. Hibernate 네이티브 벡터 타입**
 
 이유:
+
 1. Hibernate ORM 자체 모듈이라 버전 호환성 걱정이 없다. Spring Boot BOM이 버전을 관리해준다.
 2. `float[]` 필드에 어노테이션만 붙이면 되므로 코드가 가장 깔끔하다.
 3. 외부 라이브러리 의존성이 없어서 공급망 리스크가 낮다.
@@ -109,7 +110,7 @@ Hibernate가 내부적으로 SQL 타입을 정수 코드로 관리한다. `SqlTy
 
 `hibernate-core`에는 `SqlTypes.VECTOR` 코드 정의만 있고, **실제로 이 코드를 PostgreSQL의 `vector` 타입으로 변환하는 로직**은 `hibernate-vector` 모듈에 있다. 그래서 모듈 없이 `@JdbcTypeCode(SqlTypes.VECTOR)`만 쓰면 이런 에러가 난다:
 
-```
+```text
 no type mapping for SqlTypes code: 10000
 ```
 
@@ -119,7 +120,7 @@ no type mapping for SqlTypes code: 10000
 
 벡터의 차원 수를 지정한다. 이게 없으면 Hibernate가 벡터의 크기를 모르고, DDL 생성 시 `vector` (크기 미지정)로 만든다. pgvector는 크기가 없어도 동작하지만, **크기를 지정하면 잘못된 차원의 벡터 삽입을 DB 레벨에서 막아준다.**
 
-```
+```text
 -- @Array(length = 768) 있을 때
 embedding vector(768)
 
@@ -129,7 +130,7 @@ embedding vector
 
 ### 동작 흐름
 
-```
+```text
 float[] [0.1, 0.2, ...768개]
   ↓ JPA persist
 Hibernate: @JdbcTypeCode(VECTOR) 확인

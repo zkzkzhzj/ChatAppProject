@@ -112,6 +112,7 @@
 ## 읽는 순서 추천
 
 **처음 이 프로젝트에 합류했다면:**
+
 1. `docs/handover.md` (현재 상태)
 2. `docs/architecture/architecture.md` (아키텍처 원칙)
 3. [00 AI 하네스](./00-ai-harness-claude-codex.md) — 개발 방식 이해

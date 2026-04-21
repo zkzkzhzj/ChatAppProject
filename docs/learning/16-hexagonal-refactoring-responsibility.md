@@ -52,7 +52,7 @@ JPA 엔티티(`MessageCassandraEntity`)는 Persistence Adapter 안에 갇혀 있
 
 ### 무엇이 달라졌나
 
-```
+```text
 Before: Service → Message → MessageData(UseCase) → MessageResponse(Controller)
 After:  Service → Message → MessageResponse(Controller)
 ```
@@ -82,6 +82,7 @@ public static MessageResponse from(Message message) {
 ### 교훈
 
 중간 DTO 레이어를 만들기 전에 확인할 것:
+
 - 도메인 객체에 인프라 어노테이션이 있는가? → 있으면 중간 DTO 정당함
 - 변환 로직이 실질적으로 존재하는가? → 복사라면 제거 대상
 - 포트가 실제로 다른 구현체로 교체될 가능성이 있는가? → 없으면 YAGNI

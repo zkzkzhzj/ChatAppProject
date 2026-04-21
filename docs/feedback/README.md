@@ -9,7 +9,7 @@
 
 | 항목 | 값 |
 |------|------|
-| 도메인 | https://ghworld.co |
+| 도메인 | <https://ghworld.co> |
 | 리전 | AWS ap-northeast-2 (서울) |
 | 인스턴스 | t3.medium (4GB), Ubuntu 24.04 |
 | SSL | Cloudflare Flexible SSL |
@@ -32,6 +32,7 @@
 #### F-1: 모바일 터치 이동
 
 현재 키보드(WASD/방향키)로만 이동 가능. 모바일에서는 입력 수단이 없어 캐릭터가 움직이지 않음.
+
 - 방안 A: 터치한 위치로 pathfinding 이동
 - 방안 B: 가상 조이스틱 UI
 

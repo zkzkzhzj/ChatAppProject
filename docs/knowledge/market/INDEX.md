@@ -25,6 +25,7 @@
 ---
 
 ## 변경 이력
+
 - [changelog.md](changelog.md)
 
 ## 스택 참고 조사 (비경쟁사)

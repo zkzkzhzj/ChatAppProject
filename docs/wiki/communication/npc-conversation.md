@@ -13,7 +13,7 @@ last-verified: 2026-04-15
 
 `GenerateNpcResponsePort` 인터페이스를 통해 LLM 백엔드를 교체한다.
 
-```
+```text
 GenerateNpcResponsePort (인터페이스)
     ├── HardcodedNpcResponseAdapter  (테스트/CI — npc.adapter=hardcoded)
     ├── OllamaResponseAdapter        (개발/데모 — npc.adapter=ollama)
@@ -44,7 +44,7 @@ npc:
 
 ### NPC 응답 흐름
 
-```
+```text
 유저 메시지 (STOMP /app/chat/village)
   → ChatMessageHandler → 유저 메시지 저장 + broadcast
   → NpcReplyService.replyAsync() (@Async, 별도 스레드)
@@ -81,7 +81,7 @@ npc:
 
 ## 대화 맥락 유지 (구현 완료)
 
-```
+```text
 유저 메시지 3회 누적
   → SendMessageService.publishSummaryEventIfNeeded()
   → Outbox → Kafka "npc.conversation.summarize"

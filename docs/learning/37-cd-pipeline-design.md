@@ -59,6 +59,7 @@ flowchart LR
 
 **장점**: 이해하기 쉬움. 지금 수동으로 하는 것과 동일.
 **단점**:
+
 - EC2가 빌드하는 동안 서비스 느려짐
 - 4GB에서 Spring Boot + Next.js 빌드가 빠듯함
 
@@ -74,11 +75,13 @@ flowchart LR
 ```
 
 **장점**:
+
 - 빌드 부하를 Runner(GitHub 무료 VM)로 오프로드 → EC2 서비스 건드리지 않음
 - 이미지에 sha 태그를 박아두면 **롤백이 1초**
 - 여러 서버에 배포할 때 같은 이미지 재사용
 
 **단점**:
+
 - 구조가 복잡해짐
 - **빌드 환경(Runner)과 실행 환경(EC2)이 분리됨** → 이게 나중에 뒷통수를 때린다
 
@@ -293,6 +296,7 @@ curl -sf http://localhost:8080/actuator/health | grep UP
 `curl`은 기본 타임아웃이 없다. 컨테이너가 SYN만 받고 응답 없으면 **몇 분 동안 매달림** → 폴링 예산(90초) 무력화.
 
 **수정**:
+
 ```bash
 curl --connect-timeout 1 --max-time 2 -sf http://localhost:8080/actuator/health | grep UP
 ```
@@ -322,6 +326,7 @@ PREV_APP_TAG=$(docker inspect gohyang-app 2>/dev/null | awk -F: '{print $NF}' ||
 ```
 
 **실제 동작**:
+
 - `docker inspect` 실패 → stdout 빈 값
 - 파이프 뒤 `awk`는 빈 입력에 **성공 반환(exit 0)** + 빈 출력
 - `|| echo "latest"`는 awk 성공이라 **안 터짐**
@@ -420,6 +425,7 @@ flowchart LR
 **"호스트에 파일이 있는 것"과 "이미지 안에 있는 것"은 완전 별개.**
 
 해결 방향 세 가지:
+
 1. **Volume mount**: 호스트 파일을 컨테이너 안으로 명시적 연결
 2. **환경변수 주입**: 설정 파일 자체를 없애고 env var로 Spring Boot 구성 (12-factor)
 3. **gitignore 해제**: 절대 안 됨 (시크릿 유출)
@@ -427,6 +433,7 @@ flowchart LR
 **우리는 2번을 선택**해서 다음 단계로 간다 (별도 학습 노트에서 다룸).
 
 배운 점:
+
 - **"빌드 위치가 바뀌면 파일 접근성이 바뀐다"** — CD 전환 시 반드시 체크할 것
 - **.gitignore는 git 전파만 막는 것**, 파일시스템의 존재 여부와 무관
 - **컨테이너는 호스트와 격리된 파일시스템** — 자동으로 호스트 파일 못 봄

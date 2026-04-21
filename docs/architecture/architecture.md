@@ -19,10 +19,12 @@
 기본 원칙은 모든 도메인에 헥사고날 구조를 적용한다.
 
 **이유:**
+
 - 프로젝트 전체가 일관된 구조를 가진다. "이 도메인은 어떤 구조지?"라는 확인이 필요 없다.
 - Auth에 소셜 로그인 추가, Notification에서 FCM을 다른 서비스로 교체 등 모든 도메인에서 인프라 교체 가능성이 존재한다.
 
 **단, 간소화가 허용되는 조건:**
+
 - 외부 인프라 교체 가능성이 낮은 경우
 - 도메인 규칙이 거의 없는 순수 CRUD인 경우
 - 테스트 격리의 이득보다 구조 유지 비용이 큰 경우
@@ -40,7 +42,7 @@
 
 ### 2.1 의존 방향
 
-```
+```text
 Adapter (외부) → Application (유스케이스) → Domain (핵심)
 ```
 
@@ -51,12 +53,14 @@ Adapter (외부) → Application (유스케이스) → Domain (핵심)
 순수 비즈니스 규칙. 외부 기술에 대해 아무것도 모른다.
 
 **포함하는 것:**
+
 - Entity (비즈니스 규칙을 가진 도메인 객체)
 - Value Object (불변 값 객체)
 - Domain Service (여러 Entity에 걸친 비즈니스 로직)
 - Domain Event (도메인에서 발생하는 사건 정의)
 
 **포함하지 않는 것:**
+
 - Spring 어노테이션 (`@Service`, `@Component` 등)
 - JPA 어노테이션 (`@Entity`, `@Column` 등)
 - 인프라 라이브러리 import
@@ -87,11 +91,13 @@ public class PointWallet {
 유스케이스를 조율하는 층. Port 인터페이스를 정의한다.
 
 **포함하는 것:**
+
 - Driving Port (in): 외부가 이 도메인을 호출하는 인터페이스 (UseCase)
 - Driven Port (out): 이 도메인이 외부를 호출하는 인터페이스 (Repository, Messaging 등)
 - Application Service: UseCase 구현체. Port를 조합하여 비즈니스 흐름을 조율.
 
 **포함하지 않는 것:**
+
 - HTTP, WebSocket 등 통신 기술 세부사항
 - DB 접근 기술 세부사항
 
@@ -141,11 +147,13 @@ public class PurchaseItemService implements PurchaseItemUseCase {
 실제 기술 구현. Port 인터페이스를 구현한다.
 
 **Driving Adapter (in):** 외부 요청을 받아 UseCase를 호출.
+
 - Web Adapter: Controller, Request/Response DTO
 - WebSocket Adapter: WebSocket Handler
 - Scheduler: 정기 작업
 
 **Driven Adapter (out):** UseCase가 필요한 외부 자원을 제공.
+
 - Persistence Adapter: JPA Entity, Repository 구현체, Mapper
 - Messaging Adapter: Kafka Producer/Consumer
 - External Adapter: 외부 API 연동
@@ -182,11 +190,13 @@ public class PointWalletJpaAdapter implements LoadPointWalletPort, SavePointWall
 Port 분리의 목적은 ISP(인터페이스 분리 원칙)를 통해 Service의 의존을 명확히 하는 것이다. 세분화는 수단이지 절대 규칙이 아니다.
 
 **분리하는 기준:**
+
 - command / query 경계가 다른 경우
 - 외부 시스템이 다른 경우
 - 트랜잭션 책임이 다른 경우
 
 **합쳐도 되는 경우:**
+
 - 같은 repository 성격의 강결합 행위 (load + save)
 - 분리해도 항상 같이 사용되는 행위
 
@@ -275,6 +285,7 @@ public class PointWalletMapper {
 ```
 
 **MapStruct를 사용하지 않는 이유:**
+
 - 의존성 추가 없이 명시적 변환이 가능하다.
 - AI가 생성하는 코드에서 MapStruct 설정 오류가 빈번하다.
 - 이 프로젝트에서 필드가 수십 개인 Entity는 없다.
@@ -359,6 +370,7 @@ processEvent(event);
 구매, 충전, 보상 수령, 신고 접수 등 상태를 변경하는 API에는 Idempotency-Key를 필수로 요구한다.
 
 **흐름:**
+
 1. 프론트엔드가 요청 시 고유한 `Idempotency-Key`를 헤더에 포함하여 전송한다.
 2. 서버는 `(user_id, idempotency_key)` UNIQUE 제약이 걸린 테이블에 `INSERT ... ON CONFLICT DO NOTHING`을 실행한다.
 3. INSERT 성공 (affected rows = 1) → 비즈니스 로직 수행 → 결과 저장.
@@ -394,6 +406,7 @@ public PurchaseResult execute(PurchaseItemCommand command) {
 ```
 
 **Idempotency-Key 정책:**
+
 - Key는 프론트엔드에서 UUID로 생성한다.
 - 같은 Key로 다른 payload가 오면 409 Conflict를 반환한다.
 - Key 보존 기간은 용도에 따라 다르다:
@@ -473,6 +486,7 @@ public class PointWalletJpaEntity {
 동시에 두 요청이 같은 wallet을 갱신하면, 먼저 커밋한 쪽이 성공하고 나중 쪽은 `OptimisticLockingFailureException`이 발생한다.
 
 **충돌 시 재시도 전략:**
+
 - 재시도 가능한 연산 (포인트 차감): 최대 3회 재시도. 재시도마다 wallet을 다시 읽어서 최신 상태에서 연산.
 - 재시도 불가능한 연산 (이미 외부 효과가 발생한 경우): 재시도하지 않고 실패 처리.
 
@@ -485,6 +499,7 @@ public class PointWalletJpaEntity {
 ### 8.3 고경합 시나리오 확장 (현재 범위 아님)
 
 동시 요청이 매우 많아 낙관적 락 재시도가 빈번해지면:
+
 - 해당 구간만 `SELECT FOR UPDATE` (비관적 락) 전환
 - 또는 single-writer 패턴 검토
 
@@ -497,10 +512,12 @@ public class PointWalletJpaEntity {
 모든 것을 Kafka로 보내지 않는다. 아래 기준으로 판단한다.
 
 **동기 트랜잭션 (같은 DB, 같은 트랜잭션):**
+
 - 두 행위가 "같이 성공하거나 같이 실패해야" 하는 경우.
 - 예: 포인트 차감 + 아이템 지급. 포인트만 빠지고 아이템이 안 들어오면 안 된다.
 
 **비동기 이벤트 (Kafka):**
+
 - 도메인 경계를 넘는 부수 효과. 실패해도 원래 행위를 취소하면 안 되는 경우.
 - 예: 구매 완료 → 알림 발송. 알림 실패가 구매를 취소시키면 안 된다.
 
@@ -528,6 +545,7 @@ CREATE TABLE outbox_event (
 ```
 
 **발행 프로세스:**
+
 1. Publisher가 `status = 'PENDING'`인 이벤트를 polling (또는 CDC)으로 읽는다.
 2. Kafka로 발행한다.
 3. 발행 성공 시 `status = 'PUBLISHED'`, `published_at` 기록.

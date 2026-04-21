@@ -153,12 +153,12 @@ C. security.env-public-paths: /actuator/** → Spring Security permitAll
 
 A+C는 **기존부터 존재**. 이번 PR이 B를 추가해 A+C의 잠재 취약성을 실제 공격 표면으로 전환.
 
-### 해결: 두 층 수정
+### 해결: 두 층 수정 (+ 환경별 오버라이드)
 
 ```yaml
-# 1. 호스트 포트 loopback 바인딩 — SG 실수와 무관한 2중 방어
+# 1. 포트 바인딩 인터페이스를 env로 제어 (환경별 다른 요구 대응)
 ports:
-  - "127.0.0.1:${APP_PORT:-8080}:8080"
+  - "${APP_BIND_IP:-127.0.0.1}:${APP_PORT:-8080}:8080"
 
 # 2. Actuator 기본값 축소 — secure by default
 ACTUATOR_ENDPOINTS: ${ACTUATOR_ENDPOINTS:-health}
@@ -167,9 +167,30 @@ ACTUATOR_ENDPOINTS: ${ACTUATOR_ENDPOINTS:-health}
 운영 `.env`에서 명시적으로 확장:
 
 ```bash
+APP_BIND_IP=0.0.0.0                                              # VPC 내부 scrape 허용
 ACTUATOR_ENDPOINTS=health,info,metrics,prometheus
 SECURITY_ENV_PUBLIC_PATHS=/actuator/health,/actuator/prometheus
 ```
+
+### 왜 `APP_BIND_IP` env화인가 — 시행착오 노트
+
+처음엔 `127.0.0.1`을 **하드코딩**했다 ("loopback 바인딩으로 SG 실수 시 2중 방어").
+그런데 배포 후 monitor EC2의 Prometheus가 `connection refused`.
+
+- 운영 EC2 호스트의 `lo` 인터페이스에만 8080 오픈 → `eth0`(VPC private IP) 8080 닫힘
+- monitor EC2가 VPC 내부 IP로 접근 시도 → 해당 인터페이스에 listener 없음 → refused
+
+**"loopback 2중 방어"와 "VPC 내부 scrape"가 충돌**. 이걸 해결하려고:
+
+- 로컬·CI 환경: 기본값 `127.0.0.1` 유지 (여전히 안전)
+- 운영: `.env`로 `APP_BIND_IP=0.0.0.0` 명시 (SG가 monitor-sg만 허용하니 인터넷 노출은 차단됨)
+- 더 타이트하게 하려면 `APP_BIND_IP=<private-ip>` 로 특정 인터페이스만
+
+교훈:
+
+- "Secure by default"가 **실제 사용 시나리오**를 깨뜨리면 무의미
+- 인프라 결정은 데이터 흐름 전체(app → SG → eth0 → VPC → 다른 EC2)를 그려본 뒤 해야 함
+- env 오버라이드 패턴은 "기본 안전 + 필요 시 개방"의 가장 깔끔한 해답
 
 ### 왜 `health` 하나만 기본값?
 

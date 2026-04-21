@@ -145,11 +145,14 @@ services:
       context: ../backend
       dockerfile: Dockerfile
     container_name: gohyang-app
-    # 127.0.0.1 바인딩 → 호스트 loopback에만 노출. 인터넷 직접 접근 불가.
-    # nginx가 같은 호스트의 127.0.0.1:8080 으로 프록시하므로 정상 동작.
-    # SG 실수로 포트 열려도 /actuator/** 같은 민감 경로가 외부 노출되지 않는 2중 방어.
+    # APP_BIND_IP로 포트 바인딩 인터페이스를 환경별로 오버라이드.
+    # - 기본값 127.0.0.1: 로컬 개발·CI에서 호스트 loopback만 오픈 (secure by default).
+    #   nginx가 같은 호스트 127.0.0.1:8080으로 프록시하므로 정상 동작.
+    # - 운영 EC2: .env에 APP_BIND_IP=0.0.0.0 설정 (VPC 내부 Prometheus scrape 허용).
+    #   SG(app-sg)가 monitor-sg만 8080 inbound 허용하므로 인터넷 노출은 막힘.
+    # - 더 타이트하게 하려면 APP_BIND_IP=<private-ip> 로 특정 인터페이스만 바인딩 가능.
     ports:
-      - "127.0.0.1:${APP_PORT:-8080}:8080"
+      - "${APP_BIND_IP:-127.0.0.1}:${APP_PORT:-8080}:8080"
     environment:
       # ── Spring 표준 매핑 (자동으로 spring.datasource.url 등에 바인딩) ──
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gohyang

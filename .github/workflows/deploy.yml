@@ -16,6 +16,8 @@ on:
       - '.claude/**'
       - '.github/ISSUE_TEMPLATE/**'
       - 'llm-test/**'
+      # 모니터링 스택은 별도 EC2(gohyang-monitor)에서 동작 → 운영 CD와 무관.
+      - 'monitoring/**'
   workflow_dispatch:
     inputs:
       force_rebuild:

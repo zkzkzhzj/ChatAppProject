@@ -93,6 +93,7 @@
 | [38](./38-env-var-config-migration.md) | 12-factor Config 이관 | application-prod.yml 없애기 |
 | [39](./39-nextjs-docker-healthcheck-ipv6-trap.md) | Next.js Docker healthcheck IPv6 교착 | Next.js · Node 17 · Alpine BusyBox 삼중 교집합 |
 | [40](./40-observability-stack-decisions.md) | 관측성 스택 도입기 — 호스팅·도구·보안 결정 | Prometheus+Grafana 인프라 설계 트레이드오프 6선 |
+| [41](./41-k6-load-testing-setup.md) | k6 사용법·설계 학습노트 | STOMP 프레임 수동 조립·시나리오 초안·토큰 풀 함정 |
 
 ---
 

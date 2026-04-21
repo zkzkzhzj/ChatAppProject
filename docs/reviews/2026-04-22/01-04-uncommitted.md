@@ -1,6 +1,12 @@
 # 코드 리뷰 — 2026-04-22 01-04
 
+> 📸 **이 문서는 2026-04-22 01:04 시점 uncommitted 스냅샷입니다.**
+> 이후 커밋에서 리뷰 findings 대부분이 반영되었습니다 (Grafana `:?required`,
+> ACTUATOR `health` 기본값, extra_hosts env 템플릿, learning/40 신설 등).
+> 각 finding은 시점 스냅샷으로 읽고 최신 상태는 PR #21 diff 참조.
+
 ## 대상
+
 - 종류: uncommitted changes (관측성 레이어 도입 PR)
 - 변경 파일:
   - `.claude/hooks/stop-handover-check.js` (수정)

@@ -1,6 +1,11 @@
 # MD 정합성 리뷰 — 2026-04-22 01-04
 
+> 📸 **이 문서는 2026-04-22 01:04 시점의 문서 정합성 스냅샷입니다.**
+> 이후 커밋에서 `docs/learning/40`, handover 21차, monitoring/README 등이 반영되었습니다.
+> 각 finding은 시점 스냅샷으로 읽어주세요.
+
 ## 대상
+
 - 종류: 문서 정합성 + 코드↔명세 교차검증 (관측성 레이어 도입 PR)
 - 범위: `monitoring/`, `deploy/`, `backend/src/main/resources/application.yml`, `backend/build.gradle.kts`, `docs/handover.md`, `docs/architecture/`, `docs/knowledge/`, `docs/learning/INDEX.md`, `docs/wiki/INDEX.md`
 

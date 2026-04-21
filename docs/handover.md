@@ -215,12 +215,13 @@ POST /api/v1/chat/messages {body: "..."}
 4. **Outbox @Scheduled 1s polling** — 요약 이벤트 지연 + DB 부하
 5. **메시지 카운터 `ConcurrentHashMap`** — 서버 재시작 시 초기화
 
-#### Step B 착수 전 결정 필요
+#### Step B·C·D 착수 전 결정 현황
 
-- [ ] 모니터링 스택 호스팅 위치 — EC2 추가 vs t3.large 일시 확대 vs 로컬 스크린샷
-- [ ] 부하 테스트 타겟 — 채팅(+NPC) vs 회원가입 Outbox vs pgvector 검색
-- [ ] 블로그 플랫폼 — Velog / Tistory / zlog
-- [ ] Post-Mortem 수행 여부
+- [x] 모니터링 스택 호스팅 위치 — **Dedicated Monitor EC2 (t3.small `gohyang-monitor`)** 확정 (2026-04-22). 근거는 [learning/40 §2](./learning/40-observability-stack-decisions.md#2-결정-1--모니터링-스택을-어디에-띄울까)
+- [x] 부하 테스트 도구 — **k6** 확정 (2026-04-22). 근거는 [learning/40 §3](./learning/40-observability-stack-decisions.md#3-결정-2--부하-테스트-도구는-뭘로) + [learning/41](./learning/41-k6-load-testing-setup.md)
+- [x] 부하 테스트 타겟 — **마을 공개 채팅 (NPC hardcoded로 일시 전환, OpenAI 호출 제외)** 확정 (2026-04-22)
+- [x] 블로그 플랫폼 — **개인 블로그** 확정
+- [ ] Post-Mortem 수행 여부 — 미정 (Step C 실행 후 장애 재현 가능 여부 보고 판단)
 
 ### 병행 가능한 짜투리 작업
 

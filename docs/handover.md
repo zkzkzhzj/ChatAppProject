@@ -6,7 +6,7 @@
 
 ---
 
-## 현재 상태 (2026-04-21 기준, 20차 업데이트)
+## 현재 상태 (2026-04-22 기준, 21차 업데이트)
 
 ### ✅ 전체 완료 요약
 
@@ -79,6 +79,28 @@ CD 첫 실전 배포에서 "이미지 안에 application-prod.yml 없음" 문제
 - learning/ 병합: 08+10+11 → 08 · 12+14 → 12 · 18+19 → 18 (39개 → 35개)
 - `docs/learning/INDEX.md` 신설 (카테고리별 색인)
 - handover 슬림화 (866줄 → 약 400줄, 완료된 상세는 learning/으로 이관)
+
+### 4/22 — 관측성 레이어 도입 🔧 (PR #21에 포함)
+
+**목표**: 부하 테스트를 위한 메트릭 수집·시각화 인프라 구축
+
+| 항목 | 내용 |
+|------|------|
+| Backend 메트릭 노출 | `io.micrometer:micrometer-registry-prometheus` 추가, `/actuator/prometheus` endpoint 활성화 |
+| Spring Boot 4.x 트랩 | `ACTUATOR_ENDPOINTS` env var가 `application.yml` 기본값을 덮어써 endpoint 미노출 → `deploy/docker-compose.yml` 기본값 갱신 필요했음 |
+| 모니터링 EC2 | `gohyang-monitor` (t3.small, Ubuntu 24.04). 운영과 별도 VPC 내 인스턴스 |
+| Security Group | `app-sg`에 8080 허용 source = `monitor-sg` (VPC 내부만). 호스트 포트도 `127.0.0.1` loopback 바인딩으로 2중 방어 |
+| Prometheus + Grafana 스택 | `monitoring/` 디렉토리 신규. docker compose로 배포. Grafana 비번 `:?required` (compose 기동 실패로 실수 방지) |
+| Secure by default | `ACTUATOR_ENDPOINTS` 기본값 `health` — 운영은 `.env`에서 명시적으로 `prometheus` 확장 |
+| CD 격리 | `.github/workflows/deploy.yml` `paths-ignore`에 `monitoring/**` 추가 — 모니터링 변경이 운영 CD를 트리거하지 않도록 |
+| 리서치 | Spring Boot 4.x의 DHMC(Default Host Management) SSM Agent 이슈 해결 기록 |
+| 학습노트 | [40](./learning/40-observability-stack-decisions.md) — 호스팅 위치·도구·보안 결정의 트레이드오프 |
+
+**남은 작업**:
+
+- monitor EC2에서 git sparse-checkout + docker compose up 실행
+- Grafana에 JVM Micrometer 대시보드(ID 4701) import
+- k6 부하 테스트 스크립트 작성 (Step C)
 
 ---
 
@@ -171,7 +193,7 @@ POST /api/v1/chat/messages {body: "..."}
 | Step | 목표 | 산출물 | 상태 |
 |------|------|--------|------|
 | **A. CD 자동화** | main push → EC2 자동 반영 | `deploy/` + GHA workflow | ✅ 완료 (PR #15~#19 CD 루프 + PR #20 healthcheck 복원) |
-| **B. 관측 가능성** | Actuator + Micrometer → Prometheus → Grafana | 대시보드 (JVM/Latency/DB Pool/Kafka Lag/WS 세션) | 🔜 **다음 작업** |
+| **B. 관측 가능성** | Actuator + Micrometer → Prometheus → Grafana | 대시보드 (JVM/Latency/DB Pool/Kafka Lag/WS 세션) | 🔧 **진행 중** (backend endpoint 활성화 완료, monitor EC2 구축 완료, 대시보드 TBD) |
 | **C. 부하 테스트 + 병목 식별** | k6로 채팅+WebSocket VUser 10→500 | k6 리포트 + Grafana 캡처 + 병목 진단 | B 후속 |
 | **D. 기술 블로그 (Task 1)** | Step C 병목 1개 집중 서사 | Velog/Tistory + LinkedIn | C 후속 |
 | **E. README + 영상 + 에세이 + 이력서** | Week 7 나머지 산출물 | — | D 후속 |

@@ -92,6 +92,7 @@
 | [37](./37-cd-pipeline-design.md) | CD 파이프라인 구축기 | 수동 SSH에서 GHCR + SSM + OIDC로 |
 | [38](./38-env-var-config-migration.md) | 12-factor Config 이관 | application-prod.yml 없애기 |
 | [39](./39-nextjs-docker-healthcheck-ipv6-trap.md) | Next.js Docker healthcheck IPv6 교착 | Next.js · Node 17 · Alpine BusyBox 삼중 교집합 |
+| [40](./40-observability-stack-decisions.md) | 관측성 스택 도입기 — 호스팅·도구·보안 결정 | Prometheus+Grafana 인프라 설계 트레이드오프 6선 |
 
 ---
 

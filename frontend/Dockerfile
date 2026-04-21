@@ -46,12 +46,8 @@ USER gohyang
 
 EXPOSE 3000
 
-# Docker 레벨 healthcheck 비활성화.
-# Next.js 16 + Alpine busybox 조합에서 wget(--spider·-qO-)·nc 전부 unhealthy 판정되는 이슈로
-# CD의 compose --wait가 타임아웃되어 배포가 계속 실패함.
-# 실제 서비스는 정상(200 OK 응답)이므로 Docker healthcheck가 오히려 장애를 유발 중.
-# 모니터링은 nginx + Cloudflare + 브라우저 접속 경로가 담당.
-# 후속: HOSTNAME=0.0.0.0 env + healthcheck 재도입 또는 nginx healthcheck로 대체 검토.
-HEALTHCHECK NONE
+# HOSTNAME=0.0.0.0 (compose에서 주입)으로 IPv4 바인딩 강제 → busybox wget 127.0.0.1 접근 가능.
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+  CMD wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1
 
 ENTRYPOINT ["node", "server.js"]

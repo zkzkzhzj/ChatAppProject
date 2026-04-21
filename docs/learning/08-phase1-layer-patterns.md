@@ -46,6 +46,7 @@ new User(id, type, createdAt)
 ### 안티패턴으로 오해하지 말 것
 
 정적 팩토리 메서드 자체는 Effective Java Item 1이 권장한다. 아래 경우에만 문제가 생긴다:
+
 - `getInstance()` 같은 의미 없는 이름
 - 생성자를 완전히 막아 테스트 불가능해질 때
 - `Builder` 패턴이 더 적합한 복잡한 객체에 팩토리를 억지로 쓸 때
@@ -61,7 +62,7 @@ Phase 1에서 GUEST 유저 처리 방식도 결정했다.
 **선택한 방식:** GUEST = DB 레코드 없이 JWT claim만으로 식별
 **이유:** MVP 단계에서 복잡도를 낮추기 위함. GUEST 전환율 추적, GUEST 데이터 이어받기는 필요해질 때 추가한다.
 
-```
+```text
 입장 시 → GUEST JWT 발급 (claim: role=GUEST, userId 없음)
 채팅 시도 → 서버가 role=GUEST 확인 → 403 + 회원가입 안내
 회원가입 → 새 MEMBER users 행 생성, 새 JWT 발급
@@ -110,7 +111,7 @@ public class UserLocalAuthJpaEntity {
 
 Port (out) 인터페이스는 비즈니스 언어로 명명한다는 규칙이 있다. 이 규칙은 **Port 인터페이스에만 적용**된다. 구현체 내부는 해당 없다.
 
-```
+```text
 CheckEmailDuplicatePort.isEmailTaken()      ← Port: 비즈니스 언어 (규칙 적용)
     → UserPersistenceAdapter.isEmailTaken() ← 구현체: Port를 implements
         → UserLocalAuthJpaRepository
@@ -207,6 +208,7 @@ security:
 ```
 
 이 문제를 피하려고 키를 두 개로 분리했다:
+
 - `common-public-paths`: 공통 경로 (application.yml에만 정의)
 - `env-public-paths`: 환경별 추가 경로 (각 profile yml에 정의)
 
@@ -222,11 +224,13 @@ public String[] allPublicPaths() {
 ## 8. SecurityConfig의 위치 — 왜 `identity/adapter/in/security/`인가
 
 Security 설정은 도메인 로직이 아닌 기술 설정이지만, `identity` 패키지 안에 두는 이유:
+
 - 인증/인가는 Identity 도메인의 책임이다
 - `package-structure.md`에 명시: "JWT 필터, Security 설정은 인증/인가 도메인의 인프라 구현"
 - `global/config/`에 두면 Security 설정의 소유권이 불분명해진다
 
 `adapter/in/`에 두는 이유:
+
 - Security 필터는 들어오는 HTTP 요청을 처리하는 Driving Adapter다
 - `JwtProvider`는 `IssueTokenPort`(out port)를 구현하지만, JWT 파싱도 담당해서 `JwtFilter`와 함께 둬야 이해하기 쉽다. 분리하면 복잡도만 높아진다.
 

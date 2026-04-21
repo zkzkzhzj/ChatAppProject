@@ -161,6 +161,7 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
 변경점은 이게 끝이다. 한 줄짜리 env 주입.
 
 왜 동작하나:
+
 - `HOSTNAME=0.0.0.0`을 standalone server.js가 읽는다.
 - `server.listen(3000, '0.0.0.0')`로 **IPv4 전 인터페이스에 바인딩**.
 - Linux에서 `0.0.0.0` 바인딩은 IPv4 전용이지만, healthcheck는 컨테이너 내부의 `127.0.0.1`만 닿으면 되므로 충분.
@@ -184,6 +185,7 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
 `/` 체크는 페이지 SSR을 한 번 돌린다. 홈이 DB 조회·세션 확인 등을 붙기 시작하면 healthcheck가 매번 그 비용을 지불한다. 10초에 한 번씩 N 컨테이너가 때린다고 생각하면 금방 의미 있는 부하.
 
 **전환 트리거**:
+
 - 홈 페이지가 DB·Redis 호출을 포함하게 되는 순간
 - healthcheck 응답 시간이 평균 500ms를 넘어가는 순간
 - 여러 의존성(DB, Kafka, S3) 상태를 헬스에 묶고 싶어지는 순간
@@ -207,27 +209,34 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
 같은 함정은 **Alpine + Node 17+ + 자체 HTTP 서버(Next/Nest/Fastify/Express)** 조합 어디에서나 터질 수 있다. 다음에 비슷한 증상이 보이면 순서대로:
 
 1. **실제로 어디에 LISTEN하고 있나?**
+
    ```bash
    docker exec <container> ss -tlnp
    # 없으면 netstat -tlnp, 그것도 없으면 apk add iproute2
    ```
+
    IPv4(`0.0.0.0:3000`, `127.0.0.1:3000`)인지 IPv6(`:::3000`, `::1:3000`)인지 확인.
 
 2. **Healthcheck 상세 상태 보기**
+
    ```bash
    docker inspect --format '{{json .State.Health}}' <container> | jq
    ```
+
    `Status`, `FailingStreak`, 최근 `Log`의 출력을 보면 wget이 어떻게 실패하는지가 보인다.
 
 3. **컨테이너 안에서 직접 때려보기**
+
    ```bash
    docker exec <container> wget -qO- http://127.0.0.1:3000/
    docker exec <container> wget -qO- http://[::1]:3000/
    docker exec <container> nc -z 127.0.0.1 3000
    ```
+
    IPv4와 IPv6 중 어느 쪽이 통하는지가 드러난다.
 
 4. **DNS 해석 확인**
+
    ```bash
    docker exec <container> getent hosts localhost
    # 127.0.0.1 vs ::1 중 어느 쪽이 먼저 나오는지
@@ -254,25 +263,30 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
 ## 8. 더 공부할 거리
 
 ### 공식 · 1차 출처
+
 - [Next.js Issue #44043 — HOSTNAME 환경변수 도입 논의](https://github.com/vercel/next.js/issues/44043)
 - [Next.js Self-Hosting Guide](https://nextjs.org/docs/app/guides/self-hosting) — `HOSTNAME=0.0.0.0 node server.js`를 직접 명시
 - [Vercel examples/with-docker/Dockerfile](https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile) — 레퍼런스 구현
 
 ### Node DNS 순서 변경
+
 - [Node Issue #40537 — Node 17에서 localhost가 IPv6 우선이 된 경위](https://github.com/nodejs/node/issues/40537)
 - [Node Issue #48712 — 왜 IPv6 우선이 기본이 됐는가](https://github.com/nodejs/node/issues/48712)
 - [HTTP Toolkit — Fixing DNS in Node.js](https://httptoolkit.com/blog/configuring-nodejs-dns/)
 
 ### Alpine / BusyBox의 한계
+
 - [Alpine aports #10937 — BusyBox wget의 IPv6 미지원](https://gitlab.alpinelinux.org/alpine/aports/-/issues/10937)
 - [Alpine aports #16286 — BusyBox netstat의 IPv6 누락](https://gitlab.alpinelinux.org/alpine/aports/-/issues/16286)
 
 ### Docker Healthcheck 심화
+
 - [Matt Knight — Docker healthchecks in distroless Node.js](https://www.mattknight.io/blog/docker-healthchecks-in-distroless-node-js) — distroless 환경에서 `node -e` 패턴
 - [Paul's Blog — Docker Compose healthcheck 설계](https://www.paulsblog.dev/how-to-successfully-implement-a-healthcheck-in-docker-compose/)
 - [OneUptime 2026-01 — Docker Health Check Best Practices](https://oneuptime.com/blog/post/2026-01-30-docker-health-check-best-practices/view)
 
 ### 관련 연결 주제
+
 - IPv4/IPv6 dual-stack 동작 원리 — `IPV6_V6ONLY` 소켓 옵션
 - `::`와 `::1`의 차이 (all-interfaces vs loopback-only)
 - Docker의 network namespace가 실제로 뭘 격리하는가

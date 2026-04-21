@@ -62,7 +62,7 @@ CD 첫 실전 배포에서 "이미지 안에 application-prod.yml 없음" 문제
 - GHCR + SSM + OIDC 자동 배포 루프 정상 순환 확인
 - 6개 컨테이너 전부 Up, 서비스 정상 (ghworld.co)
 
-### 4/21 — Frontend Docker healthcheck IPv6 교착 해결 ✅ (로컬 검증 완료, PR 대기)
+### 4/21 — Frontend Docker healthcheck IPv6 교착 해결 ✅ (PR #20)
 
 | 항목 | 내용 |
 |------|------|
@@ -85,7 +85,8 @@ CD 첫 실전 배포에서 "이미지 안에 application-prod.yml 없음" 문제
 ## 핵심 설계 결정 요약 (현재 활용 중 — 유지)
 
 ### 이벤트 흐름
-```
+
+```text
 RegisterUserService
   → outbox_event 테이블 저장 (같은 트랜잭션)
   → OutboxKafkaRelay (@Scheduled 1s) → Kafka "user.registered" 토픽
@@ -94,6 +95,7 @@ RegisterUserService
 ```
 
 ### 게스트 정책
+
 - `GET /api/v1/village/characters/me`: 게스트 → `Character.defaultGuest()` 반환 (DB 저장 없음)
 - `GET /api/v1/village/spaces/me`: 게스트 → `GuestNoPersonalSpaceException` (403)
 - `POST /api/v1/chat/messages`: 게스트 → `GuestChatNotAllowedException` (403)
@@ -101,7 +103,8 @@ RegisterUserService
 - STOMP CONNECT: 토큰 없이 연결 허용 (구독은 가능, 메시지 전송 시 403)
 
 ### 채팅 흐름 (마을 공개 채팅)
-```
+
+```text
 [초기 상태]
 V3 마이그레이션 → 마을 공개 채팅방 (id=1, type=PUBLIC) + NPC 참여자 고정 생성
 
@@ -127,6 +130,7 @@ POST /api/v1/chat/messages {body: "..."}
 ```
 
 ### WebSocket 구조
+
 - STOMP 엔드포인트: `/ws` (SockJS fallback)
 - STOMP 인증: `StompAuthChannelInterceptor` — CONNECT 프레임 `Authorization` 헤더에서 JWT 추출
 - 클라이언트 → 서버: `/app/chat/village` (고정)
@@ -135,7 +139,9 @@ POST /api/v1/chat/messages {body: "..."}
 - 설정 키: `village.public-chat-room-id`
 
 ### Spring Boot 4.x 주의사항
+>
 > 상세는 [learning/12](./learning/12-spring-boot-4x-traps.md) 참조.
+
 - Kafka / Cassandra 자동구성: 스타터 없이 코어만 추가 시 `spring-boot-<기술>` 모듈도 함께 필요
 - Cassandra 프로퍼티: `spring.cassandra.*` (3.x의 `spring.data.cassandra` 아님)
 - Cassandra Testcontainers 모듈: `org.testcontainers:testcontainers-cassandra`
@@ -153,6 +159,7 @@ POST /api/v1/chat/messages {body: "..."}
 > Week 7 블로그·README·영상은 부하 테스트 데이터가 전제다. 관측 → 부하 → 증거 → 블로그 순서.
 
 **Week 7 과제**
+
 - Task 0: 『일의 감각』 에세이 1,000자
 - Task 1: 데이터 기반 기술 블로그 — 문제 → 증거(그래프/로그) → 대안 비교 → Before/After 4단 구조
 - Task 2: README 리브랜딩 — 배너, 인프라 도식, 3분 데모 영상, 성능 그래프
@@ -163,7 +170,7 @@ POST /api/v1/chat/messages {body: "..."}
 
 | Step | 목표 | 산출물 | 상태 |
 |------|------|--------|------|
-| **A. CD 자동화** | main push → EC2 자동 반영 | `deploy/` + GHA workflow | ✅ 완료 (PR #15~#19, healthcheck 정상화) |
+| **A. CD 자동화** | main push → EC2 자동 반영 | `deploy/` + GHA workflow | ✅ 완료 (PR #15~#19 CD 루프 + PR #20 healthcheck 복원) |
 | **B. 관측 가능성** | Actuator + Micrometer → Prometheus → Grafana | 대시보드 (JVM/Latency/DB Pool/Kafka Lag/WS 세션) | 🔜 **다음 작업** |
 | **C. 부하 테스트 + 병목 식별** | k6로 채팅+WebSocket VUser 10→500 | k6 리포트 + Grafana 캡처 + 병목 진단 | B 후속 |
 | **D. 기술 블로그 (Task 1)** | Step C 병목 1개 집중 서사 | Velog/Tistory + LinkedIn | C 후속 |
@@ -189,7 +196,7 @@ POST /api/v1/chat/messages {body: "..."}
 
 | 작업 | 우선순위 |
 |------|--------|
-| Frontend healthcheck PR 머지 (이미 로컬 검증 완료) | 높음 (5분) |
+| PR #20 머지 후 CD가 frontend healthy 판정 받는지 최종 확인 | 높음 (5분) |
 | 포트 22 Security Group 제거 (SSM 전용) — AWS Console 직접 | 낮음 |
 | learning/37 CD 구축기 실측치 업데이트 | 낮음 |
 | EC2 잔존 파일 정리 (application-prod.yml 혹시 남으면) | 낮음 |
@@ -231,7 +238,7 @@ POST /api/v1/chat/messages {body: "..."}
 
 ## 패키지 구조 현황
 
-```
+```text
 com.maeum.gohyang/
 ├── global/
 │   ├── alert/
@@ -275,7 +282,7 @@ com.maeum.gohyang/
 
 ## TestAdapter 구조
 
-```
+```text
 HealthCheckSteps / IdentitySteps / VillageSteps / CommunicationSteps  ← 비즈니스 언어만 안다
     ↓
 ActuatorTestAdapter / AuthTestAdapter / VillageTestAdapter / ChatTestAdapter  ← URL, 폴링 로직

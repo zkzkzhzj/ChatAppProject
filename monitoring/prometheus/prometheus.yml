@@ -1,0 +1,32 @@
+# Prometheus 서버 설정.
+# 이 파일 수정 후 반영: curl -X POST http://localhost:9090/-/reload (컨테이너 내부 또는 SSM 터널)
+# 또는 docker compose restart prometheus
+global:
+  # scrape 주기 — 15초면 1분당 4개 데이터포인트, 부하 테스트 중 그래프 해상도 충분
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: production
+    cluster: gohyang-single
+
+scrape_configs:
+  # Spring Boot Actuator 스크레이프 (/actuator/prometheus)
+  # 'gohyang-app' 호스트명은 docker-compose.yml의 extra_hosts로 실제 IP에 매핑됨.
+  # IP는 .env의 APP_PRIVATE_IP에서만 관리 — prometheus.yml에는 하드코딩 없음.
+  - job_name: 'gohyang-app'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    static_configs:
+      - targets: ['gohyang-app:8080']
+        labels:
+          service: 'backend'
+          env: 'prod'
+          instance_name: 'gohyang-server-ko'
+
+  # Prometheus 자기 자신 모니터링 (TSDB 상태, scrape 실패율 등)
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'

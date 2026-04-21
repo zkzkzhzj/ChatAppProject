@@ -218,6 +218,10 @@ services:
     container_name: gohyang-frontend
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      # Next.js 16 standalone은 기본적으로 IPv6 ::에 바인딩되는데 Alpine busybox wget/nc는
+      # 127.0.0.1(IPv4)로 접근 → healthcheck 실패. IPv4 전체 인터페이스로 강제 바인딩.
+      HOSTNAME: 0.0.0.0
     depends_on:
       app:
         condition: service_healthy

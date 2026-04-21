@@ -1,11 +1,14 @@
 {
   "private": true,
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "lint:md": "markdownlint-cli2 \"docs/**/*.md\" \"*.md\"",
+    "lint:md:fix": "markdownlint-cli2 --fix \"docs/**/*.md\" \"*.md\""
   },
   "devDependencies": {
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.0"
+    "lint-staged": "^16.1.0",
+    "markdownlint-cli2": "^0.22.0"
   },
   "lint-staged": {
     "frontend/src/**/*.{ts,tsx,js,jsx}": [
@@ -17,6 +20,12 @@
     ],
     "backend/src/**/*.java": [
       "bash -c './backend/gradlew -p backend checkstyleMain checkstyleTest'"
+    ],
+    "*.md": [
+      "markdownlint-cli2 --fix"
+    ],
+    "docs/**/*.md": [
+      "markdownlint-cli2 --fix"
     ]
   }
 }

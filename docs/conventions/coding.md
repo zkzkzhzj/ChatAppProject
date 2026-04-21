@@ -120,7 +120,7 @@ public Space getSpace(@PathVariable Long id) { ... }
 
 ### 4.1 커스텀 예외 구조
 
-```
+```text
 global/error/
 ├── BusinessException.java        # 비즈니스 예외 베이스
 ├── ErrorResponse.java            # API 에러 응답 형식
@@ -203,7 +203,7 @@ public class User {
 new User(null, UserType.MEMBER, LocalDateTime.now())
 ```
 
-> 자세한 배경: `docs/learning/08-domain-entity-design.md`
+> 자세한 배경: `docs/learning/08-phase1-layer-patterns.md`
 
 ```java
 public class PointWallet {

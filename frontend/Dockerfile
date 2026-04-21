@@ -44,14 +44,14 @@ COPY --from=builder /workspace/public ./public
 
 USER gohyang
 
+# Next.js 16 standalone은 기본 IPv6(::1) 바인딩이라 Alpine busybox wget의 127.0.0.1 접근이 실패한다.
+# 이미지 단독 실행(docker run / 다른 compose)에서도 healthcheck가 동작하도록 이미지 레벨에서 강제.
+# Vercel 공식 with-docker 예제도 동일 기본값 사용. compose의 environment는 override 용도로 유지.
+ENV HOSTNAME=0.0.0.0
+
 EXPOSE 3000
 
-# Docker 레벨 healthcheck 비활성화.
-# Next.js 16 + Alpine busybox 조합에서 wget(--spider·-qO-)·nc 전부 unhealthy 판정되는 이슈로
-# CD의 compose --wait가 타임아웃되어 배포가 계속 실패함.
-# 실제 서비스는 정상(200 OK 응답)이므로 Docker healthcheck가 오히려 장애를 유발 중.
-# 모니터링은 nginx + Cloudflare + 브라우저 접속 경로가 담당.
-# 후속: HOSTNAME=0.0.0.0 env + healthcheck 재도입 또는 nginx healthcheck로 대체 검토.
-HEALTHCHECK NONE
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+  CMD wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1
 
 ENTRYPOINT ["node", "server.js"]

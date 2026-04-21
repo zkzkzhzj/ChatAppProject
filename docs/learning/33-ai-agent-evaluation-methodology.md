@@ -10,7 +10,7 @@
 
 AI NPC가 유저에게 대답하는 파이프라인은 대략 이렇다:
 
-```
+```text
 유저 메시지 → 임베딩 → pgvector 시맨틱 검색 → 관련 기억 추출 → LLM 프롬프트 구성 → 응답 생성
 ```
 
@@ -53,6 +53,7 @@ AI NPC가 유저에게 대답하는 파이프라인은 대략 이렇다:
 장점은 수백 개의 QA 쌍을 빠르게 만들 수 있다는 것이다. 단점은 도메인 특수성이 떨어질 수 있다는 것. "마음의 고향" NPC는 감성적 대화가 핵심인데, 자동 생성된 QA가 그 뉘앙스를 잡아내기는 어렵다.
 
 RAGAS가 제공하는 핵심 메트릭:
+
 - **Faithfulness**: 답변이 검색된 컨텍스트에 근거하는가? (환각 방지)
 - **Answer Relevancy**: 답변이 질문에 관련 있는가?
 - **Context Precision**: 검색된 문서 중 실제로 필요한 문서의 비율
@@ -63,6 +64,7 @@ RAGAS가 제공하는 핵심 메트릭:
 LLM에게 "이 FAQ 문서를 보고 유저가 할 법한 질문과 기대 답변을 만들어줘"라고 시키는 방식이다. 프롬프트와 도구를 직접 설계해서 도메인 맥락을 주입할 수 있다.
 
 예를 들어 우리 프로젝트라면:
+
 - NPC 성격 설정 문서를 주고 "이 성격의 NPC에게 유저가 할 법한 질문 30개를 만들어줘"
 - 기존 대화 로그를 주고 "이 대화 패턴에서 발생할 수 있는 엣지케이스를 찾아줘"
 
@@ -108,7 +110,7 @@ E2E 평가에서 주류 방식은 **LLM-as-judge**다. 다른 LLM에게 "이 답
 
 파이프라인의 각 단계를 독립적으로 평가한다. E2E에서 "답변이 이상하다"는 걸 발견했을 때, **어느 단계가 문제인지** 찾으려면 Component 평가가 필요하다.
 
-```
+```text
 [검색기(Retriever)] → [도구 선택] → [도구 실행 순서] → [응답 생성]
      ^                    ^                ^                 ^
      |                    |                |                 |
@@ -136,7 +138,7 @@ E2E 평가에서 주류 방식은 **LLM-as-judge**다. 다른 LLM에게 "이 답
 
 ### pass@k: "k번 중 한 번이라도 성공"
 
-```
+```text
 pass@k = 1 - (1-p)^k
 ```
 
@@ -146,7 +148,7 @@ p는 한 번 시도했을 때 성공 확률이다. k번 시도 중 **최소 1번
 
 ### pass^k: "k번 모두 성공"
 
-```
+```text
 pass^k = p^k
 ```
 
@@ -231,17 +233,20 @@ NPC 답변의 단일 시도 품질(p)을 높이는 것이 최우선이다. pass@
 ## 더 공부할 거리
 
 ### 핵심 레퍼런스
+
 - [Anthropic: Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) — Anthropic이 직접 쓴 eval 가이드. Eval-driven development의 원본.
 - [RAGAS 공식 문서](https://docs.ragas.io/en/stable/) — RAG 평가 프레임워크. Golden Dataset 자동 생성부터 메트릭까지.
 - [RAGAS 논문 (arXiv)](https://arxiv.org/abs/2309.15217) — Faithfulness, Relevancy 등 메트릭의 수학적 정의가 궁금하면.
 - [pass@k 해설 (Phil Schmid)](https://www.philschmid.de/agents-pass-at-k-pass-power-k) — pass@k와 pass^k의 직관적 설명.
 
 ### 빅테크 사례
+
 - [LangChain: State of Agent Engineering](https://www.langchain.com/state-of-agent-engineering) — 업계 전체의 에이전트 개발 트렌드.
 - [Google Cloud: AI Agent Trends 2026](https://cloud.google.com/resources/content/ai-agent-trends-2026) — Google의 에이전트 평가 접근법 포함.
 - [Amazon: Evaluating AI Agents](https://aws.amazon.com/blogs/machine-learning/evaluating-ai-agents-real-world-lessons-from-building-agentic-systems-at-amazon/) — Amazon의 실전 교훈.
 
 ### 평가 도구
+
 - [LangSmith Evaluation](https://www.langchain.com/langsmith/evaluation) — 가장 완성도 높은 상용 eval 플랫폼.
 - [DeepEval (GitHub)](https://github.com/confident-ai/deepeval) — pytest 통합 오픈소스 eval.
 - [Arize Phoenix (GitHub)](https://github.com/Arize-ai/phoenix) — OpenTelemetry 기반 관측성 + eval.
@@ -250,6 +255,7 @@ NPC 답변의 단일 시도 품질(p)을 높이는 것이 최우선이다. pass@
 - [Golden Dataset 구축 가이드 (Maxim AI)](https://www.getmaxim.ai/articles/building-a-golden-dataset-for-ai-evaluation-a-step-by-step-guide/) — 단계별 Golden Dataset 구축 방법.
 
 ### 이 주제를 더 깊이 파려면
+
 - **LLM-as-judge의 편향 문제**: "Judging LLM-as-a-Judge" 류의 논문들이 judge LLM의 한계를 분석한다.
 - **RAG 평가 메트릭의 수학적 기반**: RAGAS 논문을 읽고, Faithfulness 계산 과정을 직접 따라가보면 메트릭의 한계가 보인다.
 - **A/B 테스트와 eval의 관계**: 오프라인 eval로 후보군을 줄이고, 온라인 A/B 테스트로 최종 판단하는 2단계 접근이 대규모 서비스의 표준이다.

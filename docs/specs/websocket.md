@@ -142,7 +142,7 @@ NPC 응답 예시 (비동기, 별도 broadcast):
 
 두 경로는 동일한 `SendMessageUseCase`를 공유한다.
 
-```
+```text
 REST POST /api/v1/chat/messages
   → SendMessageUseCase 실행
   → 유저 MessageResponse를 /topic/chat/village로 broadcast (단일 객체)

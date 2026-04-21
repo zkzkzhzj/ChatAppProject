@@ -52,6 +52,7 @@ spring:
 Git에 커밋되는 건 **placeholder + 로컬 기본값**뿐이다. 실제 운영 값은 `.env`(서버)나 Secrets Manager(클라우드)에 따로 둔다.
 
 공격자가 GitHub 공개 레포에서 이 파일을 본다고 얻을 수 있는 정보:
+
 - "PostgreSQL 쓰는구나"
 - "Redis, Kafka 같은 인프라 쓰는구나"
 - "로컬 dev는 localhost 기본값 쓰는구나"
@@ -87,6 +88,7 @@ CI가 둘 다 clone해서 합침
 실무에선 **시크릿 전용 저장소**를 쓴다. AWS Secrets Manager, HashiCorp Vault, GitHub Secrets 같은.
 
 **공통 특징**:
+
 - 암호화 저장 (at rest)
 - IAM·RBAC으로 fine-grained 접근 제어
 - 감사 로그
@@ -120,12 +122,14 @@ application.yml (공개, git committed)
 > "An app's config is everything that is likely to vary between deploys (staging, production, developer environments, etc). Config should be **strictly separated from code**."
 
 핵심 아이디어:
+
 1. **환경별로 달라지는 값 = 설정**
 2. **설정은 코드와 철저히 분리**
 3. **환경변수로 주입**
 4. **설정 파일을 코드 레포에 넣지 말 것**
 
 여기서 "환경변수로"가 핵심. 왜?
+
 - 환경변수는 **OS 레벨에서 표준화**됨. 어느 언어·플랫폼이든 지원
 - **실행 시점에 주입** → 이미지는 환경 독립적
 - **실수로 git에 들어가기 어려움** (.env는 gitignore 관습이 강함)
@@ -139,6 +143,7 @@ application.yml (공개, git committed)
 ### 4.1 통합된 `application.yml` 초안
 
 기존 분리된 파일들:
+
 - `application.yml` (공개, 최소)
 - `application-local.yml` (gitignored, 로컬 전체 설정)
 - `application-prod.yml` (gitignored, 프로덕션 전체 설정)
@@ -315,11 +320,13 @@ ChatAppProject/
 ### EC2 측 변경
 
 기존:
+
 ```text
 /home/ubuntu/ChatAppProject/          (전체 레포)
 ```
 
 신규:
+
 ```text
 /home/ubuntu/gohyang-deploy/          (또는 그대로 ChatAppProject 유지)
 ├── docker-compose.yml
@@ -453,13 +460,16 @@ curl https://ghworld.co/actuator/health
 ## 10. 참고
 
 ### 원문
+
 - [The Twelve-Factor App (한글판)](https://12factor.net/ko/) — 특히 Config 섹션
 
 ### 관련 문서
+
 - Spring Boot 공식 — [Externalized Configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config)
 - Spring Boot — [Environment variable binding rules](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.external-config.typesafe-configuration-properties.relaxed-binding.environment-variables)
 
 ### 이 프로젝트 문서
+
 - [37. CD 파이프라인 구축기](./37-cd-pipeline-design.md) — 이 글의 시작점
 - `application.yml` — 실제 통합된 설정
 - `deploy/docker-compose.yml` — env var 주입부

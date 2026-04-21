@@ -25,6 +25,9 @@ repositories {
 dependencies {
 	// Spring Boot Starters
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	// Micrometer Prometheus Registry — /actuator/prometheus endpoint 제공.
+	// Spring Boot BOM이 버전 관리. Prometheus 서버가 scrape할 메트릭을 exposition format으로 렌더링한다.
+	implementation("io.micrometer:micrometer-registry-prometheus")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("org.springframework.boot:spring-boot-starter-data-cassandra")

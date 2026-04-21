@@ -1,7 +1,7 @@
 # Claude Code 파워유저 실천법
 
 > 마지막 업데이트: 2026-04-12
-> 출처: https://code.claude.com/docs/en/best-practices | https://www.builder.io/blog/claude-code-tips-best-practices
+> 출처: <https://code.claude.com/docs/en/best-practices> | <https://www.builder.io/blog/claude-code-tips-best-practices>
 
 ---
 
@@ -14,12 +14,14 @@
 ## 컨텍스트 관리
 
 ### CLAUDE.md 원칙
+
 - **3,000 토큰 이하** 유지
 - Claude가 이미 잘 하는 것은 쓰지 말 것 — **틀리는 것만** 적는다
 - 상세 규칙은 별도 파일 분리 → `@filename`으로 import
 - 이 프로젝트: `/docs/conventions/coding.md`, `/docs/knowledge/INDEX.md` 참조
 
 ### 컨텍스트 오염 방지
+
 - 리서치/탐색 → 서브에이전트에 위임 (메인 컨텍스트 보호)
 - 독립적인 탐색 작업 → 별도 컨텍스트에서 실행
 
@@ -30,6 +32,7 @@
 한 번 잘 수행한 작업을 SKILL.md로 저장 → 매번 재설명 없이 일관된 실행.
 
 ### 이 프로젝트 현황
+
 | 스킬 | 경로 | 역할 |
 |------|------|------|
 | /코드리뷰 | `.claude/skills/코드리뷰/` | uncommitted 변경사항 Codex 리뷰 |
@@ -43,6 +46,7 @@
 가장 강력하지만 가장 덜 쓰이는 기능. `settings.local.json`에 설정.
 
 ### Hook 종류
+
 | Hook | 트리거 시점 | 활용 예시 |
 |------|-----------|---------|
 | `PreToolUse` | 도구 실행 전 | 위험한 명령 차단, 검증 |
@@ -51,6 +55,7 @@
 | `Notification` | 알림 발생 시 | 사운드/알림 |
 
 ### 이 프로젝트 현황 (2026-04-13)
+
 - Stop Hook: 비프음 + 세션 학습 캡처 안내 (`settings.local.json`) — Claude에게 memory 저장 및 handover.md 확인 지시
 - Notification Hook: 비프음 (`settings.local.json`)
 - PostToolUse Hook: `git commit` 성공 감지 시 review-agent 리뷰 지시 메시지 출력 (`settings.json`)
@@ -62,6 +67,7 @@
 각 에이전트: 독립 컨텍스트 + 커스텀 시스템 프롬프트 + 별도 툴 권한.
 
 ### 파일 형식
+
 ```markdown
 ---
 name: agent-name
@@ -73,6 +79,7 @@ tools: Read, Write, Edit, Bash, WebSearch
 ```
 
 ### 이 프로젝트 에이전트 (2026-04-12 구성)
+
 | 에이전트 | 역할 | 자율성 |
 |---------|------|-------|
 | research-agent | AI/Claude Code 동향 리서치 + knowledge 업데이트 | 높음 |
@@ -101,7 +108,7 @@ tools: Read, Write, Edit, Bash, WebSearch
 
 ## 셀프러닝 루프 구성 현황
 
-```
+```text
 [2026-04-13 기준]
 
 1. Stop Hook → 세션 종료 시 memory 저장 + handover 확인 지시       ✅ 구현
@@ -114,11 +121,12 @@ tools: Read, Write, Edit, Bash, WebSearch
 
 ## 2026-02: Agent Teams 정식 도입
 
-**출처**: https://shipyard.build/blog/claude-code-multi-agent/ | https://code.claude.com/docs/en/agent-teams
+**출처**: <https://shipyard.build/blog/claude-code-multi-agent/> | <https://code.claude.com/docs/en/agent-teams>
 
 Claude Code Agent Teams가 2026-02 Opus 4.6 출시와 함께 실험적 기능으로 공개.
 
 ### 기존 Subagents와의 차이
+
 | 항목 | Subagents (기존) | Agent Teams (신규) |
 |------|-----------------|-------------------|
 | 통신 구조 | 부모 → 자식 (단방향) | 동료 ↔ 동료 (P2P 메일박스) |
@@ -126,6 +134,7 @@ Claude Code Agent Teams가 2026-02 Opus 4.6 출시와 함께 실험적 기능으
 | 적합한 작업 | 단순 위임 | 크로스-레이어 복잡 작업 |
 
 ### 활성화 방법
+
 ```json
 // .claude/settings.json (이미 이 프로젝트에 적용)
 {
@@ -136,6 +145,7 @@ Claude Code Agent Teams가 2026-02 Opus 4.6 출시와 함께 실험적 기능으
 ```
 
 ### 강점 있는 유스케이스
+
 - 멀티 레이어 변경 (프론트엔드 + 백엔드 + 테스트를 각 에이전트가 담당)
 - 경쟁 가설 디버깅 (여러 에이전트가 다른 이론을 병렬 검증)
 - 리서치 + 리뷰 병렬 실행
@@ -146,7 +156,7 @@ Claude Code Agent Teams가 2026-02 Opus 4.6 출시와 함께 실험적 기능으
 
 ## 2026-02: Remote Control / 플러그인 에코시스템
 
-**출처**: https://www.nagarro.com/en/blog/claude-code-feb-2026-update-analysis | https://dev.to/shuicici/claude-codes-feb-mar-2026-updates-quietly-broke-complex-engineering-heres-the-technical-5b4h
+**출처**: <https://www.nagarro.com/en/blog/claude-code-feb-2026-update-analysis> | <https://dev.to/shuicici/claude-codes-feb-mar-2026-updates-quietly-broke-complex-engineering-heres-the-technical-5b4h>
 
 - `/remote-control`: 브라우저나 모바일에서 실행 중인 Claude Code 세션에 접속 가능 (`claude.ai/code`)
 - **플러그인 에코시스템**: 법률/금융/HR/엔지니어링 등 13개 엔터프라이즈 커넥터 + 10개 도메인 특화 플러그인 추가
@@ -157,19 +167,23 @@ Claude Code Agent Teams가 2026-02 Opus 4.6 출시와 함께 실험적 기능으
 
 ## 2026-03: Computer Use / Voice / /loop
 
-**출처**: https://help.apiyi.com/en/claude-code-2026-new-features-loop-computer-use-remote-control-guide-en.html | https://www.geeky-gadgets.com/claude-code-channels/
+**출처**: <https://help.apiyi.com/en/claude-code-2026-new-features-loop-computer-use-remote-control-guide-en.html> | <https://www.geeky-gadgets.com/claude-code-channels/>
 
 ### Computer Use (2026-03-23 추가)
+
 Pro/Max 사용자에게 Claude Code가 파일 열기, 개발 도구 실행, 화면 클릭 및 탐색 가능. 별도 셋업 불필요.
 
 ### /loop — 스케줄 태스크
+
 Cron 방식의 백그라운드 워커. PR 리뷰, 배포 모니터링 등 반복 작업 자동화.
 
 ### 출력 한도 상향
+
 - Opus 4.6 기본 출력: 64k 토큰
 - Opus 4.6 / Sonnet 4.6 최대 출력: 128k 토큰
 
 ### PowerShell 툴 프리뷰 (Windows 사용자)
+
 Windows 환경에서 PowerShell 도구 사전 공개.
 
 **마음의 고향 적용 의미**: `/loop`을 research-agent 주간 크론에 활용 가능. 셀프러닝 루프의 `/schedule` TODO 항목과 직결됨.

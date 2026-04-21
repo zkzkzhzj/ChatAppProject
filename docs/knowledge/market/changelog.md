@@ -3,6 +3,7 @@
 ---
 
 ## 2026-04-12
+
 - 시장조사 지식 베이스 초기 구조 생성
 - market-research-agent, competitor-agent, user-research-agent 에이전트 정의
 - 조사 대상 목록 정의 (미조사 상태)

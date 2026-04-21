@@ -27,15 +27,18 @@
 ## 선택지
 
 **A. 도메인별 AlertPort**
+
 - 각 도메인이 자체 `OutboxAlertPort`, `VillageAlertPort` 등을 정의
 - 단점: 동일한 인터페이스가 도메인 수만큼 복제됨
 
 **B. 전역 AlertPort (`global/alert/`)**
+
 - `global/error/`처럼 프로젝트 전역에서 사용하는 단일 인터페이스
 - 어느 도메인이든 `AlertPort`를 생성자 주입으로 사용
 - 단점: 없음 (`global/`은 모든 레이어에서 의존 가능)
 
 **C. Notification 도메인으로 이벤트 전달**
+
 - 도메인이 Kafka 이벤트로 알람 트리거 발행 → Notification 도메인이 처리
 - 운영 알람치고는 과도한 복잡도
 

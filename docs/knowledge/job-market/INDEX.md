@@ -7,9 +7,9 @@
 
 | 회사 | 주요 스택 | 채용 페이지 |
 |------|---------|-----------|
-| 마플코퍼레이션 | Node.js, AWS, PostgreSQL | https://www.marpplecorp.com/recruit |
-| SOOP(숲) | C/C++, Java/Spring, NestJS | https://recruit.sooplive.co.kr |
-| 치지직(네이버) | Java/Kotlin, Spring Boot, NCP | https://recruit.navercorp.com |
+| 마플코퍼레이션 | Node.js, AWS, PostgreSQL | <https://www.marpplecorp.com/recruit> |
+| SOOP(숲) | C/C++, Java/Spring, NestJS | <https://recruit.sooplive.co.kr> |
+| 치지직(네이버) | Java/Kotlin, Spring Boot, NCP | <https://recruit.navercorp.com> |
 
 ## 파일 목록
 

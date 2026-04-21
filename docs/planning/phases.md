@@ -146,6 +146,7 @@ Scenario: GUEST가 마을에 입장하고 NPC와 채팅 후 회원가입한다
 **이유:** Phase 3에서 NPC 인터페이스를 미리 Port로 뽑아두었고, 구현체만 교체하면 된다.
 
 **전략 결정 (2026-04-14):**
+
 - 개발/데모: Ollama + EXAONE 3.5 (LG AI Research, 한국어 특화)
 - 프로덕션: 상용 API (GPT-4o-mini $2.7/월 or Claude Haiku $16.8/월)
 - 대화 맥락: pgvector (PostgreSQL 벡터 확장) — Cassandra 원본 + pgvector 요약 벡터

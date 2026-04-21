@@ -9,7 +9,7 @@ last-verified: 2026-04-13
 
 ## 현재 구조
 
-```
+```text
 frontend/src/
 ├── app/
 │   ├── page.tsx          ← Next.js 엔트리 — fullscreen 레이아웃 + ChatOverlay
@@ -58,7 +58,7 @@ frontend/src/
 
 ## 레이아웃 구조
 
-```
+```text
 ┌─────────────────────────────────┐
 │         Phaser Game             │ ← absolute inset-0, 100vw x 100vh
 │         (Scale.RESIZE)          │

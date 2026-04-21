@@ -10,6 +10,7 @@
 현재 코드에서 NPC를 클릭할 때마다 새 채팅방이 생성된다. 마을은 1개인데 채팅방은 무한 증식한다. 이건 단순 버그가 아니라 **"채팅방"의 정의가 모호한 설계 문제**다.
 
 구체적으로:
+
 - "마을 공개 채팅"은 채팅방인가? 마을 자체인가?
 - "NPC와 1:1 대화"는 채팅방인가? 대화 세션인가?
 - 이 둘을 같은 `ChatRoom` 엔티티로 관리하는 게 맞는가?
@@ -35,6 +36,7 @@ ZEP, Gather.town 같은 2D 메타버스 서비스들이 이 문제를 어떻게 
 **선택: A. Space = ChatRoom**
 
 이유:
+
 1. **ZEP/Gather에서 검증된 모델이다.** 2D 공간 기반 서비스에서 "입장 = 채팅 참여"는 이미 수백만 유저가 익숙한 UX다. 유저에게 "채팅방을 만드세요"라고 요구하는 건 마을의 자연스러움을 깨뜨린다.
 2. **YAGNI.** 현재 마을 1개, 채널 종류 1개(공개 채팅). 채널 분리가 필요한 시점은 "거래 기능"이나 "동호회 기능"이 생길 때인데, 그건 Phase 5 이후 이야기다. 지금 채널 모델을 만들면 빈 추상화만 늘어난다.
 3. **NPC 대화는 채팅방이 아니다.** NPC 클릭 시 새 채팅방이 생기는 것 자체가 모델링 오류다. NPC와의 1:1 대화는 "대화 세션(Conversation)"이라는 별도 개념으로 분리하는 게 맞다. 채팅방 무한 증식 문제가 자연스럽게 해결된다.
@@ -47,7 +49,7 @@ ZEP, Gather.town 같은 2D 메타버스 서비스들이 이 문제를 어떻게 
 
 채팅방 구조를 고민하기 전에, "이 서비스에 어떤 종류의 대화가 있는가"부터 정리해야 한다. 종류가 다르면 수명, 저장 방식, 토픽 구조가 전부 달라진다.
 
-```
+```text
 채팅 유형                 성격       수명       저장          STOMP 토픽
 ──────────────────────────────────────────────────────────────────────────
 마을 공개 채팅     N:N broadcast    영구    Cassandra    /topic/chat/{spaceId}
@@ -59,7 +61,7 @@ NPC 1:1 대화      1:1 세션         세션/영구  Cassandra    /topic/npc/{c
 
 ### Space = ChatRoom이 의미하는 것
 
-```
+```text
 [마을 생성]
     │
     ├── Village 엔티티 생성
@@ -76,7 +78,7 @@ NPC 1:1 대화      1:1 세션         세션/영구  Cassandra    /topic/npc/{c
 
 ### NPC 대화 = Conversation (채팅방이 아니다)
 
-```
+```text
 [NPC 클릭]
     │
     ├── 기존 Conversation 조회 (유저 + NPC 조합)
@@ -93,22 +95,26 @@ NPC 1:1 대화      1:1 세션         세션/영구  Cassandra    /topic/npc/{c
 ### 비교 서비스 모델 분석
 
 **ZEP / Gather.town 모델:**
-```
+
+```text
 Space (공간)
   └── 공개 채팅 (Space에 귀속, 1:1)
   └── Nearby 채팅 (좌표 기반, 선택적)
   └── DM (유저 간 1:1, Space와 독립)
 ```
+
 공간 입장이 곧 채팅 참여. "채팅방 생성" 개념이 없다.
 
 **Discord 모델:**
-```
+
+```text
 Server (커뮤니티)
   └── Category
        └── Channel (텍스트/음성)
             └── Thread (채널 내 분기 대화)
   └── DM (Server와 독립)
 ```
+
 채팅이 핵심 기능. 공간이 아니라 "대화 조직"이 목적이다.
 
 우리 서비스는 **공간이 핵심이고 대화는 부가 기능**이므로, ZEP 모델이 맞다.
@@ -136,19 +142,23 @@ Server (커뮤니티)
 ## 더 공부할 거리
 
 ### 직접 관련
+
 - 관련 학습노트: [21-village-public-chat-architecture.md](./21-village-public-chat-architecture.md) -- 마을 공개 채팅의 Everyone/Nearby/DM 비교와 @멘션 NPC 패턴
 - 관련 학습노트: [15-websocket-stomp-deep-dive.md](./15-websocket-stomp-deep-dive.md) -- STOMP 프로토콜 동작 원리
 
 ### 채팅 시스템 설계
+
 - [How to Design a Chat System: A Complete Guide](https://www.systemdesignhandbook.com/guides/design-a-chat-system/) -- 채팅 시스템 전체 설계를 체계적으로 정리한 가이드
 - [System Design Interview: Chat Application](https://medium.com/@m.romaniiuk/system-design-chat-application-1d6fbf21b372) -- WhatsApp/Slack/Discord 관점의 채팅 시스템 설계
 - [Alternative to Discord architecture](https://chrisza.me/discord-architecture-alternative/) -- Discord 아키텍처의 대안적 접근
 
 ### 메타버스 채팅 패턴
+
 - [NPC Conversations in the Metaverse](https://charisma.ai/blog/npc-conversations-in-the-metaverse) -- 메타버스에서 NPC 대화의 설계 패턴. "대화 세션"이라는 개념이 왜 "채팅방"과 달라야 하는지를 잘 설명
 - [Private Chat in a Public Space of Metaverse Systems](https://arxiv.org/html/2511.07993v1) -- 메타버스 공유 공간 내 프라이빗 대화 설계에 관한 학술 연구
 - [Third Room (Matrix.org)](https://github.com/matrix-org/thirdroom/discussions/20) -- Matrix 프로토콜 기반 오픈소스 메타버스. 공간과 채팅을 어떻게 통합하는지 참고
 
 ### YAGNI와 설계 판단
+
 - [The Power of Simplicity: Understanding YAGNI](https://www.linkedin.com/pulse/power-simplicity-understanding-yagni-software-varghese-chacko) -- 채팅 앱 사례를 포함한 YAGNI 원칙 실전 적용기
 - 핵심 질문: "지금 채널 모델을 만들면 3개월 안에 쓸 것인가?" 대답이 "아니오"면 만들지 않는다

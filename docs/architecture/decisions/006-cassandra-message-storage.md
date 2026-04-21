@@ -15,6 +15,7 @@ Accepted (Phase 3, 2026-04-08)
 - **규모**: 서비스가 성장하면 메시지 수는 다른 어떤 테이블보다 빠르게 증가한다.
 
 PostgreSQL에 메시지를 저장하면:
+
 - 시간이 지날수록 단일 테이블에 수억 건이 쌓인다.
 - `WHERE chat_room_id = ? ORDER BY created_at DESC LIMIT N` 쿼리는 인덱스를 써도 결국 랜덤 I/O가 발생한다.
 - 파티셔닝으로 해결할 수 있지만 운영 복잡도가 크게 올라간다.
@@ -27,7 +28,7 @@ PostgreSQL에 메시지를 저장하면:
 
 ### 파티션 설계
 
-```
+```text
 Partition Key : chat_room_id     → 같은 채팅방 메시지가 같은 노드에 모임
 Clustering Key: created_at DESC  → 최신 메시지가 먼저 오도록 정렬
                id DESC            → 동일 시각 메시지 간 정렬 보장

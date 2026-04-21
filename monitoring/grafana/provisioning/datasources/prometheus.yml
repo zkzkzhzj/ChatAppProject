@@ -1,0 +1,17 @@
+# Grafana 데이터 소스 자동 등록.
+# 컨테이너 기동 시 /etc/grafana/provisioning/datasources/ 하위 YAML을 읽어 자동 구성.
+# UI에서 Settings → Data sources 로 수동 추가 불필요.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    # docker compose 같은 네트워크 내에서 서비스명으로 접근
+    url: http://prometheus:9090
+    access: proxy
+    isDefault: true
+    # 파일로 관리하므로 UI에서 수정 불가 (실수 방지)
+    editable: false
+    jsonData:
+      timeInterval: 15s
+      httpMethod: POST

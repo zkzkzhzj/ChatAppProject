@@ -1,7 +1,0 @@
-node_modules/
-frontend/node_modules/
-backend/build/
-backend/.gradle/
-docs/reviews/
-llm-test/
-.claude/

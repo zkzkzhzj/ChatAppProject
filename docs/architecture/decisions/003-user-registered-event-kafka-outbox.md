@@ -14,6 +14,7 @@
 ### 선택지
 
 **A. Spring ApplicationEvent (동기)**
+
 - `RegisterUserService`에서 `ApplicationEventPublisher.publishEvent()` 호출
 - 같은 트랜잭션 내에서 캐릭터/공간 생성
 - Village 코드가 Identity 서비스와 같은 트랜잭션에 묶인다
@@ -21,12 +22,14 @@
 - 단점: 도메인 간 결합도 증가, Village 작업 실패 시 회원가입도 롤백됨
 
 **B. Spring ApplicationEvent + @TransactionalEventListener(AFTER_COMMIT) (비동기)**
+
 - 회원가입 트랜잭션 커밋 후 이벤트 발행
 - Village는 별도 트랜잭션에서 처리
 - 장점: 도메인 결합 없음, 회원가입 성공이 Village 생성 실패에 영향 없음
 - 단점: 이벤트 발행 전 서버 크래시 시 이벤트 유실. 재시도 없음.
 
 **C. Kafka + Transactional Outbox Pattern (비동기, 내구성 보장)**
+
 - 회원가입 트랜잭션 내에서 `outbox_event` 테이블에 이벤트 저장 (같은 DB 트랜잭션)
 - 별도 스케줄러(OutboxKafkaRelay)가 PENDING 이벤트를 Kafka로 발행
 - Village Kafka 컨슈머가 이벤트 수신 → `processed_event` 테이블로 중복 방지 → 캐릭터/공간 생성
@@ -40,6 +43,7 @@
 **C. Kafka + Transactional Outbox Pattern**을 채택한다.
 
 이유:
+
 - 실서비스에서 회원가입은 핵심 경로다. 이벤트 유실은 사용자가 마을에 들어갈 수 없는 치명적 버그다.
 - `outbox_event` 테이블이 이미 ERD에 포함되어 있고, 스키마도 준비되어 있다.
 - Village와 Identity는 서로 다른 도메인이다. 같은 트랜잭션으로 묶이면 안 된다.
@@ -52,6 +56,7 @@
 프론트엔드는 이 지연을 로딩 상태(스피너/로딩바)로 처리한다.
 
 구체적으로:
+
 - `GET /api/v1/village/characters/me` → 아직 생성 전이면 `404`
 - 프론트엔드는 200 응답이 올 때까지 폴링
 - 최대 10초 내에 생성이 완료되지 않으면 오류 화면 표시 (비정상 상황)
@@ -60,7 +65,7 @@
 
 ## 구현 흐름
 
-```
+```text
 [RegisterUserService]
   트랜잭션 시작
     → users INSERT

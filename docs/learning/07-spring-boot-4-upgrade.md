@@ -2,7 +2,7 @@
 
 > 작성 시점: 2026-04-04
 > 맥락: Testcontainers 2.x의 Spring BOM 공식 지원을 얻기 위해 Spring Boot 4.x로 업그레이드.
->        이 과정에서 TestAdapter의 HTTP 클라이언트도 교체함.
+> 이 과정에서 TestAdapter의 HTTP 클라이언트도 교체함.
 
 ---
 
@@ -164,6 +164,7 @@ Cassandra를 예로 들면:
 그렇지 않으면 exclusion이 무효화되어 Cassandra 연결을 시도하다 실패하고 컨텍스트 초기화가 죽는다.
 
 새로 필요한 exclusion 목록:
+
 ```yaml
 spring:
   autoconfigure:

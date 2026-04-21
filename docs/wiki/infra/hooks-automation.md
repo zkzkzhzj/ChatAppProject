@@ -38,7 +38,7 @@ Claude Code의 훅 시스템을 활용하여 서브에이전트 라우팅, docs 
 
 ## 파일 위치
 
-```
+```text
 .claude/
 ├── settings.json          ← 4개 훅 이벤트 등록
 └── hooks/
@@ -64,7 +64,7 @@ Claude Code의 훅 시스템을 활용하여 서브에이전트 라우팅, docs 
 
 `pr-agent.md`에 리뷰 게이트가 추가되었다. PR 생성 전에 위 6개 에이전트를 순차 실행하여 **CRITICAL 0건**을 확인해야 PR을 생성할 수 있다.
 
-```
+```text
 6개 codex review 실행 → CRITICAL 추출 → 0건이면 통과 → PR 생성
                                       → 1건 이상이면 수정 루프 (최대 3회)
 ```

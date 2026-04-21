@@ -57,20 +57,26 @@ jwt:
   access-token-expiry-ms: 3600000
   refresh-token-expiry-ms: 604800000
 
-# 운영에서 actuator 노출·health 상세 수준을 엄격하게 줄이려면 env var로 오버라이드.
-# - 로컬: health,info,metrics 전부 노출 / show-details=when-authorized
-# - 운영: .env에서 ACTUATOR_ENDPOINTS=health, ACTUATOR_HEALTH_DETAILS=never 로 제한
+# Actuator endpoint는 secure-by-default (기본값 'health' 하나만 노출).
+# 관측성/디버깅이 필요한 환경에서만 .env로 명시 확장 — docker-compose.yml 기본값도 동일한 정책.
+# - 로컬: ACTUATOR_ENDPOINTS=health (필요하면 .env에서 확장)
+# - 운영: .env에 ACTUATOR_ENDPOINTS=health,info,metrics,prometheus + SECURITY_ENV_PUBLIC_PATHS 함께 확장
 management:
   endpoints:
     web:
       exposure:
-        include: ${ACTUATOR_ENDPOINTS:health,info,metrics}
+        include: ${ACTUATOR_ENDPOINTS:health}
   endpoint:
     health:
       show-details: ${ACTUATOR_HEALTH_DETAILS:when-authorized}
   health:
     redis:
       enabled: ${HEALTH_REDIS_ENABLED:false}
+  # Prometheus scrape 시 서비스 식별용 태그. staging/prod를 같은 Prometheus로 수집 시
+  # 라벨 충돌 방지를 위해 env 주입형으로 둠 (기본값 gohyang-app).
+  metrics:
+    tags:
+      application: ${MANAGEMENT_METRICS_TAGS_APPLICATION:gohyang-app}
 
 # 경로 리스트는 콤마 구분 문자열로 env 주입 가능 (Spring이 List<String> 자동 바인딩).
 # - 로컬: swagger 경로 공개 + /actuator/** 전체 허용 (개발 편의)

@@ -19,11 +19,13 @@ Next.js 16 + TypeScript + React 19 프로젝트에서 ESLint 설정을 강화해
 ### 선택: B (typescript-eslint/strictTypeChecked)
 
 **이유:**
+
 1. `eslint-config-next/typescript`가 이미 `recommended`를 포함하므로, `strictTypeChecked`를 추가하면 **겹치지 않고 strict 규칙만 추가된다.**
 2. Airbnb가 제공하던 핵심 가치(안전한 코드 작성)를 타입 시스템 레벨에서 더 정확하게 대체한다.
 3. TypeScript 공식 팀이 유지보수하므로 장기 지원이 보장된다.
 
 **주요 규칙:**
+
 - `no-floating-promises` — 처리되지 않은 Promise를 잡는다. `await`, `.catch()`, `.then()`, 또는 `void` 처리 필수.
 - `no-unsafe-assignment`, `no-unsafe-call`, `no-unsafe-return` — `any` 타입이 전파되는 것을 차단한다.
 - `prefer-nullish-coalescing` — `||` 대신 `??` 사용을 강제한다. `0`, `""`, `false`가 falsy로 처리되는 버그를 예방.
@@ -43,7 +45,8 @@ Next.js 16 + TypeScript + React 19 프로젝트에서 ESLint 설정을 강화해
 **이유:** 정렬만 필요했다. 순환참조 탐지 같은 고급 기능은 현재 규모에서 불필요하고, 의존성 0개가 결정적이었다. autofix가 완전히 동작하므로 저장 시 자동 정렬된다.
 
 **그룹 순서:**
-```
+
+```text
 react          → import React from "react"
 next           → import Link from "next/link"
 외부(@?\w)     → import axios from "axios"
@@ -57,6 +60,7 @@ next           → import Link from "next/link"
 현재 설정은 Airbnb 컨벤션 기반에 Prettier 3.x 기본값을 조합한 형태다.
 
 **Airbnb 원본과의 차이:**
+
 - `printWidth: 100` (Airbnb는 80) — 현대 모니터 해상도를 고려하면 80은 너무 좁다.
 - `endOfLine: "lf"` (Airbnb는 `auto`) — Windows 환경에서 CRLF가 섞이는 것을 방지.
 

@@ -12,7 +12,7 @@ OutboxKafkaRelay에서 Kafka 발행 실패를 처리하면서 생긴 질문:
 처음엔 "알람 도메인을 만들면 되지 않나?"는 아이디어가 나왔다.  
 하지만 알람에는 두 종류가 있고, 이 둘은 성격이 완전히 다르다.
 
-```
+```text
 운영 알람 (Operational Alert)
   → 수신자: 개발자/운영팀
   → 채널: Slack, PagerDuty
@@ -27,6 +27,7 @@ OutboxKafkaRelay에서 Kafka 발행 실패를 처리하면서 생긴 질문:
 ```
 
 운영 알람을 "알람 도메인"으로 만들면:
+
 - 모든 도메인이 notification 도메인에 의존해야 함 → 도메인 간 직접 참조 위반
 - Kafka 이벤트로 우회하면 "Kafka가 죽었다"는 알람을 Kafka로 보내는 아이러니 발생
 
@@ -44,6 +45,7 @@ public interface AlertPort {
 ```
 
 `AlertContext`에 `eventId`(UUID)를 포함한 이유:
+
 - 로그에서 `grep "eventId=abc-123"`으로 해당 이벤트의 발행 → 소비 → 실패까지 전체 흐름을 추적 가능
 - aggregateId(userId 등)로 "어떤 유저의 데이터에 문제가 생겼는지" 특정 가능
 
@@ -51,7 +53,7 @@ public interface AlertPort {
 
 ## OutboxKafkaRelay에서의 에러 분류
 
-```
+```text
 Transient (일시적)     → 재시도 가능
   - NetworkException
   - BrokerNotAvailableException
@@ -70,7 +72,7 @@ Systemic (시스템적)    → 연속 N개 실패 → Kafka 장애 의심
 
 ## 구현체 교체 전략
 
-```
+```text
 현재:   LogAlertAdapter     → 로그만 출력
 추후:   SlackAlertAdapter   → Slack Webhook 호출
 배포:   CompositeAlertAdapter → 로그 + Slack 동시

@@ -1,0 +1,79 @@
+# 모니터링 스택 (gohyang-monitor EC2 전용).
+#
+# 구성:
+#   Prometheus  — 운영 EC2의 /actuator/prometheus 를 15초마다 scrape, 자체 TSDB에 7일 보관
+#   Grafana     — Prometheus 데이터 소스로 대시보드 제공 (포트 3001 → 컨테이너 내부 3000)
+#
+# 사용법 (gohyang-monitor EC2에서):
+#   cp .env.example .env  # GRAFANA_ADMIN_PASSWORD 수정 필수
+#   docker compose up -d
+#
+# 접속:
+#   Grafana:    http://<monitor-public-ip>:3001  (admin / .env의 비밀번호)
+#   Prometheus: 호스트 로컬에서만 접근 가능 (127.0.0.1:9090) — SSM tunneling 등 필요
+name: gohyang-monitoring
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: prometheus
+    restart: unless-stopped
+    # 127.0.0.1 바인딩 → 호스트 외부(인터넷)에서 접근 불가. VPC 내부 보안.
+    # UI 접근은 SSM port-forwarding 또는 Grafana 데이터 소스를 통해 간접 조회.
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    # 'gohyang-app' 호스트명을 실제 Private IP에 매핑.
+    # Prometheus가 prometheus.yml의 scrape target 'gohyang-app:8080'을 해석할 때 /etc/hosts 경유.
+    # 실제 IP는 오직 .env 의 APP_PRIVATE_IP 에서만 관리 — 소스에는 하드코딩 없음.
+    # 로컬 테스트: APP_PRIVATE_IP=host-gateway (Docker 매직 키워드, 런타임에 호스트 IP 치환).
+    # 운영: APP_PRIVATE_IP=<운영 EC2 Private IP> (예: 172.31.45.140)
+    extra_hosts:
+      - "gohyang-app:${APP_PRIVATE_IP:?APP_PRIVATE_IP must be set in .env (ex: 172.31.45.140 or host-gateway)}"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      # 7일 retention — 부하 테스트 데이터만 보관, 장기 저장 불필요
+      - '--storage.tsdb.retention.time=7d'
+      # 런타임 설정 리로드 허용 (prometheus.yml 수정 후 curl -X POST ...:9090/-/reload)
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9090/-/healthy"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    container_name: grafana
+    restart: unless-stopped
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    # 외부 3001 → 컨테이너 내부 3000. Security Group에서 3001만 내 집 IP로 잠금.
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      # ${VAR:?error} 구문: VAR가 없으면 error 출력 + compose 기동 실패.
+      # .env 누락으로 기본 비밀번호가 프로덕션에 올라가는 사고를 원천 차단.
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set in .env}
+      # 익명 접근·회원가입 전부 차단 (관리자 계정만)
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      # 플러그인 설치 허용 (대시보드 import 시 필요할 수도)
+      GF_INSTALL_PLUGINS: ""
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  prometheus-data:
+  grafana-data:

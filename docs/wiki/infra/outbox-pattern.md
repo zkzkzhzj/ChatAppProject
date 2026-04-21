@@ -13,7 +13,7 @@ last-verified: 2026-04-13
 
 ### 흐름
 
-```
+```text
 Service (비즈니스 로직)
   → outbox_event 테이블에 INSERT (같은 트랜잭션)
   → 트랜잭션 커밋

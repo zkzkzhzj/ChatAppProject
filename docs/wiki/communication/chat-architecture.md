@@ -11,7 +11,7 @@ last-verified: 2026-04-15
 
 마을 1개 = 공개 채팅방 1개. V3 마이그레이션으로 공개 채팅방(id=1, type=PUBLIC)이 고정 생성되며, `village.public-chat-room-id` 설정으로 관리한다. 채팅방을 per-request로 생성하지 않는다.
 
-```
+```text
 [초기 데이터] V3 마이그레이션
   → ChatRoom(PUBLIC, id=1, '마을 광장') 고정 생성
   → Participant(NPC, '마을 주민') 자동 생성

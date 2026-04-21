@@ -31,7 +31,7 @@ JWT 기반 토큰 인증. Spring Security + 커스텀 `JwtFilter`로 구현.
 
 `SecurityProperties`에서 관리 (`application.yml`):
 
-```
+```text
 /api/v1/auth/register    — 회원가입
 /api/v1/auth/login       — 로그인
 /api/v1/auth/guest       — 게스트 토큰 발급
@@ -51,7 +51,7 @@ Docker 환경에서는 `/actuator/health`가 추가로 공개.
 
 ## 회원가입 흐름
 
-```
+```text
 POST /api/v1/auth/register
   → RegisterUserService
     → 이메일 중복 확인 (CheckEmailDuplicatePort)

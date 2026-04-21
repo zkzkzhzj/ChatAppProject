@@ -1,0 +1,19 @@
+# Grafana 대시보드 자동 프로비저닝 설정.
+# /etc/grafana/provisioning/dashboards/*.json 파일을 자동으로 import.
+# 부하 테스트 후 커스텀 대시보드 JSON 추가 시 이 provider가 pick up.
+apiVersion: 1
+
+providers:
+  - name: 'gohyang-default'
+    orgId: 1
+    folder: ''
+    folderUid: ''
+    type: file
+    # Grafana UI에서 편집한 내용도 유지
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: true

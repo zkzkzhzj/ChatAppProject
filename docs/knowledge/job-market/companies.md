@@ -39,11 +39,12 @@
   - 씨미(ci.me)가 라이브 스트리밍 서비스이므로 WebSocket/실시간 시스템 경험이 유리할 것으로 판단
 
 출처:
-- https://www.wanted.co.kr/wd/29086
-- https://www.wanted.co.kr/company/765
-- https://www.rallit.com/companies/225
-- https://medium.com/@marpple
-- https://www.marpplecorp.com/recruit
+
+- <https://www.wanted.co.kr/wd/29086>
+- <https://www.wanted.co.kr/company/765>
+- <https://www.rallit.com/companies/225>
+- <https://medium.com/@marpple>
+- <https://www.marpplecorp.com/recruit>
 
 ---
 
@@ -142,13 +143,14 @@
 - **기술 스택**: Node.js (Express.js), Go, RDBMS, NoSQL
 
 출처:
-- https://www.wanted.co.kr/wd/146262
-- https://www.wanted.co.kr/wd/76869
-- https://www.wanted.co.kr/wd/66769
-- https://www.wanted.co.kr/wd/126670
-- https://www.wanted.co.kr/wd/52488
-- https://www.wanted.co.kr/wd/128260
-- https://recruit.sooplive.co.kr/recruit_list.php
+
+- <https://www.wanted.co.kr/wd/146262>
+- <https://www.wanted.co.kr/wd/76869>
+- <https://www.wanted.co.kr/wd/66769>
+- <https://www.wanted.co.kr/wd/126670>
+- <https://www.wanted.co.kr/wd/52488>
+- <https://www.wanted.co.kr/wd/128260>
+- <https://recruit.sooplive.co.kr/recruit_list.php>
 
 ---
 
@@ -192,8 +194,9 @@
   - 기술 블로그 운영
 
 출처:
-- https://recruit.navercorp.com/micro/teamnaver2025/tech
-- https://recruit.navercorp.com/rcrt/list.do
-- https://www.ceoscoredaily.com/page/view/2026012610434875555
-- https://economist.co.kr/article/view/ecn202601260046
-- https://economist.co.kr/article/view/ecn202401260048
+
+- <https://recruit.navercorp.com/micro/teamnaver2025/tech>
+- <https://recruit.navercorp.com/rcrt/list.do>
+- <https://www.ceoscoredaily.com/page/view/2026012610434875555>
+- <https://economist.co.kr/article/view/ecn202601260046>
+- <https://economist.co.kr/article/view/ecn202401260048>

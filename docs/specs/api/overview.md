@@ -6,7 +6,7 @@
 
 인증이 필요한 엔드포인트는 HTTP 요청 헤더에 JWT Bearer 토큰을 포함해야 한다.
 
-```
+```text
 Authorization: Bearer <accessToken>
 ```
 
@@ -16,7 +16,7 @@ Authorization: Bearer <accessToken>
 
 ## Base URL
 
-```
+```text
 /api/v1
 ```
 

@@ -4,7 +4,7 @@
 
 ## 1. 최상위 구조
 
-```
+```text
 com.maeum.gohyang
 ├── communication/       # Core — 채팅, 메시지, 참여자 ✅
 ├── village/             # Core — 공간, 위치, 캐릭터, NPC ✅
@@ -25,7 +25,7 @@ com.maeum.gohyang
 
 모든 도메인은 동일한 내부 구조를 따른다.
 
-```
+```text
 [domain]/
 ├── domain/              # 순수 비즈니스 규칙 (POJO)
 │   ├── Entity
@@ -62,7 +62,7 @@ com.maeum.gohyang
 
 > 아래는 Phase 4에서 구현 예정인 Economy 도메인의 **설계 초안**이다. 현재 코드베이스에는 존재하지 않는다.
 
-```
+```text
 economy/
 ├── wallet/
 │   ├── domain/
@@ -130,7 +130,7 @@ economy/
 
 **global/에는 진짜 cross-cutting만 남긴다.** 도메인에 속하지 않으면서, 특정 도메인으로 이동시킬 수도 없는 것만 여기에 둔다.
 
-```
+```text
 global/
 ├── config/              # Spring Configuration
 │   ├── WebSocketConfig              # STOMP/SockJS 설정 (브로커, 엔드포인트)

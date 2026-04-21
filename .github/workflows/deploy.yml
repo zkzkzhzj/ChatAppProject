@@ -16,6 +16,8 @@ on:
       - '.claude/**'
       - '.github/ISSUE_TEMPLATE/**'
       - 'llm-test/**'
+      # 모니터링 스택은 별도 EC2(gohyang-monitor)에서 동작 → 운영 CD와 무관.
+      - 'monitoring/**'
   workflow_dispatch:
     inputs:
       force_rebuild:
@@ -41,20 +43,22 @@ jobs:
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
+      deploy: ${{ steps.filter.outputs.deploy }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          # 이미지 빌드 필터는 각 컴포넌트 소스만 포함한다.
+          # compose/스크립트/워크플로우 변경은 "재배포는 필요하지만 재빌드는 불필요" →
+          # 별도 deploy 필터로 분리하여 불필요한 이미지 재빌드를 방지.
           filters: |
             backend:
               - 'backend/**'
-              - 'deploy/docker-compose.yml'
-              - 'deploy/scripts/deploy.sh'
-              - '.github/workflows/deploy.yml'
             frontend:
               - 'frontend/**'
-              - 'deploy/docker-compose.yml'
+            deploy:
+              - 'deploy/**'
               - '.github/workflows/deploy.yml'
 
   build-backend:
@@ -126,7 +130,10 @@ jobs:
       always() &&
       (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
       (needs.build-frontend.result == 'success' || needs.build-frontend.result == 'skipped') &&
-      (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.frontend == 'true' || inputs.force_rebuild)
+      (needs.detect-changes.outputs.backend == 'true' ||
+       needs.detect-changes.outputs.frontend == 'true' ||
+       needs.detect-changes.outputs.deploy == 'true' ||
+       inputs.force_rebuild)
     runs-on: ubuntu-latest
     steps:
       - name: AWS 자격 증명 (OIDC)

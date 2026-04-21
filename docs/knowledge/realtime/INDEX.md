@@ -17,7 +17,7 @@
 
 ## 이 프로젝트의 현재 실시간 기술 스택
 
-```
+```text
 채팅:     WebSocket (STOMP) + Kafka + Cassandra (메시지 저장)
 음성/영상: WebRTC (추후 구현 예정)
 스트리밍:  미정

@@ -1,12 +1,17 @@
 // 테스트 계정 토큰 풀 발급기 (Node.js >= 18, native fetch 사용).
 //
 // 사용법:
-//   BASE_URL=https://ghworld.co COUNT=10   node loadtest/prepare-tokens.js
-//   BASE_URL=https://ghworld.co COUNT=1000 node loadtest/prepare-tokens.js
+//   # 로컬 dev (default 패스워드 허용)
+//   BASE_URL=http://localhost:8080 COUNT=10 node loadtest/prepare-tokens.js
+//
+//   # 공유/운영 (LOADTEST_PASSWORD env 필수)
+//   BASE_URL=https://ghworld.co LOADTEST_PASSWORD='YourStrongPassword' \
+//     COUNT=1000 node loadtest/prepare-tokens.js
 //
 // 계정 규칙 (재사용 모델 — cleanup 없음):
 //   이메일:   loadtest-0001@test.local ~ loadtest-NNNN@test.local
-//   패스워드: LoadTest2026! (고정)
+//   패스워드: LOADTEST_PASSWORD env 가 우선 (비로컬 BASE_URL 에서는 필수).
+//            미설정 시 LoadTest2026! fallback — localhost/127.0.0.1 에서만 허용.
 //
 // 동작:
 //   1) 각 이메일로 POST /api/v1/auth/login 시도

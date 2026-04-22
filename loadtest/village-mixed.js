@@ -65,7 +65,16 @@ export default function () {
   if (tokens.length === 0) {
     throw new Error('tokens.json empty — run prepare-tokens.js first');
   }
-  const token = tokens[(__VU - 1) % tokens.length];
+  // 토큰 부족 시 fail-fast — modulus wrap 으로 재사용하면 동일 userId 가
+  // 여러 VU 에서 동시 접속해 세션 축출·presence 덮어쓰기로 결과가 왜곡됨.
+  // 풀 부족은 prepare-tokens.js COUNT 를 VU max 이상으로 맞춰 해결.
+  if (__VU > tokens.length) {
+    throw new Error(
+      `insufficient tokens for VU ${__VU}: only ${tokens.length} available. ` +
+      `Run: COUNT=${__VU} node loadtest/prepare-tokens.js`,
+    );
+  }
+  const token = tokens[__VU - 1];
 
   const res = ws.connect(
     WS_URL,
@@ -124,14 +133,10 @@ function handleFrame(socket, frame, connectStartAt) {
       socket.send(STOMP.subscribe(`sub-chat-${__VU}`, '/topic/chat/village'));
       socket.send(STOMP.subscribe(`sub-pos-${__VU}`, '/topic/village/positions'));
 
-      // position 루프 (±20% jitter)
-      socket.setInterval(() => {
-        const x = Math.random() * MAP_MAX_X;
-        const y = Math.random() * MAP_MAX_Y;
-        socket.send(STOMP.send('/app/village/position', { x, y }));
-        mPosSent.add(1);
-      }, jitter(POSITION_INTERVAL_MS, 0.2));
-
+      // position 루프 — 매 전송마다 jitter 재샘플링.
+      // setInterval 은 등록 시점에 jitter 를 1회만 계산해서 VU 별로 고정 cadence 가 됨.
+      // 재귀 setTimeout 으로 매번 새 jitter 값을 뽑아 트래픽 분산 효과 확보.
+      schedulePosition(socket);
       scheduleChat(socket);
       break;
     }
@@ -149,6 +154,16 @@ function handleFrame(socket, frame, connectStartAt) {
     default:
       break;
   }
+}
+
+function schedulePosition(socket) {
+  socket.setTimeout(() => {
+    const x = Math.random() * MAP_MAX_X;
+    const y = Math.random() * MAP_MAX_Y;
+    socket.send(STOMP.send('/app/village/position', { x, y }));
+    mPosSent.add(1);
+    schedulePosition(socket);
+  }, jitter(POSITION_INTERVAL_MS, 0.2));
 }
 
 function scheduleChat(socket) {

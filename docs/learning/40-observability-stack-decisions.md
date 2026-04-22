@@ -15,7 +15,71 @@
 
 ---
 
-## 2. 결정 #1 — 모니터링 스택을 어디에 띄울까?
+## 2. 결정 #0 — 왜 Prometheus + Grafana 조합인가?
+
+### 선행 질문
+
+"모니터링"이라고 뭉뚱그리지만 실제로는 **관측성(observability) 3대 영역**이 나뉜다.
+
+| 영역 | 질문 | 대표 도구 |
+|------|------|----------|
+| Metrics | "지금 수치가 어떤가?" (p95·CPU·GC·DB pool) | Prometheus, Datadog metrics |
+| Logs | "방금 무슨 일이 있었나?" | ELK, Loki, CloudWatch Logs |
+| Traces | "한 요청이 어디서 몇 ms 썼나?" | Jaeger, Tempo, Datadog APM |
+
+은탄환은 없다. 스택 선택은 결국 **"어느 영역을 먼저 깔 것인가"** 의 선택이다.
+이번 작업의 목적은 부하 테스트 — 필요한 건 숫자(Metrics)다.
+
+### 후보 비교
+
+| 스택 | 영역 | 모델 | 비용 | 이번 과제 적합성 |
+|------|------|------|------|----------------|
+| **Prometheus + Grafana** | Metrics | Self-host OSS | 무료 | ★★★★★ |
+| Grafana Cloud (managed) | Metrics + Logs + Traces | SaaS | Free tier 10k 시리즈 | ★★★★ 운영 0, 학습 기회 ↓ |
+| Datadog | 전부 | SaaS | 호스트당 $15+/mo | ★★ 비싸고 개인 프로젝트엔 과함 |
+| New Relic | 전부 | SaaS | 100GB/mo 무료 | ★★★ Full-stack APM 강점 |
+| ELK (Elasticsearch + Kibana) | Logs 중심 | Self-host | 무료(인프라 큼) | ★★ Metrics는 부차적 |
+| Loki + Grafana | Logs | Self-host OSS | 무료 | ★★★★ Prometheus랑 같이 쓰면 이상적 |
+| Jaeger / Tempo | Traces | Self-host OSS | 무료 | 별도 목적 |
+| OpenTelemetry 단독 | 수집 표준 | - | - | 백엔드 별도 필요 |
+
+### 선택: **Prometheus + Grafana**
+
+**이유**:
+
+1. **목표가 Metrics 영역이다** — 부하 테스트로 찾는 건 숫자다. p95 latency, CPU %, GC pause, DB connection pool. Logs·Traces가 아니다. Metrics 전용 도구가 가장 직선적
+2. **Spring Actuator와 사실상 표준 조합** — `micrometer-registry-prometheus`가 1급 지원이다. JVM Micrometer 대시보드(Grafana ID 4701) 같은 기성 ecosystem이 압도적. Datadog·New Relic은 별도 레지스트리 의존성 + 유료 API 키 필요
+3. **한국 백엔드 실무 주류** — 네이버·카카오·라인·쿠팡 공개 기술블로그의 모니터링 아키텍처 기본값이다. 취업 목표 회사(SOOP·치지직/네이버)에서 통하는 언어
+4. **비용·학습 양쪽 유리** — 무료다 (t3.small 한 대). SaaS는 편하지만 "안에서 어떻게 돌아가는지"를 가려버린다. 직접 세팅하면 pull 모델·scrape config·relabeling 같은 실무 개념을 몸으로 익힌다
+
+### 기각한 이유
+
+- **Datadog / New Relic**: 유료. 개인 프로젝트엔 과하고, 이력서 서사로도 "SaaS에 붙여봤다"는 덜 독보적
+- **Grafana Cloud**: 좋은 대안이었다. 운영 부담 0, 세 영역을 한 번에. 다만 "직접 세워봤다" 학습 서사를 잃음 — 이번엔 배움 쪽을 택함
+- **ELK**: Logs 중심 스택. Metrics를 Elasticsearch에 저장할 수 있지만 Prometheus 대비 쿼리·보존·알람 전부 불리. Metrics 목적엔 오버킬이자 엇나감
+- **Loki**: 훌륭하고 Prometheus와 같이 쓰면 이상적이다. 다만 이번 과제 목표 밖 — 다음 확장 단계로 미룸
+- **OpenTelemetry 단독**: OTel은 수집/전송 표준이지 저장·시각화 백엔드가 아니다. 백엔드로 Prometheus/Tempo/Loki 등을 여전히 붙여야 함
+
+### 확장 경로
+
+이번은 Metrics만. 장기적으로는 Grafana를 허브로 세 영역을 쌓는다.
+
+| 단계 | 추가할 것 | 이유 |
+|------|----------|------|
+| 지금 | Prometheus + Grafana (Metrics) | 부하 테스트 증거 수집 |
+| +Logs | Loki + Promtail | 같은 Grafana UI에서 metrics ↔ logs 상호 점프 |
+| +Traces | Tempo + OpenTelemetry SDK | NPC 파이프라인 구간별 레이턴시 추적 |
+| 장기 | OpenTelemetry 프로토콜 통합 | 세 도구 모두 OTLP로 통일 가능 |
+
+### 트레이드오프
+
+- Metrics 외 Logs/Traces 영역은 이 조합으로 자동 커버되지 않는다 → 확장 시 Loki/Tempo 별도 구축 필요
+- Self-host의 운영 부담(백업, 디스크, 버전 업그레이드)을 감수
+- 다만 **Grafana가 세 영역의 프런트엔드 공통 허브**라는 점이 장기 확장에서 일관성을 보장 — 나중에 Loki·Tempo 붙여도 UI는 하나
+
+---
+
+## 3. 결정 #1 — 모니터링 스택을 어디에 띄울까?
 
 ### 후보
 
@@ -48,7 +112,7 @@
 
 ---
 
-## 3. 결정 #2 — 부하 테스트 도구는 뭘로?
+## 4. 결정 #2 — 부하 테스트 도구는 뭘로?
 
 ### 후보
 
@@ -81,7 +145,7 @@
 
 ---
 
-## 4. 결정 #3 — 부하 타겟은 무엇으로?
+## 5. 결정 #3 — 부하 타겟은 무엇으로?
 
 ### 후보
 
@@ -104,7 +168,7 @@
 
 ---
 
-## 5. 결정 #4 — Grafana 접근은 어떻게?
+## 6. 결정 #4 — Grafana 접근은 어떻게?
 
 ### 후보
 
@@ -130,7 +194,7 @@
 
 ---
 
-## 6. 결정 #5 — Actuator endpoint 기본값을 secure by default로
+## 7. 결정 #5 — Actuator endpoint 기본값을 secure by default로
 
 ### 문제 상황
 
@@ -205,7 +269,7 @@ SECURITY_ENV_PUBLIC_PATHS=/actuator/health,/actuator/prometheus
 
 ---
 
-## 6.5. 결정 #5-보조 — Prometheus scrape target을 env 템플릿화
+## 7.5. 결정 #5-보조 — Prometheus scrape target을 env 템플릿화
 
 ### 문제
 
@@ -263,7 +327,7 @@ APP_PRIVATE_IP=172.31.45.140
 
 ---
 
-## 7. 결정 #6 — 모니터링 스택 CD를 둘까?
+## 8. 결정 #6 — 모니터링 스택 CD를 둘까?
 
 ### 후보
 
@@ -294,7 +358,7 @@ APP_PRIVATE_IP=172.31.45.140
 
 ---
 
-## 8. Spring Boot 4.x 트랩 — 기본값 덮어쓰기
+## 9. Spring Boot 4.x 트랩 — 기본값 덮어쓰기
 
 ### 증상
 
@@ -336,7 +400,7 @@ environment:
 
 ---
 
-## 9. 참고 자료
+## 10. 참고 자료
 
 - [Prometheus scrape config 공식 문서](https://prometheus.io/docs/prometheus/latest/configuration/configuration/)
 - [Grafana provisioning 공식 문서](https://grafana.com/docs/grafana/latest/administration/provisioning/)
@@ -347,10 +411,11 @@ environment:
 
 ---
 
-## 10. 요약 테이블
+## 11. 요약 테이블
 
 | 결정 | 선택 | 핵심 이유 |
 |------|------|----------|
+| 관측성 스택 조합 | Prometheus + Grafana | Metrics 영역 목표 · Spring Actuator 1급 지원 · 한국 실무 주류 · 직접 세팅으로 실무 개념 체득 |
 | 모니터링 호스팅 | Dedicated Monitor EC2 (t3.small) | 측정 신뢰성·보안·실무 패턴 |
 | 부하 도구 | k6 | 한국 실무 주류·WebSocket 네이티브·경량 |
 | 부하 타겟 | 마을 공개 채팅 (NPC 제외) | 핵심 기능·OpenAI 비용 회피 |

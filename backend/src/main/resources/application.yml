@@ -77,6 +77,18 @@ management:
   metrics:
     tags:
       application: ${MANAGEMENT_METRICS_TAGS_APPLICATION:gohyang-app}
+    # 히스토그램 bucket 노출 — Prometheus histogram_quantile() 로 실제 p95/p99 계산 가능.
+    # 기본 Micrometer는 count/sum/max만 노출해서 histogram_quantile이 No Data 반환.
+    # 여기서 명시적으로 켜야 Grafana에서 proper p95/p99 시계열 그래프 볼 수 있다.
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        jvm.gc.pause: true
+      # client-side computed percentiles도 함께 노출 (0.5, 0.95, 0.99).
+      # histogram bucket이 해상도 부족할 때 대안 지표로 사용.
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+        jvm.gc.pause: 0.5, 0.95, 0.99
 
 # 경로 리스트는 콤마 구분 문자열로 env 주입 가능 (Spring이 List<String> 자동 바인딩).
 # - 로컬: swagger 경로 공개 + /actuator/** 전체 허용 (개발 편의)

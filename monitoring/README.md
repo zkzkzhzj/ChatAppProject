@@ -164,6 +164,29 @@ EC2 콘솔 → gohyang-monitor → Stop instance
 
 재개하려면 Start instance. **Terminate는 하지 말 것** — EBS 볼륨까지 삭제됨.
 
+## k6 메트릭 수집 (Remote Write)
+
+Prometheus가 `--web.enable-remote-write-receiver` 플래그로 기동되므로 외부 툴(k6 등)이 `http://<prometheus>:9090/api/v1/write` 엔드포인트에 메트릭 PUSH 가능.
+
+**사용 시나리오**: 부하 테스트 중 k6의 `stomp_connect_latency`, `position_sent` 등 클라이언트 메트릭을 Grafana에 시각화.
+
+**접근 방법**: Prometheus는 127.0.0.1 바인딩 유지. 외부 k6는 SSM 포트포워딩으로 9090 접근.
+
+```bash
+aws ssm start-session \
+  --target <monitor-ec2-instance-id> \
+  --document-name AWS-StartPortForwardingSession \
+  --parameters "portNumber=9090,localPortNumber=9090" \
+  --region ap-northeast-2
+```
+
+**Grafana에서 시각화**:
+
+- `+` → Import → Dashboard ID `19665` (k6 공식) → Prometheus 데이터 소스 선택
+- k6_* 라벨 달린 메트릭 자동 매핑
+
+상세 실행 커맨드: `loadtest/README.md` 5번 섹션.
+
 ## IP 변경 대응 (운영 EC2 Private IP가 바뀌었을 때)
 
 ```bash

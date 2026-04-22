@@ -6,14 +6,22 @@
  * - 델타가 없으면 통과 (Q&A, read-only 세션)
  * - 델타가 있는데 handover.md가 그 안에 없으면 차단
  *
- * stop_hook_active=true이면 무한 루프 방지를 위해 통과.
+ * 델타 판정 기준:
+ *   1. porcelain 상태 코드가 달라진 파일
+ *   2. **이미 dirty 였던 파일의 content hash 가 달라진 파일**
+ *      (상태 코드는 같아도 내용이 더 바뀐 경우 — 예: ` M` → ` M` 재편집)
+ *   3. 세션 중 새로 커밋된 파일 (snapshot.head..HEAD 범위)
+ *
+ * 세션 식별: data.session_id 로 분리된 스냅샷 파일 우선, 없으면 legacy 파일.
+ * stop_hook_active=true 이면 무한 루프 방지를 위해 통과.
  */
 const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
 const HANDOVER_PATH = "docs/handover.md";
-const SNAPSHOT_REL = path.join(".claude", "cache", "session-git-snapshot.json");
+const CACHE_DIR = path.join(".claude", "cache");
+const LEGACY_SNAPSHOT = "session-git-snapshot.json";
 
 function git(args, cwd) {
   try {
@@ -25,8 +33,21 @@ function git(args, cwd) {
   }
 }
 
+function hashObject(filePath, cwd) {
+  try {
+    const out = execSync(
+      `git hash-object -- "${filePath.replace(/"/g, '\\"')}"`,
+      { cwd, encoding: "utf-8" }
+    );
+    return out.trim();
+  } catch {
+    return null;
+  }
+}
+
 /**
  * `git status --porcelain` 출력을 Map<filePath, status>로 변환.
+ * rename/copy 는 new 경로만 취한다.
  */
 function parsePorcelain(output) {
   const map = new Map();
@@ -34,10 +55,33 @@ function parsePorcelain(output) {
   for (const line of output.split("\n")) {
     if (!line) continue;
     const status = line.slice(0, 2);
-    const filePath = line.slice(3).trim();
+    let filePath = line.slice(3).trim();
+    const arrowIdx = filePath.indexOf(" -> ");
+    if (arrowIdx !== -1) filePath = filePath.slice(arrowIdx + 4);
     if (filePath) map.set(filePath, status);
   }
   return map;
+}
+
+function loadSnapshot(cwd, sessionId) {
+  const cacheDir = path.join(cwd, CACHE_DIR);
+  // 세션별 파일 우선, 없으면 legacy 파일로 fallback (하위 호환).
+  const candidates = [];
+  if (sessionId) {
+    candidates.push(path.join(cacheDir, `session-git-snapshot-${sessionId}.json`));
+  }
+  candidates.push(path.join(cacheDir, LEGACY_SNAPSHOT));
+
+  for (const file of candidates) {
+    if (fs.existsSync(file)) {
+      try {
+        return JSON.parse(fs.readFileSync(file, "utf-8"));
+      } catch {
+        // 손상된 스냅샷은 무시하고 다음 후보로
+      }
+    }
+  }
+  return null;
 }
 
 let input = "";
@@ -47,20 +91,13 @@ process.stdin.on("end", () => {
   try {
     const data = JSON.parse(input || "{}");
     const cwd = data.cwd || process.cwd();
+    const sessionId = data.session_id || data.sessionId || null;
 
     if (data.stop_hook_active) {
       process.exit(0);
     }
 
-    const snapshotPath = path.join(cwd, SNAPSHOT_REL);
-    let snapshot = null;
-    if (fs.existsSync(snapshotPath)) {
-      try {
-        snapshot = JSON.parse(fs.readFileSync(snapshotPath, "utf-8"));
-      } catch {
-        // 손상된 스냅샷은 무시
-      }
-    }
+    const snapshot = loadSnapshot(cwd, sessionId);
 
     // 스냅샷이 없으면 첫 실행/누락 → 통과 (오탐보다 누락을 선호)
     if (!snapshot) {
@@ -72,16 +109,28 @@ process.stdin.on("end", () => {
 
     const snapMap = parsePorcelain(snapshot.porcelain);
     const curMap = parsePorcelain(currentPorcelain);
+    const snapHashes = snapshot.fileHashes || {};
 
-    // 세션 중 새로 추가되거나 상태가 바뀐 파일 추출
     const deltaFiles = new Set();
+
+    // 1. porcelain 상태 코드가 달라진 파일
     for (const [file, status] of curMap) {
       if (snapMap.get(file) !== status) {
         deltaFiles.add(file);
       }
     }
 
-    // 세션 중 생긴 커밋에 포함된 파일
+    // 2. 이미 dirty 였던 파일의 content hash 재계산 → 변경 감지
+    //    (상태 코드는 같아도 실제 내용이 더 수정된 케이스 커버)
+    for (const [file, oldHash] of Object.entries(snapHashes)) {
+      if (!curMap.has(file)) continue; // 파일이 더 이상 dirty 아님 → 1에서 이미 처리
+      const newHash = hashObject(file, cwd);
+      if (newHash && newHash !== oldHash) {
+        deltaFiles.add(file);
+      }
+    }
+
+    // 3. 세션 중 생긴 커밋에 포함된 파일
     if (snapshot.head && currentHead && snapshot.head !== currentHead) {
       const committed = git(
         `log --name-only --pretty=format: ${snapshot.head}..${currentHead}`,

@@ -15,22 +15,27 @@ export function stompFrame(command, headers = {}, body = '') {
 }
 
 export function parseStompFrame(raw) {
-  // STOMP 1.2 스펙: EOL 은 [CR] LF — 즉 LF 단독 또는 CRLF 모두 유효.
-  // 정규화로 먼저 \r\n → \n 으로 통일 후 파싱. (1.1 호환 + 브로커 구현체 대응)
-  const normalized = raw.replace(/\r\n/g, '\n');
-  const text = normalized.endsWith(NULL) ? normalized.slice(0, -1) : normalized;
-  const sepIdx = text.indexOf('\n\n');
-  if (sepIdx === -1) {
+  // STOMP 1.2 스펙: EOL 은 [CR] LF — LF 단독·CRLF 모두 허용.
+  // 전체 문자열을 정규화하면 body 안의 CRLF 도 손상되므로,
+  // 헤더 영역(blank-line까지)만 regex 로 분리하고 body 는 원본 slice 그대로 반환.
+  const text = raw.endsWith(NULL) ? raw.slice(0, -1) : raw;
+  const sepMatch = text.match(/\r?\n\r?\n/);
+  if (!sepMatch) {
     return { command: text.trim(), headers: {}, body: '' };
   }
-  const headerPart = text.slice(0, sepIdx);
-  const body = text.slice(sepIdx + 2);
-  const [command, ...headerLines] = headerPart.split('\n');
+  const headerPart = text.slice(0, sepMatch.index);
+  // body 는 원본 그대로 — 바이너리·멀티라인 페이로드의 CRLF 보존.
+  const body = text.slice(sepMatch.index + sepMatch[0].length);
+  const [commandRaw, ...headerLines] = headerPart.split(/\r?\n/);
+  const command = commandRaw.trim();
   const headers = {};
   for (const line of headerLines) {
     const idx = line.indexOf(':');
     if (idx === -1) continue;
-    headers[line.slice(0, idx)] = line.slice(idx + 1);
+    // 헤더 key/value 끝에 붙을 수 있는 \r 만 제거 (value 안쪽 \r 은 보존 불필요, 원래 trim 허용 스펙)
+    const key = line.slice(0, idx).trim();
+    const value = line.slice(idx + 1).replace(/\r$/, '');
+    headers[key] = value;
   }
   return { command, headers, body };
 }

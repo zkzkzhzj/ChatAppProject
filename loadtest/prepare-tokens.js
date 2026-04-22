@@ -33,9 +33,18 @@ assertPositiveInt('COUNT', COUNT);
 assertPositiveInt('CONCURRENCY', CONCURRENCY);
 const EMAIL_PREFIX = 'loadtest-';
 const EMAIL_DOMAIN = '@test.local';
-// 기본값은 로컬 개발 편의용. 운영/CI에서는 LOADTEST_PASSWORD env 로 오버라이드 권장.
-// 테스트 계정은 `@test.local` 도메인 · 일반 유저 권한만 · 실데이터 접근 없음.
-const PASSWORD = process.env.LOADTEST_PASSWORD || 'LoadTest2026!';
+
+// 기본값은 로컬 dev 편의용. 공유/운영 대상에서는 기본값 사용이 공통 자격증명을 만들어
+// 예측 가능한 공격 벡터가 된다. localhost/127.0.0.1 이 아니면 env 강제.
+const isLocalBaseUrl = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(BASE_URL);
+const envPassword = process.env.LOADTEST_PASSWORD;
+if (!isLocalBaseUrl && !envPassword) {
+  console.error(`[prepare-tokens] LOADTEST_PASSWORD 환경변수가 필요합니다.`);
+  console.error(`   BASE_URL=${BASE_URL} (비로컬) — 기본 비밀번호 fallback 차단.`);
+  console.error(`   예: LOADTEST_PASSWORD='YourStrongPassword' node loadtest/prepare-tokens.js`);
+  process.exit(2);
+}
+const PASSWORD = envPassword || 'LoadTest2026!';
 
 const OUT_FILE = path.join(__dirname, 'tokens.json');
 
@@ -43,19 +52,29 @@ function emailFor(i) {
   return `${EMAIL_PREFIX}${String(i).padStart(4, '0')}${EMAIL_DOMAIN}`;
 }
 
+const REQUEST_TIMEOUT_MS = parseInt(process.env.REQUEST_TIMEOUT_MS || '15000', 10);
+
 async function postJson(endpoint, body) {
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  let payload = null;
+  // AbortController 로 per-request timeout — 네트워크 stall 시 배치가 무기한 대기하지 않도록.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    payload = await res.json();
-  } catch (_) {
-    payload = null;
+    const res = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    let payload = null;
+    try {
+      payload = await res.json();
+    } catch (_) {
+      payload = null;
+    }
+    return { status: res.status, body: payload };
+  } finally {
+    clearTimeout(timeout);
   }
-  return { status: res.status, body: payload };
 }
 
 async function loginOrRegister(email) {

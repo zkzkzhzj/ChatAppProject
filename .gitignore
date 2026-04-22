@@ -36,6 +36,7 @@ backend/.gradle/
 
 # Claude Code local settings (개인 설정)
 .claude/settings.local.json
+.claude/cache/
 .mcp.json
 
 # Gradle home cache
@@ -45,3 +46,9 @@ backend/.gradle-home/
 pixel-assets-all/
 pixel-assets-all.zip
 frontend/public/assets/
+
+# Load test local artifacts (JWT·결과 민감 정보)
+loadtest/tokens.json
+loadtest/*summary.json
+loadtest/*.log
+loadtest/screenshots/

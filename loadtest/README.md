@@ -40,7 +40,8 @@ BASE_URL=https://ghworld.co COUNT=1000 node loadtest/prepare-tokens.js
 - 스크립트는 `login` 먼저 시도 → 401이면 `register`. 같은 이메일을 재사용해도 안전
 - 결과: `loadtest/tokens.json` 에 JWT 배열 저장
 - 계정: `loadtest-0001@test.local` ~ `loadtest-NNNN@test.local` (영구, cleanup 없음)
-- 패스워드 고정: `LoadTest2026!`
+- 패스워드: `LOADTEST_PASSWORD` 환경변수로 오버라이드 (기본값 `LoadTest2026!` — 로컬 dev 편의용).
+  운영/공유 인프라에서는 반드시 env로 주입, 주기적으로 로테이션.
 - 동시 요청 수: `CONCURRENCY=10` (환경변수로 조정 가능)
 
 ### 2) 스모크 (VU 1, 30초)

@@ -15,7 +15,7 @@
  * 세션 식별: data.session_id 로 분리된 스냅샷 파일 우선, 없으면 legacy 파일.
  * stop_hook_active=true 이면 무한 루프 방지를 위해 통과.
  */
-const { execSync } = require("child_process");
+const { execSync, execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -34,11 +34,12 @@ function git(args, cwd) {
 }
 
 function hashObject(filePath, cwd) {
+  // 경로에 백틱·$()·개행 등이 있어도 안전하도록 execFileSync 로 shell 경유 X.
   try {
-    const out = execSync(
-      `git hash-object -- "${filePath.replace(/"/g, '\\"')}"`,
-      { cwd, encoding: "utf-8" }
-    );
+    const out = execFileSync("git", ["hash-object", "--", filePath], {
+      cwd,
+      encoding: "utf-8",
+    });
     return out.trim();
   } catch {
     return null;
@@ -123,7 +124,7 @@ process.stdin.on("end", () => {
     // 2. 이미 dirty 였던 파일의 content hash 재계산 → 변경 감지
     //    (상태 코드는 같아도 실제 내용이 더 수정된 케이스 커버)
     for (const [file, oldHash] of Object.entries(snapHashes)) {
-      if (!curMap.has(file)) continue; // 파일이 더 이상 dirty 아님 → 1에서 이미 처리
+      if (!curMap.has(file)) continue; // 파일이 더 이상 dirty 아님 → 커밋됐거나 되돌림 (§3에서 커밋 감지)
       const newHash = hashObject(file, cwd);
       if (newHash && newHash !== oldHash) {
         deltaFiles.add(file);

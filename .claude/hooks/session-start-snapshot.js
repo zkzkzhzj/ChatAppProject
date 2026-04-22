@@ -13,7 +13,7 @@
  * 저장한다. 이미 ` M` 이었던 파일을 세션 중 더 수정해도 상태 코드는 그대로라
  * Stop hook이 이를 감지하려면 실제 내용 기반 비교가 필요하다.
  */
-const { execSync } = require("child_process");
+const { execSync, execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -48,14 +48,14 @@ function parsePorcelain(output) {
 /**
  * 작업 디렉토리에 있는 파일의 content hash를 git hash-object 로 계산.
  * 파일이 없으면 null 반환 (스테이지된 삭제 등).
- * 경로는 shell 인용 위험 때문에 execFileSync 로 안전하게 전달.
+ * 경로에 백틱·$()·개행 등이 있어도 안전하도록 execFileSync 로 shell 경유 X.
  */
 function hashObject(filePath, cwd) {
   try {
-    const out = execSync(
-      `git hash-object -- "${filePath.replace(/"/g, '\\"')}"`,
-      { cwd, encoding: "utf-8" }
-    );
+    const out = execFileSync("git", ["hash-object", "--", filePath], {
+      cwd,
+      encoding: "utf-8",
+    });
     return out.trim();
   } catch {
     return null;

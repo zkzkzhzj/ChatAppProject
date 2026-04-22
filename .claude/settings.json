@@ -9,6 +9,17 @@
     ]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start-snapshot.js\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

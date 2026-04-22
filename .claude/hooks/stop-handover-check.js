@@ -75,8 +75,12 @@ function parsePorcelainLegacy(output) {
     if (!line) continue;
     const status = line.slice(0, 2);
     let filePath = line.slice(3).trim();
-    const arrowIdx = filePath.indexOf(" -> ");
-    if (arrowIdx !== -1) filePath = filePath.slice(arrowIdx + 4);
+    // " -> " 는 rename/copy (R/C) status 에서만 new path 구분자. 다른 status 에서는
+    // 일반 파일명 일부일 수 있으므로 (예: `foo -> bar` 라는 이름) 검색 안 함.
+    if (status.startsWith("R") || status.startsWith("C")) {
+      const arrowIdx = filePath.indexOf(" -> ");
+      if (arrowIdx !== -1) filePath = filePath.slice(arrowIdx + 4);
+    }
     if (filePath) map.set(filePath, status);
   }
   return map;

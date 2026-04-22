@@ -55,13 +55,17 @@ BASE_URL=https://ghworld.co WS_URL=wss://ghworld.co/ws/websocket \
 
 ### 3) 정식 ramping 테스트
 
+**주의**: `village-mixed.js` 는 내부에 `scenarios` 블록이 없다. 따라서 CLI 플래그 없이 `k6 run script.js` 만 하면 k6 기본값(VU 1 · iterations 1)으로 iteration 1회만 돌고 끝난다. **램프 프로파일은 반드시 `--stage` 로 주입**해야 한다.
+
 ```bash
 BASE_URL=https://ghworld.co WS_URL=wss://ghworld.co/ws/websocket \
-  k6 run --summary-export=loadtest/summary.json \
+  k6 run \
+  --stage 1m:50 --stage 3m:500 --stage 5m:1000 --stage 2m:0 \
+  --summary-export=loadtest/summary.json \
   loadtest/village-mixed.js
 ```
 
-프로파일(기본): `0 → 50 (1m) → 500 (3m) → 1000 (5m) → 0 (2m)` — 총 ~11분.
+프로파일(예시): `0 → 50 (1m) → 500 (3m) → 1000 (5m) → 0 (2m)` — 총 ~11분.
 시나리오: position 500ms + chat 15~30s 랜덤. Grafana JVM/HTTP/DB와 **같은 시간축**으로 관찰.
 
 ### 4) 수동 가시적 관찰

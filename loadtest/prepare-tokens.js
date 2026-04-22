@@ -21,6 +21,16 @@ const path = require('path');
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:8080').replace(/\/$/, '');
 const COUNT = parseInt(process.env.COUNT || '10', 10);
 const CONCURRENCY = parseInt(process.env.CONCURRENCY || '10', 10);
+
+// 음수·0·NaN 입력은 루프 폭주 또는 비정상 종료 유발. fail-fast.
+function assertPositiveInt(name, value) {
+  if (!Number.isInteger(value) || value <= 0) {
+    console.error(`[prepare-tokens] ${name} must be a positive integer (got: ${value})`);
+    process.exit(2);
+  }
+}
+assertPositiveInt('COUNT', COUNT);
+assertPositiveInt('CONCURRENCY', CONCURRENCY);
 const EMAIL_PREFIX = 'loadtest-';
 const EMAIL_DOMAIN = '@test.local';
 // 기본값은 로컬 개발 편의용. 운영/CI에서는 LOADTEST_PASSWORD env 로 오버라이드 권장.
@@ -111,20 +121,28 @@ async function main() {
   });
   process.stdout.write('\n');
 
-  fs.writeFileSync(OUT_FILE, JSON.stringify(tokens, null, 2), 'utf-8');
   const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
 
+  // 부분 실패 시 tokens.json 저장 금지 — 불완전 풀이 오사용되면 일부 VU가
+  // 유효 토큰 없이 돌아 테스트가 "fake breaking point"처럼 보이는 원인이 됨.
+  // 실패 정보는 별도 파일 `tokens-errors.json` 에 기록해 디버깅용.
+  if (errors.length > 0) {
+    const errorFile = OUT_FILE.replace(/tokens\.json$/, 'tokens-errors.json');
+    fs.writeFileSync(errorFile, JSON.stringify(errors, null, 2), 'utf-8');
+    console.log(`\n❌ [prepare-tokens] ${errors.length} error(s) — tokens.json NOT saved`);
+    console.log(`   error details: ${errorFile}`);
+    console.log(`   first 5 errors:`);
+    errors.slice(0, 5).forEach((e) => console.log(`     ${e.email}: ${e.reason}`));
+    console.log(`   elapsed:  ${elapsed}s`);
+    process.exit(1);
+  }
+
+  fs.writeFileSync(OUT_FILE, JSON.stringify(tokens, null, 2), 'utf-8');
   console.log(`\n[prepare-tokens] saved ${tokens.length} tokens → ${OUT_FILE}`);
   console.log(`   login:    ${loginCount}`);
   console.log(`   register: ${registerCount}`);
-  console.log(`   errors:   ${errors.length}`);
+  console.log(`   errors:   0`);
   console.log(`   elapsed:  ${elapsed}s`);
-
-  if (errors.length > 0) {
-    console.log('\n⚠️  first 5 errors:');
-    errors.slice(0, 5).forEach((e) => console.log(`   ${e.email}: ${e.reason}`));
-    process.exit(1);
-  }
 }
 
 main().catch((err) => {

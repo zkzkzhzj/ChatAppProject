@@ -15,7 +15,10 @@ export function stompFrame(command, headers = {}, body = '') {
 }
 
 export function parseStompFrame(raw) {
-  const text = raw.endsWith(NULL) ? raw.slice(0, -1) : raw;
+  // STOMP 1.2 스펙: EOL 은 [CR] LF — 즉 LF 단독 또는 CRLF 모두 유효.
+  // 정규화로 먼저 \r\n → \n 으로 통일 후 파싱. (1.1 호환 + 브로커 구현체 대응)
+  const normalized = raw.replace(/\r\n/g, '\n');
+  const text = normalized.endsWith(NULL) ? normalized.slice(0, -1) : normalized;
   const sepIdx = text.indexOf('\n\n');
   if (sepIdx === -1) {
     return { command: text.trim(), headers: {}, body: '' };

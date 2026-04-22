@@ -132,7 +132,16 @@ process.stdin.on("end", () => {
     }
 
     // 3. 세션 중 생긴 커밋에 포함된 파일
-    if (snapshot.head && currentHead && snapshot.head !== currentHead) {
+    // snapshot.head 는 자체 생성 값이라 위험 낮지만, 파일 변조 시 command injection
+    // 방지 위해 SHA 형식 검증 후에만 git log 에 사용.
+    const SHA_PATTERN = /^[0-9a-f]{7,40}$/i;
+    if (
+      snapshot.head &&
+      currentHead &&
+      snapshot.head !== currentHead &&
+      SHA_PATTERN.test(snapshot.head) &&
+      SHA_PATTERN.test(currentHead)
+    ) {
       const committed = git(
         `log --name-only --pretty=format: ${snapshot.head}..${currentHead}`,
         cwd

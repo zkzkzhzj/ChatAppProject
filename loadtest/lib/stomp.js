@@ -18,7 +18,10 @@ export function parseStompFrame(raw) {
   // STOMP 1.2 스펙: EOL 은 [CR] LF — LF 단독·CRLF 모두 허용.
   // 전체 문자열을 정규화하면 body 안의 CRLF 도 손상되므로,
   // 헤더 영역(blank-line까지)만 regex 로 분리하고 body 는 원본 slice 그대로 반환.
-  const text = raw.endsWith(NULL) ? raw.slice(0, -1) : raw;
+  const withoutNull = raw.endsWith(NULL) ? raw.slice(0, -1) : raw;
+  // 선행 heartbeat (\n 또는 \r\n 반복) 제거 — 서버가 프레임 앞에 keep-alive newline 을
+  // 붙이는 구현이 있어서, 이걸 안 떼면 command 가 빈 문자열로 파싱됨.
+  const text = withoutNull.replace(/^(?:\r?\n)+/, '');
   const sepMatch = text.match(/\r?\n\r?\n/);
   if (!sepMatch) {
     return { command: text.trim(), headers: {}, body: '' };

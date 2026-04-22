@@ -53,6 +53,7 @@ function emailFor(i) {
 }
 
 const REQUEST_TIMEOUT_MS = parseInt(process.env.REQUEST_TIMEOUT_MS || '15000', 10);
+assertPositiveInt('REQUEST_TIMEOUT_MS', REQUEST_TIMEOUT_MS);
 
 async function postJson(endpoint, body) {
   // AbortController 로 per-request timeout — 네트워크 stall 시 배치가 무기한 대기하지 않도록.

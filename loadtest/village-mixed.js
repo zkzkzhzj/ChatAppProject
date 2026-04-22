@@ -85,7 +85,8 @@ export default function () {
         let idx;
         while ((idx = buffer.indexOf('\x00')) !== -1) {
           const frameText = buffer.slice(0, idx + 1);
-          buffer = buffer.slice(idx + 1).replace(/^\n+/, ''); // 프레임 사이 heartbeat newline 제거
+          // 프레임 사이 heartbeat (\n 또는 \r\n 반복) 제거. STOMP 1.2는 CRLF 도 허용.
+          buffer = buffer.slice(idx + 1).replace(/^(?:\r?\n)+/, '');
           handleFrame(socket, parseStompFrame(frameText), connectStartAt);
         }
       });

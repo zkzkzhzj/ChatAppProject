@@ -47,10 +47,28 @@ function hashObject(filePath, cwd) {
 }
 
 /**
- * `git status --porcelain` 출력을 Map<filePath, status>로 변환.
- * rename/copy 는 new 경로만 취한다.
+ * porcelain **-z** 출력을 Map<filePath, status>로 변환.
+ * -z 포맷: "XY path\x00" 반복. rename/copy (R/C) 는 "R  new\x00old\x00".
+ * 공백·개행 등 특수문자 경로 안전 처리 (git v1 포맷은 quote escape 필요).
+ *
+ * snapshot 파일이 legacy 포맷(\n 구분)인 경우에 대비해 fallback parser도 유지.
  */
-function parsePorcelain(output) {
+function parsePorcelainZ(output) {
+  const map = new Map();
+  if (!output) return map;
+  const parts = output.split("\x00").filter((p) => p.length > 0);
+  for (let i = 0; i < parts.length; i++) {
+    const entry = parts[i];
+    if (entry.length < 3) continue;
+    const status = entry.slice(0, 2);
+    const filePath = entry.slice(3);
+    if (status.startsWith("R") || status.startsWith("C")) i++; // skip old path
+    if (filePath) map.set(filePath, status);
+  }
+  return map;
+}
+
+function parsePorcelainLegacy(output) {
   const map = new Map();
   if (!output) return map;
   for (const line of output.split("\n")) {
@@ -62,6 +80,15 @@ function parsePorcelain(output) {
     if (filePath) map.set(filePath, status);
   }
   return map;
+}
+
+/**
+ * snapshot 과 current porcelain 둘 다 파싱. -z 포맷이면 \x00 포함 → -z 파서,
+ * 아니면 legacy 파서 사용해 하위 호환 유지.
+ */
+function parsePorcelain(output) {
+  if (output && output.includes("\x00")) return parsePorcelainZ(output);
+  return parsePorcelainLegacy(output);
 }
 
 function loadSnapshot(cwd, sessionId) {
@@ -106,7 +133,8 @@ process.stdin.on("end", () => {
     }
 
     const currentHead = git("rev-parse HEAD", cwd).trim();
-    const currentPorcelain = git("status --porcelain", cwd).replace(/\n$/, "");
+    // -z 모드 → NUL 구분자로 특수문자 경로 안전. snapshot 도 동일 포맷 저장됨.
+    const currentPorcelain = git("status --porcelain -z", cwd);
 
     const snapMap = parsePorcelain(snapshot.porcelain);
     const curMap = parsePorcelain(currentPorcelain);
@@ -114,17 +142,23 @@ process.stdin.on("end", () => {
 
     const deltaFiles = new Set();
 
-    // 1. porcelain 상태 코드가 달라진 파일
+    // 1. porcelain 상태 코드가 달라진 파일 (curMap 기준)
     for (const [file, status] of curMap) {
       if (snapMap.get(file) !== status) {
         deltaFiles.add(file);
       }
     }
 
-    // 2. 이미 dirty 였던 파일의 content hash 재계산 → 변경 감지
+    // 1b. 시작 시 dirty 였는데 현재 clean/absent (git restore·삭제·커밋 완료)
+    //     이런 상태 변화도 세션 중 작업으로 집계해야 handover 누락 방지.
+    for (const file of snapMap.keys()) {
+      if (!curMap.has(file)) deltaFiles.add(file);
+    }
+
+    // 2. 이미 dirty 였던 파일의 content hash 재계산 → 실제 내용 변경 감지
     //    (상태 코드는 같아도 실제 내용이 더 수정된 케이스 커버)
     for (const [file, oldHash] of Object.entries(snapHashes)) {
-      if (!curMap.has(file)) continue; // 파일이 더 이상 dirty 아님 → 커밋됐거나 되돌림 (§3에서 커밋 감지)
+      if (!curMap.has(file)) continue; // 1b 에서 이미 추가됨
       const newHash = hashObject(file, cwd);
       if (newHash && newHash !== oldHash) {
         deltaFiles.add(file);

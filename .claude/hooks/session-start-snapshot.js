@@ -28,18 +28,22 @@ function git(args, cwd) {
 }
 
 /**
- * porcelain 라인을 [path, status] 튜플로 파싱.
- * rename/copy 는 "R  old -> new" 형태라 new 경로만 취한다 (간이 처리).
+ * porcelain **-z** 출력을 [path, status] 튜플로 파싱.
+ * -z 포맷은 NUL 구분자를 써서 공백·개행 등 특수문자 경로를 안전하게 전달한다.
+ * 각 entry 는 "XY path\x00" 형태이며, rename/copy (R/C) 는 "R  new\x00old\x00"
+ * 로 두 경로가 연속된다 → new 경로만 취한다.
  */
-function parsePorcelain(output) {
+function parsePorcelainZ(output) {
   const entries = [];
   if (!output) return entries;
-  for (const line of output.split("\n")) {
-    if (!line) continue;
-    const status = line.slice(0, 2);
-    let filePath = line.slice(3).trim();
-    const arrowIdx = filePath.indexOf(" -> ");
-    if (arrowIdx !== -1) filePath = filePath.slice(arrowIdx + 4);
+  const parts = output.split("\x00").filter((p) => p.length > 0);
+  for (let i = 0; i < parts.length; i++) {
+    const entry = parts[i];
+    if (entry.length < 3) continue;
+    const status = entry.slice(0, 2);
+    const filePath = entry.slice(3);
+    // rename/copy 는 다음 entry 가 old 경로 → skip
+    if (status.startsWith("R") || status.startsWith("C")) i++;
     if (filePath) entries.push([filePath, status]);
   }
   return entries;
@@ -74,12 +78,13 @@ process.stdin.on("end", () => {
     const cacheDir = path.join(cwd, ".claude", "cache");
     fs.mkdirSync(cacheDir, { recursive: true });
 
-    const porcelain = git("status --porcelain", cwd).replace(/\n$/, "");
+    // -z 모드 → NUL 구분자로 공백·개행 등 특수문자 경로 안전 처리.
+    const porcelain = git("status --porcelain -z", cwd);
 
     // 이미 dirty 상태인 파일들의 현재 content hash 저장.
     // 세션 중 같은 파일이 더 수정되면 Stop hook에서 hash 비교로 감지 가능.
     const fileHashes = {};
-    for (const [file, status] of parsePorcelain(porcelain)) {
+    for (const [file, status] of parsePorcelainZ(porcelain)) {
       // ??(untracked) · M(modified) · A(added) · R(renamed) 등 워킹트리에 존재하는 파일만.
       // D(deleted) 는 파일이 없으므로 hash 불가 → 스킵.
       if (status.includes("D")) continue;

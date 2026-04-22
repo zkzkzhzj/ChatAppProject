@@ -39,6 +39,10 @@ services:
       - '--storage.tsdb.retention.time=7d'
       # 런타임 설정 리로드 허용 (prometheus.yml 수정 후 curl -X POST ...:9090/-/reload)
       - '--web.enable-lifecycle'
+      # Remote Write receiver — k6 등 외부 툴이 메트릭을 /api/v1/write 로 PUSH 가능.
+      # 부하 테스트 중 k6의 stomp_connect_latency 등을 Grafana에 그리기 위해 필요.
+      # 운영 EC2 접근은 여전히 127.0.0.1 바인딩 + SSM port-forward 로만 허용되므로 공격 벡터 아님.
+      - '--web.enable-remote-write-receiver'
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9090/-/healthy"]
       interval: 10s

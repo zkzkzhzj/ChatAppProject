@@ -492,6 +492,8 @@ export class VillageScene extends Phaser.Scene {
   private removeOtherPlayer(id: string) {
     const entry = this.otherPlayers.get(id);
     if (!entry) return;
+    // typing 말풍선이 남아 고아 객체가 되지 않도록 함께 정리한다 (F-2).
+    entry.bubble?.destroy();
     entry.container.destroy();
     this.otherPlayers.delete(id);
   }
@@ -519,6 +521,8 @@ export class VillageScene extends Phaser.Scene {
     const now = Date.now();
     for (const [id, entry] of this.otherPlayers) {
       if (now - entry.lastSeen > VillageScene.STALE_PLAYER_MS) {
+        // typing 말풍선이 남아 고아 객체가 되지 않도록 함께 정리한다 (F-2).
+        entry.bubble?.destroy();
         entry.container.destroy();
         this.otherPlayers.delete(id);
       }

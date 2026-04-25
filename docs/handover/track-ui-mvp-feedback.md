@@ -1,8 +1,8 @@
 # Track: ui-mvp-feedback
 
 > **작업 영역**: frontend (Next.js + Phaser) UI 개선
-> **시작일**: 2026-04-26 (KST) · PR 오픈 2026-04-25T21:xxZ (UTC, 시간대 차이로 인해 같은 시점)
-> **워크트리**: `<repo-root>/ChatAppProject-ui` (메인 워크트리와 분리. 절대 경로는 메모리 `infra_worktree_state.md` 참조)
+> **시작일**: 2026-04-26 (KST) · PR 오픈 2026-04-25 (UTC, KST 기준 2026-04-26)
+> **워크트리**: `<repo-root>/ChatAppProject-ui` (메인 워크트리와 분리)
 > **브랜치**: `feat/ui`
 
 ## 0. 한 줄 요약

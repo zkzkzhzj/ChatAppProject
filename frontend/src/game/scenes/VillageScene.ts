@@ -59,6 +59,8 @@ export class VillageScene extends Phaser.Scene {
   private npcContainer: Phaser.GameObjects.Container | null = null;
   private npcBubble: Phaser.GameObjects.Container | null = null;
   private myBubble: Phaser.GameObjects.Container | null = null;
+  /** 캔버스 탭/클릭으로 지정된 이동 목표 (월드 좌표). 모바일 터치 이동(F-1)용. */
+  private moveTarget: { x: number; y: number } | null = null;
   private static readonly STALE_PLAYER_MS = 30_000;
 
   constructor() {
@@ -347,10 +349,17 @@ export class VillageScene extends Phaser.Scene {
       right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
 
-    this.input.on('pointerdown', () => {
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
+      // 모바일 터치 이동(F-1) — 캔버스 탭/클릭한 월드 좌표를 이동 목표로 설정.
+      // DOM 측 UI 영역(chat overlay 의 pointer-events-auto 자식)은 Phaser 까지 도달하지 않으므로
+      // 본 핸들러는 캔버스 빈 공간/배경 클릭만 받는다. UI 클릭은 자연 분리됨.
+      this.moveTarget = {
+        x: Phaser.Math.Clamp(pointer.worldX, PLAYER_RADIUS, WORLD_WIDTH - PLAYER_RADIUS),
+        y: Phaser.Math.Clamp(pointer.worldY, PLAYER_RADIUS, WORLD_HEIGHT - PLAYER_RADIUS),
+      };
     });
   }
 
@@ -373,13 +382,29 @@ export class VillageScene extends Phaser.Scene {
     if (up.isDown || this.wasd.up.isDown) dy -= 1;
     if (down.isDown || this.wasd.down.isDown) dy += 1;
 
-    if (dx !== 0 && dy !== 0) {
-      dx *= Math.SQRT1_2;
-      dy *= Math.SQRT1_2;
+    if (dx !== 0 || dy !== 0) {
+      // 키보드 입력은 터치 이동 목표보다 우선한다 — 사용자가 키 누르면 즉시 손수 조작으로 전환.
+      this.moveTarget = null;
+      if (dx !== 0 && dy !== 0) {
+        dx *= Math.SQRT1_2;
+        dy *= Math.SQRT1_2;
+      }
+      this.player.x += dx * step;
+      this.player.y += dy * step;
+    } else if (this.moveTarget) {
+      // F-1 모바일 터치 이동 — 캔버스 탭으로 지정된 좌표 향해 정규화 속도로 진행.
+      const tx = this.moveTarget.x - this.player.x;
+      const ty = this.moveTarget.y - this.player.y;
+      const dist = Math.hypot(tx, ty);
+      if (dist <= step) {
+        this.player.x = this.moveTarget.x;
+        this.player.y = this.moveTarget.y;
+        this.moveTarget = null;
+      } else {
+        this.player.x += (tx / dist) * step;
+        this.player.y += (ty / dist) * step;
+      }
     }
-
-    this.player.x += dx * step;
-    this.player.y += dy * step;
 
     // 월드 경계 내로 제한
     this.player.x = Phaser.Math.Clamp(this.player.x, PLAYER_RADIUS, WORLD_WIDTH - PLAYER_RADIUS);
@@ -492,6 +517,8 @@ export class VillageScene extends Phaser.Scene {
   private removeOtherPlayer(id: string) {
     const entry = this.otherPlayers.get(id);
     if (!entry) return;
+    // typing 말풍선이 남아 고아 객체가 되지 않도록 함께 정리한다 (F-2).
+    entry.bubble?.destroy();
     entry.container.destroy();
     this.otherPlayers.delete(id);
   }
@@ -519,6 +546,8 @@ export class VillageScene extends Phaser.Scene {
     const now = Date.now();
     for (const [id, entry] of this.otherPlayers) {
       if (now - entry.lastSeen > VillageScene.STALE_PLAYER_MS) {
+        // typing 말풍선이 남아 고아 객체가 되지 않도록 함께 정리한다 (F-2).
+        entry.bubble?.destroy();
         entry.container.destroy();
         this.otherPlayers.delete(id);
       }

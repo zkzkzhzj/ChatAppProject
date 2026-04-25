@@ -96,6 +96,16 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
       const value = e.target.value;
       setDraft(value);
 
+      // IME 조합 중에는 멘션 매칭을 스킵한다 — 미확정 음절로 매칭하면 부정확.
+      // 조합 종료 후 다음 onChange 에서 정상 매칭됨. 이미 열려있던 드롭다운은
+      // 조합 동안 stale 후보를 보여주지 않도록 함께 닫는다.
+      const native = e.nativeEvent as { isComposing?: boolean };
+      if (native.isComposing) {
+        setShowDropdown(false);
+        setAtIndex(-1);
+        return;
+      }
+
       // @ 감지 — 커서 위치 기준으로 가장 가까운 @를 찾음
       const cursorPos = e.target.selectionStart ?? value.length;
       const textBeforeCursor = value.slice(0, cursorPos);
@@ -149,6 +159,13 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     e.stopPropagation();
+
+    // IME 조합 중인 키 입력은 무시한다 (F-3 macOS 한글 IME 마지막 음절 중복 입력 방지).
+    // 모던 브라우저는 `e.nativeEvent.isComposing` 으로 충분하다.
+    const native = e.nativeEvent as { isComposing?: boolean };
+    if (native.isComposing) {
+      return;
+    }
 
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();

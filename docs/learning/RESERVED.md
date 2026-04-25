@@ -12,15 +12,15 @@
 
 ---
 
-## 예약 현황 (마지막 사용 번호: 45)
+## 예약 현황 (마지막 사용 번호: 50)
 
 | 번호 | 트랙 | 예상 주제 | 상태 |
 |------|------|----------|------|
 | 46   | `ws-redis` | Step 2 백엔드 구현기 (raw WS + Redis Pub/Sub 첫 구현, Lettuce Pub/Sub 함정, ConcurrentHashMap 세션 레지스트리 디테일) | 작성 예정 (Step 7 단계) |
 | 47   | `ws-redis` | Step 5 운영 배포 + Sweep 4 결과 — 진짜 Before/After | 예약 |
 | 48   | `ws-redis` | (예비, Step 7 블로그 본편 등) | 예약 |
-| 49   | `ui-mvp-feedback` | (트랙 시작 시 첫 노트) | 미사용 |
-| 50   | `ui-mvp-feedback` | (예비) | 미사용 |
+| 49   | `ui-mvp-feedback` | F-3 React 입력 컴포넌트 IME 조합 처리 | 사용 완료 |
+| 50   | `ui-mvp-feedback` | F-1 모바일 터치 이동 (tap-to-move vs 가상 조이스틱) | 사용 완료 |
 | 51   | `s3-media` | (트랙 시작 시 첫 노트 — S3 도입 결정 + 비용 정책) | 미사용 |
 | 52   | `s3-media` | (예비) | 미사용 |
 

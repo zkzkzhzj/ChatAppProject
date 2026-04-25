@@ -236,7 +236,37 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 
 ---
 
-## 8. Document Routing
+## 8. Parallel Tracks (병행 작업)
+
+> 여러 Claude Code 세션이 동시에 다른 작업을 진행할 수 있다. 충돌 회피 전체 규칙은 `docs/conventions/parallel-work.md` 참조. 본 섹션은 세션 시작 시 반드시 인지해야 할 핵심만.
+
+### 8.1 세션 시작 시 추가 점검
+
+- `docs/handover/INDEX.md` 읽고 현재 활성 트랙 파악
+- 자기가 작업할 트랙의 `docs/handover/track-{id}.md`를 읽는다 (메인 `docs/handover.md`는 전체 그림용)
+- 새 트랙을 시작한다면 `docs/conventions/parallel-work.md` §2 절차 따름
+- learning 노트 작성 전 `docs/learning/RESERVED.md` 확인. 자기 트랙 예약 번호만 사용
+
+### 8.2 충돌 위험 파일 수정 시 (Tier 1)
+
+`build.gradle.kts`, `application.yml`, `deploy/docker-compose.yml`, `deploy/.env`, `frontend/package.json` 등을 건드릴 때:
+
+- 다른 활성 트랙도 같은 파일을 수정 중인지 확인 (`docs/handover/INDEX.md` → 각 트랙 파일의 "충돌 위험 파일")
+- 같은 키/이름 사용 금지 (예: yml 키 충돌)
+- 머지 후순위면 main pull → rebase
+
+### 8.3 메인 문서 직접 수정 금지
+
+- `docs/handover.md` 메인은 트랙 머지 시점에만 갱신 (작업 중 갱신 X)
+- 진행 중 상태는 자기 `track-{id}.md`에만 기록
+
+### 8.4 단일 트랙 작업이라면
+
+활성 트랙이 자기 하나뿐이라면 위 점검은 형식적이지만, **다른 세션이 언제든 추가 트랙을 시작할 수 있으므로** 본 컨벤션을 항상 따른다.
+
+---
+
+## 9. Document Routing
 
 작업 유형에 따라 아래 문서를 참조한다.
 

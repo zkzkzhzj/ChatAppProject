@@ -73,6 +73,7 @@
 | [26](./26-phaser-html-keyboard-focus-conflict.md) | Phaser vs HTML UI 키보드 포커스 충돌 | 게임 엔진 + 웹 UI 오버레이에서 필연적으로 만나는 문제 |
 | [32](./32-web-2d-game-engine-comparison.md) | 웹 2D 게임 엔진 비교 | Phaser가 2D 인터랙티브 마을에 가장 적합한 이유 |
 | [34](./34-react-nextjs-production-code-patterns.md) | React + Next.js 프로덕션 코드 패턴 | 백엔드 개발자가 프론트를 제대로 쓰기 |
+| [49](./49-react-input-ime-handling.md) | React 입력 컴포넌트 IME 조합 처리 | F-3 macOS 한글 IME 마지막 음절 중복 — `isComposing` 가드 한 줄 뒤의 4개 층 |
 
 ## LLM · NPC 시리즈
 

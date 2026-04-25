@@ -27,23 +27,22 @@
 
 > **본 `feat/ui` 브랜치는 F-3 + F-2 + F-1 을 묶은 단일 PR.** Step 은 작업 순서일 뿐, 머지 단위는 하나. 메모리 `feedback_branch_per_pr` 의 "PR 하나당 브랜치 하나" 규칙은 만족 (이 트랙 = 1 브랜치 = 1 PR).
 
-## 3. 현재 단계 상세 — Step 1 (F-3 맥북 IME)
+## 3. 현재 단계 상세 — Step 1 (F-3 맥북 IME) ✅ 코드 완료, 실기 검증 미완
 
 ### 증상
 macOS + 한글 IME 조합에서 채팅 입력 중 **마지막 글자 / 단어가 중복 입력되는 현상**.
 
-### 원인 가설
-- `onChange` 또는 `onKeyDown` 핸들러가 IME 조합 중간 상태(composing)에서 호출되어 조합 중인 음절이 확정 전후에 두 번 반영.
-- `compositionstart` / `compositionend` 이벤트 미처리 가능성.
+### 적용한 수정 (커밋 `f8248b2`)
+- `ChatInput.tsx` `handleKeyDown` 시작에 `e.nativeEvent.isComposing` 가드 — 조합 중 키 입력 모두 스킵
+- `handleChange` 에 같은 가드 — 조합 중에는 setDraft 만 하고 멘션 매칭 스킵
+- 회귀 테스트 3 시나리오 (`ChatInput.test.tsx`, 커밋 `2ad3376`) red → green 확인
 
-### 해야 할 일
-- 채팅 입력 컴포넌트 위치 확인 (frontend 측)
-- 재현 시나리오 작성 (가능하면 Playwright/유닛 테스트로 회귀 방지)
-- IME 조합 상태 가드 적용 — 일반적인 패턴은 `isComposing` ref 로 `compositionstart` ~ `compositionend` 구간에서 입력 확정 로직 스킵
-- 한글 외에도 일본어/중국어 IME 동작 영향 없는지 검토
-
-### 막힌 지점
-- (없음 — 착수 전)
+### 검증 한계 (PR 본문에도 반영 필요)
+- **macOS 실기기 부재** — 개발자가 macOS 미보유. 원 피드백 제공자(MVP 테스터)가 보고한 환경에서 직접 재현/수정 검증 불가
+- **Windows 한글 IME 환경도 실측 미완** — 테스터 환경 미확보 (지금 시점)
+- **신뢰 근거**: 유닛 테스트 + `KeyboardEvent.isComposing` W3C 표준 + 주요 React UI 라이브러리 동일 패턴 + early-return 만 추가한 보수적 수정
+- **후속 액션**: 머지 후 원 피드백 제공자에게 macOS 환경 재검증 요청 (배포 도메인 `https://ghworld.co`)
+- 자세한 분석은 `docs/learning/49-react-input-ime-handling.md` §1.3 / §6 참조
 
 ## 4. 충돌 위험 파일
 

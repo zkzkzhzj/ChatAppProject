@@ -97,9 +97,12 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
       setDraft(value);
 
       // IME 조합 중에는 멘션 매칭을 스킵한다 — 미확정 음절로 매칭하면 부정확.
-      // 조합 종료 후 다음 onChange 에서 정상 매칭됨.
+      // 조합 종료 후 다음 onChange 에서 정상 매칭됨. 이미 열려있던 드롭다운은
+      // 조합 동안 stale 후보를 보여주지 않도록 함께 닫는다.
       const native = e.nativeEvent as { isComposing?: boolean };
       if (native.isComposing) {
+        setShowDropdown(false);
+        setAtIndex(-1);
         return;
       }
 

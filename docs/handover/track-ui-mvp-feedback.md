@@ -25,7 +25,7 @@
 | 2 | F-2 채팅 입력 포커스 이탈 시 입력창 유지 (말풍선만 남는 현상 해소) | 대기 |
 | 3 | F-1 모바일 터치 이동 지원 (방안 A: 터치 위치로 pathfinding / 방안 B: 가상 조이스틱 — Step 진입 시 결정) | 대기 |
 
-> 각 Step 은 별도 PR 단위. 메모리 `feedback_branch_per_pr` 정책에 따라 Step 1 머지 후 다음 Step 은 새 브랜치로 분기한다. **본 `feat/ui` 브랜치는 Step 1 (F-3) 전용.**
+> **본 `feat/ui` 브랜치는 F-3 + F-2 + F-1 을 묶은 단일 PR.** Step 은 작업 순서일 뿐, 머지 단위는 하나. 메모리 `feedback_branch_per_pr` 의 "PR 하나당 브랜치 하나" 규칙은 만족 (이 트랙 = 1 브랜치 = 1 PR).
 
 ## 3. 현재 단계 상세 — Step 1 (F-3 맥북 IME)
 
@@ -49,13 +49,17 @@ macOS + 한글 IME 조합에서 채팅 입력 중 **마지막 글자 / 단어가
 
 | 파일 | 분류 | 메모 |
 |------|------|------|
-| `frontend/package.json` | Tier 1 | 새 의존성(테스트 라이브러리 등) 추가 시 다른 트랙과 충돌 가능 — 추가 전 INDEX 확인 |
-| `frontend/src/**` | 트랙 전용 | UI 트랙이 메인 작업 영역. 다른 트랙은 건드리지 않음 |
+| `frontend/package.json` | Tier 1 | **ws-redis Step 6 (STOMP 제거) 가 dependencies 블록을 건드림.** 본 트랙은 devDependencies 추가(vitest 등)라 블록이 달라 git 3-way 머지가 자동 해결할 가능성 높음 |
+| `frontend/package-lock.json` | Tier 1 | ws-redis 와 거의 확실히 텍스트 충돌 발생. 후순위 PR 이 main pull → `npm install` 재실행으로 lock 재생성하면 mechanical 해결 (5분 작업) |
+| `frontend/src/lib/websocket/**` | 트랙 잠재 충돌 | ws-redis Step 6 가 STOMP 클라이언트 제거 시 이 영역을 건드림. 본 트랙은 가급적 이 폴더 수정 회피 (F-1·F-2·F-3 모두 chat 컴포넌트/Phaser 입력만 만지면 됨) |
+| `frontend/src/components/**` | 트랙 전용 | UI 트랙이 메인 작업 영역. ws-redis 는 컴포넌트 파일은 건드리지 않을 예정 |
 | 백엔드 코드 | **건드리지 않음** | 본 트랙은 frontend 전용. 백엔드 변경 발생하면 트랙 분리 검토 |
+
+> **머지 순서 시나리오**: 본 트랙 PR 이 ws-redis Step 6 보다 먼저 머지되면 충돌 없음. ws-redis 가 먼저 머지되면 본 트랙이 main pull → `npm install` → 필요 시 코드 rebase. 양쪽 다 작업량 작음.
 
 ## 5. 다음 세션 착수 전 확인 사항
 
 - 현재 cwd 가 `ChatAppProject-ui` 워크트리인지 확인
-- 브랜치가 `feat/ui` 인지 확인 (Step 1 종료 후 다음 Step 은 새 브랜치)
-- `ws-redis` 트랙이 `frontend/` 영역을 건드리는지 INDEX 확인 (현재로선 건드리지 않음)
+- 브랜치가 `feat/ui` 인지 확인 (F-3 → F-2 → F-1 모두 같은 브랜치)
+- `ws-redis` 트랙 진행 상황 INDEX 확인 — Step 6 머지가 임박하면 본 트랙 진행 중에도 main pull 받아 rebase 미리 해두면 마지막 머지가 편함
 - learning 노트 작성 시 RESERVED.md 의 본 트랙 예약 번호(49, 50) 사용

@@ -65,6 +65,7 @@
 | [27](./27-realtime-chat-code-review-patterns.md) | 실시간 채팅 종합 리뷰 이슈 | 4개 전문 에이전트 리뷰에서 뽑은 패턴 |
 | [44](./44-spring-stomp-external-broker-choice.md) | Spring STOMP 외부 Broker 선택 트레이드오프 | 왜 RabbitMQ고 Redis Pub/Sub이 아닌가 — `enableStompBrokerRelay()` 의 전제 |
 | [45](./45-websocket-redis-pubsub-redesign.md) | Raw WebSocket + Redis Pub/Sub 재설계 설계서 | STOMP·Simple Broker 걷어내기 전 함정 예방 — 채널톡 O(M×N) / LINE LIVE actor+bridge 패턴 흡수 |
+| [46](./46-village-scaling-decisions.md) | 마을·서버 확장 모델 결정 기록 | 채널 샤딩 vs 마을 다중화 vs Hard Cap · 채널 분리 vs 서버 분리 · ZEP 패턴 보류 — 6개 트레이드오프 |
 
 ## UI · 프론트엔드
 

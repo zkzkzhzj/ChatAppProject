@@ -13,7 +13,7 @@
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 시작일 |
 |---------|------|-----------|------|--------|
 | `ws-redis` | [track-ws-redis.md](./track-ws-redis.md) | 채팅 broker B안 재설계 (raw WS + Redis Pub/Sub) | Step 1 완료 / Step 2 대기 | 2026-04-24 |
-| `ui-mvp-feedback` | [track-ui-mvp-feedback.md](./track-ui-mvp-feedback.md) | MVP 피드백 UI 개선 (F-3 → F-2 → F-1) | F-3 착수 대기 | 2026-04-26 |
+| `ui-mvp-feedback` | [track-ui-mvp-feedback.md](./track-ui-mvp-feedback.md) | MVP 피드백 UI 개선 (F-3 → F-2 → F-1) | 코드 완료 / PR·머지 대기 | 2026-04-26 |
 
 > 새 트랙을 시작할 때 이 표에 한 줄 추가하고, 해당 트랙 파일을 신규 작성한다.
 

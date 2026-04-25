@@ -60,8 +60,14 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 4. **`throw new RuntimeException()` 금지.** 반드시 `[domain]/error/`에 정의된 커스텀 예외를 사용한다. 적절한 예외가 없으면 새로 정의한다.
 5. **테스트 없는 기능 완료 금지.** 기능 구현과 테스트는 하나의 작업 단위다. 테스트 없이 "완료"라고 하지 않는다.
 6. **상태 변경 로직에서 동시성을 무시하지 마라.** 포인트 차감, 아이템 구매, 좌석 점유 등 상태를 변경하는 모든 로직은 동시 요청 시나리오를 반드시 고려한다. "단일 요청에서 잘 돌아간다"는 완료 조건이 아니다. 동시성 전략(낙관적 락, 비관적 락, 분산 락 등)의 선택과 이유를 명시한다.
-7. **트레이드오프 논의가 발생하면 그 응답 안에서 즉시 학습노트를 작성하라.** 대화 중 "A vs B 중 뭘 쓸까", "왜 이 방식인가", "다른 방법은 없나" 같은 기술 선택·비교가 나오면, 해당 응답을 끝내기 전에 learning-agent를 호출하여 `docs/learning/`에 학습노트를 남긴다. "나중에 쓰지"는 "안 쓴다"와 같다. 번호는 기존 마지막 번호 + 1이다.
-8. **커밋/PR 전에 메모리와 인수인계 문서를 반드시 최신화하라.** 코드를 올리기 전에 `docs/handover.md`와 `memory/` 파일이 현재 작업 내용을 반영하고 있는지 확인한다. 다음 세션이 이 문서만 보고 이어서 작업할 수 있어야 한다.
+7. **트레이드오프 논의가 발생하면 그 응답 안에서 즉시 학습노트를 작성하라.** 대화 중 "A vs B 중 뭘 쓸까", "왜 이 방식인가", "다른 방법은 없나" 같은 기술 선택·비교가 나오면, 해당 응답을 끝내기 전에 learning-agent를 호출하여 `docs/learning/`에 학습노트를 남긴다. "나중에 쓰지"는 "안 쓴다"와 같다. 번호 정책:
+   - 단일 작업: 기존 마지막 번호 + 1
+   - 병행 트랙 활성 시: `docs/learning/RESERVED.md`에서 자기 트랙 예약 번호 중 가장 작은 미사용 번호 사용
+   - 상세: §8 Parallel Tracks · `docs/conventions/parallel-work.md` 참조
+8. **커밋/PR 전에 메모리와 인수인계 문서를 반드시 최신화하라.** 코드를 올리기 전에 `memory/` 파일과 인수인계 문서가 현재 작업 내용을 반영하고 있는지 확인한다. 다음 세션이 이 문서만 보고 이어서 작업할 수 있어야 한다. 갱신 대상:
+   - 단일 작업: `docs/handover.md` 직접 갱신
+   - 병행 트랙 활성 시: 자기 트랙의 `docs/handover/track-{id}.md`만 갱신 (메인 `docs/handover.md`는 트랙 머지 시점에만)
+   - 상세: §8 Parallel Tracks · `docs/conventions/parallel-work.md` 참조
 
 ---
 
@@ -236,7 +242,39 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 
 ---
 
-## 8. Document Routing
+## 8. Parallel Tracks (병행 작업)
+
+> 여러 Claude Code 세션이 동시에 다른 작업을 진행할 수 있다. 충돌 회피 전체 규칙은 `docs/conventions/parallel-work.md` 참조. 본 섹션은 세션 시작 시 반드시 인지해야 할 핵심만.
+
+### 8.1 세션 시작 시 추가 점검
+
+- `docs/handover/INDEX.md` 읽고 현재 활성 트랙 파악
+- 자기가 작업할 트랙의 `docs/handover/track-{id}.md`를 읽는다 (메인 `docs/handover.md`는 전체 그림용)
+- 새 트랙을 시작한다면 `docs/conventions/parallel-work.md` §2 절차 따름
+- learning 노트 작성 전 `docs/learning/RESERVED.md` 확인. 자기 트랙 예약 번호만 사용
+
+### 8.2 충돌 위험 파일 수정 시 (Tier 1 — 여러 트랙이 자주 건드리는 공유 파일)
+
+> **Tier 1**: 트랙별 작업 영역으로 자연 분리되지 않고, 여러 트랙이 같은 파일을 동시에 수정할 가능성이 높은 공유 파일. 전체 분류(Tier 0/1/2)는 `docs/conventions/parallel-work.md` §3 참조.
+
+`build.gradle.kts`, `application.yml`, `deploy/docker-compose.yml`, `deploy/.env`, `frontend/package.json` 등을 건드릴 때:
+
+- 다른 활성 트랙도 같은 파일을 수정 중인지 확인 (`docs/handover/INDEX.md` → 각 트랙 파일의 "충돌 위험 파일")
+- 같은 키/이름 사용 금지 (예: yml 키 충돌)
+- 머지 후순위면 main pull → rebase
+
+### 8.3 메인 문서 직접 수정 금지
+
+- `docs/handover.md` 메인은 트랙 머지 시점에만 갱신 (작업 중 갱신 X)
+- 진행 중 상태는 자기 `track-{id}.md`에만 기록
+
+### 8.4 단일 트랙 작업이라면
+
+활성 트랙이 자기 하나뿐이라면 위 점검은 형식적이지만, **다른 세션이 언제든 추가 트랙을 시작할 수 있으므로** 본 컨벤션을 항상 따른다.
+
+---
+
+## 9. Document Routing
 
 작업 유형에 따라 아래 문서를 참조한다.
 

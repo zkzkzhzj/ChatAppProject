@@ -63,6 +63,8 @@
 | [24](./24-stomp-websocket-jwt-channel-interceptor.md) | STOMP JWT 인증 | ChannelInterceptor로 CONNECT 프레임 인증 |
 | [25](./25-batch-broadcast-multiuser-message-attribution.md) | 배치 브로드캐스트 + 멀티유저 메시지 귀속 | 인터리빙 방지와 "내 메시지" 판별 |
 | [27](./27-realtime-chat-code-review-patterns.md) | 실시간 채팅 종합 리뷰 이슈 | 4개 전문 에이전트 리뷰에서 뽑은 패턴 |
+| [44](./44-spring-stomp-external-broker-choice.md) | Spring STOMP 외부 Broker 선택 트레이드오프 | 왜 RabbitMQ고 Redis Pub/Sub이 아닌가 — `enableStompBrokerRelay()` 의 전제 |
+| [45](./45-websocket-redis-pubsub-redesign.md) | Raw WebSocket + Redis Pub/Sub 재설계 설계서 | STOMP·Simple Broker 걷어내기 전 함정 예방 — 채널톡 O(M×N) / LINE LIVE actor+bridge 패턴 흡수 |
 
 ## UI · 프론트엔드
 
@@ -100,6 +102,7 @@
 | [40](./40-observability-stack-decisions.md) | 관측성 스택 도입기 — 호스팅·도구·보안 결정 | Prometheus+Grafana 인프라 설계 트레이드오프 6선 |
 | [41](./41-k6-load-testing-setup.md) | k6 사용법·설계 학습노트 | STOMP 프레임 수동 조립·시나리오 초안·토큰 풀 함정 |
 | [42](./42-grafana-jvm-dashboard-reading.md) | Grafana JVM 4701 대시보드 읽는 법 | 50+ 패널에서 11개만 남기기·PromQL 6종·시간축 상관 읽기 |
+| [43](./43-load-test-breaking-point-story.md) | 256MB → 1GB, Breaking Point VU 50 → 200 — 그런데 병목은 RAM이 아니었다 | 부하 테스트 서사 블로그 초안 (JWT 트랩 · GC Death Spiral · Simple Broker 구조적 한계) |
 
 ---
 

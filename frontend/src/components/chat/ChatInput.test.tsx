@@ -92,4 +92,21 @@ describe('ChatInput — F-3 IME 회귀 방지', () => {
       expect(mockSendVillageMessage).toHaveBeenCalledWith('hello world', expect.any(Function));
     });
   });
+
+  describe('macOS 한글 IME 의 실제 시퀀스 (조합 Enter → 즉시 확정 Enter)', () => {
+    it('연속 입력에서도 정확히 1회만 전송된다 (F-3 핵심 회귀 차단)', () => {
+      // Given: 사용자가 "안녕하세요" 입력 후 마지막 음절 조합 중
+      render(<ChatInput onLoginRequired={vi.fn()} />);
+      const input = screen.getByPlaceholderText(/NPC/);
+      fireEvent.change(input, { target: { value: '안녕하세요' } });
+
+      // When: macOS 한글 IME 가 보내는 시퀀스 — 조합 중 Enter 직후 확정 Enter
+      fireEvent.keyDown(input, { key: 'Enter', isComposing: true });
+      fireEvent.keyDown(input, { key: 'Enter', isComposing: false });
+
+      // Then: 첫 Enter 는 가드로 차단, 두 번째 Enter 만 전송
+      expect(mockSendVillageMessage).toHaveBeenCalledTimes(1);
+      expect(mockSendVillageMessage).toHaveBeenCalledWith('안녕하세요', expect.any(Function));
+    });
+  });
 });

@@ -23,7 +23,7 @@
 |------|------|------|
 | 1 | F-3 맥북 IME 반복 입력 수정 (`isComposing` 가드) | ✅ 코드 완료 (실기 미검증) |
 | 2 | F-2 떠난 유저의 typing 말풍선 고아 잔존 — `removeOtherPlayer` / `sweepStalePlayers` 의 bubble destroy 누락 보강 | ✅ 코드 완료 (수동 검증 대기) |
-| 3 | F-1 모바일 터치 이동 지원 (방안 A: 터치 위치로 pathfinding / 방안 B: 가상 조이스틱 — Step 진입 시 결정) | 대기 |
+| 3 | F-1 모바일 터치 이동 — **방안 A 채택 (캔버스 탭한 월드 좌표로 캐릭터 이동)**, 키보드 입력 우선 | ✅ 코드 완료 (수동 검증 대기) |
 
 > **본 `feat/ui` 브랜치는 F-3 + F-2 + F-1 을 묶은 단일 PR.** Step 은 작업 순서일 뿐, 머지 단위는 하나. 메모리 `feedback_branch_per_pr` 의 "PR 하나당 브랜치 하나" 규칙은 만족 (이 트랙 = 1 브랜치 = 1 PR).
 
@@ -65,6 +65,25 @@ macOS + 한글 IME 조합에서 채팅 입력 중 **마지막 글자 / 단어가
 - Phaser scene 단위 테스트는 jsdom + Canvas/WebGL mocking 부담으로 본 트랙에서 미작성
 - **수동 검증**: 두 브라우저(또는 일반 + 시크릿)로 동시 접속 → 한쪽에서 채팅 입력 중인 상태로 그냥 종료 → 다른 쪽에서 캐릭터·말풍선 모두 사라지는지 확인. macOS 불필요, Windows 만으로 가능
 - 수정이 cleanup 누락 한 줄 추가만이라 회귀 위험 거의 없음
+
+### Step 3 (F-1 모바일 터치 이동) ✅ 코드 완료, 수동 검증 대기
+
+### 채택 방안 — A (터치 위치로 직선 이동)
+- 방안 A 직선 이동 vs 방안 B 가상 조이스틱 비교 끝에 A 채택. 사유는 학습노트 50 §트레이드오프 참조
+- 핵심: 마을엔 명시적 장애물 충돌 처리가 없어 pathfinding 알고리즘 불필요. 직선 이동만으로 충분
+
+### 적용한 수정
+- `VillageScene` 에 `moveTarget: { x: number; y: number } | null` 상태 추가
+- `setupInput` 의 `pointerdown` 핸들러 확장 — 기존 blur 로직 유지 + `pointer.worldX/worldY` 를 월드 경계 내로 클램핑하여 `moveTarget` 설정
+- `movePlayer` 분기 재구성 — **키보드 입력 우선** (있으면 `moveTarget` 즉시 clear), 없을 때 `moveTarget` 향해 정규화 속도로 이동, `dist <= step` 이면 도착 처리
+
+### 부수 효과
+- NPC 클릭 시 캐릭터가 NPC 쪽으로 자동 이동 — 미래 NPC 1:1 채팅 진입 UX 자연스러움 (기존 NPC pointerdown 핸들러는 그대로, scene-level pointerdown 도 추가 발사)
+- DOM 측 chat overlay 의 `pointer-events-auto` 자식(입력창/버튼/메시지 박스 등) 클릭은 Phaser 까지 도달하지 않아 자연 분리됨
+
+### 검증 한계
+- Phaser scene 단위 테스트 미작성 (Canvas/WebGL mocking 부담)
+- **수동 검증**: 데스크탑에서 캔버스 빈 공간 클릭 시 캐릭터가 그쪽으로 이동하는지 / 키보드 누르면 이동 중단 후 키 조작 우선되는지 / NPC 클릭 시 NPC 쪽으로 이동하는지 / 모바일(또는 DevTools 모바일 에뮬레이션) 에서 탭으로 이동되는지 확인
 
 ## 4. 충돌 위험 파일
 

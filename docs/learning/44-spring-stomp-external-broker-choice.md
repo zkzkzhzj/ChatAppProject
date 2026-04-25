@@ -326,4 +326,4 @@ Kafka 는 이 프로젝트에서도 [31번 학습노트](./31-kafka-idempotency-
 
 ---
 
-> TBD: 실제 마이그레이션 과정 (RabbitMQ 컨테이너 추가, Spring Config 교체, 재부하 테스트, ADR-007 교정) 은 [45. STOMP Broker Relay · RabbitMQ 마이그레이션](./45-stomp-broker-relay-rabbitmq-migration.md) 에서 이어서.
+> **방향 전환 안내**: 본 문서 작성 후 "구조적 학습 가치"를 이유로 RabbitMQ 경로 대신 raw WebSocket + Redis Pub/Sub 직접 설계를 채택했다. 새 설계와 결정 맥락은 [45. Raw WebSocket + Redis Pub/Sub 재설계](./45-websocket-redis-pubsub-redesign.md) 참조. 본 문서가 결론으로 제시한 RabbitMQ 경로는 raw WS 경로가 유지 불가능해질 경우 **즉시 실행 가능한 escape hatch**로 보존한다.

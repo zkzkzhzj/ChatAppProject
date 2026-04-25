@@ -253,7 +253,9 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 - 새 트랙을 시작한다면 `docs/conventions/parallel-work.md` §2 절차 따름
 - learning 노트 작성 전 `docs/learning/RESERVED.md` 확인. 자기 트랙 예약 번호만 사용
 
-### 8.2 충돌 위험 파일 수정 시 (Tier 1)
+### 8.2 충돌 위험 파일 수정 시 (Tier 1 — 여러 트랙이 자주 건드리는 공유 파일)
+
+> **Tier 1**: 트랙별 작업 영역으로 자연 분리되지 않고, 여러 트랙이 같은 파일을 동시에 수정할 가능성이 높은 공유 파일. 전체 분류(Tier 0/1/2)는 `docs/conventions/parallel-work.md` §3 참조.
 
 `build.gradle.kts`, `application.yml`, `deploy/docker-compose.yml`, `deploy/.env`, `frontend/package.json` 등을 건드릴 때:
 

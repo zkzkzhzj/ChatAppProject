@@ -260,6 +260,8 @@ Kafka 는 이 프로젝트에서도 [31번 학습노트](./31-kafka-idempotency-
 
 ## 10. 빅테크 실제 구현 사례 — 리서치 요약
 
+> **🔁 Recontextualization (2026-04-24 추가)**: 본 §10은 작성 시점엔 §9 결론(RabbitMQ + `rabbitmq_stomp`)을 외부 레퍼런스로 **보강**하기 위한 비교 분석이었다. 본 문서가 이후 Superseded(최상단 배너 참조)된 후, 여기서 인용한 LINE LIVE / 채널톡 사례는 raw WebSocket + Redis Pub/Sub 직접 설계 경로(learning/45)의 **직접적 근거**가 됐다. 즉 §10에서 비교용으로 인용된 사례들이 결국 방향 전환을 이끈 셈이다. 그러나 §10의 비교 자체는 여전히 **§9 결정의 정합성을 보강**하는 것으로 읽어야 하며, raw WS 사례(LINE LIVE 등)는 RabbitMQ 폐기 권고가 아니라 "초대규모/다른 도메인의 대안 패턴" 참고로 인용된 것이다. RabbitMQ 경로는 escape hatch로 유효함.
+
 §1~§9 의 결론 "RabbitMQ + `rabbitmq_stomp`" 를 Spring 공식 권장만으로 끝내지 말고, 실제 대규모 채팅 시스템들이 이 문제를 어떻게 푸는지 외부 레퍼런스로 교차검증한다. 상세 서사와 URL 전체 목록은 [docs/knowledge/realtime/chat.md §2026-04-23](../knowledge/realtime/chat.md#2026-04-23--채팅-broker-선택-빅테크-사례와-최신-동향) 참조. 여기엔 이 노트의 결정을 보강하는 요점만 추린다.
 
 ### 10.1 빅테크들은 대부분 "외부 broker 를 실시간 fan-out backbone 으로 쓰지 않는다"

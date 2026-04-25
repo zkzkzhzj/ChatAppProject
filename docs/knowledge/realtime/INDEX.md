@@ -19,10 +19,13 @@
 
 ```text
 채팅 (현재 운영):  WebSocket (STOMP) + Spring Simple Broker + Cassandra (메시지 저장)
-채팅 (재설계 중):  raw WebSocket + Redis Pub/Sub — 진행 트랙 ws-redis (learning/45)
-                   → Spring STOMP·Simple Broker 걷어내고 LINE LIVE 패턴 직접 구현
-escape hatch:     RabbitMQ + rabbitmq_stomp (learning/44)
-                   → 위 재설계가 유지 불가능해질 시 즉시 전환 가능한 대안
+채팅 (재설계 중):  raw WebSocket + Redis Pub/Sub
+                   - 진행 트랙: ws-redis (트랙 문서: docs/handover/track-ws-redis.md)
+                   - 설계서: learning/45-websocket-redis-pubsub-redesign.md
+                   - 방향: Spring STOMP·Simple Broker 걷어내고 LINE LIVE 패턴 직접 구현
+escape hatch:     RabbitMQ + rabbitmq_stomp
+                   - 분석 문서: learning/44-spring-stomp-external-broker-choice.md (Superseded)
+                   - 의미: 위 재설계가 유지 불가능해질 시 즉시 전환 가능한 대안
 음성/영상:         WebRTC (추후 구현 예정, SFU 별도 채택 전망 — 채팅 broker 와 분리)
 스트리밍:          미정
 ```

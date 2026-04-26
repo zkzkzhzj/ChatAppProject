@@ -1,6 +1,6 @@
 # 지식 베이스 인덱스
 
-> 마지막 업데이트: 2026-04-21
+> 마지막 업데이트: 2026-04-24
 > 새 세션 시작 시 이 파일을 읽어 최신 AI Native 개발 맥락을 파악한다.
 
 ---
@@ -12,6 +12,8 @@
 | [소프트웨어 패러다임 전환](ai-native/software-paradigm.md) | Karpathy Software 3.0, LLM OS, Agentic Engineering, MicroGPT, Autoresearch | 2026-04-13 |
 | [Anthropic 2026 연구 동향](ai-native/anthropic-research.md) | Managed Agents, Trustworthy Agents, Risk Report v3.0, Economic Index | 2026-04-13 |
 | [Claude Code 파워유저 실천법](ai-native/claude-code-practices.md) | Hooks, Agent Teams, Remote Control, /loop, Computer Use | 2026-04-13 |
+| [멀티 에이전트·워크트리·협업 패턴](ai-native/multi-agent-workflows.md) | 단일→멀티 4단계, 도구별 지원, 충돌 처치 4계층, 프레임워크 비교, 마음의 고향 셋업 평가 | 2026-04-24 |
+| [Handover 충돌 관리 + Agent Teams 실전 디테일](ai-native/handover-collision-management.md) | Memory Bank 패턴, Stop hook 워크트리 인지 분기, Issue #16600/#46808 회피, git-stint·claude-git, 즉시 적용 7개 액션 | 2026-04-24 |
 
 ## 에이전트 조직
 

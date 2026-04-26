@@ -1,0 +1,56 @@
+name: ✨ 신규 개발 / 기능 제안
+description: 새 기능, 개선, UX 변경 등을 제안합니다.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 신규 개발 제안
+        무엇을 / 왜 / 어떻게(아이디어 수준) 순으로 적어주세요.
+        구현 트랙은 이 이슈를 출발점으로 잡습니다 (`docs/conventions/parallel-work.md` §2.1 참조).
+        서비스 가치("대화가 그리운 사람을 위한 안식처") 와의 연결도 함께 적어주세요 (해당하는 경우).
+  - type: textarea
+    id: summary
+    attributes:
+      label: 한 줄 요약
+      placeholder: 이웃 마을 방문 — 다른 유저 마을로 이동해 짧게 인사할 수 있다.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 왜 (사용자/서비스 관점)
+      description: 어떤 문제를 해결하는가? 어떤 가치를 키우는가?
+      placeholder: |
+        - 현재 단일 마을이라 유저 간 마을 단위 상호작용이 없음
+        - 안식처 가치 + 가벼운 사회적 연결 강화
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 범위 (in / out)
+      placeholder: |
+        - in: 마을 목록, 방문 진입, 방명록 한 줄
+        - out: 마을 단위 채팅, 권한 시스템
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: 구현 아이디어 (있다면)
+      description: 결정 사항 아님. 출발점 수준
+  - type: textarea
+    id: tradeoff
+    attributes:
+      label: 예상 트레이드오프 / 리스크
+      placeholder: |
+        - 마을 단위 권한 모델이 들어가면 ERD 변경 필요
+        - 운영 모델 결정 (Hard Cap vs ZEP 형) 과 충돌 여부
+  - type: textarea
+    id: related
+    attributes:
+      label: 관련 문서 / 이슈
+      description: planning/architecture/feedback 문서 또는 다른 이슈 링크

@@ -15,7 +15,7 @@
 
 | 트랙 ID | 파일 | 상태 |
 |---------|------|------|
-| `ws-redis` | [handover/track-ws-redis.md](./handover/track-ws-redis.md) | Step 1 완료 / Step 2 대기 |
+| `ws-redis` | [handover/track-ws-redis.md](./handover/track-ws-redis.md) | Step 1·2 완료 / Step 3 진입 전 범위 결정 대기 |
 
 > 새 트랙 시작 시 `docs/handover/INDEX.md`의 "트랙 시작 절차" 따른다. 메인 `handover.md`는 머지 시점에만 갱신.
 

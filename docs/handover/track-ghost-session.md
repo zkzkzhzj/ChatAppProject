@@ -31,7 +31,7 @@
 
 Step 1 시작 전. 본 트랙을 이어받을 다음 세션 절차:
 
-1. 워크트리 cwd 확인 (`C:/Users/zkzkz/IdeaProjects/ChatAppProject-ui`)
+1. 워크트리 cwd 확인 (`<repo-root>/ChatAppProject-ui` — `git worktree list` 로 실제 경로 검증)
 2. 브랜치 `fix/ghost-session` 인지 확인
 3. 사용자가 main 정합성 docs PR 머지 완료한 상태에서 시작 → main pull → rebase
 4. `ws-redis` 트랙 진행 상황 INDEX 확인 — Step 2 백엔드 SessionRegistry 영역과 본 트랙 정책 결정이 겹친다. **두 트랙 간 정책 합의 먼저.**
@@ -48,7 +48,7 @@ Step 1 시작 전. 본 트랙을 이어받을 다음 세션 절차:
 
 ## 5. 다음 세션 착수 전 확인 사항
 
-- 워크트리 cwd 가 `ChatAppProject-ui` 인지 확인
+- 워크트리 cwd 가 `<repo-root>/ChatAppProject-ui` 인지 확인 (`git worktree list`)
 - 브랜치 `fix/ghost-session` 인지 확인
 - 사용자 docs 정합성 머지 완료 여부 (확인 후 main pull → rebase)
 - `ws-redis` Step 2 worktree 가 `PositionDisconnectListener` / SessionRegistry 영역을 동시 수정 중인지 확인 → 동시 수정이면 정책 결정 합의 먼저

@@ -170,15 +170,15 @@ project/
 
 핵심 4가지 정보를 hook 시작에서 추출:
 
-1. `git rev-parse --show-toplevel` → 현재 worktree root
-2. `git rev-parse --git-common-dir` → 메인 레포 root (worktree들의 공통 부모)
-3. `git rev-parse --abbrev-ref HEAD` → 현재 브랜치명 → 트랙 ID 추출
-4. 위 3개의 비교로 "메인 세션인가 / worktree 세션인가" 판별
+1. `git rev-parse --git-dir` → 현재 세션의 git directory (메인이면 `.git`, worktree면 `.git/worktrees/{name}`)
+2. `git rev-parse --git-common-dir` → 메인 레포의 공통 git directory (모든 worktree가 공유)
+3. `git rev-parse --show-toplevel` → 현재 working tree root (보고용 / 트랙 파일 경로 계산용)
+4. `git rev-parse --abbrev-ref HEAD` → 현재 브랜치명 → 트랙 ID 추출
 
-이후 분기:
+이후 분기 (반드시 `git-dir` ↔ `git-common-dir` 비교 — `show-toplevel` 과 `git-common-dir` 은 의미·형식이 달라 직접 비교하면 항상 false):
 
-- **메인 세션** (`show-toplevel == git-common-dir`): 메인 `handover.md` 갱신 강제
-- **워크트리 세션**: 트랙별 `docs/handover/track-{branch}.md`만 갱신 강제, 메인 handover.md는 면제
+- **메인 세션** (`git-dir == git-common-dir` — 두 경로를 정규화 후 비교): 메인 `handover.md` 갱신 강제
+- **워크트리 세션** (`git-dir != git-common-dir`): 트랙별 `docs/handover/track-{branch}.md`만 갱신 강제, 메인 handover.md는 면제
 
 ### 3.3 우리 `stop-handover-check.js`에 대한 구체 개선 제안
 
@@ -362,7 +362,7 @@ zr = cd ~/work/main && codex review           # 리뷰 (Codex)
 4. **트랙별 alias 셋업** (`za`/`zb`/`zc`/`zr`) — 5분, attention 비용 절감 즉시 체감
 5. **CLAUDE.md를 200줄 이내로 다이어트** + `/docs/`에 nested AGENTS.md 시범 1개 — staleness 위험 차단 시작
 6. **handover.md를 `activeContext.md` + `progress.md` + 트랙별 sub-handover로 분리하는 ADR 작성** — 다음 주 작업 기반
-7. **위 변경 사항을 학습노트 `docs/learning/46-handover-collision-management.md` 또는 유사 번호로 정리** — 이 리서치의 결정·트레이드오프가 코드에 반영될 때 함께 박제
+7. **위 변경 사항을 학습노트 `docs/learning/{현재 트랙 예약 번호}-handover-collision-management.md`로 정리** (예약 번호는 `docs/learning/RESERVED.md` 의 자기 트랙 대역 사용 — 다른 트랙 점유 번호 임의 사용 금지) — 이 리서치의 결정·트레이드오프가 코드에 반영될 때 함께 박제
 
 ---
 

@@ -24,14 +24,19 @@
 
 ### 2.1 신규 트랙 시작 시
 
-1. **트랙 ID 정의** — 짧은 영문 kebab-case (예: `ws-redis`, `ui-mvp-feedback`)
-2. **`docs/handover/INDEX.md` 갱신** — "활성 트랙" 표에 한 줄 추가
-3. **`docs/handover/track-{id}.md` 신규 작성** — INDEX.md의 "트랙 파일 템플릿" 따름
+> **0번 — 이슈 먼저.** 트랙 시작 전에 GitHub 이슈를 먼저 만든다. 트랙 ID·브랜치명·track 파일은 모두 이 이슈에서 파생된다. 이슈 없는 트랙은 "왜 시작했는지" 외부에서 추적 불가.
+
+0. **GitHub 이슈 생성** — `.github/ISSUE_TEMPLATE/` 의 bug / feature 템플릿 사용. 발급된 이슈 번호 `#N` 확보
+1. **트랙 ID 정의** — 이슈 제목에서 추출한 짧은 영문 kebab-case (예: `ws-redis`, `ui-mvp-feedback`, `ghost-session`)
+2. **`docs/handover/INDEX.md` 갱신** — "활성 트랙" 표에 한 줄 추가 (이슈 번호 컬럼 포함)
+3. **`docs/handover/track-{id}.md` 신규 작성** — INDEX.md의 "트랙 파일 템플릿" 따름. 첫 줄에 `Issue: #N` 표시
 4. **`docs/learning/RESERVED.md`에 번호 대역 예약** — 5번 단위 권장 (예: 49~53)
-5. **새 git 브랜치 분기** — `main`에서 분기. 컨벤션:
+5. **새 git 브랜치 분기** — `main`에서 분기. 컨벤션 (브랜치명에는 `#` 안 넣음 — 일부 쉘/도구 호환):
    - 기능 구현: `feat/{track-id}-step{N}` (예: `feat/ws-redis-step2`)
    - 인프라/설정: `infra/{track-id}` (예: `infra/s3-bucket-setup`)
+   - 버그 수정: `fix/{track-id}` (예: `fix/ghost-session`)
    - UI 수정: `fix/{track-id}-{specifics}` 또는 `feat/{track-id}-{feature}`
+   - 이슈 연결은 **PR 본문에 `Closes #N`** 으로 명시 (브랜치명 X)
 6. **(선택) memory에 트랙 상태 파일** — 작업 빈도가 높은 트랙은 `memory/track_{id}_status.md` 분리 권장
 
 ### 2.2 기존 트랙 이어받기 시

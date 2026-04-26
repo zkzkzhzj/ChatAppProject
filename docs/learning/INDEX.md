@@ -32,6 +32,7 @@
 |---|------|------|
 | [08](./08-phase1-layer-patterns.md) | Phase 1 계층 설계 패턴 (Domain · JPA · Security) | 정적 팩토리·`@Builder` 금지·yml 프로퍼티 분리 등 한 묶음 (구 08+10+11 병합) |
 | [16](./16-hexagonal-refactoring-responsibility.md) | 헥사고날 리팩토링 — 책임 경계 | 중간 DTO 함정·IdempotencyGuard 공통화 |
+| [53](./53-hexagonal-outbound-port-caller-rule.md) | outbound port 호출자 룰 — publish는 port로, subscribe lifecycle은 어댑터 내부로 | ws-redis Step 2 설계 — 호출자가 application service면 port, 다른 어댑터면 내부 협업 |
 
 ## Spring Boot 4.x 함정
 

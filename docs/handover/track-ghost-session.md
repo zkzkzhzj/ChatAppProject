@@ -50,10 +50,9 @@ Step 1 시작 전. 본 트랙을 이어받을 다음 세션 절차:
 
 ## 5. 다음 세션 착수 전 확인 사항
 
-- 워크트리 cwd 가 `<repo-root>/ChatAppProject-ui` 인지 확인 (`git worktree list`)
-- 브랜치 `fix/ghost-session` 인지 확인
-- 사용자 docs 정합성 머지 완료 여부 (확인 후 main pull → rebase)
-- `ws-redis` Step 2 worktree 가 `PositionDisconnectListener` / SessionRegistry 영역을 동시 수정 중인지 확인 → 동시 수정이면 정책 결정 합의 먼저
+> 워크트리/브랜치/main 정합성/`ws-redis` 트랙 정책 합의 등 절차 항목은 §3 의 1~4 와 동일 — 본 트랙의 단일 진실원은 §3. 갱신은 §3 한 곳만 수정한다.
+
+- 본 트랙 진입 전 절차: §3 의 1~4 항목 그대로 수행
 - 학습 노트 번호: `RESERVED.md` 의 `ghost-session` 예약 (54~58) 사용
 
 ## 6. 보류 메모

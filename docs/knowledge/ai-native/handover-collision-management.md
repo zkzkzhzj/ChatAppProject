@@ -197,7 +197,7 @@ project/
 
 | 개선 항목 | 변경 내용 |
 |---------|---------|
-| **세션 종류 판별** | hook 시작에서 `git-common-dir` vs `show-toplevel` 비교, 메인/워크트리 분기 |
+| **세션 종류 판별** | hook 시작에서 `git-dir` vs `git-common-dir` 비교 (정규화 후), 메인/워크트리 분기 |
 | **갱신 대상 파일 라우팅** | 메인 → `docs/handover.md`, 워크트리 → `docs/handover/track-{branchSlug}.md` |
 | **트랙 ID 추출** | `git symbolic-ref --short HEAD` → slugify(`feature/ws-redis` → `ws-redis`) |
 | **hook 위치 안전화** | `.claude/settings.json` 의존 줄이고 `$CLAUDE_PROJECT_DIR/scripts/`에서 호출되도록 (Issue #46808 회피) |

@@ -160,7 +160,7 @@ project/
 | **#28041** `--worktree` 시 `.claude/` 서브디렉토리 미복사 | skills/agents/docs/rules가 worktree에 안 따라감 | 우리 `.claude/agents/`가 트랙 세션에서 안 보일 수 있음 |
 | **#46808** Hooks not triggered in worktree | `.claude/settings.json`이 worktree에서 무시됨 | **우리 `stop-handover-check.js`가 트랙 세션에서 침묵할 가능성** ★ |
 | **#49989** UserPromptSubmit hooks silently not firing in worktree | hook이 에러 없이 사라짐 | 디버깅 매우 어려움 |
-| **#34437** Worktree가 메인 레포와 같은 project directory를 공유해야 한다 | Auto memory가 worktree마다 분리됨 (의도와 반대) | 트랙별 자동 메모리가 메인과 단절될 위험 |
+| **#34437** Worktree가 메인 레포와 같은 project directory를 공유해야 한다 | 설계 의도는 git common dir 기반 공유지만 버전/설정에 따라 worktree 별 분리, read/write 경로 불일치 버그 보고됨 (Issues #24382, #39920, #28037, #44130 open 상태) | 트랙별 자동 메모리가 메인과 단절될 위험 — `autoMemoryDirectory` 설정으로 명시적 공유 강제 가능 |
 
 **우리 행동 권장**: hook 정의를 settings.json이 아니라 **`$CLAUDE_PROJECT_DIR/scripts/`로 옮기고, hook 안에서 `git rev-parse --git-common-dir`로 메인 레포를 명시적으로 찾는 패턴**. (mattbrailsford.dev가 git-worktree-skill을 hook으로 옮긴 사례 참조)
 
@@ -317,7 +317,7 @@ zr = cd ~/work/main && codex review           # 리뷰 (Codex)
 
 - **Augment Code 권장**: "AI가 다 기억하니, 인간은 desktop 점프할 때 'briefing 한 줄' 요청하면 됨." → 사람이 기억에 의존하지 않고 에이전트에게 매번 묻는 패턴
 - **Mem0 / LangMem** 같은 memory layer는 이런 briefing의 vector retrieval 버전 — 우리 규모(1인 개발)에선 과잉
-- **Auto memory** (Claude Code 내장, `.claude/projects/<project>/memory/`)이 이미 worktree 간 공유됨 → 활용 가치 높음
+- **Auto memory** (Claude Code 내장, `.claude/projects/<project>/memory/`) — **설계 의도는 git common dir 기반 공유**지만 버전/구성에 따라 worktree 별 분리·read/write 경로 불일치 버그가 다수 보고됨 (§3.1 표의 #34437 참조). 공유를 명시적으로 강제하려면 `settings.json` 의 `autoMemoryDirectory` 옵션 사용. 우리(1인 + 1 PC) 규모에서는 공유가 자연스러우므로 현재 동작 점검 + 필요 시 옵션 명시 권장
 
 ---
 

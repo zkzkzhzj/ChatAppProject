@@ -39,10 +39,12 @@ Step 1 시작 전. 본 트랙을 이어받을 다음 세션 절차:
 
 ## 4. 충돌 위험 파일
 
-| 파일 | 분류 | 메모 |
-|------|------|------|
-| `village/adapter/in/websocket/PositionDisconnectListener.java` | 트랙 잠재 | `ws-redis` Step 2/3 도 이 영역을 건드릴 가능성. 다중 세션 정책이 어느 트랙에서 들어갈지 사전 합의 필요 |
-| `communication/adapter/in/websocket/**` | 트랙 잠재 | `ws-redis` Step 2~6 가 STOMP → raw WS + Redis Pub/Sub 교체 중. 본 트랙은 가급적 `village` 영역만 만지고 `communication` 은 회피 |
+> **경로 표기 컨벤션**: 백엔드는 `backend/src/main/java/com/maeum/gohyang/` 기준 도메인 상대 경로 (축약). 프론트엔드는 repo 루트 기준 (`frontend/src/...`) 풀 경로. 풀 경로가 필요하면 백엔드 prefix 를 앞에 붙여 검색하면 된다.
+
+| 파일 (축약/풀) | 분류 | 메모 |
+|---------------|------|------|
+| `village/adapter/in/websocket/PositionDisconnectListener.java`<br/>(`backend/src/main/java/com/maeum/gohyang/village/adapter/in/websocket/PositionDisconnectListener.java`) | 트랙 잠재 | `ws-redis` Step 2/3 도 이 영역을 건드릴 가능성. 다중 세션 정책이 어느 트랙에서 들어갈지 사전 합의 필요 |
+| `communication/adapter/in/websocket/**`<br/>(`backend/src/main/java/com/maeum/gohyang/communication/adapter/in/websocket/**`) | 트랙 잠재 | `ws-redis` Step 2~6 가 STOMP → raw WS + Redis Pub/Sub 교체 중. 본 트랙은 가급적 `village` 영역만 만지고 `communication` 은 회피 |
 | `frontend/src/components/village/**` | 트랙 전용 | UI 트랙이 이전에도 만진 영역. 다른 트랙 동시 수정 가능성 낮음 |
 | `frontend/src/lib/websocket/**` | 트랙 잠재 | `ws-redis` Step 6 (STOMP 클라이언트 제거) 와 동시 수정 시 충돌. 본 트랙은 client 코드 수정 회피 권장 |
 

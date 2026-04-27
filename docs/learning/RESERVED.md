@@ -12,25 +12,26 @@
 
 ---
 
-## 예약 현황 (마지막 사용 번호: 54, 53은 ws-redis worktree 점유 중)
+## 예약 현황 (마지막 사용 번호: 59)
 
 | 번호 | 트랙 | 예상 주제 | 상태 |
 |------|------|----------|------|
-| 46   | `ws-redis` | Step 2 백엔드 구현기 (raw WS + Redis Pub/Sub 첫 구현, Lettuce Pub/Sub 함정, ConcurrentHashMap 세션 레지스트리 디테일) | 작성 예정 (Step 7 단계) |
-| 47   | `ws-redis` | Step 5 운영 배포 + Sweep 4 결과 — 진짜 Before/After | 예약 |
-| 48   | `ws-redis` | (예비, Step 7 블로그 본편 등) | 예약 |
+| 46   | `ws-redis` | 마을·서버 확장 모델 결정 기록 (Hard Cap vs 채널 샤딩 vs 마을 다중화 · 채널 분리 vs 서버 분리 · ZEP 패턴 보류) | ✅ 사용 완료 (2026-04-26) |
+| 47   | `ws-redis` | Step 2 백엔드 구현기 (raw WS + Redis Pub/Sub 첫 구현, Lettuce Pub/Sub 함정, ConcurrentHashMap 세션 레지스트리 디테일) | 작성 예정 (Step 7 단계) |
+| 48   | `ws-redis` | Step 5 운영 배포 + Sweep 4 결과 — 진짜 Before/After | 예약 |
 | 49   | `ui-mvp-feedback` | F-3 React 입력 컴포넌트 IME 조합 처리 | 사용 완료 |
 | 50   | `ui-mvp-feedback` | F-1 모바일 터치 이동 (tap-to-move vs 가상 조이스틱) | 사용 완료 |
 | 51   | `s3-media` | (트랙 시작 시 첫 노트 — S3 도입 결정 + 비용 정책) | 미사용 |
 | 52   | `s3-media` | (예비) | 미사용 |
-| 53   | `ws-redis` | 헥사고날 outbound port 호출자 룰 — worktree 미푸시 영역에서 사용 중 (정합성 머지 시 "사용 완료" 처리) | 사용 중 (worktree) |
-| 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | 사용 완료 |
+| 53   | `ws-redis` | 헥사고날 outbound port 호출자 룰 (publish는 port로, subscribe lifecycle은 어댑터 내부로) | ✅ 사용 완료 (2026-04-26) |
+| 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | ✅ 사용 완료 |
 | 55   | (반환) | (구 ghost-session — 다중 세션 정책. #28 진단 결과 본 트랙 범위 외로 판정, 별도 이슈로 분리) | 반환 — 재예약 가능 |
 | 56   | `ghost-session` | (예비 — fix 회고/회귀 방지 패턴 등) | 미사용 |
 | 57   | (반환) | (구 ghost-session 예비) | 반환 — 재예약 가능 |
 | 58   | (반환) | (구 ghost-session 예비) | 반환 — 재예약 가능 |
+| 59   | `ws-redis` | WS 서버 분리 vs 모놀리스 + Redis Pub/Sub — 배포 토폴로지 결정 (채널톡/LINE 비교, 분리 트리거 신호) | ✅ 사용 완료 (2026-04-27) |
 
-> 59번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
+> 60번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
 
 ---
 

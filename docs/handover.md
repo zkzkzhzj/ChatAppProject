@@ -15,7 +15,7 @@
 
 | 트랙 ID | 파일 | 상태 | 이슈 |
 |---------|------|------|------|
-| `ws-redis` | [handover/track-ws-redis.md](./handover/track-ws-redis.md) | Step 2 진행 중 (worktree) | — |
+| `ws-redis` | [handover/track-ws-redis.md](./handover/track-ws-redis.md) | Step 1·2 완료 / Step 3 진입 전 범위 결정 대기 | — |
 
 **최근 종료 트랙**: `ghost-session` (PR #36, 2026-04-27) · `ui-mvp-feedback` (PR #27, 2026-04-26)
 
@@ -124,7 +124,7 @@ POST /api/v1/chat/messages {body: "..."}
 
 ### 진행 중 트랙
 
-- **`ws-redis`** — `docs/handover/track-ws-redis.md` 참조 (Step 2 worktree 진행 중)
+- **`ws-redis`** — `docs/handover/track-ws-redis.md` 참조 (Step 1·2 완료 / Step 3 진입 전 범위 결정 대기)
 
 ### 후속 트랙 후보 (별도 이슈로 분리 추적)
 

@@ -1,5 +1,9 @@
 # 20. 프론트엔드 ESLint 컨벤션 선택 — Airbnb 사망 이후의 대안
 
+> ℹ️ **시점 공지 (2026-04-27 추가)**
+>
+> 작성 시점: 2026-04-15. Airbnb config 아카이브 직후의 컨벤션 결정 기록. React 19 / Next.js 16 기반 신규 규칙은 `eslint-config-next`가 자체 포함하므로 별도 추가 불필요. 본 노트는 **"왜 Airbnb를 떠났고 어떤 대안을 골랐는가"** 의 의사결정 기록.
+
 ## 배경
 
 Next.js 16 + TypeScript + React 19 프로젝트에서 ESLint 설정을 강화해야 했다. Next.js 기본값(`eslint-config-next`)만으로는 코드 스타일과 타입 안전성 규칙이 부족하다. 특히 `any` 타입 허용, `Promise` 미처리, non-null assertion 남용 같은 패턴을 잡아내지 못한다.

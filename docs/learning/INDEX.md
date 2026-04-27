@@ -19,19 +19,20 @@
 | # | 제목 | 한 줄 |
 |---|------|------|
 | [01](./01-docker-compose-full-stack.md) | docker-compose 전체 스택 기동 | Kafka `ADVERTISED_LISTENERS`·기동 순서·네트워크 통신 삽질기 |
-| [02](./02-testcontainers-wsl2-issue.md) | Testcontainers + WSL2 Docker 연결 문제 | `Could not find a valid Docker environment` 원인과 해결 |
+| [02](./02-testcontainers-wsl2-issue.md) | Testcontainers + WSL2 Docker 연결 문제 | `Could not find a valid Docker environment` 원인과 해결 — 현재는 Spring Boot 4.x 마이그레이션([#07](./07-spring-boot-4-upgrade.md))으로 해결됨, 학습 자료로 보존 |
 | [03](./03-cucumber-bdd-setup.md) | Cucumber BDD + Spring Boot 통합 | JUnit Platform에서의 Cucumber 7.x·TestAdapter 패턴 |
 | [04](./04-gradle-java-toolchain.md) | Gradle Java Toolchain · Foojay Resolver | 팀 로컬 JDK 달라도 Java 21로 빌드 강제 |
 | [05](./05-supply-chain-attack-axios.md) | npm 공급망 공격 (axios 1.14.1) | `^` 범위 지정의 위험·대응 정책 |
 | [06](./06-spring-boot-profile-strategy.md) | Spring Boot 프로파일 전략 | local / docker / test 분기 구성 |
 | [07](./07-spring-boot-4-upgrade.md) | Spring Boot 3.5 → 4.0 업그레이드 | Testcontainers 2.x·TestAdapter HTTP 클라이언트 교체 |
 
-## 헥사고날·레이어 패턴
+## 헥사고날·레이어 패턴 (3부작 — 시점·범위 매핑)
 
 | # | 제목 | 한 줄 |
 |---|------|------|
-| [08](./08-phase1-layer-patterns.md) | Phase 1 계층 설계 패턴 (Domain · JPA · Security) | 정적 팩토리·`@Builder` 금지·yml 프로퍼티 분리 등 한 묶음 (구 08+10+11 병합) |
-| [16](./16-hexagonal-refactoring-responsibility.md) | 헥사고날 리팩토링 — 책임 경계 | 중간 DTO 함정·IdempotencyGuard 공통화 |
+| [08](./08-phase1-layer-patterns.md) | Phase 1 계층 설계 패턴 (Domain · JPA · Security) | **3부작 1편** — 정적 팩토리·`@Builder` 금지·yml 프로퍼티 분리 등 (구 08+10+11 병합) |
+| [16](./16-hexagonal-refactoring-responsibility.md) | 헥사고날 리팩토링 — 책임 경계 | **3부작 2편** — Phase 3 운영 중 발견한 안티패턴(중간 DTO·IdempotencyGuard 위치)을 #08 원칙으로 재해석 |
+| [53](./53-hexagonal-outbound-port-caller-rule.md) | outbound port 호출자 룰 — publish는 port로, subscribe lifecycle은 어댑터 내부로 | **3부작 3편** — #08·#16의 경계 개념을 호출자 기준 port 정의로 확장 (ws-redis Step 2) |
 
 ## Spring Boot 4.x 함정
 
@@ -52,9 +53,11 @@
 | # | 제목 | 한 줄 |
 |---|------|------|
 | [18](./18-java-static-analysis-stack.md) | Java 정적 분석 스택 | Error Prone+NullAway 선정 + 한글 BDD 억제 전략 (구 18+19 병합) |
-| [20](./20-frontend-eslint-convention.md) | 프론트엔드 ESLint 컨벤션 | Airbnb 사망 이후 strictTypeChecked + Prettier |
+| [20](./20-frontend-eslint-convention.md) | 프론트엔드 ESLint 컨벤션 | Airbnb 사망 이후 strictTypeChecked + Prettier — 2026-04-15 시점 결정. React 19 새 규칙은 `eslint-config-next` 자동 포함 |
 
 ## 실시간 채팅·WebSocket
+
+> **시대 매핑**: 이 섹션은 STOMP 시대 → raw WebSocket + Redis 전환을 거치는 중. 각 노트의 시대·상태 통합 매핑은 [#59 §9 부록](./59-ws-server-separation-vs-monolith.md#9-부록-stomp-시대-vs-raw-ws-시대-노트-매핑) 참조.
 
 | # | 제목 | 한 줄 |
 |---|------|------|
@@ -65,15 +68,17 @@
 | [27](./27-realtime-chat-code-review-patterns.md) | 실시간 채팅 종합 리뷰 이슈 | 4개 전문 에이전트 리뷰에서 뽑은 패턴 |
 | [44](./44-spring-stomp-external-broker-choice.md) | Spring STOMP 외부 Broker 선택 트레이드오프 | 왜 RabbitMQ고 Redis Pub/Sub이 아닌가 — `enableStompBrokerRelay()` 의 전제 |
 | [45](./45-websocket-redis-pubsub-redesign.md) | Raw WebSocket + Redis Pub/Sub 재설계 설계서 | STOMP·Simple Broker 걷어내기 전 함정 예방 — 채널톡 O(M×N) / LINE LIVE actor+bridge 패턴 흡수 |
+| [46](./46-village-scaling-decisions.md) | 마을·서버 확장 모델 결정 기록 | 채널 샤딩 vs 마을 다중화 vs Hard Cap · 채널 분리 vs 서버 분리 · ZEP 패턴 보류 — 6개 트레이드오프 |
 | [54](./54-presence-cleanup-ghost-character-diagnosis.md) | "본인을 따라다니는 유령 캐릭터" 진단기 | issue #28 의심(백엔드 cleanup) vs 진짜 원인(프론트엔드 myDisplayId stale) — 게스트 토큰 재발급 → sessionId 변경 → 자기 무시 비교 실패 |
+| [59](./59-ws-server-separation-vs-monolith.md) | WS 서버 분리 vs 모놀리스 + Redis Pub/Sub | 배포 토폴로지 4안 비교 — **② → ③ 자기정정** + 신규설계/마이그레이션 게임 구분 + 빅테크 사례 50+ 자료 |
 
 ## UI · 프론트엔드
 
 | # | 제목 | 한 줄 |
 |---|------|------|
-| [26](./26-phaser-html-keyboard-focus-conflict.md) | Phaser vs HTML UI 키보드 포커스 충돌 | 게임 엔진 + 웹 UI 오버레이에서 필연적으로 만나는 문제 |
-| [32](./32-web-2d-game-engine-comparison.md) | 웹 2D 게임 엔진 비교 | Phaser가 2D 인터랙티브 마을에 가장 적합한 이유 |
-| [34](./34-react-nextjs-production-code-patterns.md) | React + Next.js 프로덕션 코드 패턴 | 백엔드 개발자가 프론트를 제대로 쓰기 |
+| [26](./26-phaser-html-keyboard-focus-conflict.md) | Phaser vs HTML UI 키보드 포커스 충돌 | 게임 엔진 + 웹 UI 오버레이에서 필연적으로 만나는 문제 (UI·프론트 시리즈 #34와 함께) |
+| [32](./32-web-2d-game-engine-comparison.md) | 웹 2D 게임 엔진 비교 | Phaser가 2D 인터랙티브 마을에 가장 적합한 이유 (UI·프론트 시리즈 #34와 함께) |
+| [34](./34-react-nextjs-production-code-patterns.md) | React + Next.js 프로덕션 코드 패턴 | 백엔드 개발자가 프론트를 제대로 쓰기 — UI·프론트 시리즈 hub (#26 #32 #49 #50과 함께 읽기) |
 | [49](./49-react-input-ime-handling.md) | React 입력 컴포넌트 IME 조합 처리 | F-3 macOS 한글 IME 마지막 음절 중복 — `isComposing` 가드 한 줄 뒤의 4개 층 |
 | [50](./50-mobile-touch-movement.md) | 모바일 터치 이동 (tap-to-move vs 가상 조이스틱) | F-1 모바일 진입 결함 — 충돌 없는 마을에서 직선 이동만으로 충분한 이유 |
 
@@ -96,7 +101,7 @@
 | [35](./35-aws-ec2-first-deployment.md) | AWS EC2 첫 배포 전체 기록 | Docker Compose + nginx + Cloudflare로 서비스 올리기 |
 | [37](./37-cd-pipeline-design.md) | CD 파이프라인 구축기 | 수동 SSH에서 GHCR + SSM + OIDC로 |
 | [38](./38-env-var-config-migration.md) | 12-factor Config 이관 | application-prod.yml 없애기 |
-| [39](./39-nextjs-docker-healthcheck-ipv6-trap.md) | Next.js Docker healthcheck IPv6 교착 | Next.js · Node 17 · Alpine BusyBox 삼중 교집합 |
+| [39](./39-nextjs-docker-healthcheck-ipv6-trap.md) | Next.js Docker healthcheck IPv6 교착 | Next.js · Node 17 · Alpine BusyBox 삼중 교집합 — PR #17~#19로 현재 docker-compose에 해결 반영됨, 재발 방지 학습 |
 
 ## 관측성·운영
 

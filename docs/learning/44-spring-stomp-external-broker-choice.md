@@ -4,6 +4,8 @@
 >
 > 본 문서는 "Spring STOMP를 유지하면서 외부 broker로 갈 때 RabbitMQ가 정답이고 Redis Pub/Sub은 함정"임을 논증한다. 그러나 작성 직후 "Spring 공식 레일 안의 설정 변경은 구조적 학습 가치가 낮다"는 판단으로 방향을 전환했다. 새 결정: **raw WebSocket + Redis Pub/Sub 직접 설계** (LINE LIVE / 채널톡 검증 패턴 흡수). 본 문서가 결론으로 제시한 RabbitMQ 경로는 raw WS 경로가 유지 불가능해질 경우 **즉시 실행 가능한 escape hatch**로 보존한다. 본문의 "Redis Pub/Sub은 함정"이라는 결론은 **"STOMP 자산을 보존하면서 갈 때만"** 유효함에 주의 — raw WS로 가면서 직접 설계한다면 함정 회피 설계가 별도로 가능하다 (learning/45 §1.4 참조).
 >
+> **2026-04-27 추가**: 토폴로지 결정 [#59](./59-ws-server-separation-vs-monolith.md)에서 ③(WS 서버 분리) 채택 후 본 노트는 **#59 §3.2 "왜 ④가 아닌가"의 escape hatch 플레이북**으로 재정의됨 — raw WS 유지 불가 또는 broker 자체 한계 도달 시 즉시 ④(WS 분리 + RabbitMQ STOMP plugin)로 전환하기 위한 사전 분석.
+>
 > 작성 시점: 2026-04-23
 > 맥락: 부하 테스트([load-test-2026-04-22](../reports/load-test-2026-04-22.md)) Sweep 3에서 리소스는 한참 여유인데 `stomp_connect_latency p99 = 12.98s` 가 관찰됐다. Simple Broker 단일 dispatch 쓰레드가 구조적 병목임이 실측으로 확정됐고, 외부 broker 전환이 다음 스텝이 됐다.
 > 그런데 검토 초반에 "어차피 실시간 pub/sub이면 Redis Pub/Sub이 제일 가볍지 않나"라는 질문이 먼저 튀어나왔다. ADR-007에도 실제로 "Redis Pub/Sub 기반 외부 브로커로 교체"라고 적혀있다. 이게 **왜 틀렸는지**, 그리고 **왜 RabbitMQ 쪽이 정답인지**를 구조적으로 정리해둬야 다음 의사결정이 흔들리지 않는다.

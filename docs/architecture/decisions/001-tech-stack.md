@@ -21,11 +21,11 @@ Java 17+ 최소 요구. 2.x는 2023년 EOL. Jakarta EE 전환(javax → jakarta)
 
 ## Gradle Kotlin DSL
 
-Groovy DSL 대비 IDE 자동완성, 타입 안전성 우수. AI 코드 생성 시 빌드 스크립트 오류 감소. 마플 스택과의 접점.
+Groovy DSL 대비 IDE 자동완성, 타입 안전성 우수. AI 코드 생성 시 빌드 스크립트 오류 감소. 국내 백엔드 진영에서도 표준 채택 흐름.
 
 ## PostgreSQL (vs MySQL)
 
-동시성 제어(MVCC)가 더 성숙. MySQL은 undo log 기반, PostgreSQL은 다중 버전 직접 유지. 포인트 차감 같은 동시 쓰기가 많은 도메인에 적합. JSON 타입 지원 우수. 마플 기술 스택과 일치.
+동시성 제어(MVCC)가 더 성숙. MySQL은 undo log 기반, PostgreSQL은 다중 버전 직접 유지. 포인트 차감 같은 동시 쓰기가 많은 도메인에 적합. JSON 타입 지원 우수. 국내 Node.js·풀스택 백엔드 진영의 메이저 스택과 일치.
 
 ## Cassandra (vs MongoDB)
 

@@ -24,9 +24,9 @@
 | 51   | `s3-media` | (트랙 시작 시 첫 노트 — S3 도입 결정 + 비용 정책) | 미사용 |
 | 52   | `s3-media` | (예비) | 미사용 |
 | 53   | `ws-redis` | 헥사고날 outbound port 호출자 룰 (publish는 port로, subscribe lifecycle은 어댑터 내부로) | ✅ 사용 완료 (2026-04-26) |
-| 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | ✅ 사용 완료 |
-| 55   | (반환) | (구 ghost-session — 다중 세션 정책. #28 진단 결과 본 트랙 범위 외로 판정, 별도 이슈로 분리) | 반환 — 재예약 가능 |
-| 56   | `ghost-session` | (예비 — fix 회고/회귀 방지 패턴 등) | 미사용 |
+| 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | ✅ 사용 완료 (2026-04-27) |
+| 55   | `member-token-renewal` (후속 의제) | sliding session vs refresh vs WS push 트레이드오프 | 예약 (트랙 착수 시) |
+| 56   | `multi-session-policy` (후속 의제) | 동일 userId 다중 세션 (대체/거부/병행) | 예약 (트랙 착수 시) |
 | 57   | (반환) | (구 ghost-session 예비) | 반환 — 재예약 가능 |
 | 58   | (반환) | (구 ghost-session 예비) | 반환 — 재예약 가능 |
 | 59   | `ws-redis` | WS 서버 분리 vs 모놀리스 + Redis Pub/Sub — 배포 토폴로지 결정 (채널톡/LINE 비교, 분리 트리거 신호) | ✅ 사용 완료 (2026-04-27) |

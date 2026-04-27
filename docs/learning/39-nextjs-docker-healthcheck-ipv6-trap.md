@@ -4,7 +4,7 @@
 > CD 파이프라인이 PR #17, #18, #19까지 3연속으로 healthcheck 타임아웃 났다. 표면만 보면 "Docker가 죽었나?"지만 진짜 범인은 Next.js · Node 17 · Alpine BusyBox 세 레이어의 **우연한 교집합**이었다.
 >
 > 관련 1차 리서치: [docs/knowledge/infra/nextjs-docker-healthcheck-ipv6-binding.md](../knowledge/infra/nextjs-docker-healthcheck-ipv6-binding.md)
-
+>
 > ℹ️ **시점 공지 (2026-04-27 추가)** — 본 함정은 PR #17~#19 거치며 현재 docker-compose 구성에 반영 완료. 같은 함정 재발 방지용 학습 기록으로 보존.
 
 ---

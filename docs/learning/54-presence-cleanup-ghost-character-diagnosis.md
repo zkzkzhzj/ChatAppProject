@@ -4,6 +4,7 @@
 > 트랙: `ghost-session` (첫 노트, Step 1 산출물)
 > 맥락: 운영 환경 `ghworld.co` 에서 보고된 issue #28 — "다른 클라이언트 화면에 본인을 따라다니는 손님 캐릭터가 잔존". Step 1 = 진단, Step 2 = 정책 합의 게이트의 인풋
 > 관련 파일:
+>
 > - `frontend/src/lib/websocket/useStomp.ts:67-79, 133-144`
 > - `frontend/src/game/scenes/VillageScene.ts:104-109, 449-466, 485-502, 543-555`
 > - `backend/src/main/java/com/maeum/gohyang/global/security/AuthenticatedUser.java:41-46`
@@ -286,10 +287,12 @@ issue 보고자가 백엔드를 의심한 건 자연스럽다. "캐릭터가 안
 ### 6.3 무엇을 잃는가
 
 A 안 유지 시 잃는 것:
+
 - 게스트의 데이터 영속성. 새 디바이스/브라우저 = 새 사람.
 - 회원 가입 시 게스트 시절 데이터 이관 안 됨.
 
 B 안 도입 시 잃는 것:
+
 - 게스트 user 레코드 정리 정책 (휴면 cleanup, 봇 abuse 방지) 비용
 - DB 스키마 변경 + 마이그레이션
 - 익명성 약화 (서버에 더 많은 흔적)

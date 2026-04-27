@@ -32,6 +32,9 @@ public class JwtProvider implements IssueTokenPort, ParseTokenPort {
     @Value("${jwt.access-token-expiry-ms}")
     private long accessTokenExpiryMs;
 
+    @Value("${jwt.guest-token-expiry-ms}")
+    private long guestTokenExpiryMs;
+
     private SecretKey secretKey;
 
     @PostConstruct
@@ -46,12 +49,12 @@ public class JwtProvider implements IssueTokenPort, ParseTokenPort {
 
     @Override
     public String issueMemberToken(Long userId) {
-        return buildToken(String.valueOf(userId), UserType.MEMBER);
+        return buildToken(String.valueOf(userId), UserType.MEMBER, accessTokenExpiryMs);
     }
 
     @Override
     public String issueGuestToken() {
-        return buildToken("guest-" + UUID.randomUUID(), UserType.GUEST);
+        return buildToken("guest-" + UUID.randomUUID(), UserType.GUEST, guestTokenExpiryMs);
     }
 
     /**
@@ -79,13 +82,13 @@ public class JwtProvider implements IssueTokenPort, ParseTokenPort {
         }
     }
 
-    private String buildToken(String subject, UserType role) {
+    private String buildToken(String subject, UserType role, long expiryMs) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(subject)
                 .claim("role", role.name())
                 .issuedAt(now)
-                .expiration(new Date(now.getTime() + accessTokenExpiryMs))
+                .expiration(new Date(now.getTime() + expiryMs))
                 .signWith(secretKey)
                 .compact();
     }

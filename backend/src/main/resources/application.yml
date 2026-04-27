@@ -55,6 +55,9 @@ server:
 jwt:
   secret: ${JWT_SECRET:local-dev-only-secret-key-must-be-at-least-256-bits-long!!}
   access-token-expiry-ms: 3600000
+  # 게스트는 권한이 거의 없고(마을 위치/공개 채팅), 토큰이 곧 displayId 라 만료 시 sessionId 가 바뀐다.
+  # 짧은 만료는 자기인식 stale + 유령 캐릭터를 유발하므로 멤버보다 길게 둔다 (#28 fix).
+  guest-token-expiry-ms: 86400000
   refresh-token-expiry-ms: 604800000
 
 # Actuator endpoint는 secure-by-default (기본값 'health' 하나만 노출).

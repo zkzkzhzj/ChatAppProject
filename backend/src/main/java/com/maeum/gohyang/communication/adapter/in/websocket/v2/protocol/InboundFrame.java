@@ -12,12 +12,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = SubscribeFrame.class, name = "SUBSCRIBE"),
-        @JsonSubTypes.Type(value = UnsubscribeFrame.class, name = "UNSUBSCRIBE"),
-        @JsonSubTypes.Type(value = PublishFrame.class, name = "PUBLISH"),
-        @JsonSubTypes.Type(value = PositionFrame.class, name = "POSITION"),
-        @JsonSubTypes.Type(value = TypingFrame.class, name = "TYPING"),
-        @JsonSubTypes.Type(value = PingFrame.class, name = "PING")
+    @JsonSubTypes.Type(value = SubscribeFrame.class, name = "SUBSCRIBE"),
+    @JsonSubTypes.Type(value = UnsubscribeFrame.class, name = "UNSUBSCRIBE"),
+    @JsonSubTypes.Type(value = PublishFrame.class, name = "PUBLISH"),
+    @JsonSubTypes.Type(value = PositionFrame.class, name = "POSITION"),
+    @JsonSubTypes.Type(value = TypingFrame.class, name = "TYPING"),
+    @JsonSubTypes.Type(value = PingFrame.class, name = "PING")
 })
 public sealed interface InboundFrame
         permits SubscribeFrame, UnsubscribeFrame, PublishFrame,

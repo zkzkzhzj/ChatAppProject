@@ -2,7 +2,7 @@
 
 > 작성 시점: 2026-04-13
 > 맥락: 마을 공개 채팅 구현 중, REST API의 JWT 인증은 SecurityFilterChain이 처리하지만 STOMP 메시지에는 동일한 필터가 적용되지 않는 문제를 만났다. WebSocket 연결 이후의 STOMP 프레임을 어떻게 인증할 것인가.
-
+>
 > ⚠️ **STOMP 전용 — 폐기 예정 경로 (2026-04-27 추가 공지)**
 >
 > 본 노트의 `StompAuthChannelInterceptor` / `AuthenticatedUser implements Principal` 패턴은 **STOMP 자산 유지 시나리오**([#44](./44-spring-stomp-external-broker-choice.md) escape hatch)에서만 필요. 현재 트랙은 raw WS + 핸드셰이크 시 query token 검증으로 전환 ([#45](./45-websocket-redis-pubsub-redesign.md) §B.2 → `JwtHandshakeInterceptor`).

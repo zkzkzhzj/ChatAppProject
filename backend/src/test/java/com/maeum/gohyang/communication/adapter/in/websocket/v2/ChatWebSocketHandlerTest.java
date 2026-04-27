@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -48,6 +49,12 @@ import tools.jackson.databind.json.JsonMapper;
 class ChatWebSocketHandlerTest {
 
     private static final String SESSION_ID = "session-1";
+    /** application.yml 의 village.public-chat-room-id 와 일치해야 핸들러 가드를 통과한다. */
+    private static final long PUBLIC_ROOM_ID = 1L;
+    /** publicChatRoomId 와 다른 임의 방 — 가드 거부 케이스에 사용. */
+    private static final long OTHER_ROOM_ID = 42L;
+    private static final double MAX_X = 2400.0;
+    private static final double MAX_Y = 1600.0;
 
     @Mock WebSocketSession session;
     @Mock WebSocketSessionRegistry sessionRegistry;
@@ -63,9 +70,9 @@ class ChatWebSocketHandlerTest {
         handler = new ChatWebSocketHandler(sessionRegistry, subscriptionRegistry,
                 JsonMapper.builder().build(), bus, sendMessageUseCase);
         // @Value 주입은 단위 테스트에선 ReflectionTestUtils 로 세팅
-        org.springframework.test.util.ReflectionTestUtils.setField(handler, "publicChatRoomId", 1L);
-        org.springframework.test.util.ReflectionTestUtils.setField(handler, "maxX", 2400.0);
-        org.springframework.test.util.ReflectionTestUtils.setField(handler, "maxY", 1600.0);
+        ReflectionTestUtils.setField(handler, "publicChatRoomId", PUBLIC_ROOM_ID);
+        ReflectionTestUtils.setField(handler, "maxX", MAX_X);
+        ReflectionTestUtils.setField(handler, "maxY", MAX_Y);
         sessionAttributes = new HashMap<>();
         given(session.getId()).willReturn(SESSION_ID);
         given(session.getAttributes()).willReturn(sessionAttributes);

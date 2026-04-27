@@ -25,7 +25,6 @@ import com.maeum.gohyang.communication.adapter.in.websocket.v2.protocol.TypingUp
 import com.maeum.gohyang.communication.adapter.in.websocket.v2.protocol.UnsubscribeFrame;
 import com.maeum.gohyang.communication.adapter.out.messaging.redis.RoomMessageBus;
 import com.maeum.gohyang.communication.application.port.in.SendMessageUseCase;
-import com.maeum.gohyang.communication.error.BroadcastSerializationException;
 import com.maeum.gohyang.communication.error.CommunicationErrorCode;
 import com.maeum.gohyang.global.config.JwtHandshakeInterceptor;
 import com.maeum.gohyang.global.error.BusinessException;
@@ -158,8 +157,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     /**
      * 위치 공유 — V1 PositionHandler 와 정책 동일.
-     * 인증 안 된 세션은 조용히 무시 (오류 응답 X), 좌표는 맵 경계로 clamp 한다.
-     * 게스트도 이동 가능 — 채팅과 달리 위치는 게스트에게도 허용된다.
+     *
+     * 응답 비대칭 정책 (의도적):
+     * - Principal 없음 (인증 안 된 세션) → silent ignore (오류 응답 X)
+     * - 좌표가 NaN/Infinity → silent ignore (오류 응답 X)
+     * - roomId 가 publicChatRoomId 와 다름 → NOT_PARTICIPANT ERROR 응답
+     *
+     * 사유: 위치 프레임은 고빈도 broadcast 라 매 프레임 ERROR 응답을 보내면
+     * 클라이언트 큐가 폭발한다. 반면 roomId 미스매치는 "다른 방 SUBSCRIBE 와
+     * 일관된 권한 거부 신호" 라 명시적으로 알리는 게 맞다.
      */
     private void handlePosition(WebSocketSession session, PositionFrame frame) {
         AuthenticatedUser user = JwtHandshakeInterceptor.principalOf(session.getAttributes());
@@ -199,12 +205,20 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         sendOutbound(session, ErrorEvent.of(e.getErrorCode(), e.getMessage()));
     }
 
+    /**
+     * 직렬화 / 전송 실패는 세션을 종료시키지 않고 로그만 남긴다.
+     * 직렬화 예외가 propagate 되면 Spring 이 WebSocket 세션을 끊으므로,
+     * 정상 통신 중인 클라이언트가 이상 메시지 한 건 때문에 끊기는 것을 막는다.
+     * (운영 진단을 위해 frame type 과 sessionId 는 로그에 남긴다.)
+     */
     private void sendOutbound(WebSocketSession session, OutboundFrame frame) {
         TextMessage message;
         try {
             message = new TextMessage(objectMapper.writeValueAsString(frame));
         } catch (Exception e) {
-            throw new BroadcastSerializationException(e);
+            log.warn("Outbound 직렬화 실패. session={} frame={} cause={}",
+                    session.getId(), frame.getClass().getSimpleName(), e.toString());
+            return;
         }
         if (!session.isOpen()) {
             return;

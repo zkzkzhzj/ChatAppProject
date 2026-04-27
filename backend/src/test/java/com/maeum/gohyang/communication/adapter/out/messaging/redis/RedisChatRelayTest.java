@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,10 +38,20 @@ import com.maeum.gohyang.support.BaseTestContainers;
 @DisplayName("RedisChatRelay — 방 단위 Pub/Sub")
 class RedisChatRelayTest extends BaseTestContainers {
 
-    /** Spring Data Redis MessageListenerContainer 가 SUBSCRIBE 명령을 활성화하는 데 걸리는 대기시간. */
-    private static final long SUBSCRIBE_PROPAGATION_MILLIS = 300L;
+    /**
+     * Spring Data Redis MessageListenerContainer 의 SUBSCRIBE 명령 활성화 대기 상한.
+     * Redis Pub/Sub 은 활성화 전 publish 한 메시지를 무시하므로 SUBSCRIBE 가 실제로
+     * 채널에 붙은 뒤에 publish 해야 한다. 활성화 자체를 외부에서 polling 할 visible
+     * state 가 없어 보수적인 상한값으로 대기 (Awaitility pollDelay).
+     */
+    private static final Duration SUBSCRIBE_PROPAGATION = Duration.ofMillis(300);
     private static final long RECEIVE_TIMEOUT_SECONDS = 5L;
     private static final long NEGATIVE_WAIT_SECONDS = 1L;
+
+    /** SUBSCRIBE 가 실제 채널에 붙을 때까지 대기. Thread.sleep 회피용 wrapper. */
+    private static void waitForSubscriptionPropagation() {
+        Awaitility.await().pollDelay(SUBSCRIBE_PROPAGATION).until(() -> true);
+    }
 
     @Autowired
     RoomMessageBus bus;
@@ -63,7 +75,7 @@ class RedisChatRelayTest extends BaseTestContainers {
             latch.countDown();
         });
         subscribedRoomsToCleanup.add(roomId);
-        Thread.sleep(SUBSCRIBE_PROPAGATION_MILLIS);
+        waitForSubscriptionPropagation();
 
         MessageEvent event = sampleMessageEvent(roomId, "안녕");
 
@@ -88,7 +100,7 @@ class RedisChatRelayTest extends BaseTestContainers {
         CountDownLatch latch = new CountDownLatch(1);
         bus.ensureRoomSubscribed(subscribedRoom, (id, event) -> latch.countDown());
         subscribedRoomsToCleanup.add(subscribedRoom);
-        Thread.sleep(SUBSCRIBE_PROPAGATION_MILLIS);
+        waitForSubscriptionPropagation();
 
         // When
         bus.publish(otherRoom, sampleMessageEvent(otherRoom, "다른 방"));
@@ -104,9 +116,9 @@ class RedisChatRelayTest extends BaseTestContainers {
         long roomId = 1003L;
         CountDownLatch latch = new CountDownLatch(1);
         bus.ensureRoomSubscribed(roomId, (id, event) -> latch.countDown());
-        Thread.sleep(SUBSCRIBE_PROPAGATION_MILLIS);
+        waitForSubscriptionPropagation();
         bus.removeRoomSubscription(roomId);
-        Thread.sleep(SUBSCRIBE_PROPAGATION_MILLIS);
+        waitForSubscriptionPropagation();
 
         // When
         bus.publish(roomId, sampleMessageEvent(roomId, "구독 해제 후 메시지"));
@@ -117,24 +129,32 @@ class RedisChatRelayTest extends BaseTestContainers {
     }
 
     @Test
-    void 같은_방을_두_번_ensureRoomSubscribed해도_listener는_한_번만_등록된다() throws InterruptedException {
-        // Given
+    void 같은_방을_두_번_ensureRoomSubscribed해도_먼저_등록된_listener만_유지된다() throws InterruptedException {
+        // Given — 두 핸들러가 각자 다른 marker 를 set. 먼저 등록된 핸들러만 남아야 한다.
         long roomId = 1004L;
-        CountDownLatch latch = new CountDownLatch(2);
-        // 첫 등록은 latch.countDown 을 부르는 handler
-        bus.ensureRoomSubscribed(roomId, (id, event) -> latch.countDown());
-        // 두 번째 호출은 다른 handler 인데, 멱등이라면 첫 번째 handler 만 살아있어야 한다.
-        bus.ensureRoomSubscribed(roomId, (id, event) -> latch.countDown());
+        CountDownLatch fired = new CountDownLatch(1);
+        AtomicReference<String> firedHandler = new AtomicReference<>();
+        bus.ensureRoomSubscribed(roomId, (id, payload) -> {
+            firedHandler.compareAndSet(null, "first");
+            fired.countDown();
+        });
+        // 두 번째 호출은 다른 handler. 멱등이라면 등록되지 않고, 발화 시 marker 가 "first" 로 남아야 한다.
+        bus.ensureRoomSubscribed(roomId, (id, payload) -> {
+            firedHandler.compareAndSet(null, "second");
+            fired.countDown();
+        });
         subscribedRoomsToCleanup.add(roomId);
-        Thread.sleep(SUBSCRIBE_PROPAGATION_MILLIS);
+        waitForSubscriptionPropagation();
 
         // When
         bus.publish(roomId, sampleMessageEvent(roomId, "한 번"));
 
-        // Then — 만약 두 번 등록됐다면 latch 가 2회 countDown 되어 0 이 됨. 멱등이면 1회로 남음.
-        boolean reachedTwo = latch.await(NEGATIVE_WAIT_SECONDS, TimeUnit.SECONDS);
-        assertThat(reachedTwo).as("멱등 등록이면 listener 가 한 번만 호출되어야 한다").isFalse();
-        assertThat(latch.getCount()).isEqualTo(1);
+        // Then — 메시지가 한 번 도달했고, 그 호출은 first 핸들러여야 한다.
+        boolean delivered = fired.await(RECEIVE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(delivered).as("메시지가 등록된 핸들러로 전달되어야 한다").isTrue();
+        assertThat(firedHandler.get())
+                .as("멱등 등록이면 두 번째 ensureRoomSubscribed 는 무시되어 첫 번째 핸들러만 발화해야 한다")
+                .isEqualTo("first");
     }
 
     @Test

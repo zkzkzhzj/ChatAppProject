@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,8 +54,9 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
 
     private static final long RECEIVE_TIMEOUT_SECONDS = 5L;
     private static final long NEGATIVE_WAIT_SECONDS = 1L;
-    /** Redis SUBSCRIBE 활성화 + 세션 라이프사이클 콜백 propagate 대기. */
-    private static final long PROPAGATION_MILLIS = 400L;
+    /** Redis SUBSCRIBE 활성화 + 세션 라이프사이클 콜백 propagate 폴링 상한. */
+    private static final Duration PROPAGATION_AT_MOST = Duration.ofSeconds(2);
+    private static final Duration PROPAGATION_POLL_INTERVAL = Duration.ofMillis(50);
 
     @LocalServerPort
     int port;
@@ -94,10 +97,13 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
 
         sessionA.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
         sessionB.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
-        Thread.sleep(PROPAGATION_MILLIS);
-        assertThat(subscriptionRegistry.sessionCount(roomId))
-                .as("두 세션이 같은 방을 구독한 상태")
-                .isEqualTo(2);
+        // 두 세션의 SUBSCRIBE 가 RoomSubscriptionRegistry 에 반영될 때까지 폴링
+        Awaitility.await()
+                .atMost(PROPAGATION_AT_MOST)
+                .pollInterval(PROPAGATION_POLL_INTERVAL)
+                .untilAsserted(() -> assertThat(subscriptionRegistry.sessionCount(roomId))
+                        .as("두 세션이 같은 방을 구독한 상태")
+                        .isEqualTo(2));
 
         // When — A가 메시지 발행
         sessionA.sendMessage(new TextMessage(
@@ -112,12 +118,14 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
         // When — 둘 다 종료
         sessionA.close();
         sessionB.close();
-        Thread.sleep(PROPAGATION_MILLIS);
 
         // Then — 방의 세션 카운트가 0 → Redis 채널 unsubscribe 도 호출됐다는 의미
-        assertThat(subscriptionRegistry.sessionCount(roomId))
-                .as("마지막 세션까지 떠나면 방 자체가 registry 에서 제거되어 sessionCount 가 0")
-                .isZero();
+        Awaitility.await()
+                .atMost(PROPAGATION_AT_MOST)
+                .pollInterval(PROPAGATION_POLL_INTERVAL)
+                .untilAsserted(() -> assertThat(subscriptionRegistry.sessionCount(roomId))
+                        .as("마지막 세션까지 떠나면 방 자체가 registry 에서 제거되어 sessionCount 가 0")
+                        .isZero());
     }
 
     @Test
@@ -130,7 +138,12 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
         WebSocketSession session = connectWithoutToken(queue);
 
         session.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
-        Thread.sleep(PROPAGATION_MILLIS);
+        Awaitility.await()
+                .atMost(PROPAGATION_AT_MOST)
+                .pollInterval(PROPAGATION_POLL_INTERVAL)
+                .untilAsserted(() -> assertThat(subscriptionRegistry.sessionCount(roomId))
+                        .as("게스트 세션이 SUBSCRIBE 처리되어 방에 등록된 상태")
+                        .isEqualTo(1));
 
         // When
         session.sendMessage(new TextMessage(

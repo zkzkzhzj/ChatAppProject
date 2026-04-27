@@ -90,6 +90,9 @@ dependencies {
 	// ── ArchUnit (아키텍처 규칙 자동 검증) ──
 	testImplementation(libs.archunit)
 
+	// ── Awaitility (비동기/Pub-Sub 테스트의 폴링 동기화 — Thread.sleep 회피) ──
+	testImplementation("org.awaitility:awaitility")
+
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testAnnotationProcessor("org.projectlombok:lombok")

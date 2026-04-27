@@ -137,8 +137,8 @@ POST /api/v1/chat/messages {body: "..."}
 
 ### 진행 중 트랙
 
-- **`ws-redis`** — `docs/handover/track-ws-redis.md` 참조 (Step 2 worktree 진행 중)
-- **`ghost-session`** — `docs/handover/track-ghost-session.md` 참조 (presence cleanup 버그, issue #28)
+- 현재 활성 트랙 없음.
+- 다음 착수 후보는 §1의 `다음 후보 트랙` 목록을 기준으로 사용자 승인 후 시작.
 
 ### Week 7 잔여
 

@@ -43,7 +43,7 @@
 ### hq-agent
 
 - **역할**: 전체 조직 오케스트레이션. 요청 분석 → 에이전트 위임 → 결과 종합
-- **재활용 핵심**: 매 세션 시작 시 4개 파일 읽어 상태 복원
+- **재활용 핵심**: 매 세션 시작 시 5개 파일 읽어 상태 복원
   - `docs/handover.md`
   - `docs/handover/INDEX.md`
   - `docs/learning/RESERVED.md`
@@ -220,7 +220,7 @@ SessionStart Hook (session-start-snapshot.js)
   → 새 세션이 어느 워크트리에서 시작했는지 즉시 추적
         ↓
 [복원 프로토콜 — HQ]
-hq-agent 세션 시작 시 6개 파일 읽기
+hq-agent 세션 시작 시 5개 파일 읽기
   → handover.md + handover/INDEX.md + knowledge/INDEX.md
   → AGENT-ORG.md + learning/RESERVED.md
         ↓

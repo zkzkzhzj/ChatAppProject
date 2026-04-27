@@ -12,7 +12,7 @@
 
 ---
 
-## 예약 현황 (마지막 사용 번호: 50, 53은 ws-redis worktree 점유 중)
+## 예약 현황 (마지막 사용 번호: 54, 53은 ws-redis worktree 점유 중)
 
 | 번호 | 트랙 | 예상 주제 | 상태 |
 |------|------|----------|------|
@@ -24,11 +24,11 @@
 | 51   | `s3-media` | (트랙 시작 시 첫 노트 — S3 도입 결정 + 비용 정책) | 미사용 |
 | 52   | `s3-media` | (예비) | 미사용 |
 | 53   | `ws-redis` | 헥사고날 outbound port 호출자 룰 — worktree 미푸시 영역에서 사용 중 (정합성 머지 시 "사용 완료" 처리) | 사용 중 (worktree) |
-| 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | 미사용 |
-| 55   | `ghost-session` | WebSocket 동시 세션 정책 (동일 userId 다중 connection 핸들링 — 대체/거부/병행) | 미사용 |
-| 56   | `ghost-session` | (예비 — 수정 후 회귀 방지 패턴) | 미사용 |
-| 57   | `ghost-session` | (예비) | 미사용 |
-| 58   | `ghost-session` | (예비) | 미사용 |
+| 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | 사용 완료 |
+| 55   | (반환) | (구 ghost-session — 다중 세션 정책. #28 진단 결과 본 트랙 범위 외로 판정, 별도 이슈로 분리) | 반환 — 재예약 가능 |
+| 56   | `ghost-session` | (예비 — fix 회고/회귀 방지 패턴 등) | 미사용 |
+| 57   | (반환) | (구 ghost-session 예비) | 반환 — 재예약 가능 |
+| 58   | (반환) | (구 ghost-session 예비) | 반환 — 재예약 가능 |
 
 > 59번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
 

@@ -262,3 +262,12 @@ private java.util.Optional<String> extractToken(...) { ... }
 | JPA Entity `@Builder` 금지 | 섹션 5.2 |
 | Security 경로 프로퍼티 분리 | 섹션 8 |
 | Import FQCN 금지 | 섹션 8 |
+
+---
+
+## 헥사고날 3부작 — 시점·범위 매핑
+
+본 노트는 헥사고날 학습의 첫 챕터(초기 설계 원칙). 이후 다음 노트들이 같은 패턴을 다른 시점·범위에서 발전시켰다.
+
+- **[#16. 헥사고날 리팩토링 — 책임 경계](./16-hexagonal-refactoring-responsibility.md)** (Phase 3) — 본 노트의 정적 팩토리·Port 패턴을 운영 중 발견한 안티패턴(중간 DTO, IdempotencyGuard 위치)에서 더 엄격히 재해석
+- **[#53. outbound port 호출자 룰](./53-hexagonal-outbound-port-caller-rule.md)** (ws-redis Step 2) — 본 노트의 Port 개념을 "누가 Port를 호출할 자격이 있는가"의 호출자 기준으로 확장. publish는 outbound port, subscribe lifecycle은 어댑터 내부

@@ -5,6 +5,8 @@
 >
 > 관련 1차 리서치: [docs/knowledge/infra/nextjs-docker-healthcheck-ipv6-binding.md](../knowledge/infra/nextjs-docker-healthcheck-ipv6-binding.md)
 
+> ℹ️ **시점 공지 (2026-04-27 추가)** — 본 함정은 PR #17~#19 거치며 현재 docker-compose 구성에 반영 완료. 같은 함정 재발 방지용 학습 기록으로 보존.
+
 ---
 
 ## 1. 무슨 일이 일어났나

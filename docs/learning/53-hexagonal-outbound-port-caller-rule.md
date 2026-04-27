@@ -180,5 +180,6 @@ raw WS + Redis 로 가면 STOMP 가 빠지므로 유저 메시지 broadcast 도 
 - **LINE LIVE Akka actor + Redis bridge** — [learning/45 §1.5](./45-websocket-redis-pubsub-redesign.md) — actor 라는 인프라 개념을 도메인이 모르도록 격리한 패턴.
 - **Spring `@MessageMapping` vs application service** — [learning/15](./15-websocket-stomp-deep-dive.md), [learning/24](./24-stomp-websocket-jwt-channel-interceptor.md) — STOMP 핸들러가 inbound 어댑터로서 application 을 어떻게 부르는가.
 - **ArchUnit 규칙의 한계** — [ADR-008](../architecture/decisions/008-ci-dx-tool-stack.md) — 패키지 의존은 잡지만 호출자 의미는 못 잡는다는 것.
-- **연관 학습 노트** — [learning/45](./45-websocket-redis-pubsub-redesign.md) (이 결정의 모태가 된 재설계서), [learning/44](./44-spring-stomp-external-broker-choice.md) (STOMP 외부 broker 트레이드오프), [learning/16](./16-hexagonal-refactoring-responsibility.md) (헥사고날 책임 경계 일반론).
+- **연관 학습 노트** — [learning/45](./45-websocket-redis-pubsub-redesign.md) (이 결정의 모태가 된 재설계서), [learning/44](./44-spring-stomp-external-broker-choice.md) (STOMP 외부 broker 트레이드오프).
+- **헥사고날 3부작** — [learning/08](./08-phase1-layer-patterns.md) (Phase 1 — 정적 팩토리·Port 명명 원칙) → [learning/16](./16-hexagonal-refactoring-responsibility.md) (Phase 3 — 책임 경계 리팩토링) → 본 노트(ws-redis Step 2 — 호출자 기준 port 정의). 시점·범위 매핑.
 - **검색 키워드** — "outbound port caller hexagonal", "secondary actor cockburn", "adapter to adapter communication clean architecture".

@@ -3,6 +3,14 @@
 > WebSocket을 처음 접하거나 "소켓 통신이 된다는 게 정확히 무슨 의미인지" 궁금할 때 읽는 문서.
 > 추상적인 설명보다 이 프로젝트 코드와 함께 설명한다.
 
+> ℹ️ **시점 공지 (2026-04-27 추가)**
+>
+> 이 노트는 **STOMP + Simple Broker 시대**(2026년 초) 작성. 현재 트랙은 **raw WebSocket + Redis Pub/Sub** 재설계 중 ([#45](./45-websocket-redis-pubsub-redesign.md), [#59](./59-ws-server-separation-vs-monolith.md) ③ 채택).
+>
+> **여전히 유효**: WebSocket 핸드셰이크 / SockJS fallback / 프로토콜 레벨 동작 (메시지 계층 무관)
+>
+> **변경 예정**: §4 STOMP 프레임 형식 / §5 SimpleBroker 기반 구조 — cutover 후 정리 대상
+
 ---
 
 ## 1. HTTP의 한계와 WebSocket이 나온 이유

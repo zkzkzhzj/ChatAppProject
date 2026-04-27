@@ -66,7 +66,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
    - 상세: §8 Parallel Tracks · `docs/conventions/parallel-work.md` 참조
 8. **커밋/PR 전에 메모리와 인수인계 문서를 반드시 최신화하라.** 코드를 올리기 전에 `memory/` 파일과 인수인계 문서가 현재 작업 내용을 반영하고 있는지 확인한다. 다음 세션이 이 문서만 보고 이어서 작업할 수 있어야 한다. 갱신 대상:
    - 단일 작업: `docs/handover.md` 직접 갱신
-   - 병행 트랙 활성 시: 자기 트랙의 `docs/handover/track-{id}.md`만 갱신 (메인 `docs/handover.md`는 트랙 머지 시점에만)
+   - 병행 트랙 활성 시: 자기 트랙의 `docs/handover/track-{id}.md`만 갱신 (메인 `docs/handover.md`는 **트랙 머지 PR 안에서만** — 머지 후 별도 docs PR 금지)
    - 상세: §8 Parallel Tracks · `docs/conventions/parallel-work.md` 참조
 
 ---
@@ -265,8 +265,10 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 
 ### 8.3 메인 문서 직접 수정 금지
 
-- `docs/handover.md` 메인은 트랙 머지 시점에만 갱신 (작업 중 갱신 X)
+- `docs/handover.md` 메인은 **트랙 머지 PR 안에서만** 갱신 (트랙 진행 중 X, 머지 후 별도 docs PR X)
+- 트랙 종료 docs (track-{id}.md ✅ 종료 / INDEX 활성→완료 / 메인 §1·§2·§4 / RESERVED 정리) 는 모두 머지 PR 에 같이 묶는다
 - 진행 중 상태는 자기 `track-{id}.md`에만 기록
+- 상세 절차: `docs/conventions/parallel-work.md` §4.2 머지 직전 체크리스트 + §8 트랙 종료 후 정리
 
 ### 8.4 단일 트랙 작업이라면
 

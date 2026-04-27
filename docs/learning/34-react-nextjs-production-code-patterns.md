@@ -572,8 +572,10 @@ ChatOverlay (컨테이너 — 레이아웃 + 상태 조율)
 - [Dan Abramov (overreacted.io)](https://overreacted.io) — React 멘탈 모델의 핵심. 특히 "A Complete Guide to useEffect"
 - [Josh W. Comeau 블로그](https://www.joshwcomeau.com) — CSS + React 시각적 설명이 뛰어남
 
-### 관련 학습노트
+### 관련 학습노트 — UI·프론트 시리즈
 
-- [26. Phaser HTML 키보드 포커스 충돌](./26-phaser-html-keyboard-focus-conflict.md) — 게임 엔진과 React 입력이 충돌하는 문제
-- [20. Frontend ESLint 컨벤션](./20-frontend-eslint-convention.md) — 프론트엔드 린팅 설정
+- [26. Phaser HTML 키보드 포커스 충돌](./26-phaser-html-keyboard-focus-conflict.md) — 게임 엔진과 React 입력 충돌 (포커스 분리)
 - [32. 웹 2D 게임 엔진 비교](./32-web-2d-game-engine-comparison.md) — Phaser 선택 배경
+- [49. React 입력 컴포넌트 IME 조합 처리](./49-react-input-ime-handling.md) — F-3 한글 IME 가드. 본 노트의 "Server Component 단순화" 패턴 위에서 추가된 입력 폼 안전장치
+- [50. 모바일 터치 이동 (tap-to-move vs 가상 조이스틱)](./50-mobile-touch-movement.md) — F-1 모바일 진입 결함 수정. Phaser 입력 처리 확장
+- [20. Frontend ESLint 컨벤션](./20-frontend-eslint-convention.md) — 프론트엔드 린팅 설정

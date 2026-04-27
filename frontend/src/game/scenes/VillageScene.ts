@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 
 import type { PositionBroadcast } from '@/lib/websocket/stompClient';
 
+import { getDisplayIdFromToken } from '../../lib/auth';
 import {
   onMyTypingUpdate,
   onNpcTypingUpdate,
@@ -10,6 +11,7 @@ import {
 } from '../../lib/websocket/positionBridge';
 import type { TypingBroadcast } from '../../lib/websocket/stompClient';
 import { sendPosition } from '../../lib/websocket/stompClient';
+import { onDisplayIdChange } from '../../lib/websocket/tokenBridge';
 
 const SPEED = 160;
 const PLAYER_RADIUS = 14;
@@ -55,6 +57,7 @@ export class VillageScene extends Phaser.Scene {
   private unsubscribeTyping: (() => void) | null = null;
   private unsubscribeNpcTyping: (() => void) | null = null;
   private unsubscribeMyTyping: (() => void) | null = null;
+  private unsubscribeDisplayId: (() => void) | null = null;
   private myDisplayId: string | null = null;
   private npcContainer: Phaser.GameObjects.Container | null = null;
   private npcBubble: Phaser.GameObjects.Container | null = null;
@@ -105,8 +108,12 @@ export class VillageScene extends Phaser.Scene {
       this.handleRemotePosition(pos);
     });
 
-    // 내 displayId 결정 (토큰에서 추출)
-    this.resolveMyDisplayId();
+    // 토큰 변경 이벤트 구독 — useStomp 가 토큰을 발급/갱신할 때마다 myDisplayId 동기화 (#28).
+    // 이벤트 도착 전 fallback 으로 현재 localStorage 값 즉시 반영.
+    this.myDisplayId = getDisplayIdFromToken();
+    this.unsubscribeDisplayId = onDisplayIdChange((id) => {
+      this.myDisplayId = id;
+    });
 
     // 다른 유저 타이핑 구독
     this.unsubscribeTyping = onTypingUpdate((data) => {
@@ -129,6 +136,7 @@ export class VillageScene extends Phaser.Scene {
       this.unsubscribeTyping?.();
       this.unsubscribeNpcTyping?.();
       this.unsubscribeMyTyping?.();
+      this.unsubscribeDisplayId?.();
     });
 
     this.scale.on('resize', (gameSize: Phaser.Structs.Size) => {
@@ -445,25 +453,6 @@ export class VillageScene extends Phaser.Scene {
   }
 
   // --- 위치 공유 ---
-
-  private resolveMyDisplayId() {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      this.myDisplayId = null;
-      return;
-    }
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const payload: { role: string; sub: string } = JSON.parse(atob(base64)) as {
-        role: string;
-        sub: string;
-      };
-      this.myDisplayId = payload.role === 'GUEST' ? payload.sub : `user-${payload.sub}`;
-    } catch {
-      this.myDisplayId = null;
-    }
-  }
 
   private sendPositionThrottled(time: number) {
     if (time - this.lastPositionSentAt < POSITION_SEND_INTERVAL) return;

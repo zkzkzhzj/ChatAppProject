@@ -27,6 +27,7 @@ spring:
 jwt:
   secret: test-only-secret-key-must-be-at-least-256-bits-long-value!!
   access-token-expiry-ms: 3600000
+  guest-token-expiry-ms: 86400000
   refresh-token-expiry-ms: 604800000
 
 management:

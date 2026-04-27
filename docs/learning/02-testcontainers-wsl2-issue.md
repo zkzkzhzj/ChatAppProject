@@ -3,6 +3,10 @@
 > 작성 시점: 2026-04-04
 > 맥락: Cucumber 테스트 실행 시 `Could not find a valid Docker environment` 오류가 발생.
 > Docker Desktop이 실행 중임에도 불구하고 Testcontainers가 Docker를 찾지 못함.
+>
+> ℹ️ **시점 공지 (2026-04-27 추가)**
+>
+> 본 노트의 이슈는 이후 Spring Boot 4.x + Testcontainers 2.x 마이그레이션([#07](./07-spring-boot-4-upgrade.md))으로 해결됨. 현재는 BaseTestContainers 패턴([#03](./03-cucumber-bdd-setup.md))이 표준. 본 노트는 **WSL2 / Docker Desktop 통신 원리를 이해하는 학습 자료**로 보존.
 
 ---
 

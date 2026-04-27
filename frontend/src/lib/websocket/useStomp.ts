@@ -85,17 +85,36 @@ export function useStomp(): void {
      * 토큰을 결정한다 — localStorage 에 유효한 토큰이 있으면 재사용, 없거나 만료 임박이면 새로 발급.
      * 만료된 토큰을 STOMP CONNECT 로 보내면 서버 거부 → 새 sessionId → 자기인식 깨짐 (#28).
      * 사전 체크로 그 트리거 자체를 차단한다.
+     *
+     * 게스트만 자동 재발급한다. 멤버 토큰은 만료되어도 토큰을 그대로 두고 서버가 명시적으로
+     * 거부하게 둔다 — 자동 게스트 다운그레이드는 멤버 신원 상실로 이어진다 (Codex P1, #36 review).
+     * 멤버 토큰 자동 갱신은 별도 트랙(refresh token / sliding session) 에서 다룬다.
      */
     const ensureValidToken = async (): Promise<string | null> => {
       const stored = localStorage.getItem('accessToken');
-      if (stored && !isTokenExpired(stored)) return stored;
-      if (stored) {
-        console.log('[useStomp] 토큰 만료 임박/만료 — 사전 갱신');
-        localStorage.removeItem('accessToken');
+
+      if (!stored) {
+        const fresh = await issueGuestToken();
+        if (fresh) localStorage.setItem('accessToken', fresh);
+        return fresh;
       }
-      const fresh = await issueGuestToken();
-      if (fresh) localStorage.setItem('accessToken', fresh);
-      return fresh;
+
+      if (!isTokenExpired(stored)) return stored;
+
+      const role = parseTokenRole(stored);
+      if (role === 'GUEST') {
+        console.log('[useStomp] 게스트 토큰 만료 임박/만료 — 사전 갱신');
+        localStorage.removeItem('accessToken');
+        const fresh = await issueGuestToken();
+        if (fresh) localStorage.setItem('accessToken', fresh);
+        return fresh;
+      }
+
+      // 멤버 토큰 만료 — 자동 게스트 다운그레이드 차단. 토큰 그대로 두고 서버 거부 시 onError 에서 처리.
+      console.warn(
+        '[useStomp] 멤버 토큰 만료 임박/만료 — 자동 갱신 미지원, 서버 거부 시 재로그인 필요',
+      );
+      return stored;
     };
 
     const connect = async () => {
@@ -165,9 +184,19 @@ export function useStomp(): void {
         if (isAuthError) {
           consecutiveAuthErrors += 1;
           if (consecutiveAuthErrors >= AUTH_ERROR_THRESHOLD) {
-            console.log('[useStomp] 인증 에러 — 토큰 갱신 후 재연결');
-            localStorage.removeItem('accessToken');
+            const stored = localStorage.getItem('accessToken');
+            const role = parseTokenRole(stored);
             consecutiveAuthErrors = 0;
+
+            if (role === 'MEMBER') {
+              // 멤버 인증 에러 — 자동 게스트 다운그레이드 금지 (Codex P1).
+              // 무한 루프 방어를 위해 재연결도 시도하지 않는다. 사용자가 재로그인 해야 함.
+              console.warn('[useStomp] 멤버 인증 실패 — 재연결 중단, 재로그인 필요');
+              return;
+            }
+            // 게스트 또는 토큰 없음 → 새 게스트 발급
+            console.log('[useStomp] 게스트 인증 에러 — 토큰 갱신 후 재연결');
+            localStorage.removeItem('accessToken');
           }
         }
         // 일반 에러(네트워크·timeout 등)는 토큰 그대로 재연결 — sessionId 유지로 자기인식 보존

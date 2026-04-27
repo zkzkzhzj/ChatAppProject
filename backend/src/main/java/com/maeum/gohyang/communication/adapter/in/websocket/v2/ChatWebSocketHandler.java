@@ -174,9 +174,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
         double clampedX = Math.max(0, Math.min(frame.x(), maxX));
         double clampedY = Math.max(0, Math.min(frame.y(), maxY));
-        String userType = user.isGuest() ? "GUEST" : "MEMBER";
         bus.publish(frame.roomId(),
-                PositionUpdateEvent.of(frame.roomId(), user.displayId(), userType, clampedX, clampedY));
+                PositionUpdateEvent.of(frame.roomId(), user.displayId(), user.role().name(), clampedX, clampedY));
     }
 
     /** 타이핑 상태 broadcast — V1 TypingHandler 와 정책 동일. 게스트 포함 인증 유저만. */

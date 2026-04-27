@@ -57,7 +57,7 @@
 
 ## 실시간 채팅·WebSocket
 
-> **시대 매핑**: 이 섹션은 STOMP 시대 → raw WebSocket + Redis 전환을 거치는 중. 각 노트의 시대·상태 통합 매핑은 [#59 §9 부록](./59-ws-server-separation-vs-monolith.md#9-부록--stomp-시대-vs-raw-ws-시대-노트-매핑) 참조.
+> **시대 매핑**: 이 섹션은 STOMP 시대 → raw WebSocket + Redis 전환을 거치는 중. 각 노트의 시대·상태 통합 매핑은 [#59 §9 부록](./59-ws-server-separation-vs-monolith.md#9-부록-stomp-시대-vs-raw-ws-시대-노트-매핑) 참조.
 
 | # | 제목 | 한 줄 |
 |---|------|------|

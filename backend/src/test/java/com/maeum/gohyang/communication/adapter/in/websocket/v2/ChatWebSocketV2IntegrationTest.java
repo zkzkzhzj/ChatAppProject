@@ -122,7 +122,9 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
 
     @Test
     void 게스트는_PUBLISH_시도시_COMM_003_ERROR를_받고_publish는_차단된다() throws Exception {
-        // Given — 토큰 없이 핸드셰이크. publicChatRoomId(=1) 와 일치 (가드 통과해야 게스트 거부 단계까지 간다)
+        // Given — 토큰 없이 핸드셰이크. handlePublish 는 게스트 체크가 publicChatRoomId 가드보다 먼저
+        // 잡히므로 roomId 와 무관하게 거부된다. roomId=1 은 SUBSCRIBE 까지 정상 통과시키기 위한 값.
+        // publicChatRoomId 가드 자체는 회원 케이스에서 별도 검증.
         long roomId = 1L;
         BlockingQueue<String> queue = new LinkedBlockingQueue<>();
         WebSocketSession session = connectWithoutToken(queue);

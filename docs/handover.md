@@ -124,7 +124,7 @@ POST /api/v1/chat/messages {body: "..."}
 
 ### 진행 중 트랙
 
-- **`ws-redis`** — `docs/handover/track-ws-redis.md` 참조 (Step 2 worktree 진행 중)
+- **`ws-redis`** — `docs/handover/track-ws-redis.md` 참조 (Step 1·2 완료 / Step 3 진입 전 범위 결정 대기)
 - **`ghost-session`** — `docs/handover/track-ghost-session.md` 참조 (presence cleanup 버그, issue #28)
 
 ### Week 7 잔여

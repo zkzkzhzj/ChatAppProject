@@ -288,9 +288,11 @@ class ChatWebSocketHandlerTest {
         // When
         handler.handleTextMessage(session, frame);
 
-        // Then
+        // Then — 게스트와 동일한 GUEST_CHAT_NOT_ALLOWED(COMM_003) ERROR 가 떨어져야 한다
         verify(bus, never()).publish(anyLong(), any(MessageEvent.class));
-        verify(session).sendMessage(any(TextMessage.class));
+        ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
+        verify(session).sendMessage(captor.capture());
+        assertThat(captor.getValue().getPayload()).contains("\"ERROR\"").contains("COMM_003");
     }
 
     @Test
@@ -414,8 +416,10 @@ class ChatWebSocketHandlerTest {
         // When
         handler.handleTextMessage(session, frame);
 
-        // Then — Jackson polymorphic 디스패치 단계에서 거절됨
-        verify(session).sendMessage(any(TextMessage.class));
+        // Then — Jackson polymorphic 디스패치 단계에서 INVALID_MESSAGE_BODY(COMM_004) 로 거절됨
+        ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
+        verify(session).sendMessage(captor.capture());
+        assertThat(captor.getValue().getPayload()).contains("\"ERROR\"").contains("COMM_004");
         verify(bus, never()).publish(anyLong(), any(MessageEvent.class));
     }
 

@@ -50,12 +50,12 @@ public record ChatMessagePayload(
      */
     public static ChatMessagePayload system(String body) {
         return new ChatMessagePayload(
-                java.util.UUID.randomUUID(),
+                UUID.randomUUID(),
                 0L,
                 null,
                 "SYSTEM",
                 body,
-                java.time.Instant.now()
+                Instant.now()
         );
     }
 }

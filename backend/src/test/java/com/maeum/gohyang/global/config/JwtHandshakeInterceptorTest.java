@@ -1,6 +1,7 @@
 package com.maeum.gohyang.global.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -79,7 +80,7 @@ class JwtHandshakeInterceptorTest {
         // Then
         assertThat(result).isTrue();
         assertThat(attributes).doesNotContainKey(JwtHandshakeInterceptor.AUTHENTICATED_USER_KEY);
-        verify(parseTokenPort, never()).parse(org.mockito.ArgumentMatchers.anyString());
+        verify(parseTokenPort, never()).parse(anyString());
     }
 
     @Test
@@ -93,7 +94,7 @@ class JwtHandshakeInterceptorTest {
 
         // Then
         assertThat(result).isTrue();
-        verify(parseTokenPort, never()).parse(org.mockito.ArgumentMatchers.anyString());
+        verify(parseTokenPort, never()).parse(anyString());
     }
 
     @Test

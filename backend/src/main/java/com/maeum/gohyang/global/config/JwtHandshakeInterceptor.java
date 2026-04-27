@@ -15,6 +15,7 @@ import com.maeum.gohyang.global.security.AuthenticatedUser;
 import com.maeum.gohyang.global.security.ParseTokenPort;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * raw WebSocket(/ws/v2) 핸드셰이크 시 쿼리 파라미터 {@code access_token}을 검증한다.
@@ -26,6 +27,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     public static final String AUTHENTICATED_USER_KEY = "authenticatedUser";
@@ -53,6 +55,9 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                     return true;
                 })
                 .orElseGet(() -> {
+                    // 토큰 자체는 절대 로깅하지 않는다 — 길이만 남겨 운영 진단에 활용.
+                    log.warn("WS handshake rejected: token parse failed (token_len={}, remote={})",
+                            token.length(), request.getRemoteAddress());
                     response.setStatusCode(HttpStatus.UNAUTHORIZED);
                     return false;
                 });

@@ -3,7 +3,10 @@ package com.maeum.gohyang.communication.adapter.out.messaging.redis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +44,7 @@ class RedisChatRelayTest extends BaseTestContainers {
     @Autowired
     RoomMessageBus bus;
 
-    private final java.util.Set<Long> subscribedRoomsToCleanup = new java.util.HashSet<>();
+    private final Set<Long> subscribedRoomsToCleanup = new HashSet<>();
 
     @AfterEach
     void cleanup() {
@@ -70,7 +73,7 @@ class RedisChatRelayTest extends BaseTestContainers {
         // Then
         boolean delivered = latch.await(RECEIVE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertThat(delivered).as("같은 방 메시지는 수신되어야 한다").isTrue();
-        String json = new String(received.get(), java.nio.charset.StandardCharsets.UTF_8);
+        String json = new String(received.get(), StandardCharsets.UTF_8);
         assertThat(json)
                 .contains("\"MESSAGE\"")
                 .contains("\"roomId\":" + roomId)

@@ -24,8 +24,13 @@
 | 51   | `s3-media` | (트랙 시작 시 첫 노트 — S3 도입 결정 + 비용 정책) | 미사용 |
 | 52   | `s3-media` | (예비) | 미사용 |
 | 53   | `ws-redis` | 헥사고날 outbound port 호출자 룰 (publish는 port로, subscribe lifecycle은 어댑터 내부로) | ✅ 사용 완료 (2026-04-26) |
+| 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | 미사용 |
+| 55   | `ghost-session` | WebSocket 동시 세션 정책 (동일 userId 다중 connection 핸들링 — 대체/거부/병행) | 미사용 |
+| 56   | `ghost-session` | (예비 — 수정 후 회귀 방지 패턴) | 미사용 |
+| 57   | `ghost-session` | (예비) | 미사용 |
+| 58   | `ghost-session` | (예비) | 미사용 |
 
-> 54번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
+> 59번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
 
 ---
 

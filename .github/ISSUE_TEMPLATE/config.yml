@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📋 진행 중 트랙 / 핸드오버
+    url: https://github.com/zkzkzhzj/ChatAppProject/blob/main/docs/handover/INDEX.md
+    about: 현재 활성 트랙이 무엇인지, 어떤 상태인지 먼저 확인해 주세요.
+  - name: 📚 학습 노트 (의사결정 이력)
+    url: https://github.com/zkzkzhzj/ChatAppProject/blob/main/docs/learning/INDEX.md
+    about: 비슷한 결정이 이전에 있었는지 검색

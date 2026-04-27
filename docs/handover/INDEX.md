@@ -10,12 +10,20 @@
 
 ## 활성 트랙 (Active)
 
-| 트랙 ID | 파일 | 작업 영역 | 상태 | 시작일 |
-|---------|------|-----------|------|--------|
-| `ws-redis` | [track-ws-redis.md](./track-ws-redis.md) | 채팅 broker B안 재설계 (raw WS + Redis Pub/Sub) | Step 1 완료 / Step 2 대기 | 2026-04-24 |
-| `ui-mvp-feedback` | [track-ui-mvp-feedback.md](./track-ui-mvp-feedback.md) | MVP 피드백 UI 개선 (F-3 → F-2 → F-1) | 코드 완료 / PR·머지 대기 | 2026-04-26 |
+| 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
+|---------|------|-----------|------|------|--------|
+| `ws-redis` | [track-ws-redis.md](./track-ws-redis.md) | 채팅 broker B안 재설계 (raw WS + Redis Pub/Sub) | Step 2 진행 중 | — | 2026-04-24 |
+| `ghost-session` | [track-ghost-session.md](./track-ghost-session.md) | 유령 캐릭터(presence cleanup) 버그 — 세션 종료/지연 연결 시 본인 따라다님 | 분석 단계 | #28 | 2026-04-26 |
 
 > 새 트랙을 시작할 때 이 표에 한 줄 추가하고, 해당 트랙 파일을 신규 작성한다.
+
+## 완료 트랙 (Recently Closed)
+
+| 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
+|---------|---------------------|--------|----|
+| `ui-mvp-feedback` | [49 (React IME)](../learning/49-react-input-ime-handling.md) · [50 (모바일 터치)](../learning/50-mobile-touch-movement-tradeoffs.md) | 2026-04-26 | #27 |
+
+> 완료된 트랙의 `track-*.md`는 머지 후 삭제하고 학습노트로 결정 이력만 보존한다 (메인 `handover.md` §2 "전체 완료 요약" 표에도 한 줄 등록).
 
 ---
 

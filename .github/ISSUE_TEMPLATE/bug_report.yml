@@ -1,0 +1,66 @@
+name: 🐛 버그 리포트
+description: 재현 가능한 버그를 신고합니다.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 버그 리포트
+        가능한 한 재현 절차와 환경을 구체적으로 적어주세요. 추정 원인이 있다면 함께 적어주세요.
+        이 이슈는 수정 트랙의 출발점이 됩니다 (`docs/conventions/parallel-work.md` §2.1 참조).
+  - type: textarea
+    id: summary
+    attributes:
+      label: 한 줄 요약
+      description: 어떤 현상이 발생하는지 1~2 문장으로
+      placeholder: 채팅 입력 중 한글 마지막 음절이 두 번 들어간다.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 재현 절차
+      description: 1, 2, 3 ... 순서대로
+      placeholder: |
+        1. 마을 진입
+        2. 채팅창에 한글 입력
+        3. 엔터 치면 마지막 음절이 중복
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 동작
+      placeholder: 입력한 그대로 한 번만 전송된다.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 실제 동작
+      placeholder: 마지막 음절이 두 번 들어간 채로 전송된다.
+    validations:
+      required: true
+  - type: textarea
+    id: suspect
+    attributes:
+      label: 추정 원인 / 의심 영역
+      description: 알고 있는 정보만. 모르면 비워두세요.
+      placeholder: |
+        - PositionDisconnectListener disconnect 처리 누락 의심
+        - 동일 userId 다중 세션 핸들링 부재 의심
+  - type: textarea
+    id: env
+    attributes:
+      label: 환경
+      placeholder: |
+        - OS: macOS 14 / Windows 11 / iOS / Android
+        - 브라우저: Chrome 130 / Safari 18
+        - 배포: 운영(ghworld.co) / 로컬
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 증거 (스크린샷, 로그, 영상)
+      description: 첨부 가능하면 함께

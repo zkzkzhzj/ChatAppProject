@@ -12,24 +12,24 @@
 
 ---
 
-## 예약 현황 (마지막 사용 번호: 59)
+## 예약 현황 (마지막 사용 번호: main 기준 50; 46·53·54·59는 PR #26·#36·#37 머지 대기)
 
 | 번호 | 트랙 | 예상 주제 | 상태 |
 |------|------|----------|------|
-| 46   | `ws-redis` | Step 2 백엔드 구현기 (raw WS + Redis Pub/Sub 첫 구현, Lettuce Pub/Sub 함정, ConcurrentHashMap 세션 레지스트리 디테일) | 사용 완료 |
+| 46   | `ws-redis` | Step 2 백엔드 구현기 (raw WS + Redis Pub/Sub 첫 구현, Lettuce Pub/Sub 함정, ConcurrentHashMap 세션 레지스트리 디테일) | 예약 (PR #26 머지 대기) |
 | 47   | `ws-redis` | Step 5 운영 배포 + Sweep 4 결과 — 진짜 Before/After | 예약 (Step 5 시점) |
 | 48   | `ws-redis` | (예비, Step 7 블로그 본편 등) | 예약 |
 | 49   | `ui-mvp-feedback` | F-3 React 입력 컴포넌트 IME 조합 처리 | 사용 완료 |
 | 50   | `ui-mvp-feedback` | F-1 모바일 터치 이동 (tap-to-move vs 가상 조이스틱) | 사용 완료 |
 | 51   | `s3-media` | (트랙 시작 시 첫 노트 — S3 도입 결정 + 비용 정책) | 미사용 |
 | 52   | `s3-media` | (예비) | 미사용 |
-| 53   | `ws-redis` | 헥사고날 outbound port 호출자 룰 | 사용 완료 |
-| 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | 사용 완료 |
+| 53   | `ws-redis` | 헥사고날 outbound port 호출자 룰 | 예약 (PR #26 머지 대기) |
+| 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | 예약 (PR #36·#37 머지 대기) |
 | 55   | `member-token-renewal` (후속 의제) | sliding session vs refresh vs WS push 트레이드오프 | 예약 (트랙 착수 시) |
 | 56   | `multi-session-policy` (후속 의제) | 동일 userId 다중 세션 (대체/거부/병행) | 예약 (트랙 착수 시) |
 | 57   | (반환) | — | 미사용 — 다른 트랙이 사용 가능 |
 | 58   | (반환) | — | 미사용 — 다른 트랙이 사용 가능 |
-| 59   | `ws-redis` | WS 서버 분리 vs 모놀리식 (토폴로지 ② → ③ 자기정정) | 사용 완료 |
+| 59   | `ws-redis` | WS 서버 분리 vs 모놀리식 (토폴로지 ② → ③ 자기정정) | 예약 (PR #26 머지 대기) |
 | 60~64 | (반환) | — | 미사용 — 다른 트랙이 사용 가능 |
 
 > 65번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.

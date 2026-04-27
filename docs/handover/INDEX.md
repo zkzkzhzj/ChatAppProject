@@ -21,8 +21,8 @@
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
-| `ws-redis` Step 2 | [44 (Spring STOMP 외부 broker)](../learning/44-spring-stomp-external-broker-choice.md) · [45 (raw WS + Redis Pub/Sub 설계서)](../learning/45-websocket-redis-pubsub-redesign.md) · [46 (Step 2 백엔드 구현기)](../learning/46-village-scaling-decisions.md) · [53 (헥사고날 outbound port 호출자 룰)](../learning/53-hexagonal-outbound-port-caller-rule.md) · [59 (WS 서버 분리 vs 모놀리식)](../learning/59-ws-server-separation-vs-monolith.md) | 2026-04-27 | #26 |
-| `ghost-session` | [54 (presence cleanup 진단)](../learning/54-presence-cleanup-ghost-character-diagnosis.md) | 2026-04-27 | #36 · #37 |
+| `ws-redis` Step 2 | [44 (Spring STOMP 외부 broker)](../learning/44-spring-stomp-external-broker-choice.md) · [45 (raw WS + Redis Pub/Sub 설계서)](../learning/45-websocket-redis-pubsub-redesign.md) · 46·53·59 (PR #26 머지 후 별도 PR로 추가 예정) | 2026-04-27 | #26 |
+| `ghost-session` | 54 (presence cleanup 진단 — PR #36·#37 머지 후 별도 PR로 추가 예정) | 2026-04-27 | #36 · #37 |
 | `ui-mvp-feedback` | [49 (React IME)](../learning/49-react-input-ime-handling.md) · [50 (모바일 터치)](../learning/50-mobile-touch-movement.md) | 2026-04-26 | #27 |
 
 > 완료된 트랙의 `track-*.md`는 머지 후 삭제하고 학습노트로 결정 이력만 보존한다 (메인 `handover.md` §2 "전체 완료 요약" 표에도 한 줄 등록).

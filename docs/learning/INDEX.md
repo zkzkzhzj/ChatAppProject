@@ -32,7 +32,6 @@
 |---|------|------|
 | [08](./08-phase1-layer-patterns.md) | Phase 1 계층 설계 패턴 (Domain · JPA · Security) | 정적 팩토리·`@Builder` 금지·yml 프로퍼티 분리 등 한 묶음 (구 08+10+11 병합) |
 | [16](./16-hexagonal-refactoring-responsibility.md) | 헥사고날 리팩토링 — 책임 경계 | 중간 DTO 함정·IdempotencyGuard 공통화 |
-| [53](./53-hexagonal-outbound-port-caller-rule.md) | 헥사고날 outbound port 호출자 룰 | Port를 어디서 어떻게 호출할 것인가 — Application Service의 책임 경계 |
 
 ## Spring Boot 4.x 함정
 
@@ -66,9 +65,6 @@
 | [27](./27-realtime-chat-code-review-patterns.md) | 실시간 채팅 종합 리뷰 이슈 | 4개 전문 에이전트 리뷰에서 뽑은 패턴 |
 | [44](./44-spring-stomp-external-broker-choice.md) | Spring STOMP 외부 Broker 선택 트레이드오프 | 왜 RabbitMQ고 Redis Pub/Sub이 아닌가 — `enableStompBrokerRelay()` 의 전제 |
 | [45](./45-websocket-redis-pubsub-redesign.md) | Raw WebSocket + Redis Pub/Sub 재설계 설계서 | STOMP·Simple Broker 걷어내기 전 함정 예방 — 채널톡 O(M×N) / LINE LIVE actor+bridge 패턴 흡수 |
-| [46](./46-village-scaling-decisions.md) | ws-redis Step 2 백엔드 구현기 | raw WS + Redis Pub/Sub 첫 구현, Lettuce Pub/Sub 함정, ConcurrentHashMap 세션 레지스트리 |
-| [54](./54-presence-cleanup-ghost-character-diagnosis.md) | 유령 캐릭터(presence cleanup) 원인 진단 | 게스트 토큰 재발급 → myDisplayId stale → fix 5종 (사전 만료 체크·onError role 분기·tokenBridge·beforeunload·게스트 만료 24h) |
-| [59](./59-ws-server-separation-vs-monolith.md) | WS 서버 분리 vs 모놀리식 — 토폴로지 ② → ③ 자기정정 | 신규 채팅 서비스의 default 토폴로지 결정. 학습노트 39개 전수 점검 후 시나리오 B 정리 |
 
 ## UI · 프론트엔드
 

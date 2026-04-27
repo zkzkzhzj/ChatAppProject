@@ -82,6 +82,7 @@
 | Anthropic 연구 동향 | `/docs/knowledge/ai-native/anthropic-research.md` | Managed Agents, Trustworthy Agents, 모델 업데이트 |
 | Claude Code 실천법 | `/docs/knowledge/ai-native/claude-code-practices.md` | 파워유저 패턴, Hooks, Subagents, Skills |
 | 에이전트 조직도 | `/docs/knowledge/AGENT-ORG.md` | 에이전트 역할, 셀프러닝 루프, 설정 현황 |
+| JD 인텔리전스 (외부) | `~/IdeaProjects/marpple-prep/research/` (외부 작업 디렉토리, 본 레포 외부) | 취업 타겟 회사 JD 분석, 요구 기술 트렌드. 에이전트 정의는 `.claude/agents/job-market-agent.md`, 출력물은 레포 외부에 격리 |
 
 ## 회고 / 자기 설명 연습이 필요할 때
 

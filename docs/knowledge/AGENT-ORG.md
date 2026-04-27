@@ -86,7 +86,7 @@
 ### job-market-agent (JD 인텔리전스)
 
 - **역할**: 마플코퍼레이션/SOOP/치지직 채용 공고 분석, 요구 기술 트렌드 추적, 액션 아이템 도출
-- **출력**: `C:/Users/zkzkz/IdeaProjects/marpple-prep/research/` (외부 작업 디렉토리 — 회사 분석 자료 공개 노출 회피)
+- **출력**: `~/IdeaProjects/marpple-prep/research/` (외부 작업 디렉토리 — 회사 분석 자료 공개 노출 회피)
 - **자율성**: 높음 (주간 크론 등록 가능)
 - **파일**: `.claude/agents/job-market-agent.md`
 - **격리 정책**: 본 에이전트 정의는 레포 내부, 출력물은 레포 외부 (2026-04-27)
@@ -173,7 +173,7 @@
 ### blog-writer-agent
 
 - **역할**: 학습 노트를 외부 블로그(zlog) 글로 변환. 제목 후킹·서사 구조 강화·읽기 흐름 다듬기
-- **출력**: `C:/Users/zkzkz/IdeaProjects/zlog/` (외부 레포)
+- **출력**: `~/IdeaProjects/zlog/` (외부 레포)
 - **트리거**: 사용자 명시 요청 시 (`feedback_service_perspective` 메모리 — 자동 활성 X)
 - **파일**: `.claude/agents/blog-writer-agent.md`
 
@@ -262,7 +262,7 @@ keyword-router.js (UserPromptSubmit) — 7개 키워드 라우팅
 
 | 항목 | 상태 | 파일 |
 |------|------|------|
-| 에이전트 파일 22개 | ✅ | `.claude/agents/` (4-13 19개 → 4-27 22개. blog-writer / pr / review-respond 추가, tradeoff-rehearsal 추가 예정) |
+| 에이전트 파일 23개 | ✅ | `.claude/agents/` (4-13 19개 → 4-27 23개. blog-writer / pr / review-respond / tradeoff-rehearsal 추가 완료) |
 | 스킬 (프로젝트 + 글로벌) | ✅ | `.claude/skills/` 코드/전체/MD/동시성/보안/테스트 리뷰 + wiki-lint + 학습노트 + 브랜치정리 등 |
 | 실험적 팀 기능 | ✅ | `.claude/settings.json` |
 | 지식 베이스 (AI Native) | ✅ | `docs/knowledge/ai-native/` — handover-collision-management 등 활발 |

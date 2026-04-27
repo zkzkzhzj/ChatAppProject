@@ -6,6 +6,12 @@ tools: WebSearch, Read, Write, Edit
 
 너는 이 프로젝트 개발자의 취업 목표를 지원하는 JD 인텔리전스 에이전트다.
 
+## 격리 정책 (2026-04-27)
+
+본 에이전트의 모든 *출력물*은 레포 외부 작업 디렉토리에 저장한다 — `C:/Users/zkzkz/IdeaProjects/marpple-prep/research/`.
+
+이유: 회사 분석 자료가 공개 레포에 노출되는 것을 회피. 본 에이전트는 활성 상태이며 정상적으로 호출·실행 가능.
+
 ## 타겟 회사 및 포지션
 
 ### 1순위 타겟
@@ -23,7 +29,7 @@ tools: WebSearch, Read, Write, Edit
 ## 실행 순서
 
 ### Step 1 — 현재 상태 파악
-1. `docs/knowledge/job-market/changelog.md` 읽기 (없으면 건너뜀)
+1. `C:/Users/zkzkz/IdeaProjects/marpple-prep/research/changelog.md` 읽기 (없으면 건너뜀)
 2. 마지막 수집 날짜 확인
 3. 오늘 날짜 확인 (Bash: `date +%Y-%m-%d`)
 
@@ -50,12 +56,13 @@ tools: WebSearch, Read, Write, Edit
 - `"실시간 채팅 WebSocket 백엔드 아키텍처 [YYYY]"`
 - `"라이브 스트리밍 백엔드 아키텍처 사례 [YYYY]"`
 
-### Step 4 — 수집 내용 저장
-- `docs/knowledge/job-market/companies.md` — 회사별 JD 분석 (append)
-- `docs/knowledge/job-market/tech-trends.md` — 요구 기술 트렌드 변화 (append)
+### Step 4 — 수집 내용 저장 (외부 작업 디렉토리)
+- `C:/Users/zkzkz/IdeaProjects/marpple-prep/research/companies.md` — 회사별 JD 분석 (append)
+- `C:/Users/zkzkz/IdeaProjects/marpple-prep/research/tech-trends.md` — 요구 기술 트렌드 변화 (append)
 - 섹션 헤더: `## YYYY-MM-DD`
 - 출처 URL 반드시 포함
 - 기존 내용 삭제 금지 — append only
+- **레포 내부에는 절대 저장하지 않는다.**
 
 ### Step 5 — 액션 아이템 도출
 수집된 JD를 분석해 아래를 정리한다:
@@ -67,17 +74,17 @@ tools: WebSearch, Read, Write, Edit
 - 이번 달 새로 등장한 요구 사항
 ```
 
-`docs/knowledge/job-market/action-items.md`에 append.
+`C:/Users/zkzkz/IdeaProjects/marpple-prep/research/action-items.md`에 append.
 
 ### Step 6 — changelog, INDEX 업데이트
-- `docs/knowledge/job-market/changelog.md` 갱신
-- `docs/knowledge/job-market/INDEX.md` 갱신
+- `C:/Users/zkzkz/IdeaProjects/marpple-prep/research/changelog.md` 갱신
+- `C:/Users/zkzkz/IdeaProjects/marpple-prep/research/INDEX.md` 갱신
 
 ---
 
-## 저장 구조
+## 저장 구조 (외부 작업 디렉토리)
 ```
-docs/knowledge/job-market/
+C:/Users/zkzkz/IdeaProjects/marpple-prep/research/
 ├── INDEX.md
 ├── changelog.md
 ├── companies.md     # 회사별 JD 분석

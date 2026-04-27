@@ -12,16 +12,18 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
-| `ws-redis` | [track-ws-redis.md](./track-ws-redis.md) | 채팅 broker B안 재설계 (raw WS + Redis Pub/Sub) | Step 2 진행 중 | — | 2026-04-24 |
-| `ghost-session` | [track-ghost-session.md](./track-ghost-session.md) | 유령 캐릭터(presence cleanup) 버그 — 세션 종료/지연 연결 시 본인 따라다님 | 분석 단계 | #28 | 2026-04-26 |
+| — | — | (활성 트랙 없음) | — | — | — |
 
+> ws-redis Step 3 (클라이언트 재작성 + WS 모듈 분리) 착수 시 본 표에 다시 추가. `track-ws-redis.md` §9 인수인계 참조.
 > 새 트랙을 시작할 때 이 표에 한 줄 추가하고, 해당 트랙 파일을 신규 작성한다.
 
 ## 완료 트랙 (Recently Closed)
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
-| `ui-mvp-feedback` | [49 (React IME)](../learning/49-react-input-ime-handling.md) · [50 (모바일 터치)](../learning/50-mobile-touch-movement-tradeoffs.md) | 2026-04-26 | #27 |
+| `ws-redis` Step 2 | [44 (Spring STOMP 외부 broker)](../learning/44-spring-stomp-external-broker-choice.md) · [45 (raw WS + Redis Pub/Sub 설계서)](../learning/45-websocket-redis-pubsub-redesign.md) · [46 (Step 2 백엔드 구현기)](../learning/46-village-scaling-decisions.md) · [53 (헥사고날 outbound port 호출자 룰)](../learning/53-hexagonal-outbound-port-caller-rule.md) · [59 (WS 서버 분리 vs 모놀리식)](../learning/59-ws-server-separation-vs-monolith.md) | 2026-04-27 | #26 |
+| `ghost-session` | [54 (presence cleanup 진단)](../learning/54-presence-cleanup-ghost-character-diagnosis.md) | 2026-04-27 | #36 · #37 |
+| `ui-mvp-feedback` | [49 (React IME)](../learning/49-react-input-ime-handling.md) · [50 (모바일 터치)](../learning/50-mobile-touch-movement.md) | 2026-04-26 | #27 |
 
 > 완료된 트랙의 `track-*.md`는 머지 후 삭제하고 학습노트로 결정 이력만 보존한다 (메인 `handover.md` §2 "전체 완료 요약" 표에도 한 줄 등록).
 

@@ -1,6 +1,6 @@
 # 에이전트 조직도 — 마음의 고향
 
-> 마지막 업데이트: 2026-04-13
+> 마지막 업데이트: 2026-04-27
 
 ---
 
@@ -45,9 +45,10 @@
 - **역할**: 전체 조직 오케스트레이션. 요청 분석 → 에이전트 위임 → 결과 종합
 - **재활용 핵심**: 매 세션 시작 시 4개 파일 읽어 상태 복원
   - `docs/handover.md`
+  - `docs/handover/INDEX.md`
+  - `docs/learning/RESERVED.md`
   - `docs/knowledge/INDEX.md`
   - `docs/knowledge/AGENT-ORG.md`
-  - `docs/knowledge/market/INDEX.md`
 - **파일**: `.claude/agents/hq-agent.md`
 
 ---
@@ -63,21 +64,21 @@
 
 ### market-research-agent (시장 리서치)
 
-- **역할**: 소셜/감성케어/버추얼 시장 규모, 트렌드 분석
+- **역할**: 마음의 고향 서비스의 소셜/감성케어/버추얼 월드 시장 규모·트렌드 분석
 - **출력**: `docs/knowledge/market/market-trends.md` 누적
 - **자율성**: 높음 (스케줄 자동 실행 가능)
 - **파일**: `.claude/agents/market-research-agent.md`
 
 ### competitor-agent (경쟁사 분석)
 
-- **역할**: Replika, Character.ai, Gather.town 등 경쟁/유사 서비스 심층 분석
+- **역할**: Replika, Character.ai, Gather.town, ZEPETO 등 경쟁/유사 서비스 심층 분석 (마음의 고향 차별화 인사이트 도출)
 - **출력**: `docs/knowledge/market/competitors/[서비스명].md` 누적
 - **자율성**: 중간 (분석 대상 지정 필요)
 - **파일**: `.claude/agents/competitor-agent.md`
 
 ### user-research-agent (유저 리서치)
 
-- **역할**: 타겟 유저 페르소나, 유저 니즈, 행동 패턴 분석
+- **역할**: 마음의 고향 타겟 유저 페르소나, 유저 니즈, 행동 패턴 분석 (외로움·1인가구·디지털 네이티브)
 - **출력**: `docs/knowledge/market/user-personas.md`, `user-insights.md` 누적
 - **자율성**: 중간
 - **파일**: `.claude/agents/user-research-agent.md`
@@ -85,9 +86,10 @@
 ### job-market-agent (JD 인텔리전스)
 
 - **역할**: 마플코퍼레이션/SOOP/치지직 채용 공고 분석, 요구 기술 트렌드 추적, 액션 아이템 도출
-- **출력**: `docs/knowledge/job-market/` 누적
-- **자율성**: 높음 (주간 크론 등록 예정)
+- **출력**: `C:/Users/zkzkz/IdeaProjects/marpple-prep/research/` (외부 작업 디렉토리 — 회사 분석 자료 공개 노출 회피)
+- **자율성**: 높음 (주간 크론 등록 가능)
 - **파일**: `.claude/agents/job-market-agent.md`
+- **격리 정책**: 본 에이전트 정의는 레포 내부, 출력물은 레포 외부 (2026-04-27)
 
 ### dependency-tracker-agent (의존성 버전 추적)
 
@@ -168,6 +170,32 @@
 - **트리거**: `/학습노트` 스킬 또는 Stop Hook 리마인드
 - **파일**: `.claude/agents/learning-agent.md`
 
+### blog-writer-agent
+
+- **역할**: 학습 노트를 외부 블로그(zlog) 글로 변환. 제목 후킹·서사 구조 강화·읽기 흐름 다듬기
+- **출력**: `C:/Users/zkzkz/IdeaProjects/zlog/` (외부 레포)
+- **트리거**: 사용자 명시 요청 시 (`feedback_service_perspective` 메모리 — 자동 활성 X)
+- **파일**: `.claude/agents/blog-writer-agent.md`
+
+### pr-agent
+
+- **역할**: PR 생성 전담. 브랜치 생성·커밋 정리·푸시·`gh pr create`. git.md 규칙 준수. 6개 Codex 리뷰 게이트 (review/full-review/concurrency/security/test-quality/docs)
+- **트리거**: "PR 날려", "PR 생성", "PR 올려", "푸시해줘", "올려줘"
+- **파일**: `.claude/agents/pr-agent.md`
+
+### review-respond-agent
+
+- **역할**: PR 리뷰 코멘트 분석 및 수정안 제시. CodeRabbit·Codex AI 봇 리뷰 읽고 타당성 판단 → 코드 수정
+- **트리거**: "리뷰 대응", "리뷰 반영", "코멘트 대응"
+- **파일**: `.claude/agents/review-respond-agent.md`
+
+### tradeoff-rehearsal-agent (트레이드오프 회고)
+
+- **역할**: learning 노트 1개를 받아 *따져 묻는 5질문 + 본인 답안 슬롯* 자동 생성. 사용자가 자기 말로 트레이드오프를 다시 풀어보는 회고 연습 도구
+- **출력**: `docs/learning/rehearsal/{learning번호}-rehearsal.md`
+- **트리거**: "리허설", "회고 연습", "트레이드오프 시연"
+- **파일**: `.claude/agents/tradeoff-rehearsal-agent.md`
+
 ---
 
 ## 재활용 원칙
@@ -186,46 +214,74 @@
 ## 셀프러닝 루프
 
 ```text
-[리서치 본부 — 자동]
-research-agent (매주) → docs/knowledge/ai-native/ 업데이트
-market-research-agent (격주) → docs/knowledge/market/ 업데이트
+[세션 시작]
+SessionStart Hook (session-start-snapshot.js)
+  → cwd · 워크트리 · 브랜치 · porcelain hash 캡처
+  → 새 세션이 어느 워크트리에서 시작했는지 즉시 추적
         ↓
-[HQ — 세션 시작 시]
-handover.md + knowledge/INDEX.md + AGENT-ORG.md + market/INDEX.md 읽기
-→ 현재 상태 복원 → 사용자 요청 처리
+[복원 프로토콜 — HQ]
+hq-agent 세션 시작 시 6개 파일 읽기
+  → handover.md + handover/INDEX.md + knowledge/INDEX.md
+  → AGENT-ORG.md + learning/RESERVED.md
+        ↓
+[리서치 본부 — 자동/잠금]
+research-agent (매주) → docs/knowledge/ai-native/ 업데이트
+realtime-tech-agent (매주) → docs/knowledge/realtime/ 업데이트
+market-research-agent → docs/knowledge/market/ (서비스 시장 조사)
+competitor-agent → docs/knowledge/market/competitors/ (경쟁 서비스 분석)
+user-research-agent → docs/knowledge/market/user-personas.md (서비스 타겟 유저)
+job-market-agent → marpple-prep/research/ (외부 — 회사 분석 자료 격리)
+dependency-tracker-agent (🔒 잠금)
         ↓
 [개발 본부 — 요청 시]
-domain → adapter → test → review 순차 실행
+domain → adapter → test 순차 실행
         ↓
-[품질 보증 — 자동/요청]
-review-agent (PostToolUse Hook 예정)
-docs-agent (주간 스케줄 예정)
+[품질 보증 — Bash 가드]
+PreToolUse(Bash) Hook (pre-bash-guard.js)
+  → 브랜치 prefix 6종 검증
+  → 중복 PR 차단
+  → ERD/API/event 누락 advisory
+        ↓
+[품질 보증 — 자동 리뷰]
+PostToolUse Hook (post-commit-review.js)
+  → git commit 성공 시 review-agent 자동 트리거
+PR 생성 시 pr-agent §5
+  → 6개 Codex 리뷰 (review/full-review/concurrency/security/test-quality/docs) CRITICAL 0건 통과
         ↓
 [세션 종료]
-Stop Hook → memory/ 자동 저장 (예정)
+Stop Hook (stop-handover-check.js)
+  → handover.md / track-*.md 갱신 여부 체크
+  → 메모리 자동 저장
+keyword-router.js (UserPromptSubmit) — 7개 키워드 라우팅
+  → blog-writer / learning / pr / research / concurrency / security / review-respond
 ```
 
 ---
 
-## 설정 현황 (2026-04-13)
+## 설정 현황 (2026-04-27)
 
 | 항목 | 상태 | 파일 |
 |------|------|------|
-| 에이전트 파일 19개 | ✅ | `.claude/agents/` |
-| 스킬 8종 | ✅ | `.claude/skills/` — 코드/전체/MD/동시성/보안/테스트 리뷰 + wiki-lint + 학습노트 |
+| 에이전트 파일 22개 | ✅ | `.claude/agents/` (4-13 19개 → 4-27 22개. blog-writer / pr / review-respond 추가, tradeoff-rehearsal 추가 예정) |
+| 스킬 (프로젝트 + 글로벌) | ✅ | `.claude/skills/` 코드/전체/MD/동시성/보안/테스트 리뷰 + wiki-lint + 학습노트 + 브랜치정리 등 |
 | 실험적 팀 기능 | ✅ | `.claude/settings.json` |
-| 지식 베이스 (AI Native) | ✅ | `docs/knowledge/ai-native/` |
-| 지식 베이스 (시장조사) | ✅ 구조만 | `docs/knowledge/market/` |
-| 지식 베이스 (실시간 기술) | ✅ | `docs/knowledge/realtime/` |
-| 지식 베이스 (JD 인텔리전스) | ✅ | `docs/knowledge/job-market/` |
-| 지식 베이스 (의존성 추적) | ✅ | `docs/knowledge/dependencies/` |
-| CLAUDE.md 연결 | ✅ | `CLAUDE.md` |
+| 지식 베이스 (AI Native) | ✅ | `docs/knowledge/ai-native/` — handover-collision-management 등 활발 |
+| 지식 베이스 (실시간 기술) | ✅ | `docs/knowledge/realtime/` — chat.md 30KB 본격 |
+| 지식 베이스 (JD 인텔리전스) | ✅ 외부 출력 | 출력 위치: `marpple-prep/research/` (외부). 에이전트 정의는 레포 내, 출력물만 격리 |
+| 지식 베이스 (시장조사) | ✅ | `docs/knowledge/market/` — 마음의 고향 서비스의 시장·경쟁사·유저 리서치 (서비스 운영 시작 시 본격 활용) |
+| 지식 베이스 (의존성 추적) | 🔒 | `docs/knowledge/dependencies/` — 4-13 이후 0건. dependency-tracker 잠금 상태 |
+| 학습/회고 리허설 출력 | ✅ NEW | `docs/learning/rehearsal/` — tradeoff-rehearsal-agent 출력물 |
+| CLAUDE.md 연결 | ✅ | `CLAUDE.md` — §9는 docs/CLAUDE-routing.md로 분리 |
 | research-agent 주간 크론 | ✅ | 매주 월요일 09:00 KST |
 | realtime-tech-agent 주간 크론 | ✅ | 매주 월요일 09:00 KST |
 | job-market-agent 주간 크론 | ✅ | 매주 월요일 10:00 KST |
-| PostToolUse Hook (git commit) | ✅ | `settings.json` — commit 성공 시 review-agent 리뷰 지시 |
-| Stop Hook 세션 캡처 | ✅ | `settings.local.json` — 비프음 + memory 저장/handover 확인 |
+| dependency-tracker-agent 격주 크론 | 🔒 | 플랜 트리거 한도 초과로 잠금 |
+| SessionStart Hook | ✅ NEW | `settings.json` `session-start-snapshot.js` — cwd / branch / porcelain hash |
+| PreToolUse(Bash) Hook | ✅ NEW | `settings.json` `pre-bash-guard.js` — 브랜치/PR/문서 누락 가드 |
+| PostToolUse Hook (git commit) | ✅ | `settings.json` `post-commit-review.js` — commit 성공 시 review-agent 자동 트리거 |
+| UserPromptSubmit Hook | ✅ NEW | `settings.json` `keyword-router.js` — 7개 키워드 자동 라우팅 |
+| Stop Hook | ✅ | `settings.json` `stop-handover-check.js` — handover/track 갱신 검사 (병행 트랙 분리 정책 미반영, 보강 보류) |
 | Notification Hook | ✅ | `settings.local.json` — 비프음 |
-| Wiki (LLM Wiki 패턴) | ✅ | `docs/wiki/` — 11페이지 + INDEX + log.md + Lint 스킬 |
-| dependency-tracker-agent 격주 크론 | 🔒 | 플랜 트리거 한도(3개) 초과 — 잠금. 슬롯 여유 시 재등록 |
+| Wiki (LLM Wiki 패턴) | ✅ | `docs/wiki/` — 11페이지 + INDEX + log.md + Lint 스킬 (4-15 lint 후 재실행 권장) |
+| 병행 트랙 + 워크트리 분리 | ✅ | `docs/conventions/parallel-work.md` + `docs/handover/INDEX.md` + `docs/learning/RESERVED.md` |
 | MCP PostgreSQL/Redis 연결 | ❌ | MCP 서버 설정 필요 |

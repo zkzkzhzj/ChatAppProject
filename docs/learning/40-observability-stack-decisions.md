@@ -407,7 +407,7 @@ environment:
 - [JVM Micrometer 대시보드 ID 4701](https://grafana.com/grafana/dashboards/4701)
 - [k6 WebSocket 문서](https://k6.io/docs/using-k6/protocols/websockets/)
 - [Spring Boot 4.0 Actuator 문서](https://docs.spring.io/spring-boot/reference/actuator/metrics.html)
-- [마플·치지직·SOOP 부하 테스트 도구 리서치 결과](../knowledge/job-market/)
+- 부하 테스트 도구 비교 리서치 (외부 자료 — 회사 환경별 nGrinder/k6/JMeter 채택 사례)
 
 ---
 

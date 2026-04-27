@@ -50,8 +50,9 @@ wc -w CLAUDE.md
 각 knowledge 디렉토리의 changelog 읽기:
 - `docs/knowledge/changelog.md`
 - `docs/knowledge/realtime/changelog.md`
-- `docs/knowledge/job-market/changelog.md`
+- `docs/knowledge/market/changelog.md`
 - `docs/knowledge/dependencies/changelog.md`
+- (참고: job-market 카테고리는 2026-04-27 외부 이전 — 본 점검 대상 아님)
 
 마지막 업데이트가 4주 이상 지난 디렉토리 → WARNING 출력
 마지막 업데이트가 8주 이상 지난 디렉토리 → CRITICAL 출력

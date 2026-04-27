@@ -62,7 +62,8 @@ class ChatWebSocketHandlerTest {
     void setUp() {
         handler = new ChatWebSocketHandler(sessionRegistry, subscriptionRegistry,
                 JsonMapper.builder().build(), bus, sendMessageUseCase);
-        // village.map.max-x/y 는 @Value 주입이라 단위 테스트에선 ReflectionTestUtils 로 세팅
+        // @Value 주입은 단위 테스트에선 ReflectionTestUtils 로 세팅
+        org.springframework.test.util.ReflectionTestUtils.setField(handler, "publicChatRoomId", 1L);
         org.springframework.test.util.ReflectionTestUtils.setField(handler, "maxX", 2400.0);
         org.springframework.test.util.ReflectionTestUtils.setField(handler, "maxY", 1600.0);
         sessionAttributes = new HashMap<>();
@@ -79,26 +80,117 @@ class ChatWebSocketHandlerTest {
 
     @Test
     void SUBSCRIBE_프레임은_RoomSubscriptionRegistry로_위임된다() throws Exception {
-        // Given
-        TextMessage frame = new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":42}");
+        // Given — publicChatRoomId 와 일치하는 방
+        TextMessage frame = new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":1}");
 
         // When
         handler.handleTextMessage(session, frame);
 
         // Then
-        verify(subscriptionRegistry).subscribe(42L, SESSION_ID);
+        verify(subscriptionRegistry).subscribe(1L, SESSION_ID);
     }
 
     @Test
     void UNSUBSCRIBE_프레임은_RoomSubscriptionRegistry로_위임된다() throws Exception {
+        // Given — publicChatRoomId 와 일치하는 방
+        TextMessage frame = new TextMessage("{\"type\":\"UNSUBSCRIBE\",\"roomId\":1}");
+
+        // When
+        handler.handleTextMessage(session, frame);
+
+        // Then
+        verify(subscriptionRegistry).unsubscribe(1L, SESSION_ID);
+    }
+
+    // ============================================================
+    // publicChatRoomId 가드 (Step 3 멤버십 검증으로 일반화 예정 — issue #31)
+    // ============================================================
+
+    @Test
+    void publicChatRoomId_와_다른_방_SUBSCRIBE는_NOT_PARTICIPANT_ERROR로_거부된다() throws Exception {
+        // Given — publicChatRoomId 는 1L 인데 클라이언트가 다른 방 ID(42) 로 시도
+        given(session.isOpen()).willReturn(true);
+        TextMessage frame = new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":42}");
+
+        // When
+        handler.handleTextMessage(session, frame);
+
+        // Then — registry 호출 없음 + COMM_002 ERROR 응답
+        verify(subscriptionRegistry, never()).subscribe(anyLong(), any());
+        ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
+        verify(session).sendMessage(captor.capture());
+        assertThat(captor.getValue().getPayload()).contains("\"ERROR\"").contains("COMM_002");
+    }
+
+    @Test
+    void publicChatRoomId_와_다른_방_UNSUBSCRIBE는_NOT_PARTICIPANT_ERROR로_거부된다() throws Exception {
         // Given
+        given(session.isOpen()).willReturn(true);
         TextMessage frame = new TextMessage("{\"type\":\"UNSUBSCRIBE\",\"roomId\":42}");
 
         // When
         handler.handleTextMessage(session, frame);
 
         // Then
-        verify(subscriptionRegistry).unsubscribe(42L, SESSION_ID);
+        verify(subscriptionRegistry, never()).unsubscribe(anyLong(), any());
+        ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
+        verify(session).sendMessage(captor.capture());
+        assertThat(captor.getValue().getPayload()).contains("\"ERROR\"").contains("COMM_002");
+    }
+
+    @Test
+    void publicChatRoomId_와_다른_방_PUBLISH는_NOT_PARTICIPANT_ERROR로_거부되고_UseCase호출_안됨() throws Exception {
+        // Given — 회원이라 GUEST_CHAT_NOT_ALLOWED 보다 publicChatRoomId 가드가 먼저 잡혀야 함
+        AuthenticatedUser user = new AuthenticatedUser(101L, UserType.MEMBER);
+        sessionAttributes.put(JwtHandshakeInterceptor.AUTHENTICATED_USER_KEY, user);
+        given(session.isOpen()).willReturn(true);
+        TextMessage frame = new TextMessage("{\"type\":\"PUBLISH\",\"roomId\":42,\"body\":\"침투\"}");
+
+        // When
+        handler.handleTextMessage(session, frame);
+
+        // Then — UseCase 호출 X, bus publish X, COMM_002 ERROR 응답
+        verify(sendMessageUseCase, never()).execute(any(SendMessageUseCase.Command.class));
+        verify(bus, never()).publish(anyLong(), any(MessageEvent.class));
+        ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
+        verify(session).sendMessage(captor.capture());
+        assertThat(captor.getValue().getPayload()).contains("\"ERROR\"").contains("COMM_002");
+    }
+
+    @Test
+    void publicChatRoomId_와_다른_방_POSITION은_NOT_PARTICIPANT_ERROR로_거부되고_publish_안됨() throws Exception {
+        // Given
+        AuthenticatedUser user = new AuthenticatedUser(101L, UserType.MEMBER);
+        sessionAttributes.put(JwtHandshakeInterceptor.AUTHENTICATED_USER_KEY, user);
+        given(session.isOpen()).willReturn(true);
+        TextMessage frame = new TextMessage("{\"type\":\"POSITION\",\"roomId\":42,\"x\":100.0,\"y\":200.0}");
+
+        // When
+        handler.handleTextMessage(session, frame);
+
+        // Then
+        verify(bus, never()).publish(anyLong(), any(OutboundFrame.class));
+        ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
+        verify(session).sendMessage(captor.capture());
+        assertThat(captor.getValue().getPayload()).contains("\"ERROR\"").contains("COMM_002");
+    }
+
+    @Test
+    void publicChatRoomId_와_다른_방_TYPING은_NOT_PARTICIPANT_ERROR로_거부되고_publish_안됨() throws Exception {
+        // Given
+        AuthenticatedUser user = new AuthenticatedUser(101L, UserType.MEMBER);
+        sessionAttributes.put(JwtHandshakeInterceptor.AUTHENTICATED_USER_KEY, user);
+        given(session.isOpen()).willReturn(true);
+        TextMessage frame = new TextMessage("{\"type\":\"TYPING\",\"roomId\":42,\"typing\":true}");
+
+        // When
+        handler.handleTextMessage(session, frame);
+
+        // Then
+        verify(bus, never()).publish(anyLong(), any(OutboundFrame.class));
+        ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
+        verify(session).sendMessage(captor.capture());
+        assertThat(captor.getValue().getPayload()).contains("\"ERROR\"").contains("COMM_002");
     }
 
     @Test

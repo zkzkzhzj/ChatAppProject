@@ -60,6 +60,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final RoomMessageBus bus;
     private final SendMessageUseCase sendMessageUseCase;
 
+    /**
+     * 마을 공개 채팅방 외 임의 roomId 접근을 막는 가드. V1 STOMP 핸들러가 클라이언트 입력을 안 받고
+     * 서버가 직접 publicChatRoomId 만 사용했던 정책을 raw WS 에서도 강제한다. Step 3 (#31) 에서
+     * 멤버십 검증으로 일반화될 때까지의 임시 가드.
+     */
+    @Value("${village.public-chat-room-id}")
+    private long publicChatRoomId;
+
     @Value("${village.map.max-x:2400.0}")
     private double maxX;
 
@@ -82,13 +90,40 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
 
         switch (frame) {
-            case SubscribeFrame s -> subscriptionRegistry.subscribe(s.roomId(), session.getId());
-            case UnsubscribeFrame u -> subscriptionRegistry.unsubscribe(u.roomId(), session.getId());
+            case SubscribeFrame s -> handleSubscribe(session, s);
+            case UnsubscribeFrame u -> handleUnsubscribe(session, u);
             case PublishFrame p -> handlePublish(session, p);
             case PositionFrame p -> handlePosition(session, p);
             case TypingFrame t -> handleTyping(session, t);
             case PingFrame ignored -> sendOutbound(session, PongEvent.instance());
         }
+    }
+
+    private void handleSubscribe(WebSocketSession session, SubscribeFrame frame) {
+        if (!requireKnownRoom(session, frame.roomId())) {
+            return;
+        }
+        subscriptionRegistry.subscribe(frame.roomId(), session.getId());
+    }
+
+    private void handleUnsubscribe(WebSocketSession session, UnsubscribeFrame frame) {
+        if (!requireKnownRoom(session, frame.roomId())) {
+            return;
+        }
+        subscriptionRegistry.unsubscribe(frame.roomId(), session.getId());
+    }
+
+    /**
+     * 임시 가드 — 운영 정책상 마을 공개 채팅방 외 다른 roomId 는 접근 불가.
+     * 불일치 시 NOT_PARTICIPANT(COMM_002) 로 거절. Step 3 (#31) 에서
+     * 진짜 멤버십 검증(loadParticipantPort) 으로 대체될 때까지 유지.
+     */
+    private boolean requireKnownRoom(WebSocketSession session, long roomId) {
+        if (roomId == publicChatRoomId) {
+            return true;
+        }
+        sendError(session, CommunicationErrorCode.NOT_PARTICIPANT);
+        return false;
     }
 
     @Override
@@ -101,6 +136,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         AuthenticatedUser user = JwtHandshakeInterceptor.principalOf(session.getAttributes());
         if (user == null || user.isGuest()) {
             sendError(session, CommunicationErrorCode.GUEST_CHAT_NOT_ALLOWED);
+            return;
+        }
+        if (!requireKnownRoom(session, frame.roomId())) {
             return;
         }
 
@@ -128,6 +166,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         if (user == null) {
             return;
         }
+        if (!requireKnownRoom(session, frame.roomId())) {
+            return;
+        }
         if (!Double.isFinite(frame.x()) || !Double.isFinite(frame.y())) {
             return;
         }
@@ -142,6 +183,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private void handleTyping(WebSocketSession session, TypingFrame frame) {
         AuthenticatedUser user = JwtHandshakeInterceptor.principalOf(session.getAttributes());
         if (user == null) {
+            return;
+        }
+        if (!requireKnownRoom(session, frame.roomId())) {
             return;
         }
         bus.publish(frame.roomId(),

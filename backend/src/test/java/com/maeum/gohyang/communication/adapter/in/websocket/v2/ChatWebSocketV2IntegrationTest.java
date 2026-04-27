@@ -81,8 +81,8 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
 
     @Test
     void 같은_방을_구독한_두_세션은_PUBLISH된_메시지를_상호_수신하고_둘이_떠나면_방이_정리된다() throws Exception {
-        // Given
-        long roomId = 5001L;
+        // Given — application-test.yml 의 village.public-chat-room-id (=1) 와 일치해야 가드 통과
+        long roomId = 1L;
         String tokenA = issueTokenPort.issueMemberToken(1001L);
         String tokenB = issueTokenPort.issueMemberToken(2002L);
         givenSendMessageEchoesBackInput();
@@ -122,8 +122,8 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
 
     @Test
     void 게스트는_PUBLISH_시도시_COMM_003_ERROR를_받고_publish는_차단된다() throws Exception {
-        // Given — 토큰 없이 핸드셰이크
-        long roomId = 6001L;
+        // Given — 토큰 없이 핸드셰이크. publicChatRoomId(=1) 와 일치 (가드 통과해야 게스트 거부 단계까지 간다)
+        long roomId = 1L;
         BlockingQueue<String> queue = new LinkedBlockingQueue<>();
         WebSocketSession session = connectWithoutToken(queue);
 

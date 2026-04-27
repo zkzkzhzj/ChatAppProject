@@ -173,6 +173,15 @@ public record Command(long userId, long chatRoomId, String body) {
 }
 ```
 
+### ⚠️ 2026-04-27 추가 공지 — raw WS 전환 시 검증 경로 변경
+
+> 본 이슈는 STOMP 단계에서만 정확히 이 형태로 발생한다. raw WS([#45](./45-websocket-redis-pubsub-redesign.md))로 전환되면 검증 메커니즘이 달라진다:
+>
+> - **STOMP 시대 (이 노트 작성 시점)**: `@MessageMapping`의 `@Payload @Validated` — Spring 메시징 파이프라인 자동 검증
+> - **raw WS 시대 (진행 중)**: HTTP 핸드셰이크 → 메시지는 수동 JSON 파싱 → `SendMessageUseCase.Command` compact constructor가 **단일 검증 지점**
+>
+> 위 권고(B 옵션 — UseCase Command에서 검증)는 토폴로지 무관 유효. 입력 경로가 STOMP 채널 1개에서 raw WS 핸들러 1개로 바뀌는 것뿐이고, 도메인 검증 자리는 그대로다.
+
 ---
 
 ## 이슈 4: WebSocket CORS와 REST CORS 불일치 [해결됨]

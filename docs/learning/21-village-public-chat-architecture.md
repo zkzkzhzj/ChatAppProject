@@ -3,6 +3,14 @@
 > 작성 시점: 2026-04-13
 > 맥락: NPC 1:1 채팅(Phase 3)에서 마을 공개 채팅으로 확장하면서, 메타버스 플랫폼들의 채팅 구조를 리서치하고 우리 서비스에 맞는 설계를 결정했다.
 
+> ℹ️ **시점 공지 (2026-04-27 추가)**
+>
+> STOMP 시대 작성. 현재는 raw WS 재설계 중 ([#45](./45-websocket-redis-pubsub-redesign.md), [#59](./59-ws-server-separation-vs-monolith.md)).
+>
+> **유효한 도메인 결정**: §1~2 "Everyone" 채팅 채택 / REST + WebSocket 이중 채널 패턴 / @멘션 NPC / 게스트 읽기 전용
+>
+> **변경 예정**: §"스케일링 전략"의 Simple Broker → 외부 broker 부분 — 현재 [#46](./46-village-scaling-decisions.md) + [#59](./59-ws-server-separation-vs-monolith.md)에서 다시 정리됨
+
 ---
 
 ## 배경

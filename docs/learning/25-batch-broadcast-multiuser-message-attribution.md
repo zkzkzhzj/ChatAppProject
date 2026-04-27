@@ -3,6 +3,14 @@
 > 작성 시점: 2026-04-13
 > 맥락: 마을 공개 채팅에서 유저 메시지 + NPC 응답을 broadcast할 때 다른 유저의 메시지가 중간에 끼어드는 문제(인터리빙)와, 멀티유저 환경에서 "내 메시지"를 구분하지 못하는 버그를 해결하면서 정리한 내용.
 
+> ℹ️ **시점 공지 (2026-04-27 추가)**
+>
+> STOMP 시대 작성. broadcast 경로는 raw WS + Redis publish로 변경 ([#45](./45-websocket-redis-pubsub-redesign.md)).
+>
+> **여전히 유효한 도메인 결정**: 인터리빙 방지(개별 broadcast) / `senderId` 추가 결정 / userId vs participantId 트레이드오프 / 클라이언트 판별 패턴 — 이 모든 게 raw WS에서도 동일
+>
+> **변경 부분**: STOMP MESSAGE 프레임 → JSON envelope 직렬화 형식 (도메인 모델 `MessageResponse`는 무관)
+
 ---
 
 ## 배경

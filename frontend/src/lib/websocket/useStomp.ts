@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from 'react';
 
-import type { StompSubscription } from '@stomp/stompjs';
+import type { IFrame, StompSubscription } from '@stomp/stompjs';
 
 import apiClient from '@/lib/api/client';
+import { getDisplayIdFromToken, isTokenExpired } from '@/lib/auth';
 import { useChatStore } from '@/store/useChatStore';
 import type { ChatMessage, MessageResponse } from '@/types/chat';
 
@@ -16,8 +17,14 @@ import {
   subscribeToPositions,
   subscribeToTyping,
 } from './stompClient';
+import { emitDisplayIdChange } from './tokenBridge';
 
 const VILLAGE_CHAT_TOPIC = 'village';
+const RECONNECT_DELAY_MS = 3_000;
+/** STOMP 인증 실패 메시지 — 서버 StompAuthChannelInterceptor 와 정확히 일치해야 함 */
+const TOKEN_INVALID_MESSAGE = 'Invalid or expired token';
+/** 같은 인증 에러가 연속 N회 발생하면 진짜 만료로 간주하고 토큰 갱신 (무한 루프 방어) */
+const AUTH_ERROR_THRESHOLD = 1;
 
 function parseTokenRole(token: string | null): string | null {
   if (!token) return null;
@@ -25,6 +32,19 @@ function parseTokenRole(token: string | null): string | null {
     const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
     return (JSON.parse(atob(base64)) as { role?: string }).role ?? null;
   } catch {
+    return null;
+  }
+}
+
+async function issueGuestToken(): Promise<string | null> {
+  try {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
+    const res = await fetch(`${apiBase}/api/v1/auth/guest`, { method: 'POST' });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { accessToken: string };
+    return data.accessToken;
+  } catch (err) {
+    console.warn('[useStomp] 게스트 토큰 발급 실패', err);
     return null;
   }
 }
@@ -59,25 +79,27 @@ export function useStomp(): void {
 
   useEffect(() => {
     let cancelled = false;
+    let consecutiveAuthErrors = 0;
+
+    /**
+     * 토큰을 결정한다 — localStorage 에 유효한 토큰이 있으면 재사용, 없거나 만료 임박이면 새로 발급.
+     * 만료된 토큰을 STOMP CONNECT 로 보내면 서버 거부 → 새 sessionId → 자기인식 깨짐 (#28).
+     * 사전 체크로 그 트리거 자체를 차단한다.
+     */
+    const ensureValidToken = async (): Promise<string | null> => {
+      const stored = localStorage.getItem('accessToken');
+      if (stored && !isTokenExpired(stored)) return stored;
+      if (stored) {
+        console.log('[useStomp] 토큰 만료 임박/만료 — 사전 갱신');
+        localStorage.removeItem('accessToken');
+      }
+      const fresh = await issueGuestToken();
+      if (fresh) localStorage.setItem('accessToken', fresh);
+      return fresh;
+    };
 
     const connect = async () => {
-      let token = localStorage.getItem('accessToken');
-
-      // 토큰이 없으면 게스트 토큰 자동 발급 (게스트 토큰 = 익명 접속)
-      if (!token) {
-        try {
-          const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
-          const res = await fetch(`${apiBase}/api/v1/auth/guest`, { method: 'POST' });
-          if (res.ok) {
-            const data = (await res.json()) as { accessToken: string };
-            token = data.accessToken;
-            localStorage.setItem('accessToken', token);
-          }
-        } catch (err) {
-          console.warn('[useStomp] 게스트 토큰 발급 실패', err);
-        }
-      }
-
+      const token = await ensureValidToken();
       if (cancelled) return;
 
       if (!token) {
@@ -86,6 +108,9 @@ export function useStomp(): void {
         return;
       }
 
+      // 자기인식 동기화 — 토큰이 결정된 시점에 displayId 를 Phaser 측에 전달
+      emitDisplayIdChange(getDisplayIdFromToken(token));
+
       console.log('[useStomp] Connecting to STOMP server');
       setConnectionStatus('connecting');
 
@@ -93,6 +118,7 @@ export function useStomp(): void {
         if (cancelled) return;
         console.log('[useStomp] STOMP connected, subscribing to village chat');
         setConnectionStatus('connected');
+        consecutiveAuthErrors = 0;
 
         // 이전 대화 10개 로드 (멤버만 — 게스트는 403)
         const tokenPayload = parseTokenRole(token);
@@ -130,27 +156,43 @@ export function useStomp(): void {
         });
       };
 
-      const onError = (err: import('@stomp/stompjs').IFrame) => {
+      const onError = (err: IFrame) => {
         console.error('[useStomp] STOMP error:', err);
         setConnectionStatus('error');
-        // 토큰이 만료/무효한 경우 삭제 후 게스트 토큰으로 재연결 시도
-        localStorage.removeItem('accessToken');
-        if (!cancelled) {
-          console.log('[useStomp] 재연결 시도 (게스트 토큰 재발급)');
-          setTimeout(() => {
-            if (!cancelled) void connect();
-          }, 3_000);
+        if (cancelled) return;
+
+        const isAuthError = err.headers.message === TOKEN_INVALID_MESSAGE;
+        if (isAuthError) {
+          consecutiveAuthErrors += 1;
+          if (consecutiveAuthErrors >= AUTH_ERROR_THRESHOLD) {
+            console.log('[useStomp] 인증 에러 — 토큰 갱신 후 재연결');
+            localStorage.removeItem('accessToken');
+            consecutiveAuthErrors = 0;
+          }
         }
+        // 일반 에러(네트워크·timeout 등)는 토큰 그대로 재연결 — sessionId 유지로 자기인식 보존
+        setTimeout(() => {
+          if (!cancelled) void connect();
+        }, RECONNECT_DELAY_MS);
       };
 
       connectWithAuth(token, onConnected, onError);
     };
+
+    // 탭 종료 시 graceful disconnect — SockJS heartbeat timeout 까지 기다리지 않고 즉시 LEAVE 발송 (3-D)
+    const handleUnload = () => {
+      disconnectStomp();
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    window.addEventListener('pagehide', handleUnload);
 
     void connect();
 
     return () => {
       cancelled = true;
       console.log('[useStomp] Cleanup: disconnecting');
+      window.removeEventListener('beforeunload', handleUnload);
+      window.removeEventListener('pagehide', handleUnload);
       chatSubRef.current?.unsubscribe();
       chatSubRef.current = null;
       posSubRef.current?.unsubscribe();
@@ -159,6 +201,7 @@ export function useStomp(): void {
       typingSubRef.current = null;
       disconnectStomp();
       setConnectionStatus('disconnected');
+      emitDisplayIdChange(null);
     };
   }, [addMessage, prependMessages, setConnectionStatus, setNpcTyping]);
 }

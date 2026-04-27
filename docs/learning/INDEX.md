@@ -65,6 +65,7 @@
 | [27](./27-realtime-chat-code-review-patterns.md) | 실시간 채팅 종합 리뷰 이슈 | 4개 전문 에이전트 리뷰에서 뽑은 패턴 |
 | [44](./44-spring-stomp-external-broker-choice.md) | Spring STOMP 외부 Broker 선택 트레이드오프 | 왜 RabbitMQ고 Redis Pub/Sub이 아닌가 — `enableStompBrokerRelay()` 의 전제 |
 | [45](./45-websocket-redis-pubsub-redesign.md) | Raw WebSocket + Redis Pub/Sub 재설계 설계서 | STOMP·Simple Broker 걷어내기 전 함정 예방 — 채널톡 O(M×N) / LINE LIVE actor+bridge 패턴 흡수 |
+| [54](./54-presence-cleanup-ghost-character-diagnosis.md) | "본인을 따라다니는 유령 캐릭터" 진단기 | issue #28 의심(백엔드 cleanup) vs 진짜 원인(프론트엔드 myDisplayId stale) — 게스트 토큰 재발급 → sessionId 변경 → 자기 무시 비교 실패 |
 
 ## UI · 프론트엔드
 

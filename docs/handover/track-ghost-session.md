@@ -21,21 +21,23 @@
 
 | Step | 작업 | 상태 |
 |------|------|------|
-| 1 | 재현 시나리오 정리 + 기존 disconnect/cleanup 경로 코드 워크스루 (`learning/54` — presence cleanup 진단) | 대기 |
-| 2 | 동시 세션 정책 결정 (대체 / 거부 / 병행) — 🔒 사용자 승인 게이트 (`learning/55` — 정책 트레이드오프) | 대기 |
-| 3 | 백엔드 수정 — disconnect 처리 강화 + 결정된 다중 세션 정책 적용 | 대기 |
-| 4 | 프론트엔드 정리 — 유령 잔존 시점에 클라이언트 측 stale 식별 가능한지 검증 | 대기 |
-| 5 | 통합 검증 (멀티 클라이언트 시나리오) + 운영 배포 | 대기 |
+| 1 | 재현 시나리오 정리 + 기존 disconnect/cleanup 경로 코드 워크스루 (`learning/54` — presence cleanup 진단) | ✅ 완료 |
+| 2 | fix 방향 합의 (토큰 재사용·myDisplayId 갱신·beforeunload graceful disconnect) — 🔒 사용자 승인 게이트 | 진행 중 |
+| 3 | 프론트엔드 fix 구현 — `useStomp.onError` 토큰 재사용 + `VillageScene.myDisplayId` 갱신 | 대기 |
+| 4 | 보조 — `beforeunload` graceful disconnect 추가 (탭 종료 시 LEAVE 빠르게) | 대기 |
+| 5 | 통합 검증 (멀티 탭 시나리오 + 콜드 스타트 시뮬레이션) + 운영 배포 | 대기 |
+
+> **범위 외**: 동일 `userId` 다중 세션 정책 (대체/거부/병행) — #28 진단 결과 본 트랙의 직접 원인이 아님이 확정 (`learning/54` 참조). 별도 이슈로 분리, 향후 멀티 디바이스/멀티 탭 시나리오가 실제 문제로 보고되면 그때 트랙 시작.
 
 ## 3. 현재 단계 상세
 
-Step 1 시작 전. 본 트랙을 이어받을 다음 세션 절차:
+Step 1 완료. Step 2 (fix 방향 합의 게이트) 진행 중. 본 트랙을 이어받을 다음 세션 절차:
 
 1. 워크트리 cwd 확인 (`<repo-root>/ChatAppProject-ui` — `git worktree list` 로 실제 경로 검증)
 2. 브랜치 `fix/ghost-session` 인지 확인
-3. 사용자가 main 정합성 docs PR 머지 완료한 상태에서 시작 → main pull → rebase
-4. `ws-redis` 트랙 진행 상황 INDEX 확인 — Step 2 백엔드 SessionRegistry 영역과 본 트랙 정책 결정이 겹친다. **두 트랙 간 정책 합의 먼저.**
-5. `learning/54` 작성 (presence cleanup 경로 진단)
+3. main 정합성 docs PR 머지 완료 — main pull 완료 (2026-04-27)
+4. `learning/54` 진단 결과 확인 — 진짜 원인은 게스트 토큰 재발급 + `myDisplayId` stale (백엔드 cleanup 경로 정상)
+5. Step 2 fix 1·2·3 합의 후 Step 3 구현 계획서 → 구현
 
 ## 4. 충돌 위험 파일
 
@@ -43,17 +45,18 @@ Step 1 시작 전. 본 트랙을 이어받을 다음 세션 절차:
 
 | 파일 (축약/풀) | 분류 | 메모 |
 |---------------|------|------|
-| `village/adapter/in/websocket/PositionDisconnectListener.java`<br/>(`backend/src/main/java/com/maeum/gohyang/village/adapter/in/websocket/PositionDisconnectListener.java`) | 트랙 잠재 | `ws-redis` Step 2/3 도 이 영역을 건드릴 가능성. 다중 세션 정책이 어느 트랙에서 들어갈지 사전 합의 필요 |
-| `communication/adapter/in/websocket/**`<br/>(`backend/src/main/java/com/maeum/gohyang/communication/adapter/in/websocket/**`) | 트랙 잠재 | `ws-redis` Step 2~6 가 STOMP → raw WS + Redis Pub/Sub 교체 중. 본 트랙은 가급적 `village` 영역만 만지고 `communication` 은 회피 |
-| `frontend/src/components/village/**` | 트랙 전용 | UI 트랙이 이전에도 만진 영역. 다른 트랙 동시 수정 가능성 낮음 |
-| `frontend/src/lib/websocket/**` | 트랙 잠재 | `ws-redis` Step 6 (STOMP 클라이언트 제거) 와 동시 수정 시 충돌. 본 트랙은 client 코드 수정 회피 권장 |
+| `frontend/src/lib/websocket/useStomp.ts` | 트랙 잠재 | **본 트랙 핵심 수정 영역** (Step 3). `ws-redis` Step 6 (STOMP 클라이언트 제거) 와 동시 수정 시 충돌 — 본 트랙이 먼저 머지되거나 ws-redis 가 STOMP 제거 시 본 fix 가 자연스레 사라지도록 협의. |
+| `frontend/src/game/scenes/VillageScene.ts` | 트랙 전용 | **본 트랙 핵심 수정 영역** (Step 3). `myDisplayId` 갱신 로직 추가. UI 트랙 종료됨 — 충돌 가능성 낮음. |
+| `frontend/src/lib/websocket/stompClient.ts` | 트랙 잠재 | Step 4 graceful disconnect 추가 시 만질 가능성. `ws-redis` Step 6 와 동일 협의 영역. |
+| `village/adapter/in/websocket/PositionDisconnectListener.java`<br/>(`backend/src/main/java/com/maeum/gohyang/village/adapter/in/websocket/PositionDisconnectListener.java`) | 트랙 잠재 | 본 트랙은 백엔드 수정 안 함 (진단 결과 정상 동작). 참고용. |
+| `communication/adapter/in/websocket/**` | 회피 | `ws-redis` Step 2~6 가 교체 중. 본 트랙 건드리지 않음. |
 
 ## 5. 다음 세션 착수 전 확인 사항
 
 > 워크트리/브랜치/main 정합성/`ws-redis` 트랙 정책 합의 등 절차 항목은 §3 의 1~4 와 동일 — 본 트랙의 단일 진실원은 §3. 갱신은 §3 한 곳만 수정한다.
 
-- 본 트랙 진입 전 절차: §3 의 1~4 항목 그대로 수행
-- 학습 노트 번호: `RESERVED.md` 의 `ghost-session` 예약 (54~58) 사용
+- 본 트랙 진입 전 절차: §3 의 1~5 항목 그대로 수행
+- 학습 노트 번호: `RESERVED.md` 의 `ghost-session` 예약 (54 사용 완료, 56 회고용 예비). 55·57·58 은 반환됨 — 다중 세션 정책 별도 이슈에서 재예약 가능.
 
 ## 6. 보류 메모
 

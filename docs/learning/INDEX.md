@@ -113,6 +113,12 @@
 | [42](./42-grafana-jvm-dashboard-reading.md) | Grafana JVM 4701 대시보드 읽는 법 | 50+ 패널에서 11개만 남기기·PromQL 6종·시간축 상관 읽기 |
 | [43](./43-load-test-breaking-point-story.md) | 256MB → 1GB, Breaking Point VU 50 → 200 — 그런데 병목은 RAM이 아니었다 | 부하 테스트 서사 블로그 초안 (JWT 트랩 · GC Death Spiral · Simple Broker 구조적 한계) |
 
+## 인증·세션·토큰 / 인프라 보안
+
+| # | 제목 | 한 줄 |
+|---|------|------|
+| [65](./65-cookie-security-attributes-deep-dive.md) | HttpOnly · Secure · SameSite cookie 깊은 다이브 (`infra-tls-hardening` 트랙) | 각 속성이 막는 공격·못 막는 공격·삼위일체 매트릭스. LocalStorage → HttpOnly cookie 전환 근거 + 마음의 고향 옵션 A/B 분기 |
+
 ---
 
 ## 빈 번호 (병합으로 사라진)

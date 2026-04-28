@@ -12,7 +12,7 @@
 
 ---
 
-## 예약 현황 (마지막 사용 번호: 60)
+## 예약 현황 (마지막 사용 번호: 65)
 
 | 번호 | 트랙 | 예상 주제 | 상태 |
 |------|------|----------|------|
@@ -25,14 +25,19 @@
 | 52   | `s3-media` | (예비) | 미사용 |
 | 53   | `ws-redis` | 헥사고날 outbound port 호출자 룰 (publish는 port로, subscribe lifecycle은 어댑터 내부로) | ✅ 사용 완료 (2026-04-26) |
 | 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | ✅ 사용 완료 (2026-04-27) |
-| 55   | `member-token-renewal` (후속 의제) | sliding session vs refresh vs WS push 트레이드오프 | 예약 (트랙 착수 시) |
+| 55   | `token-auto-renewal` | sliding session vs refresh vs WS push 트레이드오프 (본 트랙 종합 노트) | 예약 (트랙 착수 시) |
 | 56   | `multi-session-policy` (후속 의제) | 동일 userId 다중 세션 (대체/거부/병행) | 예약 (트랙 착수 시) |
 | 57   | (반환) | (구 ghost-session 예비) | 반환 — 재예약 가능 |
 | 58   | (반환) | (구 ghost-session 예비) | 반환 — 재예약 가능 |
 | 59   | `ws-redis` | WS 서버 분리 vs 모놀리스 + Redis Pub/Sub — 배포 토폴로지 결정 (채널톡/LINE 비교, 분리 트리거 신호) | ✅ 사용 완료 (2026-04-27) |
 | 60   | (단일 핫픽스) | STOMP 라이브러리 자동 reconnect vs 앱 onError 분기 — 두 레이어 reconnect 메커니즘 독립성 | ✅ 사용 완료 (2026-04-28) |
+| 61   | `token-auto-renewal` | Idle session 정의 트레이드오프 ((가) HTTP 요청 / (나) WS 끊김 / (다) 사용자 액션) — 마음의 고향 (나) 채택 근거 | 예약 |
+| 62   | `token-auto-renewal` | Refresh token rotation + reuse detection 메커니즘 (Auth0 표준, race condition, family invalidation) | 예약 |
+| 63   | `token-auto-renewal` | 게스트 영속 식별자 분리 패턴 (LocalStorage `guestId` + JWT `gid` claim 서명 검증) | 예약 |
+| 64   | `token-auto-renewal` | WS 토큰 갱신 패턴 (끊고 재연결 vs in-band STOMP push) — Spring STOMP 자연 동작 채택 근거 | 예약 |
+| 65   | `infra-tls-hardening` | HttpOnly · Secure · SameSite cookie 깊은 다이브 (각 속성이 막는 공격, 한계, 마음의 고향 cross-origin 적용) | ✅ 사용 완료 (2026-04-28) |
 
-> 61번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
+> 66번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
 
 ---
 

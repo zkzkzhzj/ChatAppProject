@@ -1,6 +1,6 @@
 # 지식 베이스 인덱스
 
-> 마지막 업데이트: 2026-04-24
+> 마지막 업데이트: 2026-04-27
 > 새 세션 시작 시 이 파일을 읽어 최신 AI Native 개발 맥락을 파악한다.
 
 ---
@@ -35,7 +35,8 @@
 
 | 문서 | 내용 | 최종 업데이트 |
 |------|------|-------------|
-| [실시간 기술 인덱스](realtime/INDEX.md) | 채팅·WebRTC·스트리밍 기술 지식 베이스 | 2026-04-13 |
+| [실시간 기술 인덱스](realtime/INDEX.md) | 채팅·WebRTC·스트리밍 기술 지식 베이스 | 2026-04-27 |
+| [JWT 토큰 갱신·게스트 세션 패턴](realtime/token-renewal-patterns.md) | Discord/Slack/Twitch/Gather/ZEP 비교, refresh token rotation, 게스트 영속 식별자 분리 패턴, 마음의 고향 권장 방향 | 2026-04-27 |
 
 ---
 

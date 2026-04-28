@@ -21,8 +21,9 @@
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
+| `infra-tls-hardening` | [65 (Cookie 보안 속성 깊은 다이브)](../learning/65-cookie-security-attributes-deep-dive.md) | 2026-04-28 | (현재 PR) |
 | `ws-redis` Step 2 | [44 (Spring STOMP 외부 broker)](../learning/44-spring-stomp-external-broker-choice.md) · [45 (raw WS + Redis Pub/Sub 설계서)](../learning/45-websocket-redis-pubsub-redesign.md) · [46 (마을·서버 확장 모델)](../learning/46-village-scaling-decisions.md) · [53 (헥사고날 outbound port 호출자 룰)](../learning/53-hexagonal-outbound-port-caller-rule.md) · [59 (WS 서버 분리 vs 모놀리식)](../learning/59-ws-server-separation-vs-monolith.md) | 2026-04-27 | #26 |
-| `ghost-session` | [54 (presence cleanup 진단)](../learning/54-presence-cleanup-ghost-character-diagnosis.md) | 2026-04-27 | #36 · #37 |
+| `ghost-session` | [54 (presence cleanup 진단)](../learning/54-presence-cleanup-ghost-character-diagnosis.md) · [60 (STOMP reconnect 두 레이어)](../learning/60-stomp-reconnect-layered-conflict.md) | 2026-04-27 ~ 2026-04-28 | #36 · #37 · #41 |
 | `ui-mvp-feedback` | [49 (React IME)](../learning/49-react-input-ime-handling.md) · [50 (모바일 터치)](../learning/50-mobile-touch-movement.md) | 2026-04-26 | #27 |
 
 > 완료된 트랙의 `track-*.md`는 머지 후 삭제하고 학습노트로 결정 이력만 보존한다 (메인 `handover.md` §2 "전체 완료 요약" 표에도 한 줄 등록).
@@ -33,6 +34,7 @@
 
 | 트랙 ID | 예상 작업 영역 | 메모 |
 |---------|---------------|------|
+| `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, 게스트 영속 식별자 분리, WS 토큰 갱신 | 전제 인프라(`infra-tls-hardening`) 완료. learning 55/61~64 예약 |
 | `s3-media` | S3 도입 (집 배경 이미지, 캐릭터 등) | 사전 결정 필요: 무엇을 올릴지 / 비용 정책 / 유해 필터 |
 
 > 시작 시점에 위 표에서 빼서 "활성 트랙" 표로 옮긴다.

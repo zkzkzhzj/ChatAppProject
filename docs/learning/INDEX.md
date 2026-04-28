@@ -71,6 +71,7 @@
 | [46](./46-village-scaling-decisions.md) | 마을·서버 확장 모델 결정 기록 | 채널 샤딩 vs 마을 다중화 vs Hard Cap · 채널 분리 vs 서버 분리 · ZEP 패턴 보류 — 6개 트레이드오프 |
 | [54](./54-presence-cleanup-ghost-character-diagnosis.md) | "본인을 따라다니는 유령 캐릭터" 진단기 | issue #28 의심(백엔드 cleanup) vs 진짜 원인(프론트엔드 myDisplayId stale) — 게스트 토큰 재발급 → sessionId 변경 → 자기 무시 비교 실패 |
 | [59](./59-ws-server-separation-vs-monolith.md) | WS 서버 분리 vs 모놀리스 + Redis Pub/Sub | 배포 토폴로지 4안 비교 — **② → ③ 자기정정** + 신규설계/마이그레이션 게임 구분 + 빅테크 사례 50+ 자료 |
+| [60](./60-stomp-reconnect-layered-conflict.md) | STOMP 자동 reconnect — 두 레이어 메커니즘의 독립성 | 멤버 토큰 만료 시 5초 무한 reconnect 핫픽스 — `onError` `return` 만으로는 라이브러리 자동 reconnect 못 막음, `Client.deactivate()` 명시 필요. socket.io·signalR 동일 패턴 |
 
 ## UI · 프론트엔드
 

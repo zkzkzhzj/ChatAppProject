@@ -191,7 +191,10 @@ export function useStomp(): void {
             if (role === 'MEMBER') {
               // 멤버 인증 에러 — 자동 게스트 다운그레이드 금지 (Codex P1).
               // 무한 루프 방어를 위해 재연결도 시도하지 않는다. 사용자가 재로그인 해야 함.
+              // disconnectStomp() 누락 시 stompClient 의 reconnectDelay 가 살아있어 5초마다
+              // 같은 만료 토큰으로 STOMP 내장 자동 재연결이 무한 반복된다.
               console.warn('[useStomp] 멤버 인증 실패 — 재연결 중단, 재로그인 필요');
+              disconnectStomp();
               return;
             }
             // 게스트 또는 토큰 없음 → 새 게스트 발급

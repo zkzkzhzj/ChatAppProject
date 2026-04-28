@@ -71,7 +71,7 @@
 ### 3.7 보안 그룹 prefix list
 
 - **선택**: 관리형 접두사 목록 + Cloudflare IPv4 15개 등록. HTTPS 443 만 허용, 80 은 닫음
-- **이유**: Cloudflare 우회 차단. 80 은 Cloudflare 가 origin 호출 시 사용 안 하므로 닫아 보안 표면 축소. EC2 가 IPv6 비활성이라 IPv4 만 등록
+- **이유**: Cloudflare 우회 차단. 80 은 Cloudflare 가 origin 호출 시 사용 안 하므로 닫아 보안 표면 축소. EC2 가 IPv6 비활성이라 IPv4 만 등록 (확인: EC2 안에서 `ip -6 addr show eth0` 또는 EC2 콘솔 → 인스턴스 상세 → 네트워킹 탭의 "IPv6 주소" 항목)
 
 ### 3.8 nginx 구조 마이그
 
@@ -96,7 +96,7 @@
 - 학습노트 [65](../learning/65-cookie-security-attributes-deep-dive.md) — Cookie 보안 속성 깊은 다이브
 - 리서치 [token-renewal-patterns.md](../knowledge/realtime/token-renewal-patterns.md) — 본 트랙 출발점 산업 사례
 - 운영: ghworld.co 의 TLS 토대가 토큰 작업을 받을 수 있는 상태로 강화됨
-- 메모리 갱신 필요: `reference_aws_deployment.md` 에 SSL 모드 갱신 (Flexible → Full strict)
+- 메모리 갱신 필요 (외부 — 본 저장소 X): AI 하네스(Claude Code)의 사용자 메모리 `reference_aws_deployment.md` (`~/.claude/projects/.../memory/` 안) 에 SSL 모드 갱신 (Flexible → Full strict). 본 저장소의 docs 와 다른 영역이라 본 PR 변경에 포함되지 않음
 
 ## 7. 후속 트랙 — token-auto-renewal
 

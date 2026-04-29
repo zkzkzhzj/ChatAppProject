@@ -73,6 +73,7 @@ export function useStomp(): void {
   const prependMessages = useChatStore((s) => s.prependMessages);
   const setConnectionStatus = useChatStore((s) => s.setConnectionStatus);
   const setNpcTyping = useChatStore((s) => s.setNpcTyping);
+  const setLoginRequired = useChatStore((s) => s.setLoginRequired);
   const chatSubRef = useRef<StompSubscription | null>(null);
   const posSubRef = useRef<StompSubscription | null>(null);
   const typingSubRef = useRef<StompSubscription | null>(null);
@@ -193,7 +194,12 @@ export function useStomp(): void {
               // 무한 루프 방어를 위해 재연결도 시도하지 않는다. 사용자가 재로그인 해야 함.
               // disconnectStomp() 누락 시 stompClient 의 reconnectDelay 가 살아있어 5초마다
               // 같은 만료 토큰으로 STOMP 내장 자동 재연결이 무한 반복된다.
-              console.warn('[useStomp] 멤버 인증 실패 — 재연결 중단, 재로그인 필요');
+              //
+              // #42: 토큰 제거 + loginRequired 플래그로 ChatOverlay 가 LoginPrompt 자동 표시.
+              // 토큰 잔존 시 페이지 리로드해도 같은 만료 토큰으로 재시도 → 영원히 'error' 갇힘.
+              console.warn('[useStomp] 멤버 인증 실패 — 토큰 제거 + 재로그인 진입점 노출');
+              localStorage.removeItem('accessToken');
+              setLoginRequired(true);
               disconnectStomp();
               return;
             }
@@ -235,5 +241,5 @@ export function useStomp(): void {
       setConnectionStatus('disconnected');
       emitDisplayIdChange(null);
     };
-  }, [addMessage, prependMessages, setConnectionStatus, setNpcTyping]);
+  }, [addMessage, prependMessages, setConnectionStatus, setNpcTyping, setLoginRequired]);
 }

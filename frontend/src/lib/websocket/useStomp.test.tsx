@@ -15,9 +15,10 @@ import { useStomp } from './useStomp';
  * 게스트 분기는 기존 동작 유지 — 토큰 갱신 후 재연결이 정상 흐름이므로 disconnect 호출 X.
  */
 
-const { mockConnectWithAuth, mockDisconnectStomp } = vi.hoisted(() => ({
+const { mockConnectWithAuth, mockDisconnectStomp, mockSetLoginRequired } = vi.hoisted(() => ({
   mockConnectWithAuth: vi.fn(),
   mockDisconnectStomp: vi.fn(),
+  mockSetLoginRequired: vi.fn(),
 }));
 
 vi.mock('./stompClient', () => ({
@@ -55,6 +56,7 @@ vi.mock('@/store/useChatStore', () => ({
         prependMessages: vi.fn(),
         setConnectionStatus: vi.fn(),
         setNpcTyping: vi.fn(),
+        setLoginRequired: mockSetLoginRequired,
       }),
     { setState: vi.fn() },
   ),
@@ -87,6 +89,7 @@ describe('useStomp — 멤버 토큰 만료 시 STOMP 자동 reconnect 차단', 
   beforeEach(() => {
     mockConnectWithAuth.mockReset();
     mockDisconnectStomp.mockReset();
+    mockSetLoginRequired.mockReset();
     localStorage.clear();
   });
 
@@ -123,5 +126,39 @@ describe('useStomp — 멤버 토큰 만료 시 STOMP 자동 reconnect 차단', 
 
     // Then: 게스트는 새 토큰 받아 재연결하는 게 정상 — disconnect 호출 X
     expect(mockDisconnectStomp).not.toHaveBeenCalled();
+  });
+
+  // #42: 멤버 401 시 토큰 제거 + loginRequired 세팅으로 LoginPrompt 진입점 노출
+  it('멤버 토큰 + 401 ERROR → 만료 토큰 localStorage 제거 + setLoginRequired(true) 호출', async () => {
+    // Given: 멤버 토큰으로 STOMP 연결됨
+    setRoleToken('MEMBER');
+    render(<TestHarness />);
+    const onError = await captureOnError();
+
+    mockSetLoginRequired.mockClear();
+
+    // When: 서버가 만료 토큰을 거부
+    onError(tokenInvalidError);
+
+    // Then: 만료 토큰이 localStorage 에 더 이상 없어야 한다 (페이지 리로드해도 같은 만료 토큰 재시도 X)
+    expect(localStorage.getItem('accessToken')).toBeNull();
+    // Then: loginRequired=true 로 ChatOverlay 가 LoginPrompt 자동 표시
+    expect(mockSetLoginRequired).toHaveBeenCalledWith(true);
+  });
+
+  // #42 회귀 보존: 게스트 401 분기는 setLoginRequired 호출 X (자동 게스트 토큰 갱신 흐름 유지)
+  it('게스트 토큰 + 401 ERROR → setLoginRequired 호출 X (자동 갱신 흐름 보존)', async () => {
+    // Given: 게스트 토큰으로 STOMP 연결됨
+    setRoleToken('GUEST');
+    render(<TestHarness />);
+    const onError = await captureOnError();
+
+    mockSetLoginRequired.mockClear();
+
+    // When
+    onError(tokenInvalidError);
+
+    // Then: 게스트는 자동 갱신 — 명시적 재로그인 진입점 띄우지 않는다
+    expect(mockSetLoginRequired).not.toHaveBeenCalled();
   });
 });

@@ -19,6 +19,14 @@ interface ChatState {
 
   npcTyping: boolean;
   setNpcTyping: (typing: boolean) => void;
+
+  /**
+   * 멤버 토큰 만료/거부로 명시적 재로그인이 필요한 상태.
+   * useStomp 가 401 감지 시 true 로 set → ChatOverlay 가 LoginPrompt 자동 표시.
+   * LoginPrompt onClose 시 false 로 복구.
+   */
+  loginRequired: boolean;
+  setLoginRequired: (required: boolean) => void;
 }
 
 let systemMsgCounter = 0;
@@ -66,5 +74,10 @@ export const useChatStore = create<ChatState>((set) => ({
   npcTyping: false,
   setNpcTyping: (typing) => {
     set({ npcTyping: typing });
+  },
+
+  loginRequired: false,
+  setLoginRequired: (required) => {
+    set({ loginRequired: required });
   },
 }));

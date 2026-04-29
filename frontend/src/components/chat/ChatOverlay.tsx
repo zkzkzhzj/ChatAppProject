@@ -17,6 +17,8 @@ export default function ChatOverlay() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const isInputFocused = useChatStore((s) => s.isInputFocused);
+  const loginRequired = useChatStore((s) => s.loginRequired);
+  const setLoginRequired = useChatStore((s) => s.setLoginRequired);
 
   const [chatHeight, startResizeY] = useResize('y', CHAT_HEIGHT);
   const [chatWidth, startResizeX] = useResize('x', CHAT_WIDTH);
@@ -63,10 +65,11 @@ export default function ChatOverlay() {
           <div className="h-8 w-0.5 rounded-full bg-bark-muted/60" />
         </div>
       </div>
-      {showLoginPrompt && (
+      {(showLoginPrompt || loginRequired) && (
         <LoginPrompt
           onClose={() => {
             setShowLoginPrompt(false);
+            setLoginRequired(false);
           }}
         />
       )}

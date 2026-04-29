@@ -4,6 +4,7 @@ import type { ChangeEvent, KeyboardEvent } from 'react';
 import { forwardRef, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import apiClient from '@/lib/api/client';
+import { isTokenExpired } from '@/lib/auth';
 import { emitMyTypingUpdate, emitNpcTypingUpdate } from '@/lib/websocket/positionBridge';
 import { sendTypingStatus, sendVillageMessage } from '@/lib/websocket/stompClient';
 import { useChatStore } from '@/store/useChatStore';
@@ -18,6 +19,10 @@ function subscribeToStorage(callback: () => void) {
 function getTokenSnapshot() {
   const token = localStorage.getItem('accessToken');
   if (!token) return false;
+  // #42: 만료 토큰은 hasToken=false 로 취급 — 영원히 'error' 갇힘 방지.
+  // useStomp 가 401 onError 에서 토큰을 제거해도 storage 이벤트는 같은 탭에서 발생 안 함 →
+  // 여기 만료 검사가 없으면 hasToken=true 로 stale 유지 → LoginPrompt 자동 진입점 막힘.
+  if (isTokenExpired(token)) return false;
   try {
     const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
     const payload = JSON.parse(atob(base64)) as { role?: string };
@@ -137,6 +142,9 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
     const text = draft.trim();
     if (!text) return;
 
+    // #42: hasToken=false 가 곧 "재로그인 필요" 신호 — useStomp 가 멤버 401 시 만료 토큰을 제거함.
+    // 'error' + hasToken=true (네트워크 일시 끊김) 는 placeholder "잠시 후 다시 시도..." 만 보여주고
+    // 모달은 띄우지 않는다 (자동 재연결 흐름 신뢰 — 거짓 재로그인 강요 차단).
     if (!hasToken) {
       onLoginRequired();
       return;
@@ -199,13 +207,23 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
     }
   };
 
-  const placeholder = connected
-    ? hasToken
-      ? '@마을 주민 으로 NPC에게 말걸기'
-      : '로그인 후 대화할 수 있어요'
-    : '마을에 연결 중...';
+  // #42: 'error' 상태(서버 401·연결 실패) 는 별도 안내 — 'connecting' 으로 묶이면 거짓 신호.
+  // hasToken 으로 한 번 더 분기 — 토큰 유효한 단순 네트워크 끊김에 "재로그인" 안내는 거짓.
+  // useStomp 가 멤버 401 시 토큰을 제거하므로 hasToken=false 가 곧 "재로그인 필요" 신호다.
+  const placeholder =
+    connectionStatus === 'error'
+      ? hasToken
+        ? '연결이 끊겼어요. 잠시 후 다시 시도합니다...'
+        : '연결이 끊겼어요. 다시 로그인해 주세요'
+      : connected
+        ? hasToken
+          ? '@마을 주민 으로 NPC에게 말걸기'
+          : '로그인 후 대화할 수 있어요'
+        : '마을에 연결 중...';
 
   const handleGuestClick = () => {
+    // hasToken=false 일 때만 LoginPrompt 노출. 만료 토큰은 useStomp 에서 제거되므로
+    // 이 시점엔 토큰 없음 → 자동으로 진입점 열림. 단순 네트워크 끊김 케이스는 통과.
     if (!hasToken) {
       onLoginRequired();
     }

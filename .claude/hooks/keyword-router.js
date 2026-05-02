@@ -52,28 +52,29 @@ const ROUTES = [
       '[AUTO-ROUTE] 블로그 키워드 감지. blog-writer-agent (subagent_type: "blog-writer-agent")를 호출하여 zlog 블로그 글을 작성하세요. 반드시 최신 글 3개를 먼저 읽어 스타일을 학습한 뒤, 프로젝트의 docs/learning/, docs/architecture/decisions/ 등에서 소재를 수집하여 작성하세요.',
   },
   // === 트랙 `harness-spec-driven` C4 추가 (2026-04-30) — spec-driven 4층 사이클 키워드 ===
+  // C7 보강: 슬래시 형식 직접 입력(`/spec-new`, `/track-start`, `/step-start 1`, `/track-end`) 도 매칭.
   {
     // "스펙 만들어", "spec 만들기", "feature spec", "/spec-new"
-    pattern: /스펙\s*(만들|작성|새|신규|추가)|spec\s*(new|create|만들)|feature\s*spec/i,
+    pattern: /스펙\s*(만들|작성|새|신규|추가)|spec\s*(new|create|만들)|feature\s*spec|^\/?\s*spec[-\s]?new/im,
     message:
       '[AUTO-ROUTE] spec 키워드 감지. /spec-new 슬래시 스킬을 사용하세요. docs/specs/features/{feature}.md 를 _template.md 로 생성합니다. spec.decisions 4축 (왜·대안·빈틈·재검토) 미리 채우면 Comprehension Gate 자동 통과 (docs/conventions/spec-driven.md, comprehension-gate.md).',
   },
   {
     // "트랙 시작", "track start", "/track-start"
-    pattern: /트랙\s*(시작|새로|신규|개시)|track\s*(start|new|시작)/i,
+    pattern: /트랙\s*(시작|새로|신규|개시)|track\s*(start|new|시작)|^\/?\s*track[-\s]?start/im,
     message:
       '[AUTO-ROUTE] 트랙 시작 키워드 감지. /track-start 슬래시 스킬을 사용하세요. parallel-work.md §2.1 절차 (라벨/INDEX/track 파일/RESERVED/브랜치) 를 1커맨드로 처리합니다. 사전 조건: spec 파일 존재 (없으면 /spec-new 먼저).',
   },
   {
-    // "step 시작", "step 1", "step 2 진행", "다음 step", "단계 진행", "단계 3 시작" 등 — 숫자 매칭 의무
+    // "step 시작", "step 1", "step 2 진행", "다음 step", "단계 진행", "단계 3 시작", "/step-start 1" 등 — 숫자 매칭 의무
     // (구 패턴은 N 을 placeholder 로 적었으나 정규식에서 literal 'N' 으로 동작 → 실제 사용 패턴 매칭 X. Codex P2 fix)
-    pattern: /step\s*(시작|진행|다음|구현|\d+)|다음\s*step|단계\s*(진행|시작|\d+)/i,
+    pattern: /step\s*(시작|진행|다음|구현|\d+)|다음\s*step|단계\s*(진행|시작|\d+)|^\/?\s*step[-\s]?start\s*\d+/im,
     message:
       '[AUTO-ROUTE] step 진행 키워드 감지. /step-start {N} 슬래시 스킬을 사용하세요. plan → 🔒 승인 → 자동 fix-loop (테스트 3회·리뷰 2회·PR 게이트 2회) → Comprehension Gate (Tier A/B/C) → 1step=1PR 흐름. 사용자 개입은 plan 승인과 머지 결정 2번만.',
   },
   {
     // "트랙 종료", "트랙 마무리", "트랙 완료", "/track-end"
-    pattern: /트랙\s*(종료|마무리|완료|끝|마치)|track\s*(end|close|finish)/i,
+    pattern: /트랙\s*(종료|마무리|완료|끝|마치)|track\s*(end|close|finish)|^\/?\s*track[-\s]?end/im,
     message:
       '[AUTO-ROUTE] 트랙 종료 키워드 감지. /track-end 슬래시 스킬을 사용하세요. Acceptance Criteria 검증 + wiki 영향 분석 (wiki-policy.md §2.1) + handover 정합 (parallel-work.md §4.2 + §8 — 머지 PR 안에 묶음, 별도 docs PR 금지) + comprehension 누적 리포트 + 6게이트.',
   },

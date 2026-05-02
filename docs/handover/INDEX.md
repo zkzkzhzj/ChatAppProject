@@ -21,8 +21,8 @@
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
-| `harness-spec-driven` | [66 (spec-driven 4층 + fix-loop + Comprehension Gate)](../learning/66-spec-driven-fix-loop-comprehension-gate.md) · [67 (wiki 활용 강화 — 폐지 권고 철회)](../learning/67-wiki-policy-rejection-reversal.md) · [68 (NPC 차별점 ADR)](../learning/68-npc-service-differentiator-adr.md) | 2026-04-30 | (현재 PR) |
-| `infra-tls-hardening` | [65 (Cookie 보안 속성 깊은 다이브)](../learning/65-cookie-security-attributes-deep-dive.md) | 2026-04-28 | (현재 PR) |
+| `harness-spec-driven` | [66 (spec-driven 4층 + fix-loop + Comprehension Gate)](../learning/66-spec-driven-fix-loop-comprehension-gate.md) · [67 (wiki 활용 강화 — 폐지 권고 철회)](../learning/67-wiki-policy-rejection-reversal.md) · [68 (NPC 차별점 ADR)](../learning/68-npc-service-differentiator-adr.md) | 2026-04-30 | #47 |
+| `infra-tls-hardening` | [65 (Cookie 보안 속성 깊은 다이브)](../learning/65-cookie-security-attributes-deep-dive.md) | 2026-04-28 | #43 |
 | `ws-redis` Step 2 | [44 (Spring STOMP 외부 broker)](../learning/44-spring-stomp-external-broker-choice.md) · [45 (raw WS + Redis Pub/Sub 설계서)](../learning/45-websocket-redis-pubsub-redesign.md) · [46 (마을·서버 확장 모델)](../learning/46-village-scaling-decisions.md) · [53 (헥사고날 outbound port 호출자 룰)](../learning/53-hexagonal-outbound-port-caller-rule.md) · [59 (WS 서버 분리 vs 모놀리식)](../learning/59-ws-server-separation-vs-monolith.md) | 2026-04-27 | #26 |
 | `ghost-session` | [54 (presence cleanup 진단)](../learning/54-presence-cleanup-ghost-character-diagnosis.md) · [60 (STOMP reconnect 두 레이어)](../learning/60-stomp-reconnect-layered-conflict.md) | 2026-04-27 ~ 2026-04-28 | #36 · #37 · #41 |
 | `ui-mvp-feedback` | [49 (React IME)](../learning/49-react-input-ime-handling.md) · [50 (모바일 터치)](../learning/50-mobile-touch-movement.md) | 2026-04-26 | #27 |
@@ -45,11 +45,15 @@
 
 ## 트랙 시작 절차
 
-1. 위 표에 트랙 한 줄 추가
-2. `docs/handover/track-{id}.md` 신규 작성 (이 파일 마지막 "트랙 파일 템플릿" 참조)
-3. `docs/learning/RESERVED.md`에 자기 트랙용 번호 대역 예약
-4. 새 git 브랜치 분기 (`main`에서 분기, 이름 컨벤션 `feat/{id}-step{N}` 또는 `infra/{id}` 등)
-5. 시작 보고 — 메인 `docs/handover.md` 갱신은 **트랙 머지 시점에만**
+> 상세 절차 + 0번 step 의 사유는 [`docs/conventions/parallel-work.md`](../conventions/parallel-work.md) §2.1 참조. 본 항목은 요약.
+
+0. **GitHub 이슈 생성 + 라벨 신설** (`gh label create track:{id}`) — 트랙 ID·브랜치명·spec·track 파일 모두 이슈에서 파생. parallel-work.md §2.1 0번 step 정합
+1. 위 활성 표에 트랙 한 줄 추가 (이슈 번호 컬럼 포함)
+2. **Spec 파일 작성** (`docs/specs/features/{feature}.md` — `_template.md` 사용. 트랙 `harness-spec-driven` C2 의무화)
+3. `docs/handover/track-{id}.md` 신규 작성 (이 파일 마지막 "트랙 파일 템플릿 v2" 참조 — Issue·Spec 메타데이터 명시)
+4. `docs/learning/RESERVED.md`에 자기 트랙용 번호 대역 예약 (5번 단위 권장)
+5. 새 git 브랜치 분기 (`main`에서 분기, 이름 컨벤션 `feat/{id}-step{N}` 또는 `infra/{id}` 등)
+6. 시작 보고 — 메인 `docs/handover.md` 갱신은 **트랙 머지 시점에만**
 
 ---
 

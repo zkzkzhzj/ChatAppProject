@@ -52,7 +52,13 @@ cp docs/specs/features/_template.md docs/specs/features/{feature}.md
 `docs/wiki/INDEX.md` 읽고, feature 이름·키워드 기반으로 관련 wiki 페이지 후보 추출.
 사용자에게: "이 wiki 페이지 link 가 §7 references 에 들어갈까?" 묻기.
 
-비우면 강제로 wiki/INDEX 다시 보여줌. spec 생성 시점이 wiki 검토 가장 자연스러운 시점.
+처리 분기:
+
+- 사용자가 페이지 1개 이상 선택 → §7 `관련 wiki` 라인에 link 추가
+- 사용자가 명시적으로 "해당 없음" / "없음" → §7 `관련 wiki` 라인에 `해당 없음 (spec 작성 시점에 매핑된 wiki 페이지 없음)` 자동 기록 + 본 결정 사유 1줄 (선택)
+- 빈 응답 / 침묵 → wiki/INDEX 1회 재제시 후 동일 분기 반복
+
+> 사유: 강제 종료(빈 입력 → spec 생성 거부)보다 마찰이 낮고 결정 흔적은 그대로 남는다. 후속 트랙·다음 세션이 "이 spec 작성 시점에 wiki 검토했고 매핑 없음을 의식적으로 결정함"을 본문에서 확인할 수 있다 (CodeRabbit C7 리뷰 B5).
 
 ### 6단계 — 사용자 작성 안내
 

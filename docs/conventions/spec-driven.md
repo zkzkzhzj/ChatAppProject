@@ -2,7 +2,7 @@
 
 > 트랙 `harness-spec-driven` (Issue #46, 2026-04-30) 도입.
 >
-> 외부 트렌드(BMAD-METHOD / GitHub Spec Kit / AB Method) 분석에서 추출한 핵심 패턴을 마플 커피챗 인사이트(트레이드오프·시스템적 빈틈 방어)와 정합화. 결정 기록은 [learning/66](../learning/) (P5 작성 예정).
+> 외부 트렌드(BMAD-METHOD / GitHub Spec Kit / AB Method) 분석에서 추출한 핵심 패턴을 마플 커피챗 인사이트(트레이드오프·시스템적 빈틈 방어)와 정합화. 결정 기록은 [learning/66](../learning/66-spec-driven-fix-loop-comprehension-gate.md).
 
 ---
 
@@ -97,7 +97,7 @@
 | `scope.in` / `scope.out` | 명시적 in / 명시적 out (out 이 spec 가치의 절반) |
 | `constraints` | 비기능 제약 (성능·비용·시간·인프라 의존) |
 | `decisions` | 핵심 결정들 — **각 항목마다 왜·대안·빈틈·재검토 트리거 4축** (Comprehension Gate 와 1:1 매핑) |
-| `tasks` (= steps) | step 분해. step ↔ 이슈 ↔ PR 1:1:1 |
+| `tasks` (= steps) | step 분해. **step ↔ PR 1:1 강제, step ↔ 이슈 매핑은 선택** (트랙 1개에 이슈 1개도 OK, step 별 별도 이슈도 OK — §1.1 / §3.3) |
 | `verification` | 수용 기준 (이게 통과하면 spec 종료) |
 | `references` | 관련 wiki / learning / ADR / 외부 자료 |
 

@@ -12,6 +12,12 @@ last-updated: YYYY-MM-DD
 > 이 spec 은 트랙 `{track-id}` (Issue #{N}) 의 **요구사항 진실** 이다.
 > 진행 상태는 `docs/handover/track-{track-id}.md`, 결정의 사고 과정은 `docs/learning/`.
 > 4층 분리 모델: [conventions/spec-driven.md](../../conventions/spec-driven.md) §1.
+>
+> **식별자 일치 의무 (CodeRabbit C7 리뷰 B8)**:
+>
+> - frontmatter `feature` ↔ 본 파일명 `{feature}.md`
+> - frontmatter `track` ↔ `docs/handover/track-{track}.md`
+> 일치하지 않으면 `/track-end` 의 wiki 영향 분석·handover 정합 갱신이 트랙을 찾지 못한다.
 
 ---
 

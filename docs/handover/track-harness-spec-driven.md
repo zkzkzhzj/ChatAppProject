@@ -43,8 +43,29 @@ GH 이슈 → 채팅 → 코드 흐름의 휘발성을 **spec-driven 4층 분리
 | P3 | C3 | 슬래시 스킬 4종 (`/spec-new` · `/track-start` · `/step-start` + fix-loop + Comprehension Gate · `/track-end`) + `docs/conventions/comprehension-gate.md` (13 카테고리·Tier A/B/C·자동 식별 룰·금지 예시) | 대기 |
 | P4 | C4 | hook 강화 (SessionStart 복원 프로토콜 — 활성 트랙·spec·wiki last-modified grep / stop-handover-check 트랙·spec 반영 / keyword-router 키워드 추가 — spec/step/트랙 / wiki-lint 주간 cron — 회수된 dependency 슬롯) | 대기 |
 | P5 | C5 | 검증 (다음 트랙 dry-run) + learning **#66·#67·#68** + handover.md / INDEX 정합 갱신 + CLAUDE.md "500→1200" 회고 메모 | 대기 |
+| P6 | C6 | Codex 리뷰 P2 3건 (keyword-router 숫자 매칭 / wiki 노화 git 기반 / stop hook 자기 트랙 식별) | ✅ |
+| P7 | C7 | CodeRabbit 리뷰 23건 (B1~B8 + #18 PR 번호 치환) — 정합/슬래시매칭/SKILL 보강/AGENT-ORG stale 갱신. B9 (wiki 페이지별 enumerate) 거부 — wiki-lint 영역 + AC 후속 분리 | ✅ |
 
-## 3. 현재 단계 상세 (P1 = C1)
+## 3. 현재 단계 상세 (P7 = C7 — post-review)
+
+### C7 적용 batch (CodeRabbit 23건)
+
+| Batch | 변경 파일 | 핵심 |
+|-------|----------|------|
+| B1 | `RESERVED.md` 헤더 / `INDEX.md` 완료 표 / `handover.md` §1·§2 | 마지막 사용 번호 65→68, PR 번호 #43·#47 치환 |
+| B2 | `.claude/hooks/keyword-router.js` | 슬래시 형식 (`^/?\s*spec[-\s]?new` 등) 직접 매칭 추가 |
+| B3 | `.claude/hooks/stop-handover-check.js` | `getCurrentBranchTrackId(cwd, activeTrackIds)` longest-prefix 매칭 (`fix/{id}-{specifics}` → `{id}` 자동 매핑) |
+| B4 | `comprehension-gate.md` / `CLAUDE.md` / `spec-driven.md` | 복수 카테고리 매칭 시 최종 Tier = max / "이미 답했음" 자동 통과 매칭 룰 (§7.1) / Phase B 요약 Tier 표 / Step↔Issue 매핑 통일 |
+| B5 | SKILL.md 4종 | spec-new wiki 비우면 "해당 없음" 자동 / step-start 활성 트랙 1개→현재 브랜치 트랙 ID + STEP_START_COMMIT placeholder / **track-end head -50 제거 (Critical)** / track-start 번호 사용 시점 안내 |
+| B6 | `AGENT-ORG.md` | hook 자동 진입 / 셀프러닝 루프 / wiki-lint 수동 / 11개 키워드 / 11개 hook 표 갱신 (P4 예정 → 현재 시제) |
+| B7 | learning #66·#67 | `./gradlew test` → 예시 한 단어 / Tier A 정의 명시 / "(이전 프로세스에서는)" 시간축 |
+| B8 | wiki-policy.md / parallel-work cross-ref / _template.md | learning/67 직접 link / INDEX.md 트랙 시작 절차 0번 step / frontmatter ↔ 파일명·track 일치 의무 |
+
+### B9 거부 회신 (별도 PR 코멘트)
+
+`wiki-policy.md` §2.4 SessionStart hook 의 페이지별 enumerate 권고 → `/wiki-lint` 스킬 영역 + 본 트랙 AC 후속 작업 (`wiki-lint 주간 cron 등록` — track 파일 §0.5 미체크 항목)으로 분리. 매 세션 시작 시 14페이지 enumerate 는 hook 원칙 (마찰 최소) 와 충돌.
+
+## 3.A 이전 단계 상세 (P1 = C1)
 
 ### 변경 파일
 

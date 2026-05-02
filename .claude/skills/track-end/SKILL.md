@@ -18,8 +18,10 @@
 ### 2단계 — wiki 영향 분석 (wiki-policy.md §2.1)
 
 ```bash
-git diff main...HEAD --name-only | grep -E "src/main/java" | head -50
+git diff main...HEAD --name-only | grep -E "src/main/java" | sort -u
 ```
+
+> **`head -50` 제거 (CodeRabbit C7 Critical 리뷰 B5)** — 트랙이 51개 이상 자바 파일을 건드리면 51번째부터 누락되어 wiki 영향 분석에 빈틈. 트랙 종료 시점은 1회성 정리 단계라 양보다 누락 0 이 우선. `sort -u` 만 적용해 중복 제거.
 
 - 트랙이 건드린 패키지 추출 (예: `communication/`, `village/`, `identity/`)
 - 도메인별 wiki 페이지 자동 매핑 (예: `communication/*` → `wiki/communication/*.md`)

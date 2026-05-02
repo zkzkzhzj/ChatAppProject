@@ -6,7 +6,7 @@
 
 ## 사전 조건
 
-- 활성 트랙 1개 존재 (`docs/handover/INDEX.md` 활성 표)
+- **현재 브랜치의 track-id 가 `docs/handover/INDEX.md` 활성 표에 존재** (다중 활성 트랙 지원: 활성 트랙이 N 개여도 자기 브랜치의 트랙 ID 만 검사 — `stop-handover-check.js` `getCurrentBranchTrackId` 와 동일 매칭. CodeRabbit C7 리뷰 B5)
 - spec 파일 §5 tasks 에 해당 step 정의 있음
 - 트랙 브랜치에서 작업 중 (main 금지)
 
@@ -56,14 +56,18 @@
 
 ### 7단계 — Comprehension Gate (Tier 자동 결정)
 
-`docs/conventions/comprehension-gate.md` 의 13 카테고리 자동 식별:
+`docs/conventions/comprehension-gate.md` 의 13 카테고리 자동 식별. 진단 범위는 **이번 step 의 누적 diff** (`STEP_START_COMMIT..HEAD` 또는 staged · unstaged 합산):
 
 ```bash
-git diff --name-only HEAD
-git diff HEAD | grep -E "@Transactional|synchronized|Atomic|@Version|@Lock|Outbox|idempotency|propagation|REQUIRES_NEW|@KafkaListener|@PreAuthorize|@Cacheable|@Index|@Column.*unique|@ControllerAdvice|@*Mapping|@KafkaListener"
-git diff HEAD -- build.gradle.kts frontend/package.json deploy/.env
-git diff HEAD -- 'docs/specs/features/*.md'
+# STEP_START_COMMIT = 본 /step-start 진입 직전 HEAD SHA. step 1단계에서 캡처해 변수 보존.
+# (구 가이드 `git diff HEAD` 는 staged 변경을 놓치고, 자동 fix-loop 의 commit 들을 모두 누락.)
+git diff --name-only ${STEP_START_COMMIT}..HEAD
+git diff ${STEP_START_COMMIT}..HEAD | grep -E "@Transactional|synchronized|Atomic|@Version|@Lock|Outbox|idempotency|propagation|REQUIRES_NEW|@KafkaListener|@PreAuthorize|@Cacheable|@Index|@Column.*unique|@ControllerAdvice|@*Mapping|@KafkaListener"
+git diff ${STEP_START_COMMIT}..HEAD -- build.gradle.kts frontend/package.json deploy/.env
+git diff ${STEP_START_COMMIT}..HEAD -- 'docs/specs/features/*.md'
 ```
+
+> CodeRabbit C7 리뷰 B5: step 도중 여러 commit 이 쌓여도 "이번 step 의 모든 변경" 이 게이트 식별 범위. step 1단계에서 `STEP_START_COMMIT=$(git rev-parse HEAD)` 캡처해 stash 또는 환경변수로 보존한다.
 
 - Tier A → 침묵, 다음 단계
 - Tier B → 시나리오 1 질문

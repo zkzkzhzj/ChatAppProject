@@ -155,14 +155,35 @@ function readActiveTrackIds(cwd) {
  *   - docs/{track-id}
  * 매칭 실패 시 null. (Codex P2 fix — stop-handover-check.js:239 — 다중 활성 트랙 시
  * 자기 트랙을 식별해 "자기 트랙" 정책을 정확히 적용하기 위함)
+ *
+ * activeTrackIds 가 주어지면 longest-prefix 매칭을 시도한다.
+ * 예: 브랜치 `fix/ui-mvp-feedback-mac-ime` + 활성 트랙 `ui-mvp-feedback`
+ * → 정규식 단독 매칭은 `ui-mvp-feedback-mac-ime` (그대로) 가 활성 트랙에 없어 실패.
+ * → activeTrackIds 와 prefix 비교해 가장 긴 매치(`ui-mvp-feedback`) 채택.
+ * (CodeRabbit C7 리뷰 B3)
  */
-function getCurrentBranchTrackId(cwd) {
+function getCurrentBranchTrackId(cwd, activeTrackIds = []) {
   const branch = git("rev-parse --abbrev-ref HEAD", cwd).trim();
   if (!branch || branch === "HEAD") return null;
   const match = branch.match(
     /^(?:feat|fix|infra|refactor|chore|docs)\/([a-z0-9][a-z0-9-]*?)(?:-step\d+)?$/
   );
-  return match ? match[1] : null;
+  if (!match) return null;
+  const candidate = match[1];
+
+  // 1차: 정규식 캡처 그대로 활성 트랙에 있으면 그걸 사용
+  if (activeTrackIds.includes(candidate)) return candidate;
+
+  // 2차: 활성 트랙 중 candidate 의 prefix 인 것을 찾고, 가장 긴 것 채택
+  // (예: candidate=`ui-mvp-feedback-mac-ime`, 활성=[`ui-mvp-feedback`] → 매칭)
+  const prefixMatches = activeTrackIds
+    .filter((id) => candidate === id || candidate.startsWith(`${id}-`))
+    .sort((a, b) => b.length - a.length);
+  if (prefixMatches.length > 0) return prefixMatches[0];
+
+  // 3차: fallback — 활성 트랙 미지정이거나 매칭 없음. 정규식 캡처값 그대로 반환
+  // (호출부의 includes 검사에서 자연 실패 → 다중 활성 fallback 분기로 흘러감)
+  return candidate;
 }
 
 let input = "";
@@ -255,7 +276,9 @@ process.stdin.on("end", () => {
       // 브랜치명에서 자기 트랙 ID 식별 시도. 활성 트랙 중 하나면 그 트랙만 검사.
       // 다중 활성 시 트랙 A 작업하면서 트랙 B 만 갱신해도 통과되는 빈틈 차단
       // (parallel-work.md "자기 트랙" 정책 / Codex P2 fix).
-      const sessionTrackId = getCurrentBranchTrackId(cwd);
+      // longest-prefix 매칭으로 `fix/{id}-{specifics}` 같은 변형 브랜치도 활성 트랙에 매핑
+      // (CodeRabbit C7 리뷰 B3).
+      const sessionTrackId = getCurrentBranchTrackId(cwd, activeTrackIds);
 
       if (sessionTrackId && activeTrackIds.includes(sessionTrackId)) {
         const trackFile = `docs/handover/track-${sessionTrackId}.md`;

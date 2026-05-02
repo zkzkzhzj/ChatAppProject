@@ -2,7 +2,7 @@
 
 > 트랙 `harness-spec-driven` (Issue #46, 2026-04-30) 도입.
 >
-> 사고 과정과 결정의 ADR 은 [learning/67](../learning/) (P5 작성 예정).
+> 사고 과정과 결정의 ADR 은 [learning/67](../learning/67-wiki-policy-rejection-reversal.md).
 
 ---
 

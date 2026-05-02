@@ -116,8 +116,13 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
    → 도메인 설계 (Entity, VO, Domain Service)
    → Port 정의 (in/out)
    → 구현 + 테스트 작성
-   → 자동 fix-loop (P3 산출물): 테스트 실패 → 자체 수정 → 재실행 (한도 3회) / review-agent CRITICAL → 자체 수정 → 재검증 (한도 2회)
-   → Comprehension Gate (P3 산출물, Tier B/C 매칭 시): spec.decisions 미채움 + 동시성·외부호출·새기술 등 13 카테고리 트리거 시 본인 말로 답하기
+   → 자동 fix-loop (C3 산출물 — 4층 모델은 C2): 테스트 실패 → 자체 수정 → 재실행 (한도 3회) / review-agent CRITICAL → 자체 수정 → 재검증 (한도 2회)
+   → Comprehension Gate (C3 산출물, Tier 자동 결정 — `comprehension-gate.md` §3 표 기준):
+       · Tier A 침묵 — 13 카테고리 매칭 X (단순 CRUD / 테스트만 / 문서만)
+       · Tier B 시나리오 1 질문 — 카테고리 #1~#4 (동시성·멱등성·트랜잭션·외부호출)
+       · Tier C 왜·대안·빈틈 3축 — 카테고리 #5~#13 또는 spec.decisions 신규
+       · 복수 매칭 시 최종 Tier = 가장 높은 (C > B > A)
+       · spec.decisions 4축 미리 채움 → "이미 답했음" 자동 통과 (`comprehension-gate.md` §7.1)
    → 단계 완료 보고 → 🔒 사용자 확인 후 PR 생성 + 다음 단계
 
 5. 동시성 및 성능 검토 (해당 단계에 상태 변경이 있을 때)

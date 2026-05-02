@@ -49,7 +49,7 @@
   - `docs/learning/RESERVED.md`
   - `docs/knowledge/INDEX.md`
   - `docs/knowledge/AGENT-ORG.md`
-- **자동 진입 (예정)**: 트랙 `harness-spec-driven` P4 에서 `session-start-snapshot.js` hook 강화로 위 5개 파일을 hook 단에서 grep · stdout 출력. Claude 가 첫 답변에서 현재 위치 자동 인지 (현재는 수동 호출)
+- **자동 진입**: `session-start-snapshot.js` hook 이 위 5개 파일을 캡처·요약해 stdout 출력 (`.claude/settings.json` 등록 완료, 트랙 `harness-spec-driven` C4, 2026-04-30). Claude 가 첫 답변에서 현재 위치 자동 인지
 - **파일**: `.claude/agents/hq-agent.md`
 
 ---
@@ -212,8 +212,8 @@
 [세션 시작]
 SessionStart Hook (session-start-snapshot.js)
   → cwd · 워크트리 · 브랜치 · porcelain hash 캡처
-  → 새 세션이 어느 워크트리에서 시작했는지 즉시 추적
-  → (P4 예정) 활성 트랙·spec·wiki last-modified grep + 5개 파일 출력 — hq 자동 진입
+  → 활성 트랙·spec·wiki last-modified 요약 + 5개 파일 가시화 (HQ 자동 진입)
+  → (트랙 `harness-spec-driven` C4, 2026-04-30 — `.claude/settings.json` 등록 완료)
         ↓
 [복원 프로토콜 — HQ]
 hq-agent 세션 시작 시 5개 파일 읽기
@@ -227,7 +227,7 @@ market-research-agent → docs/knowledge/market/ (서비스 시장 조사)
 competitor-agent → docs/knowledge/market/competitors/ (경쟁 서비스 분석)
 user-research-agent → docs/knowledge/market/user-personas.md (서비스 타겟 유저)
 job-market-agent → marpple-prep/research/ (외부 — 회사 분석 자료 격리)
-wiki-lint (P4 예정) — 매주 월요일 09:00 KST, 회수된 dependency-tracker 슬롯 사용
+wiki-lint — 수동/필요 시 실행 (`/wiki-lint` 슬래시 스킬). 주간 cron 등록은 후속 운영 작업 (트랙 `harness-spec-driven` AC 후속, 회수된 dependency-tracker 슬롯 사용 예정)
         ↓
 [개발 본부 — 요청 시]
 domain → adapter → test 순차 실행
@@ -246,10 +246,11 @@ PR 생성 시 pr-agent §5
         ↓
 [세션 종료]
 Stop Hook (stop-handover-check.js)
-  → handover.md / track-*.md 갱신 여부 체크 (P4 에서 spec/track 분리 정합 갱신 예정)
-  → 메모리 자동 저장
-keyword-router.js (UserPromptSubmit) — 7개 키워드 라우팅 (P4 에서 spec/step/트랙 키워드 추가 예정)
-  → blog-writer / learning / pr / research / concurrency / security / review-respond
+  → 활성 트랙 있음: 자기 트랙 (브랜치명 longest-prefix 매칭) 의 `track-{id}.md` 갱신 검사
+  → 활성 트랙 없음: 메인 `handover.md` 갱신 검사
+  → 델타 산정: porcelain 상태 변화 + 시작 시 dirty 였던 파일의 hash 변화 + 세션 중 commit 된 파일
+keyword-router.js (UserPromptSubmit) — 11개 키워드 라우팅 (트랙 `harness-spec-driven` C4 — spec/track-start/step-start/track-end 추가)
+  → blog-writer / learning / pr / research / concurrency / security / review-respond / spec-new / track-start / step-start / track-end
 ```
 
 ---
@@ -259,7 +260,7 @@ keyword-router.js (UserPromptSubmit) — 7개 키워드 라우팅 (P4 에서 spe
 | 항목 | 상태 | 파일 |
 |------|------|------|
 | 에이전트 파일 23개 (운영) + 1개 (archive) | ✅ | `.claude/agents/` (운영 23: 4-13 19개 → 4-27 23개. dependency-tracker는 4-30 archive 로 이동) |
-| 스킬 (프로젝트 + 글로벌) | ✅ | `.claude/skills/` 코드/전체/MD/동시성/보안/테스트 리뷰 + wiki-lint + 학습노트 + 브랜치정리 등 (P3 에서 spec-new/track-start/step-start/track-end 4종 신설 예정) |
+| 스킬 (프로젝트 + 글로벌) | ✅ | `.claude/skills/` 코드/전체/MD/동시성/보안/테스트 리뷰 + wiki-lint + 학습노트 + 브랜치정리 + spec-new/track-start/step-start/track-end (트랙 `harness-spec-driven` C3 신설, 2026-04-30) |
 | 실험적 팀 기능 | ✅ | `.claude/settings.json` |
 | 지식 베이스 (AI Native) | ✅ | `docs/knowledge/ai-native/` — handover-collision-management 등 활발 |
 | 지식 베이스 (실시간 기술) | ✅ | `docs/knowledge/realtime/` — chat.md 30KB 본격 |
@@ -271,11 +272,11 @@ keyword-router.js (UserPromptSubmit) — 7개 키워드 라우팅 (P4 에서 spe
 | research-agent 주간 크론 | ✅ | 매주 월요일 09:00 KST |
 | realtime-tech-agent 주간 크론 | ✅ | 매주 월요일 09:00 KST |
 | job-market-agent 주간 크론 | ✅ | 매주 월요일 10:00 KST |
-| SessionStart Hook | ✅ | `settings.json` `session-start-snapshot.js` — cwd / branch / porcelain hash (P4 에서 활성 트랙·spec·wiki 가시화 강화 예정) |
+| SessionStart Hook | ✅ | `settings.json` `session-start-snapshot.js` — cwd / branch / porcelain hash + 활성 트랙·spec·wiki 가시화 (트랙 `harness-spec-driven` C4) |
 | PreToolUse(Bash) Hook | ✅ | `settings.json` `pre-bash-guard.js` — 브랜치/PR/문서 누락 가드 |
 | PostToolUse Hook (git commit) | ✅ | `settings.json` `post-commit-review.js` — commit 성공 시 review-agent 자동 트리거 |
-| UserPromptSubmit Hook | ✅ | `settings.json` `keyword-router.js` — 7개 키워드 자동 라우팅 (P4 에서 spec/step/트랙 추가) |
-| Stop Hook | ✅ | `settings.json` `stop-handover-check.js` — handover/track 갱신 검사 (P4 에서 spec 분리 + 1step=1PR 정합 보강 예정) |
+| UserPromptSubmit Hook | ✅ | `settings.json` `keyword-router.js` — 11개 키워드 자동 라우팅 (트랙 `harness-spec-driven` C4 — spec/track-start/step-start/track-end 추가) |
+| Stop Hook | ✅ | `settings.json` `stop-handover-check.js` — 활성 트랙 있음 → 자기 트랙 `track-{id}.md` (브랜치 longest-prefix 매칭) / 없음 → `handover.md` 갱신 검사 (트랙 `harness-spec-driven` C4·C7) |
 | Notification Hook | ✅ | `settings.local.json` — 비프음 |
 | Wiki (LLM Wiki 패턴) | ✅ | `docs/wiki/` — 14페이지 + INDEX + log.md + Lint 스킬. 트랙 `harness-spec-driven` 에서 활용 강화 정책 도입 (`docs/conventions/wiki-policy.md`, 2026-04-30) |
 | 병행 트랙 + 워크트리 분리 | ✅ | `docs/conventions/parallel-work.md` + `docs/handover/INDEX.md` + `docs/learning/RESERVED.md` |

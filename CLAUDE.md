@@ -68,6 +68,8 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
    - 단일 작업: `docs/handover.md` 직접 갱신
    - 병행 트랙 활성 시: 자기 트랙의 `docs/handover/track-{id}.md`만 갱신 (메인 `docs/handover.md`는 **트랙 머지 PR 안에서만** — 머지 후 별도 docs PR 금지)
    - 상세: §8 Parallel Tracks · `docs/conventions/parallel-work.md` 참조
+9. **요청되지 않은 추상화·유연성 금지.** 단발성 코드에 추상 인터페이스를 만들지 마라. "나중에 쓸 수도 있다"는 이유로 옵션·설정·확장 포인트를 추가하지 않는다. **YAGNI 가 헥사고날보다 우선이다.** 두 번째 사용처가 실제로 등장한 다음에 추상화한다. 헥사고날 환경에서 가장 잘 생기는 함정 — Port 미리 만들기, 사용처 1곳인 인터페이스, "혹시 모르니" Strategy/Factory 도입 모두 거부 (Karpathy "Simplicity First").
+10. **Surgical Changes — 사용자 요청 밖 코드 손대지 마라.** 기능 구현 중 인접 코드 "정리·포매팅·개선" 금지. 변경된 모든 줄은 작업 의도에 직접 추적 가능해야 한다. 다른 영역의 결함을 발견하면 이슈만 등록하고 자기 작업으로 복귀한다. 진짜 리팩토링은 §5.3 별도 PR (`feedback_track_scope_discipline.md` 의 코드 레벨 적용 / Karpathy "Surgical Changes").
 
 ---
 
@@ -98,6 +100,10 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
    → 무엇을 만들지, 왜 필요한지, 범위(in/out scope)
    → ERD 변경 필요 여부
    → 예상 트레이드오프 명시
+   → **성공 기준(success criteria)을 검증 가능한 형태로 명시한다.**
+     명령형("X 추가해") 가 아니라 검증형("Y 테스트가 통과한다", "Z 응답 코드가 반환된다") 으로 적는다.
+     예: "validation 추가" (X) → "invalid email 입력 시 400 + EMAIL_INVALID 에러코드, 단위 테스트 통과" (O)
+     이 기준이 spec.decisions 에 미리 박히면 Comprehension Gate 자동 통과 (`docs/conventions/comprehension-gate.md` §7), Phase B fix-loop 가 자동 verify (Karpathy "Goal-Driven Execution").
    → 사용자가 승인 또는 수정 요청
 
 3. 구현계획서 제시 → 🔒 사용자 승인 필요
@@ -230,6 +236,8 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 - [ ] API 응답에 민감 정보(비밀번호, 토큰, 내부 ID)가 노출되지 않는가?
 - [ ] `@Transactional`이 적절한 위치(Service)에 있고, 읽기 전용 조회에 `readOnly = true`가 붙어있는가?
 - [ ] 하드코딩된 설정값(URL, 타임아웃, 사이즈 등)이 코드에 박혀있지 않은가? (`application.yml`로 분리)
+- [ ] 요청되지 않은 추상화·옵션·설정 포인트를 추가하지 않았는가? 단발 사용이면 직접 코드 (Critical Rule #9)
+- [ ] 사용자 요청 밖 인접 코드를 "정리"하거나 포매팅 변경하지 않았는가? diff 가 작업 의도와 1:1 추적 가능한가 (Critical Rule #10)
 
 ### 테스트
 

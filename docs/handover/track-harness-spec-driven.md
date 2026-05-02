@@ -4,8 +4,10 @@
 > 작업 영역: AI Native 하네스 (`.claude/`) + docs 컨벤션 + dependency 정리
 > 시작일: 2026-04-30
 > 종료일: 2026-04-30
-> Issue: #46
-> 브랜치: `infra/harness-spec-driven` (1 PR · 5 커밋)
+> Issue: #46 / PR: #47
+> 브랜치: `infra/harness-spec-driven` (1 PR · N 커밋 — 메타·도구 트랙 예외)
+> Spec: 없음 (메타·도구 트랙 — `feature` spec 파일 대신 본 파일 §0.5 Acceptance Criteria 가 spec.verification 자리)
+> 트랙 종류: **메타·도구 트랙** — `step-driven.md` §2.2 / `git.md` §4 의 1 step = 1 PR 엄격 룰의 명시적 예외. 본 트랙 step 표는 v2 표준(`Step \| 내용 \| 의존 \| 상태 \| 이슈 \| PR`) 대신 phase·커밋 표 사용 — phase 간 의존이 강하고 phase별 PR 분리 시 도입 효과가 머지 후로 늦춰지는 닭과 달걀 문제 회피용. 후속 서비스 트랙은 v2 step 표 따름.
 
 ---
 

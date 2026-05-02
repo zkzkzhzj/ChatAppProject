@@ -2,7 +2,7 @@
 
 ## 사전 조건
 
-- 활성 트랙 1개 존재
+- **현재 브랜치의 track-id 가 `docs/handover/INDEX.md` 활성 표에 존재** (다중 활성 트랙 지원: 자기 브랜치의 트랙 ID 만 검사 — `step-start/SKILL.md` 와 동일 매칭 정합)
 - 모든 step PR 머지 완료 (또는 메타·도구 트랙은 트랙 머지 PR 1개 직전)
 - main pull → 트랙 브랜치 rebase 완료
 

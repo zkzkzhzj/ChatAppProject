@@ -14,7 +14,8 @@
 
 ### 1단계 — 사전 조건 + spec 읽기
 
-- 활성 트랙 ID 확인 (`docs/handover/INDEX.md`)
+- 활성 트랙 ID 확인 (`docs/handover/INDEX.md` 활성 표 + 현재 브랜치 `track-id` 매칭)
+- **`STEP_START_COMMIT=$(git rev-parse HEAD)` 캡처 후 환경변수 보존** — 7단계 Comprehension Gate diff 의 기준점. 이 값 없이는 7단계 `git diff` 전부 미정의 변수로 실패
 - `docs/specs/features/{feature}.md` §5 tasks 의 step N 항목 정독
 - `docs/handover/track-{id}.md` §3 현재 단계 상세 정독
 
@@ -40,9 +41,7 @@
 
 ### 5단계 — 자동 fix-loop (테스트)
 
-```bash
-./gradlew test
-```
+프로젝트별 테스트 명령 실행 (예: `./gradlew test`, `npm test`, `pytest` 등). 마음의 고향 백엔드는 `./gradlew test`, 프론트엔드는 `cd frontend && npm test`.
 
 - 실패 → 자체 수정 → 재실행 (한도 3회)
 - 3회 실패 → escalation: 막힌 지점·시도 내역 보고 → 🔒 사용자 결정 대기
@@ -62,7 +61,7 @@
 # STEP_START_COMMIT = 본 /step-start 진입 직전 HEAD SHA. step 1단계에서 캡처해 변수 보존.
 # (구 가이드 `git diff HEAD` 는 staged 변경을 놓치고, 자동 fix-loop 의 commit 들을 모두 누락.)
 git diff --name-only ${STEP_START_COMMIT}..HEAD
-git diff ${STEP_START_COMMIT}..HEAD | grep -E "@Transactional|synchronized|Atomic|@Version|@Lock|Outbox|idempotency|propagation|REQUIRES_NEW|@KafkaListener|@PreAuthorize|@Cacheable|@Index|@Column.*unique|@ControllerAdvice|@*Mapping|@KafkaListener"
+git diff ${STEP_START_COMMIT}..HEAD | grep -E "@Transactional|synchronized|Atomic|@Version|@Lock|Outbox|idempotency|propagation|REQUIRES_NEW|@KafkaListener|@PreAuthorize|@Cacheable|@Index|@Column.*unique|@ControllerAdvice|@[A-Za-z]+Mapping"
 git diff ${STEP_START_COMMIT}..HEAD -- build.gradle.kts frontend/package.json deploy/.env
 git diff ${STEP_START_COMMIT}..HEAD -- 'docs/specs/features/*.md'
 ```

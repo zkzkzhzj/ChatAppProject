@@ -1,6 +1,6 @@
 # 지식 베이스 인덱스
 
-> 마지막 업데이트: 2026-04-27
+> 마지막 업데이트: 2026-04-30
 > 새 세션 시작 시 이 파일을 읽어 최신 AI Native 개발 맥락을 파악한다.
 
 ---
@@ -14,6 +14,7 @@
 | [Claude Code 파워유저 실천법](ai-native/claude-code-practices.md) | Hooks, Agent Teams, Remote Control, /loop, Computer Use | 2026-04-13 |
 | [멀티 에이전트·워크트리·협업 패턴](ai-native/multi-agent-workflows.md) | 단일→멀티 4단계, 도구별 지원, 충돌 처치 4계층, 프레임워크 비교, 마음의 고향 셋업 평가 | 2026-04-24 |
 | [Handover 충돌 관리 + Agent Teams 실전 디테일](ai-native/handover-collision-management.md) | Memory Bank 패턴, Stop hook 워크트리 인지 분기, Issue #16600/#46808 회피, git-stint·claude-git, 즉시 적용 7개 액션 | 2026-04-24 |
+| [Karpathy Skills 의도 분석 + CLAUDE.md 보강 매핑](ai-native/karpathy-skills-analysis.md) | forrestchang/andrej-karpathy-skills 4원칙(Think Before / Simplicity First / Surgical Changes / Goal-Driven) 의도 추출 + 우리 CLAUDE.md 매핑 + 보강 제안 4개 (Critical #9·#10, §5.1 검증형 success criteria, §7 추가) + 안 가져온 것 4개 | 2026-04-30 |
 
 ## 에이전트 조직
 

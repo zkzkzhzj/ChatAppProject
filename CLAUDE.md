@@ -68,6 +68,8 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
    - 단일 작업: `docs/handover.md` 직접 갱신
    - 병행 트랙 활성 시: 자기 트랙의 `docs/handover/track-{id}.md`만 갱신 (메인 `docs/handover.md`는 **트랙 머지 PR 안에서만** — 머지 후 별도 docs PR 금지)
    - 상세: §8 Parallel Tracks · `docs/conventions/parallel-work.md` 참조
+9. **요청되지 않은 추상화·유연성 금지.** 단발성 코드에 추상 인터페이스를 만들지 마라. "나중에 쓸 수도 있다"는 이유로 옵션·설정·확장 포인트를 추가하지 않는다. **YAGNI 가 헥사고날보다 우선이다.** 두 번째 사용처가 실제로 등장한 다음에 추상화한다. 헥사고날 환경에서 가장 잘 생기는 함정 — Port 미리 만들기, 사용처 1곳인 인터페이스, "혹시 모르니" Strategy/Factory 도입 모두 거부 (Karpathy "Simplicity First").
+10. **Surgical Changes — 사용자 요청 밖 코드 손대지 마라.** 기능 구현 중 인접 코드 "정리·포매팅·개선" 금지. 변경된 모든 줄은 작업 의도에 직접 추적 가능해야 한다. 다른 영역의 결함을 발견하면 이슈만 등록하고 자기 작업으로 복귀한다. 진짜 리팩토링은 §5.3 별도 PR (`feedback_track_scope_discipline.md` 의 코드 레벨 적용 / Karpathy "Surgical Changes").
 
 ---
 
@@ -77,20 +79,31 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 >
 > 모든 기능 구현은 "계획 → 승인 → 구현 → 보고" 사이클을 따른다.
 > 승인 없이 다음 단계로 넘어가지 않는다. 이것은 바이브 코딩이 아니다.
+>
+> **Spec-driven 4층 분리 모델** (트랙 `harness-spec-driven` C2 도입, 2026-04-30): Issue → Spec → Track → Step. 각 층의 시제·역할이 다르다 (상세: [`docs/conventions/spec-driven.md`](./docs/conventions/spec-driven.md)). 본 §5 사이클의 보강 3축:
+>
+> 1. Phase A 의 "요구사항 확인" 에 **Spec 파일 작성** (`docs/specs/features/{feature}.md`, [`_template.md`](./docs/specs/features/_template.md)) 이 포함된다. spec 의 `decisions` 4축 (왜·대안·빈틈·재검토) 미리 채우면 Comprehension Gate 자동 통과
+> 2. Phase B 의 "단계 N 구현" 은 **1 step = 1 PR (엄격, [`git.md`](./docs/conventions/git.md) §4)**. 한 PR 에 여러 step 섞지 않으며, 한 step 이 여러 PR 로 쪼개지지 않음. 메타·도구 트랙만 1 PR · N 커밋 예외
+> 3. Phase C 의 "완료 보고" 는 **`/track-end` 자동화** (P3 산출물) — Acceptance Criteria 검증 + wiki 영향 분석 ([`wiki-policy.md`](./docs/conventions/wiki-policy.md) §2.1) + handover 정합 + RESERVED 닫기 + learning 노트 작성
 
 ### 5.1 새 기능 구현
 
 **Phase A — 계획 (코드 작성 금지)**
 
 ```text
-1. 요구사항 확인
+1. 요구사항 확인 + Spec 파일 작성
    → 관련 기획 문서 확인 (/docs/planning/)
-   → 불명확한 점이 있으면 반드시 질문
+   → docs/specs/features/{feature}.md 작성 (`_template.md` 사용 — outcomes / scope / constraints / decisions / tasks / verification / references)
+   → 불명확한 점이 있으면 반드시 질문 (spec 의 `decisions` 4축 비어있으면 게이트가 step 시점에 묻는다)
 
 2. 수행계획서 제시 → 🔒 사용자 승인 필요
    → 무엇을 만들지, 왜 필요한지, 범위(in/out scope)
    → ERD 변경 필요 여부
    → 예상 트레이드오프 명시
+   → **성공 기준(success criteria)을 검증 가능한 형태로 명시한다.**
+     명령형("X 추가해") 가 아니라 검증형("Y 테스트가 통과한다", "Z 응답 코드가 반환된다") 으로 적는다.
+     예: "validation 추가" (X) → "invalid email 입력 시 400 + EMAIL_INVALID 에러코드, 단위 테스트 통과" (O)
+     이 기준이 spec.decisions 에 미리 박히면 Comprehension Gate 자동 통과 (`docs/conventions/comprehension-gate.md` §7), Phase B fix-loop 가 자동 verify (Karpathy "Goal-Driven Execution").
    → 사용자가 승인 또는 수정 요청
 
 3. 구현계획서 제시 → 🔒 사용자 승인 필요
@@ -105,11 +118,18 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 ```text
 각 단계마다:
 
-4. 단계 N 구현
+4. 단계 N 구현 (1 step = 1 PR — 엄격)
    → 도메인 설계 (Entity, VO, Domain Service)
    → Port 정의 (in/out)
    → 구현 + 테스트 작성
-   → 단계 완료 보고 → 🔒 사용자 확인 후 다음 단계
+   → 자동 fix-loop (C3 산출물 — 4층 모델은 C2): 테스트 실패 → 자체 수정 → 재실행 (한도 3회) / review-agent CRITICAL → 자체 수정 → 재검증 (한도 2회)
+   → Comprehension Gate (C3 산출물, Tier 자동 결정 — `comprehension-gate.md` §3 표 기준):
+       · Tier A 침묵 — 13 카테고리 매칭 X (단순 CRUD / 테스트만 / 문서만)
+       · Tier B 시나리오 1 질문 — 카테고리 #1~#4 (동시성·멱등성·트랜잭션·외부호출)
+       · Tier C 왜·대안·빈틈 3축 — 카테고리 #5~#13 또는 spec.decisions 신규
+       · 복수 매칭 시 최종 Tier = 가장 높은 (C > B > A)
+       · spec.decisions 4축 미리 채움 → "이미 답했음" 자동 통과 (`comprehension-gate.md` §7.1)
+   → 단계 완료 보고 → 🔒 사용자 확인 후 PR 생성 + 다음 단계
 
 5. 동시성 및 성능 검토 (해당 단계에 상태 변경이 있을 때)
    → 상태 변경 로직에 동시 요청이 들어오면 어떻게 되는가?
@@ -144,6 +164,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 ```text
 1. 원인 분석 결과 보고 → 🔒 사용자 확인
    → 재현 조건, 원인 추정, 수정 방향 제시
+   → mini-spec 작성 (단발 핫픽스도 docs/specs/features/{bug-id}.md 의무 — spec-driven.md §2.1)
 2. 버그 재현 테스트 작성 (실패하는 테스트를 먼저 만든다)
 3. 수정 구현
 4. 테스트 통과 확인
@@ -215,6 +236,8 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 - [ ] API 응답에 민감 정보(비밀번호, 토큰, 내부 ID)가 노출되지 않는가?
 - [ ] `@Transactional`이 적절한 위치(Service)에 있고, 읽기 전용 조회에 `readOnly = true`가 붙어있는가?
 - [ ] 하드코딩된 설정값(URL, 타임아웃, 사이즈 등)이 코드에 박혀있지 않은가? (`application.yml`로 분리)
+- [ ] 요청되지 않은 추상화·옵션·설정 포인트를 추가하지 않았는가? 단발 사용이면 직접 코드 (Critical Rule #9)
+- [ ] 사용자 요청 밖 인접 코드를 "정리"하거나 포매팅 변경하지 않았는가? diff 가 작업 의도와 1:1 추적 가능한가 (Critical Rule #10)
 
 ### 테스트
 
@@ -284,7 +307,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 
 - **현재 상태**: `/docs/handover.md` (전체 그림) + `/docs/handover/INDEX.md` (활성 트랙)
 - **아키텍처**: `/docs/architecture/architecture.md`
-- **컨벤션**: `/docs/conventions/{coding,testing,git,parallel-work}.md`
+- **컨벤션**: `/docs/conventions/{coding,testing,git,parallel-work,spec-driven,wiki-policy}.md`
 - **API 명세**: `/docs/specs/{api,websocket,event}.md`
 - **학습 노트**: `/docs/learning/INDEX.md` + `/docs/learning/RESERVED.md`
 - **AI Native 지식**: `/docs/knowledge/INDEX.md` + `/docs/knowledge/AGENT-ORG.md`

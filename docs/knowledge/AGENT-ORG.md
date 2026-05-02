@@ -1,6 +1,6 @@
 # 에이전트 조직도 — 마음의 고향
 
-> 마지막 업데이트: 2026-04-27
+> 마지막 업데이트: 2026-04-30
 
 ---
 
@@ -49,6 +49,7 @@
   - `docs/learning/RESERVED.md`
   - `docs/knowledge/INDEX.md`
   - `docs/knowledge/AGENT-ORG.md`
+- **자동 진입**: `session-start-snapshot.js` hook 이 위 5개 파일을 캡처·요약해 stdout 출력 (`.claude/settings.json` 등록 완료, 트랙 `harness-spec-driven` C4, 2026-04-30). Claude 가 첫 답변에서 현재 위치 자동 인지
 - **파일**: `.claude/agents/hq-agent.md`
 
 ---
@@ -91,14 +92,6 @@
 - **파일**: `.claude/agents/job-market-agent.md`
 - **격리 정책**: 본 에이전트 정의는 레포 내부, 출력물은 레포 외부 (2026-04-27)
 
-### dependency-tracker-agent (의존성 버전 추적)
-
-- **역할**: Spring Boot/Java/Kafka/Next.js 최신 릴리즈 및 CVE 보안 패치 추적
-- **출력**: `docs/knowledge/dependencies/` 누적
-- **자율성**: 높음 (격주 크론 등록 예정)
-- **파일**: `.claude/agents/dependency-tracker-agent.md`
-- **상태**: 🔒 잠금 — 플랜 트리거 한도(3개) 초과로 크론 미등록. 슬롯 여유 생기면 재등록 예정.
-
 ### context-health-agent (AI Native 컨텍스트 건강 검사)
 
 - **역할**: CLAUDE.md 토큰 수, handover.md 최신성, 에이전트 프롬프트 품질, 지식 베이스 노화 감지
@@ -113,6 +106,8 @@
 - **출력**: `docs/knowledge/realtime/` (chat.md / webrtc.md / streaming.md) 누적
 - **자율성**: 중간 (수집은 자율, 어드바이저는 요청 기반)
 - **파일**: `.claude/agents/realtime-tech-agent.md`
+
+> **아카이브**: `dependency-tracker-agent` 는 트랙 `harness-spec-driven` (2026-04-30) 에서 `.claude/agents/_archive/` 로 이동. 사유: Claude Code 플랜 트리거 슬롯 한도(3) 초과로 4-13 이후 0건 방치. 동일 역할은 GitHub Dependabot 으로 대체 (`.github/dependabot.yml`). 슬롯 여유 시 부활 가능 (archive 보존).
 
 ---
 
@@ -217,21 +212,22 @@
 [세션 시작]
 SessionStart Hook (session-start-snapshot.js)
   → cwd · 워크트리 · 브랜치 · porcelain hash 캡처
-  → 새 세션이 어느 워크트리에서 시작했는지 즉시 추적
+  → 활성 트랙·spec·wiki last-modified 요약 + 5개 파일 가시화 (HQ 자동 진입)
+  → (트랙 `harness-spec-driven` C4, 2026-04-30 — `.claude/settings.json` 등록 완료)
         ↓
 [복원 프로토콜 — HQ]
 hq-agent 세션 시작 시 5개 파일 읽기
   → handover.md + handover/INDEX.md + knowledge/INDEX.md
   → AGENT-ORG.md + learning/RESERVED.md
         ↓
-[리서치 본부 — 자동/잠금]
+[리서치 본부 — 자동]
 research-agent (매주) → docs/knowledge/ai-native/ 업데이트
 realtime-tech-agent (매주) → docs/knowledge/realtime/ 업데이트
 market-research-agent → docs/knowledge/market/ (서비스 시장 조사)
 competitor-agent → docs/knowledge/market/competitors/ (경쟁 서비스 분석)
 user-research-agent → docs/knowledge/market/user-personas.md (서비스 타겟 유저)
 job-market-agent → marpple-prep/research/ (외부 — 회사 분석 자료 격리)
-dependency-tracker-agent (🔒 잠금)
+wiki-lint — 수동/필요 시 실행 (`/wiki-lint` 슬래시 스킬). 주간 cron 등록은 후속 운영 작업 (트랙 `harness-spec-driven` AC 후속, 회수된 dependency-tracker 슬롯 사용 예정)
         ↓
 [개발 본부 — 요청 시]
 domain → adapter → test 순차 실행
@@ -250,38 +246,39 @@ PR 생성 시 pr-agent §5
         ↓
 [세션 종료]
 Stop Hook (stop-handover-check.js)
-  → handover.md / track-*.md 갱신 여부 체크
-  → 메모리 자동 저장
-keyword-router.js (UserPromptSubmit) — 7개 키워드 라우팅
-  → blog-writer / learning / pr / research / concurrency / security / review-respond
+  → 활성 트랙 있음: 자기 트랙 (브랜치명 longest-prefix 매칭) 의 `track-{id}.md` 갱신 검사
+  → 활성 트랙 없음: 메인 `handover.md` 갱신 검사
+  → 델타 산정: porcelain 상태 변화 + 시작 시 dirty 였던 파일의 hash 변화 + 세션 중 commit 된 파일
+keyword-router.js (UserPromptSubmit) — 11개 키워드 라우팅 (트랙 `harness-spec-driven` C4 — spec/track-start/step-start/track-end 추가)
+  → blog-writer / learning / pr / research / concurrency / security / review-respond / spec-new / track-start / step-start / track-end
 ```
 
 ---
 
-## 설정 현황 (2026-04-27)
+## 설정 현황 (2026-04-30)
 
 | 항목 | 상태 | 파일 |
 |------|------|------|
-| 에이전트 파일 23개 | ✅ | `.claude/agents/` (4-13 19개 → 4-27 23개. blog-writer / pr / review-respond / tradeoff-rehearsal 추가 완료) |
-| 스킬 (프로젝트 + 글로벌) | ✅ | `.claude/skills/` 코드/전체/MD/동시성/보안/테스트 리뷰 + wiki-lint + 학습노트 + 브랜치정리 등 |
+| 에이전트 파일 23개 (운영) + 1개 (archive) | ✅ | `.claude/agents/` (운영 23: 4-13 19개 → 4-27 23개. dependency-tracker는 4-30 archive 로 이동) |
+| 스킬 (프로젝트 + 글로벌) | ✅ | `.claude/skills/` 코드/전체/MD/동시성/보안/테스트 리뷰 + wiki-lint + 학습노트 + 브랜치정리 + spec-new/track-start/step-start/track-end (트랙 `harness-spec-driven` C3 신설, 2026-04-30) |
 | 실험적 팀 기능 | ✅ | `.claude/settings.json` |
 | 지식 베이스 (AI Native) | ✅ | `docs/knowledge/ai-native/` — handover-collision-management 등 활발 |
 | 지식 베이스 (실시간 기술) | ✅ | `docs/knowledge/realtime/` — chat.md 30KB 본격 |
 | 지식 베이스 (JD 인텔리전스) | ✅ 외부 출력 | 출력 위치: `marpple-prep/research/` (외부). 에이전트 정의는 레포 내, 출력물만 격리 |
 | 지식 베이스 (시장조사) | ✅ | `docs/knowledge/market/` — 마음의 고향 서비스의 시장·경쟁사·유저 리서치 (서비스 운영 시작 시 본격 활용) |
-| 지식 베이스 (의존성 추적) | 🔒 | `docs/knowledge/dependencies/` — 4-13 이후 0건. dependency-tracker 잠금 상태 |
+| 의존성 자동 추적 | ✅ Dependabot | `.github/dependabot.yml` — gradle/npm/docker/actions 주간 (구 dependency-tracker-agent 대체, 트랙 `harness-spec-driven` C1, 2026-04-30) |
 | 학습/회고 리허설 출력 | ✅ NEW | `docs/learning/rehearsal/` — tradeoff-rehearsal-agent 출력물 |
-| CLAUDE.md 연결 | ✅ | `CLAUDE.md` — §9는 docs/CLAUDE-routing.md로 분리 |
+| CLAUDE.md 연결 | ✅ | `CLAUDE.md` — §9는 docs/CLAUDE-routing.md로 분리 (트랙 `harness-spec-driven` C1 에서 spec-driven/wiki-policy 정책 link 추가) |
 | research-agent 주간 크론 | ✅ | 매주 월요일 09:00 KST |
 | realtime-tech-agent 주간 크론 | ✅ | 매주 월요일 09:00 KST |
 | job-market-agent 주간 크론 | ✅ | 매주 월요일 10:00 KST |
-| dependency-tracker-agent 격주 크론 | 🔒 | 플랜 트리거 한도 초과로 잠금 |
-| SessionStart Hook | ✅ NEW | `settings.json` `session-start-snapshot.js` — cwd / branch / porcelain hash |
-| PreToolUse(Bash) Hook | ✅ NEW | `settings.json` `pre-bash-guard.js` — 브랜치/PR/문서 누락 가드 |
+| SessionStart Hook | ✅ | `settings.json` `session-start-snapshot.js` — cwd / branch / porcelain hash + 활성 트랙·spec·wiki 가시화 (트랙 `harness-spec-driven` C4) |
+| PreToolUse(Bash) Hook | ✅ | `settings.json` `pre-bash-guard.js` — 브랜치/PR/문서 누락 가드 |
 | PostToolUse Hook (git commit) | ✅ | `settings.json` `post-commit-review.js` — commit 성공 시 review-agent 자동 트리거 |
-| UserPromptSubmit Hook | ✅ NEW | `settings.json` `keyword-router.js` — 7개 키워드 자동 라우팅 |
-| Stop Hook | ✅ | `settings.json` `stop-handover-check.js` — handover/track 갱신 검사 (병행 트랙 분리 정책 미반영, 보강 보류) |
+| UserPromptSubmit Hook | ✅ | `settings.json` `keyword-router.js` — 11개 키워드 자동 라우팅 (트랙 `harness-spec-driven` C4 — spec/track-start/step-start/track-end 추가) |
+| Stop Hook | ✅ | `settings.json` `stop-handover-check.js` — 활성 트랙 있음 → 자기 트랙 `track-{id}.md` (브랜치 longest-prefix 매칭) / 없음 → `handover.md` 갱신 검사 (트랙 `harness-spec-driven` C4·C7) |
 | Notification Hook | ✅ | `settings.local.json` — 비프음 |
-| Wiki (LLM Wiki 패턴) | ✅ | `docs/wiki/` — 11페이지 + INDEX + log.md + Lint 스킬 (4-15 lint 후 재실행 권장) |
+| Wiki (LLM Wiki 패턴) | ✅ | `docs/wiki/` — 14페이지 + INDEX + log.md + Lint 스킬. 트랙 `harness-spec-driven` 에서 활용 강화 정책 도입 (`docs/conventions/wiki-policy.md`, 2026-04-30) |
 | 병행 트랙 + 워크트리 분리 | ✅ | `docs/conventions/parallel-work.md` + `docs/handover/INDEX.md` + `docs/learning/RESERVED.md` |
+| Spec-Driven 4층 분리 모델 | ✅ NEW | `docs/conventions/spec-driven.md` — Issue/Spec/Track/Step (트랙 `harness-spec-driven` C1, 2026-04-30) |
 | MCP PostgreSQL/Redis 연결 | ❌ | MCP 서버 설정 필요 |

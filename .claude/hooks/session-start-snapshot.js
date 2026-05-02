@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * SessionStart hook: 세션 시작 시점의 git 상태 스냅샷을 저장한다.
+ * SessionStart hook: 세션 시작 시점의 git 상태 스냅샷 저장 + 트랙·spec·wiki 컨텍스트 stdout 출력.
  *
  * Stop hook이 이 스냅샷과 세션 종료 시점의 git 상태를 비교해
  * "세션 중 발생한 변경"만 추출하도록 한다.
@@ -12,10 +12,18 @@
  * porcelain 상태 외에 **dirty 파일의 content hash** (git hash-object) 도 함께
  * 저장한다. 이미 ` M` 이었던 파일을 세션 중 더 수정해도 상태 코드는 그대로라
  * Stop hook이 이를 감지하려면 실제 내용 기반 비교가 필요하다.
+ *
+ * (트랙 `harness-spec-driven` C4, 2026-04-30) 활성 트랙·spec·wiki last-modified 를
+ * stdout으로 출력해 Claude 가 첫 답변에서 현재 위치 자동 인지 (hq-agent 자동 진입 효과).
+ * wiki-policy.md §2.4 / spec-driven.md §1.
  */
 const { execSync, execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+
+const HANDOVER_INDEX_PATH = "docs/handover/INDEX.md";
+const WIKI_INDEX_PATH = "docs/wiki/INDEX.md";
+const WIKI_AGE_THRESHOLD_DAYS = 30;
 
 function git(args, cwd) {
   try {
@@ -66,6 +74,86 @@ function hashObject(filePath, cwd) {
   }
 }
 
+/**
+ * docs/handover/INDEX.md 의 "활성 트랙" 표 파싱 → [{id, issue, status}, ...].
+ * 표 형식: | `track-id` | [...] | 영역 | 상태 | #N | 시작일 |
+ * "활성 트랙 없음" 행은 무시.
+ */
+function readActiveTracks(cwd) {
+  const filePath = path.join(cwd, HANDOVER_INDEX_PATH);
+  if (!fs.existsSync(filePath)) return [];
+  const content = fs.readFileSync(filePath, "utf-8");
+
+  const tracks = [];
+  // "## 활성 트랙" ~ "## 완료 트랙" 사이만 파싱
+  const activeMatch = content.match(/##\s*활성\s*트랙[^\n]*\n([\s\S]*?)(?=\n##\s|$)/);
+  if (!activeMatch) return [];
+  const section = activeMatch[1];
+
+  for (const line of section.split("\n")) {
+    if (!line.trim().startsWith("|")) continue;
+    if (line.includes("---")) continue; // 표 구분선
+    if (line.includes("(활성 트랙 없음)")) continue;
+    if (/^\|\s*트랙\s*ID\b/.test(line.trim())) continue; // 헤더 행
+
+    const cells = line.split("|").map((c) => c.trim()).filter(Boolean);
+    if (cells.length < 5) continue;
+    // cells[0] = `track-id` 백틱 포함, cells[3] 또는 cells[4] = 이슈 #N
+    const idMatch = cells[0].match(/`([^`]+)`/);
+    const issueMatch = (cells.find((c) => /#\d+/.test(c)) || "").match(/#(\d+)/);
+    if (!idMatch) continue;
+
+    const id = idMatch[1];
+    const issue = issueMatch ? issueMatch[1] : null;
+    const status = cells[3] || "";
+    tracks.push({ id, issue, status });
+  }
+  return tracks;
+}
+
+/**
+ * docs/wiki/INDEX.md 의 마지막 git 커밋 시점부터 일 단위 경과.
+ * 파일 없거나 커밋 이력 없으면 0.
+ *
+ * fs.statSync().mtimeMs 는 git checkout 시 reset 되어 신뢰성 X — fresh worktree 에서
+ * 모든 파일이 "오늘" 로 보인다. git log -1 --format=%ct (committer time, epoch sec)
+ * 로 실제 마지막 콘텐츠 변경 시점 측정. (Codex P2 fix — session-start-snapshot.js:124)
+ */
+function getWikiAgeDays(cwd) {
+  const filePath = path.join(cwd, WIKI_INDEX_PATH);
+  if (!fs.existsSync(filePath)) return 0;
+  try {
+    // execFileSync 로 shell 경유 X — 경로에 특수문자 있어도 안전.
+    const out = execFileSync(
+      "git",
+      ["log", "-1", "--format=%ct", "--", WIKI_INDEX_PATH],
+      { cwd, encoding: "utf-8" }
+    ).trim();
+    if (!out) return 0;
+    const ageMs = Date.now() - parseInt(out, 10) * 1000;
+    if (Number.isNaN(ageMs) || ageMs < 0) return 0;
+    return Math.floor(ageMs / (1000 * 60 * 60 * 24));
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * spec 파일 경로 추측 — `docs/specs/features/{trackId}.md` 또는 다른 이름일 수 있음.
+ * 트랙 파일 메타데이터 (`Spec:` 줄) 에서 추출 시도. 없으면 "(없음)".
+ */
+function getSpecPath(cwd, trackId) {
+  const trackFile = path.join(cwd, "docs", "handover", `track-${trackId}.md`);
+  if (!fs.existsSync(trackFile)) return null;
+  const content = fs.readFileSync(trackFile, "utf-8");
+  const match = content.match(/^>\s*Spec:\s*(?:\[)?(docs\/specs\/features\/[^\s\]\)]+)/m);
+  if (match && fs.existsSync(path.join(cwd, match[1]))) return match[1];
+  // 추측: features/{trackId}.md
+  const guess = `docs/specs/features/${trackId}.md`;
+  if (fs.existsSync(path.join(cwd, guess))) return guess;
+  return null;
+}
+
 let input = "";
 process.stdin.setEncoding("utf-8");
 process.stdin.on("data", (chunk) => (input += chunk));
@@ -110,6 +198,41 @@ process.stdin.on("end", () => {
     const payload = JSON.stringify(snapshot, null, 2);
     fs.writeFileSync(sessionFile, payload);
     fs.writeFileSync(legacyFile, payload);
+
+    // === 트랙·spec·wiki 컨텍스트 stdout 출력 (P4 신규) ===
+    // wiki-policy.md §2.4 / spec-driven.md §1 — Claude 가 첫 답변에서 현재 위치 자동 인지.
+    try {
+      const tracks = readActiveTracks(cwd);
+      const wikiAge = getWikiAgeDays(cwd);
+      const lines = [];
+
+      if (tracks.length > 0) {
+        lines.push(`[SESSION-START] 활성 트랙 ${tracks.length}개:`);
+        for (const t of tracks) {
+          const spec = getSpecPath(cwd, t.id) || "(spec 없음 — 메타·도구 트랙이거나 미작성)";
+          const issueRef = t.issue ? `#${t.issue}` : "(이슈 없음)";
+          lines.push(`  - \`${t.id}\` ${issueRef} | ${t.status}`);
+          lines.push(`    Track: docs/handover/track-${t.id}.md`);
+          lines.push(`    Spec:  ${spec}`);
+        }
+      }
+
+      if (wikiAge > WIKI_AGE_THRESHOLD_DAYS) {
+        lines.push(
+          `[SESSION-START] ⚠️ wiki/INDEX.md 가 ${wikiAge}일 묵음 (임계 ${WIKI_AGE_THRESHOLD_DAYS}일). ` +
+            `wiki-policy.md §2.2 — /wiki-lint 또는 트랙 종료 시 wiki 영향 분석 권장.`
+        );
+      }
+
+      if (lines.length > 0) {
+        process.stdout.write(lines.join("\n") + "\n");
+      }
+    } catch (ctxErr) {
+      // 컨텍스트 출력 실패해도 세션 진행 막지 않음
+      process.stderr.write(
+        `[SESSION-START] 트랙/wiki 컨텍스트 출력 실패: ${ctxErr?.message || ctxErr}\n`
+      );
+    }
 
     process.exit(0);
   } catch (err) {

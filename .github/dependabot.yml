@@ -1,0 +1,72 @@
+# Dependabot — 의존성 자동 추적
+#
+# dependency-tracker-agent (자체) 를 대체.
+# 사유: Claude Code 플랜 트리거 슬롯 한도(3) 초과로 4-13 이후 0건 방치.
+#       Dependabot 은 무료·자동 PR 생성·CVE 자동 추적으로 동일 역할 수행.
+# 회수된 슬롯은 wiki-lint 주간 cron 으로 재사용 (트랙 harness-spec-driven P4).
+#
+# 컨벤션:
+# - 라벨 `deps` 공통, 도메인별 보조 라벨 (java/frontend/docker/ci)
+# - 주간 (월요일 09:00 KST) 으로 통일. github-actions 만 monthly
+# - PR 5개 한도로 폭주 방지
+
+version: 2
+updates:
+  # ── 백엔드 (Java / Kotlin DSL)
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Seoul
+    open-pull-requests-limit: 5
+    labels:
+      - deps
+      - java
+    commit-message:
+      prefix: chore(deps)
+      include: scope
+
+  # ── 프론트엔드 (Next.js / React / Phaser)
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Seoul
+    open-pull-requests-limit: 5
+    labels:
+      - deps
+      - frontend
+    commit-message:
+      prefix: chore(deps)
+      include: scope
+
+  # ── Docker (배포 이미지)
+  - package-ecosystem: docker
+    directory: /deploy
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Seoul
+    open-pull-requests-limit: 3
+    labels:
+      - deps
+      - docker
+    commit-message:
+      prefix: chore(deps)
+
+  # ── GitHub Actions (CI/CD)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels:
+      - deps
+      - ci
+    commit-message:
+      prefix: chore(deps)

@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 /**
- * Stop hook: 세션 종료 전 handover.md 최신화 검증.
+ * Stop hook: 세션 종료 전 handover/track 최신화 검증.
  *
  * SessionStart에서 저장한 스냅샷과 비교하여 "세션 중 발생한 변경"만 추출한다.
  * - 델타가 없으면 통과 (Q&A, read-only 세션)
- * - 델타가 있는데 handover.md가 그 안에 없으면 차단
+ * - 델타가 있으면 다음 분기로 검증 (트랙 `harness-spec-driven` C4, 2026-04-30):
+ *   - 활성 트랙이 있으면 → 자기 트랙의 `track-{id}.md` 갱신 여부 검사
+ *   - 활성 트랙이 없으면 → 메인 `handover.md` 갱신 여부 검사 (기존 동작)
+ * - parallel-work.md §4.2 / CLAUDE.md §4 #8 정합:
+ *   "병행 트랙 활성 시: 자기 트랙의 track-{id}.md만 갱신.
+ *    메인 handover.md는 트랙 머지 PR 안에서만."
  *
  * 델타 판정 기준:
  *   1. porcelain 상태 코드가 달라진 파일
@@ -20,6 +25,7 @@ const fs = require("fs");
 const path = require("path");
 
 const HANDOVER_PATH = "docs/handover.md";
+const HANDOVER_INDEX_PATH = "docs/handover/INDEX.md";
 const CACHE_DIR = path.join(".claude", "cache");
 const LEGACY_SNAPSHOT = "session-git-snapshot.json";
 
@@ -116,6 +122,70 @@ function loadSnapshot(cwd, sessionId) {
   return null;
 }
 
+/**
+ * docs/handover/INDEX.md 의 "활성 트랙" 표에서 트랙 ID 만 추출.
+ * 트랙 `harness-spec-driven` C4 도입 (2026-04-30).
+ */
+function readActiveTrackIds(cwd) {
+  const filePath = path.join(cwd, HANDOVER_INDEX_PATH);
+  if (!fs.existsSync(filePath)) return [];
+  const content = fs.readFileSync(filePath, "utf-8");
+  const activeMatch = content.match(/##\s*활성\s*트랙[^\n]*\n([\s\S]*?)(?=\n##\s|$)/);
+  if (!activeMatch) return [];
+
+  const ids = [];
+  for (const line of activeMatch[1].split("\n")) {
+    if (!line.trim().startsWith("|")) continue;
+    if (line.includes("---")) continue;
+    if (line.includes("(활성 트랙 없음)")) continue;
+    if (/^\|\s*트랙\s*ID\b/.test(line.trim())) continue;
+    const idMatch = line.match(/\|\s*`([^`]+)`/);
+    if (idMatch) ids.push(idMatch[1]);
+  }
+  return ids;
+}
+
+/**
+ * 현재 브랜치명에서 트랙 ID 추출. parallel-work.md §2.1 브랜치 컨벤션:
+ *   - feat/{track-id}-step{N}
+ *   - infra/{track-id}
+ *   - fix/{track-id}            (또는 fix/{track-id}-{specifics})
+ *   - refactor/{track-id}
+ *   - chore/{track-id}
+ *   - docs/{track-id}
+ * 매칭 실패 시 null. (Codex P2 fix — stop-handover-check.js:239 — 다중 활성 트랙 시
+ * 자기 트랙을 식별해 "자기 트랙" 정책을 정확히 적용하기 위함)
+ *
+ * activeTrackIds 가 주어지면 longest-prefix 매칭을 시도한다.
+ * 예: 브랜치 `fix/ui-mvp-feedback-mac-ime` + 활성 트랙 `ui-mvp-feedback`
+ * → 정규식 단독 매칭은 `ui-mvp-feedback-mac-ime` (그대로) 가 활성 트랙에 없어 실패.
+ * → activeTrackIds 와 prefix 비교해 가장 긴 매치(`ui-mvp-feedback`) 채택.
+ * (CodeRabbit C7 리뷰 B3)
+ */
+function getCurrentBranchTrackId(cwd, activeTrackIds = []) {
+  const branch = git("rev-parse --abbrev-ref HEAD", cwd).trim();
+  if (!branch || branch === "HEAD") return null;
+  const match = branch.match(
+    /^(?:feat|fix|infra|refactor|chore|docs)\/([a-z0-9][a-z0-9-]*?)(?:-step\d+)?$/
+  );
+  if (!match) return null;
+  const candidate = match[1];
+
+  // 1차: 정규식 캡처 그대로 활성 트랙에 있으면 그걸 사용
+  if (activeTrackIds.includes(candidate)) return candidate;
+
+  // 2차: 활성 트랙 중 candidate 의 prefix 인 것을 찾고, 가장 긴 것 채택
+  // (예: candidate=`ui-mvp-feedback-mac-ime`, 활성=[`ui-mvp-feedback`] → 매칭)
+  const prefixMatches = activeTrackIds
+    .filter((id) => candidate === id || candidate.startsWith(`${id}-`))
+    .sort((a, b) => b.length - a.length);
+  if (prefixMatches.length > 0) return prefixMatches[0];
+
+  // 3차: fallback — 활성 트랙 미지정이거나 매칭 없음. 정규식 캡처값 그대로 반환
+  // (호출부의 includes 검사에서 자연 실패 → 다중 활성 fallback 분기로 흘러감)
+  return candidate;
+}
+
 let input = "";
 process.stdin.setEncoding("utf-8");
 process.stdin.on("data", (chunk) => (input += chunk));
@@ -196,7 +266,67 @@ process.stdin.on("end", () => {
       process.exit(0);
     }
 
-    // handover.md가 델타에 포함되어 있으면 통과
+    // === 트랙 분리 정책 분기 (P4 신규) ===
+    // parallel-work.md §4.2 / CLAUDE.md §4 #8:
+    //   - 활성 트랙 있음 → 자기 트랙의 track-{id}.md 갱신 여부 검사
+    //   - 활성 트랙 없음 → 메인 handover.md 갱신 여부 검사 (기존)
+    const activeTrackIds = readActiveTrackIds(cwd);
+
+    if (activeTrackIds.length > 0) {
+      // 브랜치명에서 자기 트랙 ID 식별 시도. 활성 트랙 중 하나면 그 트랙만 검사.
+      // 다중 활성 시 트랙 A 작업하면서 트랙 B 만 갱신해도 통과되는 빈틈 차단
+      // (parallel-work.md "자기 트랙" 정책 / Codex P2 fix).
+      // longest-prefix 매칭으로 `fix/{id}-{specifics}` 같은 변형 브랜치도 활성 트랙에 매핑
+      // (CodeRabbit C7 리뷰 B3).
+      const sessionTrackId = getCurrentBranchTrackId(cwd, activeTrackIds);
+
+      if (sessionTrackId && activeTrackIds.includes(sessionTrackId)) {
+        const trackFile = `docs/handover/track-${sessionTrackId}.md`;
+        if (deltaFiles.has(trackFile)) {
+          process.exit(0);
+        }
+        const preview = [...deltaFiles].slice(0, 10).join(", ");
+        const extra =
+          deltaFiles.size > 10 ? ` ...(+${deltaFiles.size - 10})` : "";
+        process.stderr.write(
+          `[AUTO-HANDOVER] 활성 트랙 \`${sessionTrackId}\` 에서 작업이 감지되었으나 ${trackFile} 가 갱신되지 않았습니다.\n` +
+            `변경 파일: ${preview}${extra}\n` +
+            `자기 트랙 파일 §3 (현재 단계 상세) 또는 §0.5 (Acceptance Criteria) 를 갱신하세요.\n` +
+            "다중 활성 트랙이라도 자기 트랙만 갱신 (parallel-work.md §4.2 / CLAUDE.md §4 #8).\n" +
+            "메인 docs/handover.md 는 트랙 머지 PR 안에서만 갱신.\n"
+        );
+        process.exit(2);
+      }
+
+      // 브랜치 → 트랙 매칭 실패 (공유 main 브랜치, detached HEAD 등) → fallback:
+      // 활성 트랙 파일 중 하나라도 갱신됐으면 통과. 다중 활성 시 자기 트랙 식별 못 하지만
+      // 적어도 어느 트랙도 갱신 안 한 케이스는 차단.
+      const trackFiles = activeTrackIds.map(
+        (id) => `docs/handover/track-${id}.md`
+      );
+      const anyTrackUpdated = trackFiles.some((f) => deltaFiles.has(f));
+
+      if (anyTrackUpdated) {
+        process.exit(0);
+      }
+
+      const preview = [...deltaFiles].slice(0, 10).join(", ");
+      const extra =
+        deltaFiles.size > 10 ? ` ...(+${deltaFiles.size - 10})` : "";
+
+      process.stderr.write(
+        "[AUTO-HANDOVER] 이번 세션에서 작업이 감지되었으나 " +
+          `활성 트랙 (${activeTrackIds.join(", ")}) 의 track-{id}.md 파일이 갱신되지 않았습니다.\n` +
+          `변경 파일: ${preview}${extra}\n` +
+          `검사 대상 트랙 파일: ${trackFiles.join(", ")}\n` +
+          "현재 브랜치에서 트랙 ID 식별 실패 — 활성 트랙 중 하나라도 갱신하면 통과합니다.\n" +
+          "각 트랙의 track-{id}.md §3 또는 §0.5 를 갱신하세요.\n" +
+          "메인 docs/handover.md 는 트랙 머지 PR 안에서만 갱신 (parallel-work.md §4.2).\n"
+      );
+      process.exit(2);
+    }
+
+    // 활성 트랙 없음 → 메인 handover.md 갱신 검사 (기존 동작)
     if (deltaFiles.has(HANDOVER_PATH)) {
       process.exit(0);
     }
@@ -210,7 +340,9 @@ process.stdin.on("end", () => {
         "handover.md가 업데이트되지 않았습니다.\n" +
         `변경 파일: ${preview}${extra}\n` +
         "docs/handover.md를 최신화하세요: " +
-        "수행한 작업, 현재 상태, 다음 할 일을 반영하세요.\n"
+        "수행한 작업, 현재 상태, 다음 할 일을 반영하세요.\n" +
+        "활성 트랙이 있는 경우엔 docs/handover/track-{id}.md 를 갱신하면 됩니다 " +
+        "(parallel-work.md §4.2).\n"
     );
     process.exit(2);
   } catch (err) {

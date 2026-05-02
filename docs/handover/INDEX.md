@@ -34,7 +34,7 @@
 
 | 트랙 ID | 예상 작업 영역 | 메모 |
 |---------|---------------|------|
-| `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, 게스트 영속 식별자 분리, WS 토큰 갱신 | 전제 인프라(`infra-tls-hardening`) 완료. learning 55/61~64 예약 |
+| `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, WS 토큰 갱신, "Stay signed in" 토글 | 수행계획서·결정 토론 [track-token-auto-renewal.md](./track-token-auto-renewal.md) 에 보존. 결정 6·7 컨펌 후 재개. UI 디자인 트랙 후순위로 일시 보류 (2026-05-02) |
 | `s3-media` | S3 도입 (집 배경 이미지, 캐릭터 등) | 사전 결정 필요: 무엇을 올릴지 / 비용 정책 / 유해 필터 |
 
 > 시작 시점에 위 표에서 빼서 "활성 트랙" 표로 옮긴다.

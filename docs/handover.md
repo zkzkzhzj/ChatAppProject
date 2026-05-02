@@ -27,8 +27,8 @@
 
 **다음 후보 트랙** (착수 시 사용자 결정):
 
-- `token-auto-renewal` (Issue #38) — refresh token + rotation, HttpOnly cookie 발급, 게스트 영속 식별자 분리, WS 토큰 갱신. **전제 인프라 (`infra-tls-hardening`) 완료 — 본 트랙 코드 작업으로 직진 가능**
-- 디자인 에셋 + UI 꾸미기 — 사용자 원래 의도. 인프라/토큰 작업 일단락 후 진행 가능
+- **디자인 에셋 + UI 꾸미기 — 다음 착수 예정** (2026-05-02). 사용자 원래 의도. 트랙 ID·작업 영역·레퍼런스는 착수 시 합의
+- `token-auto-renewal` (Issue #38, **closed — 보류 코멘트 보존**) — 결정 게이트 통과 (A 도메인 / 단계 분할), 구현계획서 §6 `track-token-auto-renewal.md` 보존. **재차 보류 사유**: Redis 저장소 5패턴 비교 + 블로그 포스팅까지 깊이 가져갈 가치 → UI 트랙 우선. 재개 시 Issue #38 reopen + Step 0 (Redis 5패턴 학습노트) 선행 검토
 - `ws-redis` Step 3 — 클라이언트 재작성 + WS 모듈 분리. `track-ws-redis.md` §9 인수인계 참조
 - `multi-session-policy` — 동일 userId 다중 세션 (대체/거부/병행) — ws-redis Step 5 SessionRegistry와 자연 연계
 - Phase 4 Economy — 포인트/후원 도메인 직접 구현 (낙관적 락·멱등성 직접 설계 연습). race condition 의도 노출 + 3안(비관/낙관/분산락) 비교 ADR

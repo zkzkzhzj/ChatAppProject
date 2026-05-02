@@ -34,8 +34,9 @@
 
 | 트랙 ID | 예상 작업 영역 | 메모 |
 |---------|---------------|------|
-| `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, 게스트 영속 식별자 분리, WS 토큰 갱신 | 전제 인프라(`infra-tls-hardening`) 완료. learning 55/61~64 예약 |
+| `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, WS 토큰 갱신, 게스트 영속 식별자 | 수행계획서·결정 게이트 통과·구현계획서 [track-token-auto-renewal.md](./track-token-auto-renewal.md) 에 보존. **2026-05-02 재차 보류** — Redis 저장소 선택의 5패턴 비교 + 블로그 포스팅까지 깊이 있게 가져갈 주제로 판단, UI 디자인 트랙 우선 처리 후 재개 |
 | `s3-media` | S3 도입 (집 배경 이미지, 캐릭터 등) | 사전 결정 필요: 무엇을 올릴지 / 비용 정책 / 유해 필터 |
+| UI 디자인 트랙 (트랙 ID 미정) | 마을/UI 디자인 개선 | **다음 착수 예정** (token-auto-renewal 보류 후 우선) |
 
 > 시작 시점에 위 표에서 빼서 "활성 트랙" 표로 옮긴다.
 

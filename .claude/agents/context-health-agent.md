@@ -51,8 +51,7 @@ wc -w CLAUDE.md
 - `docs/knowledge/changelog.md`
 - `docs/knowledge/realtime/changelog.md`
 - `docs/knowledge/market/changelog.md`
-- `docs/knowledge/dependencies/changelog.md`
-- (참고: job-market 카테고리는 2026-04-27 외부 이전 — 본 점검 대상 아님)
+- (참고: job-market 카테고리는 2026-04-27 외부 이전 — 본 점검 대상 아님. dependencies 카테고리는 2026-04-30 archive — 본 점검 대상 아님 / Dependabot 으로 대체 / `.claude/agents/_archive/dependency-tracker-agent.md`)
 
 마지막 업데이트가 4주 이상 지난 디렉토리 → WARNING 출력
 마지막 업데이트가 8주 이상 지난 디렉토리 → CRITICAL 출력

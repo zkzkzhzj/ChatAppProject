@@ -35,7 +35,6 @@ tools: Read, Glob, Grep, Bash
 | 시장 규모·트렌드 (마음의 고향 시장) | market-research-agent |
 | 타겟 유저·페르소나 (마음의 고향 유저) | user-research-agent |
 | 경쟁/유사 서비스 심층 분석 (Replika·Character.ai·Gather.town 등) | competitor-agent |
-| 의존성 버전·CVE 추적 | 🔒 dependency-tracker-agent (잠금) |
 | AI Native 셋업 건강검사 | context-health-agent |
 | 도메인 설계, Entity, VO, Port | domain-agent |
 | Controller, JPA, Kafka 구현 | adapter-agent |

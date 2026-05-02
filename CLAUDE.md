@@ -284,7 +284,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 
 - **현재 상태**: `/docs/handover.md` (전체 그림) + `/docs/handover/INDEX.md` (활성 트랙)
 - **아키텍처**: `/docs/architecture/architecture.md`
-- **컨벤션**: `/docs/conventions/{coding,testing,git,parallel-work}.md`
+- **컨벤션**: `/docs/conventions/{coding,testing,git,parallel-work,spec-driven,wiki-policy}.md`
 - **API 명세**: `/docs/specs/{api,websocket,event}.md`
 - **학습 노트**: `/docs/learning/INDEX.md` + `/docs/learning/RESERVED.md`
 - **AI Native 지식**: `/docs/knowledge/INDEX.md` + `/docs/knowledge/AGENT-ORG.md`

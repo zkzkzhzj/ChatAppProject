@@ -12,7 +12,7 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
-| — | — | (활성 트랙 없음) | — | — | — |
+| `harness-spec-driven` | [track-harness-spec-driven.md](./track-harness-spec-driven.md) | AI Native 하네스 + docs 컨벤션 (`.claude/`·`.github/`·`docs/`) | 진행 중 (C1) | #46 | 2026-04-30 |
 
 > ws-redis Step 3 (클라이언트 재작성 + WS 모듈 분리) 착수 시 본 표에 다시 추가. `track-ws-redis.md` §9 인수인계 참조.
 > 새 트랙을 시작할 때 이 표에 한 줄 추가하고, 해당 트랙 파일을 신규 작성한다.

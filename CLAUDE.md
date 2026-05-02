@@ -77,15 +77,22 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 >
 > 모든 기능 구현은 "계획 → 승인 → 구현 → 보고" 사이클을 따른다.
 > 승인 없이 다음 단계로 넘어가지 않는다. 이것은 바이브 코딩이 아니다.
+>
+> **Spec-driven 4층 분리 모델** (트랙 `harness-spec-driven` C2 도입, 2026-04-30): Issue → Spec → Track → Step. 각 층의 시제·역할이 다르다 (상세: [`docs/conventions/spec-driven.md`](./docs/conventions/spec-driven.md)). 본 §5 사이클의 보강 3축:
+>
+> 1. Phase A 의 "요구사항 확인" 에 **Spec 파일 작성** (`docs/specs/features/{feature}.md`, [`_template.md`](./docs/specs/features/_template.md)) 이 포함된다. spec 의 `decisions` 4축 (왜·대안·빈틈·재검토) 미리 채우면 Comprehension Gate 자동 통과
+> 2. Phase B 의 "단계 N 구현" 은 **1 step = 1 PR (엄격, [`git.md`](./docs/conventions/git.md) §4)**. 한 PR 에 여러 step 섞지 않으며, 한 step 이 여러 PR 로 쪼개지지 않음. 메타·도구 트랙만 1 PR · N 커밋 예외
+> 3. Phase C 의 "완료 보고" 는 **`/track-end` 자동화** (P3 산출물) — Acceptance Criteria 검증 + wiki 영향 분석 ([`wiki-policy.md`](./docs/conventions/wiki-policy.md) §2.1) + handover 정합 + RESERVED 닫기 + learning 노트 작성
 
 ### 5.1 새 기능 구현
 
 **Phase A — 계획 (코드 작성 금지)**
 
 ```text
-1. 요구사항 확인
+1. 요구사항 확인 + Spec 파일 작성
    → 관련 기획 문서 확인 (/docs/planning/)
-   → 불명확한 점이 있으면 반드시 질문
+   → docs/specs/features/{feature}.md 작성 (`_template.md` 사용 — outcomes / scope / constraints / decisions / tasks / verification / references)
+   → 불명확한 점이 있으면 반드시 질문 (spec 의 `decisions` 4축 비어있으면 게이트가 step 시점에 묻는다)
 
 2. 수행계획서 제시 → 🔒 사용자 승인 필요
    → 무엇을 만들지, 왜 필요한지, 범위(in/out scope)
@@ -105,11 +112,13 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 ```text
 각 단계마다:
 
-4. 단계 N 구현
+4. 단계 N 구현 (1 step = 1 PR — 엄격)
    → 도메인 설계 (Entity, VO, Domain Service)
    → Port 정의 (in/out)
    → 구현 + 테스트 작성
-   → 단계 완료 보고 → 🔒 사용자 확인 후 다음 단계
+   → 자동 fix-loop (P3 산출물): 테스트 실패 → 자체 수정 → 재실행 (한도 3회) / review-agent CRITICAL → 자체 수정 → 재검증 (한도 2회)
+   → Comprehension Gate (P3 산출물, Tier B/C 매칭 시): spec.decisions 미채움 + 동시성·외부호출·새기술 등 13 카테고리 트리거 시 본인 말로 답하기
+   → 단계 완료 보고 → 🔒 사용자 확인 후 PR 생성 + 다음 단계
 
 5. 동시성 및 성능 검토 (해당 단계에 상태 변경이 있을 때)
    → 상태 변경 로직에 동시 요청이 들어오면 어떻게 되는가?
@@ -144,6 +153,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 ```text
 1. 원인 분석 결과 보고 → 🔒 사용자 확인
    → 재현 조건, 원인 추정, 수정 방향 제시
+   → mini-spec 작성 (단발 핫픽스도 docs/specs/features/{bug-id}.md 의무 — spec-driven.md §2.1)
 2. 버그 재현 테스트 작성 (실패하는 테스트를 먼저 만든다)
 3. 수정 구현
 4. 테스트 통과 확인

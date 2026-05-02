@@ -116,7 +116,8 @@ fix: 아이템 구매 시 멱등성 키 미검증 수정
 ## 4. PR 규칙
 
 - 하나의 PR은 하나의 목적만 가진다. (기능 + 리팩토링 동시 금지)
-- PR 설명에 "무엇을, 왜" 변경했는지 적는다.
+- **1 step = 1 PR (엄격, 트랙 `harness-spec-driven` C2 도입, 2026-04-30).** 트랙 spec 의 `tasks` 항목과 PR 이 1:1 매핑된다 (`docs/conventions/spec-driven.md` §2.2). 한 PR 에 여러 step 섞지 않으며, 한 step 이 여러 PR 로 쪼개지지 않는다. **예외**: 메타·도구 트랙(예: `harness-spec-driven`) 은 1 PR · N 커밋 (phase 별).
+- PR 설명에 "무엇을, 왜" 변경했는지 적는다. 트랙 spec 링크 의무 (`docs/specs/features/{feature}.md`).
 - 테스트가 포함되어야 머지 가능하다.
 - CI(GitHub Actions)가 통과해야 머지 가능하다.
 

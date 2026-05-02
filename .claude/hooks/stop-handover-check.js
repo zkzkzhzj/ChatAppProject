@@ -145,6 +145,26 @@ function readActiveTrackIds(cwd) {
   return ids;
 }
 
+/**
+ * 현재 브랜치명에서 트랙 ID 추출. parallel-work.md §2.1 브랜치 컨벤션:
+ *   - feat/{track-id}-step{N}
+ *   - infra/{track-id}
+ *   - fix/{track-id}            (또는 fix/{track-id}-{specifics})
+ *   - refactor/{track-id}
+ *   - chore/{track-id}
+ *   - docs/{track-id}
+ * 매칭 실패 시 null. (Codex P2 fix — stop-handover-check.js:239 — 다중 활성 트랙 시
+ * 자기 트랙을 식별해 "자기 트랙" 정책을 정확히 적용하기 위함)
+ */
+function getCurrentBranchTrackId(cwd) {
+  const branch = git("rev-parse --abbrev-ref HEAD", cwd).trim();
+  if (!branch || branch === "HEAD") return null;
+  const match = branch.match(
+    /^(?:feat|fix|infra|refactor|chore|docs)\/([a-z0-9][a-z0-9-]*?)(?:-step\d+)?$/
+  );
+  return match ? match[1] : null;
+}
+
 let input = "";
 process.stdin.setEncoding("utf-8");
 process.stdin.on("data", (chunk) => (input += chunk));
@@ -232,7 +252,32 @@ process.stdin.on("end", () => {
     const activeTrackIds = readActiveTrackIds(cwd);
 
     if (activeTrackIds.length > 0) {
-      // 활성 트랙 있음 → 자기 트랙 파일 중 하나라도 갱신됐으면 통과
+      // 브랜치명에서 자기 트랙 ID 식별 시도. 활성 트랙 중 하나면 그 트랙만 검사.
+      // 다중 활성 시 트랙 A 작업하면서 트랙 B 만 갱신해도 통과되는 빈틈 차단
+      // (parallel-work.md "자기 트랙" 정책 / Codex P2 fix).
+      const sessionTrackId = getCurrentBranchTrackId(cwd);
+
+      if (sessionTrackId && activeTrackIds.includes(sessionTrackId)) {
+        const trackFile = `docs/handover/track-${sessionTrackId}.md`;
+        if (deltaFiles.has(trackFile)) {
+          process.exit(0);
+        }
+        const preview = [...deltaFiles].slice(0, 10).join(", ");
+        const extra =
+          deltaFiles.size > 10 ? ` ...(+${deltaFiles.size - 10})` : "";
+        process.stderr.write(
+          `[AUTO-HANDOVER] 활성 트랙 \`${sessionTrackId}\` 에서 작업이 감지되었으나 ${trackFile} 가 갱신되지 않았습니다.\n` +
+            `변경 파일: ${preview}${extra}\n` +
+            `자기 트랙 파일 §3 (현재 단계 상세) 또는 §0.5 (Acceptance Criteria) 를 갱신하세요.\n` +
+            "다중 활성 트랙이라도 자기 트랙만 갱신 (parallel-work.md §4.2 / CLAUDE.md §4 #8).\n" +
+            "메인 docs/handover.md 는 트랙 머지 PR 안에서만 갱신.\n"
+        );
+        process.exit(2);
+      }
+
+      // 브랜치 → 트랙 매칭 실패 (공유 main 브랜치, detached HEAD 등) → fallback:
+      // 활성 트랙 파일 중 하나라도 갱신됐으면 통과. 다중 활성 시 자기 트랙 식별 못 하지만
+      // 적어도 어느 트랙도 갱신 안 한 케이스는 차단.
       const trackFiles = activeTrackIds.map(
         (id) => `docs/handover/track-${id}.md`
       );
@@ -251,7 +296,8 @@ process.stdin.on("end", () => {
           `활성 트랙 (${activeTrackIds.join(", ")}) 의 track-{id}.md 파일이 갱신되지 않았습니다.\n` +
           `변경 파일: ${preview}${extra}\n` +
           `검사 대상 트랙 파일: ${trackFiles.join(", ")}\n` +
-          "각 트랙의 track-{id}.md §3 (현재 단계 상세) 또는 §0.5 (Acceptance Criteria) 를 갱신하세요.\n" +
+          "현재 브랜치에서 트랙 ID 식별 실패 — 활성 트랙 중 하나라도 갱신하면 통과합니다.\n" +
+          "각 트랙의 track-{id}.md §3 또는 §0.5 를 갱신하세요.\n" +
           "메인 docs/handover.md 는 트랙 머지 PR 안에서만 갱신 (parallel-work.md §4.2).\n"
       );
       process.exit(2);

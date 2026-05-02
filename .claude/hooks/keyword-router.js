@@ -65,8 +65,9 @@ const ROUTES = [
       '[AUTO-ROUTE] 트랙 시작 키워드 감지. /track-start 슬래시 스킬을 사용하세요. parallel-work.md §2.1 절차 (라벨/INDEX/track 파일/RESERVED/브랜치) 를 1커맨드로 처리합니다. 사전 조건: spec 파일 존재 (없으면 /spec-new 먼저).',
   },
   {
-    // "step 시작", "step 진행", "다음 step", "단계 진행", "/step-start"
-    pattern: /step\s*(시작|진행|N|다음|구현)|다음\s*step|단계\s*(진행|시작|N)/i,
+    // "step 시작", "step 1", "step 2 진행", "다음 step", "단계 진행", "단계 3 시작" 등 — 숫자 매칭 의무
+    // (구 패턴은 N 을 placeholder 로 적었으나 정규식에서 literal 'N' 으로 동작 → 실제 사용 패턴 매칭 X. Codex P2 fix)
+    pattern: /step\s*(시작|진행|다음|구현|\d+)|다음\s*step|단계\s*(진행|시작|\d+)/i,
     message:
       '[AUTO-ROUTE] step 진행 키워드 감지. /step-start {N} 슬래시 스킬을 사용하세요. plan → 🔒 승인 → 자동 fix-loop (테스트 3회·리뷰 2회·PR 게이트 2회) → Comprehension Gate (Tier A/B/C) → 1step=1PR 흐름. 사용자 개입은 plan 승인과 머지 결정 2번만.',
   },

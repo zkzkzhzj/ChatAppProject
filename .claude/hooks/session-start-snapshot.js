@@ -112,15 +112,26 @@ function readActiveTracks(cwd) {
 }
 
 /**
- * docs/wiki/INDEX.md 의 마지막 수정 시점 (mtime) 부터 일 단위 경과.
- * 파일 없으면 0.
+ * docs/wiki/INDEX.md 의 마지막 git 커밋 시점부터 일 단위 경과.
+ * 파일 없거나 커밋 이력 없으면 0.
+ *
+ * fs.statSync().mtimeMs 는 git checkout 시 reset 되어 신뢰성 X — fresh worktree 에서
+ * 모든 파일이 "오늘" 로 보인다. git log -1 --format=%ct (committer time, epoch sec)
+ * 로 실제 마지막 콘텐츠 변경 시점 측정. (Codex P2 fix — session-start-snapshot.js:124)
  */
 function getWikiAgeDays(cwd) {
   const filePath = path.join(cwd, WIKI_INDEX_PATH);
   if (!fs.existsSync(filePath)) return 0;
   try {
-    const stat = fs.statSync(filePath);
-    const ageMs = Date.now() - stat.mtimeMs;
+    // execFileSync 로 shell 경유 X — 경로에 특수문자 있어도 안전.
+    const out = execFileSync(
+      "git",
+      ["log", "-1", "--format=%ct", "--", WIKI_INDEX_PATH],
+      { cwd, encoding: "utf-8" }
+    ).trim();
+    if (!out) return 0;
+    const ageMs = Date.now() - parseInt(out, 10) * 1000;
+    if (Number.isNaN(ageMs) || ageMs < 0) return 0;
     return Math.floor(ageMs / (1000 * 60 * 60 * 24));
   } catch {
     return 0;

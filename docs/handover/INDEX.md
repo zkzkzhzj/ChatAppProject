@@ -12,7 +12,7 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
-| `harness-spec-driven` | [track-harness-spec-driven.md](./track-harness-spec-driven.md) | AI Native 하네스 + docs 컨벤션 (`.claude/`·`.github/`·`docs/`) | 진행 중 (C1) | #46 | 2026-04-30 |
+| — | — | (활성 트랙 없음) | — | — | — |
 
 > ws-redis Step 3 (클라이언트 재작성 + WS 모듈 분리) 착수 시 본 표에 다시 추가. `track-ws-redis.md` §9 인수인계 참조.
 > 새 트랙을 시작할 때 이 표에 한 줄 추가하고, 해당 트랙 파일을 신규 작성한다.
@@ -21,6 +21,7 @@
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
+| `harness-spec-driven` | [66 (spec-driven 4층 + fix-loop + Comprehension Gate)](../learning/66-spec-driven-fix-loop-comprehension-gate.md) · [67 (wiki 활용 강화 — 폐지 권고 철회)](../learning/67-wiki-policy-rejection-reversal.md) · [68 (NPC 차별점 ADR)](../learning/68-npc-service-differentiator-adr.md) | 2026-04-30 | (현재 PR) |
 | `infra-tls-hardening` | [65 (Cookie 보안 속성 깊은 다이브)](../learning/65-cookie-security-attributes-deep-dive.md) | 2026-04-28 | (현재 PR) |
 | `ws-redis` Step 2 | [44 (Spring STOMP 외부 broker)](../learning/44-spring-stomp-external-broker-choice.md) · [45 (raw WS + Redis Pub/Sub 설계서)](../learning/45-websocket-redis-pubsub-redesign.md) · [46 (마을·서버 확장 모델)](../learning/46-village-scaling-decisions.md) · [53 (헥사고날 outbound port 호출자 룰)](../learning/53-hexagonal-outbound-port-caller-rule.md) · [59 (WS 서버 분리 vs 모놀리식)](../learning/59-ws-server-separation-vs-monolith.md) | 2026-04-27 | #26 |
 | `ghost-session` | [54 (presence cleanup 진단)](../learning/54-presence-cleanup-ghost-character-diagnosis.md) · [60 (STOMP reconnect 두 레이어)](../learning/60-stomp-reconnect-layered-conflict.md) | 2026-04-27 ~ 2026-04-28 | #36 · #37 · #41 |

@@ -36,9 +36,9 @@
 | 63   | `token-auto-renewal` | 게스트 영속 식별자 분리 패턴 (LocalStorage `guestId` + JWT `gid` claim 서명 검증) | 예약 |
 | 64   | `token-auto-renewal` | WS 토큰 갱신 패턴 (끊고 재연결 vs in-band STOMP push) — Spring STOMP 자연 동작 채택 근거 | 예약 |
 | 65   | `infra-tls-hardening` | HttpOnly · Secure · SameSite cookie 깊은 다이브 (각 속성이 막는 공격, 한계, 마음의 고향 cross-origin 적용) | ✅ 사용 완료 (2026-04-28) |
-| 66   | `harness-spec-driven` | spec-driven 4층 분리 + 자동 fix-loop + Comprehension Gate(13 카테고리/Tier A·B·C) 도입 결정 — Spec Kit/BMAD/AB Method 비교 + 마음의 고향 맞춤화 | 예약 |
-| 67   | `harness-spec-driven` | wiki 활용 강화 결정 — 카파시 LLM Wiki 패턴 + 폐지 권고를 철회한 사고 과정 (4종 갱신 자동화) | 예약 |
-| 68   | `harness-spec-driven` | NPC 중심 서비스의 차별점 ADR — Evaluator + LMOps + RAG 3축 (PyTorch/LangChain/외부 vector DB 배제 이유 + 후속 트랙 사전 ADR) | 예약 |
+| 66   | `harness-spec-driven` | spec-driven 4층 분리 + 자동 fix-loop + Comprehension Gate(13 카테고리/Tier A·B·C) 도입 결정 — Spec Kit/BMAD/AB Method 비교 + 마음의 고향 맞춤화 | ✅ 사용 완료 (2026-04-30) |
+| 67   | `harness-spec-driven` | wiki 활용 강화 결정 — 카파시 LLM Wiki 패턴 + 폐지 권고를 철회한 사고 과정 (4종 갱신 자동화) | ✅ 사용 완료 (2026-04-30) |
+| 68   | `harness-spec-driven` | NPC 중심 서비스의 차별점 ADR — Evaluator + LMOps + RAG 3축 (PyTorch/LangChain/외부 vector DB 배제 이유 + 후속 트랙 사전 ADR) | ✅ 사용 완료 (2026-04-30) |
 
 > 69번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
 

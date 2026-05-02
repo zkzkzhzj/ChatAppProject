@@ -1,9 +1,11 @@
 # Track: harness-spec-driven
 
+> ✅ 종료 (2026-04-30, 1세션)
 > 작업 영역: AI Native 하네스 (`.claude/`) + docs 컨벤션 + dependency 정리
 > 시작일: 2026-04-30
+> 종료일: 2026-04-30
 > Issue: #46
-> 브랜치: `infra/harness-spec-driven`
+> 브랜치: `infra/harness-spec-driven` (1 PR · 5 커밋)
 
 ---
 
@@ -15,14 +17,15 @@ GH 이슈 → 채팅 → 코드 흐름의 휘발성을 **spec-driven 4층 분리
 
 > 본 트랙은 메타·도구 트랙이라 spec 파일 없이 본 §0.5 가 spec.verification 의 자리. 후속 트랙은 spec 파일 §6 과 1:1 매핑.
 
-- [ ] **정책 문서**: `spec-driven.md` · `wiki-policy.md` · `comprehension-gate.md` (P3 산출물) 3종 작성 + CLAUDE.md / parallel-work.md / git.md 정합 갱신
-- [ ] **Spec 디렉토리**: `docs/specs/features/_template.md` 신설 + `docs/specs/README.md` 로 산출물 명세와 분리 명시
-- [ ] **슬래시 스킬 4종**: `/spec-new` · `/track-start` · `/step-start` (fix-loop + Comprehension Gate) · `/track-end` 동작 가능
-- [ ] **hook 강화 4종**: SessionStart 복원 / stop-handover-check 트랙·spec 반영 / keyword-router 키워드 / wiki-lint 주간 cron
-- [ ] **Dependabot**: `.github/dependabot.yml` 활성. dependency-tracker-agent archive (역할 대체)
-- [ ] **dry-run**: 후속 트랙 (`token-auto-renewal` 또는 `ws-redis` Step 3) 의 spec 작성 시점에 새 흐름 통과
-- [ ] **learning 노트**: `#66`·`#67`·`#68` 작성 완료 (RESERVED 사용 완료 표시)
-- [ ] **handover 정합**: 메인 `handover.md` §1·§2·§4 갱신 (트랙 머지 PR 안에서 — `parallel-work.md` §8)
+- [x] **정책 문서**: `spec-driven.md` · `wiki-policy.md` · `comprehension-gate.md` 3종 작성 + CLAUDE.md / parallel-work.md / git.md 정합 갱신 (C1·C2·C3)
+- [x] **Spec 디렉토리**: `docs/specs/features/_template.md` 신설 + `docs/specs/README.md` 로 산출물 명세와 분리 명시 (C2)
+- [x] **슬래시 스킬 4종**: `/spec-new` · `/track-start` · `/step-start` (fix-loop + Comprehension Gate) · `/track-end` 동작 가능 (C3)
+- [x] **hook 강화 3종**: SessionStart 활성 트랙·spec·wiki 가시화 / stop-handover-check 트랙 분리 정합 / keyword-router 키워드 (spec/step/트랙) (C4)
+- [x] **Dependabot**: `.github/dependabot.yml` 활성. dependency-tracker-agent archive 완료 (C1)
+- [ ] **dry-run**: 후속 트랙 (`token-auto-renewal` / `npc-evaluator-lmops` / `ws-redis` Step 3) 의 spec 작성 시점에 새 흐름 통과 — **본 PR 머지 후 별도 트랙에서 검증**
+- [x] **learning 노트**: `#66`·`#67`·`#68` 작성 완료 (RESERVED 사용 완료 표시) (C5)
+- [x] **handover 정합**: 메인 `handover.md` §1·§2·§4 갱신 + INDEX 활성→완료 (C5)
+- [ ] **wiki-lint 주간 cron 등록**: Claude Code routine 시스템 (`schedule` skill) 으로 사용자 직접 등록 — settings.json 외부 (PR 머지 후 사용자 작업)
 
 ## 1. 배경 / 왜
 

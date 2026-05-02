@@ -13,6 +13,9 @@
 | # | 제목 | 한 줄 |
 |---|------|------|
 | [00](./00-ai-harness-claude-codex.md) | AI 하네스 — Claude Code · Codex | 에이전트·스킬·훅·MCP·CLAUDE.md·AGENTS.md 용어와 하네스 구성 흐름 |
+| [66](./66-spec-driven-fix-loop-comprehension-gate.md) | spec-driven 4층 + 자동 fix-loop + Comprehension Gate | Spec Kit/BMAD/AB Method 비교 + 마음의 고향 맞춤화 (트랙 `harness-spec-driven`) |
+| [67](./67-wiki-policy-rejection-reversal.md) | Wiki 폐지 권고를 철회한 이유 | 노화의 원인을 잘못 짚었다 — 카파시 LLM Wiki 패턴 + 갱신 자동화 4종 |
+| [68](./68-npc-service-differentiator-adr.md) | NPC 중심 서비스의 차별점 ADR | Evaluator + LMOps + RAG 3축 — PyTorch/LangChain/외부 vector DB 배제 이유. 후속 트랙 사전 ADR |
 
 ## 인프라·빌드 초기 셋업
 

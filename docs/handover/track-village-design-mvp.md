@@ -32,35 +32,43 @@
 
 | Step | 내용 | 의존 | 상태 | 이슈 | PR |
 |------|------|------|------|------|-----|
-| **1** | **마을 입장 화면 + Welcome + 디자인 시스템 토큰·컴포넌트 동시 추출** | — | 🔧 진행 중 | #56 | (작업 시) |
-| 2 | 채팅 UI 리디자인 + 디자인 토큰 확장 | step1 | 대기 | (별도) | — |
-| 3 | 집 꾸미기 인벤토리 + 슬롯 시스템 첫 시안 | step1 | 대기 | (별도) | — |
-| 4 | NPC 매일 안부 카드 시스템 첫 시안 | step1 | 대기 | (별도) | — |
-| 5 | 비동기 편지·흔적 시스템 첫 시안 | step1·step3 | 대기 | (별도) | — |
-| 6 | 환경음·BGM 통합 | step1 | 대기 | (별도) | — |
+| **1** | **자산 토대 + Welcome 모션 + 디자인 시스템 점검** — `.gitignore` 정정, LICENSE.md, WelcomeOverlay (페이드인), GameLoader 갱신, 기존 토큰 점검 | — | 🔧 진행 중 | #56 | (작업 시) |
+| **2** | **VillageScene Tilemap 토대** — 기존 `drawGround` 폐기 + Kenney Tiny Town tilemap 통합 | step1 | 대기 | (별도) | — |
+| **3** | **LimeZu Serene Village 마을 본격 풍경** — 24종 집 + 자연 모티브 | step2, LimeZu 자산 | 대기 | (별도) | — |
+| **4** | **캐릭터 스프라이트 (Kenney RPG Urban Pack)** — 원형 placeholder 교체 + 4방향 walk | step2 | 대기 | (별도) | — |
+| 5 | 채팅 UI 리디자인 + 디자인 토큰 확장 | step1 | 대기 | (별도) | — |
+| 6 | 집 꾸미기 인벤토리 + 슬롯 시스템 첫 시안 (가구 자산 결정 포함) | step1 | 대기 | (별도) | — |
+| 7 | NPC 매일 안부 카드 시스템 첫 시안 | step4 | 대기 | (별도) | — |
+| 8 | 비동기 편지·흔적 시스템 첫 시안 | step1·step6 | 대기 | (별도) | — |
+| 9 | 환경음·BGM 통합 | step1 | 대기 | (별도) | — |
 
 ## 3. 현재 단계 상세
 
-### Step 1 — 마을 입장 화면 + 디자인 시스템 동시 추출 ("Design System As You Go")
+### Step 1 — 자산 토대 + Welcome 모션 + 디자인 시스템 점검
 
 **무엇**:
-- LimeZu Modern Interiors / Sprout Lands / Mystic Woods 자산 다운로드 + 라이선스 확인
-- `frontend/public/assets/village/` 에 자산 배치
-- 마을 입장 화면 (Phaser 씬) — 첫 진입 시 Welcome 모션 (페이드인 + BGM 1초 ramp)
-- 화면 만들면서 사용된 토큰만 `frontend/src/styles/tokens.ts` 에 추출 (컬러 5색, 타이포 3종, 스페이싱 5단)
-- 사용된 컴포넌트만 추출 (예상: WelcomeCard 1개로 시작)
+- `.gitignore` 정정 — `frontend/public/assets/` 전체 ignore → redistribute 금지 자산만 ignore (LimeZu Modern Interiors Free)
+- `frontend/public/assets/village/LICENSE.md` 작성 — Kenney CC0 + LimeZu Serene Village CC BY 4.0 attribution
+- Kenney Tiny Town + RPG Urban Pack 자산 배치 (이미 다운로드 완료, 자동)
+- `frontend/src/components/ui/WelcomeOverlay.tsx` 신규 — 첫 진입 시 페이드인 (2초 visible + 0.8초 fade)
+- `frontend/src/app/GameLoader.tsx` 갱신 — WelcomeOverlay 추가
+- 기존 `globals.css` 17색 팔레트 점검 (이미 마음의 고향 따뜻한 안식처 톤이라 정합 ◎)
 
 **산출물**:
-- `frontend/public/assets/village/` 자산 파일 + LICENSE.md
-- `frontend/src/styles/tokens.ts` (디자인 토큰)
-- `frontend/src/app/village/page.tsx` 또는 기존 마을 페이지 갱신
-- `frontend/src/components/ui/WelcomeCard.tsx` (첫 컴포넌트)
-- Phaser 씬 코드 (자산 통합)
+- `.gitignore` (정정)
+- `frontend/public/assets/village/LICENSE.md` (신규)
+- `frontend/public/assets/village/kenney/tiny-town/` (자산 폴더, 132 tiles)
+- `frontend/public/assets/village/kenney/rpg-urban-pack/` (자산 폴더, 486 tiles)
+- `frontend/src/components/ui/WelcomeOverlay.tsx` (신규)
+- `frontend/src/app/GameLoader.tsx` (갱신)
+- spec D4 + tasks 9-step 갱신
 
-**막힌 지점 / 결정 사항**:
-- (작업 시 채움)
+**Step 1 의 의도적 한계**:
+- VillageScene 코드 변경 X — Step 2 에서 본격 갱신
+- 자산 파일은 받았지만 Phaser 통합은 Step 2 에서
+- 토큰 신규 추출 X — 기존 globals.css 가 이미 따뜻한 안식처 톤 정합
 
-**spec.decisions 동기화**: D3 (Stardew 톤) · D4 (큐레이션) · D5 (메커니즘 분리) · D8 (As You Go) 직접 적용
+**spec.decisions 동기화**: D4 (Commercial-safe + GitHub-publishable 큐레이션) · D8 (As You Go) 직접 적용
 
 ## 4. 충돌 위험 파일
 

@@ -92,15 +92,28 @@ last-updated: 2026-05-04
 - **빈틈**: Stardew 의 정교한 픽셀은 도트 단위 의도. AI 양산 어렵고 (D4 보류 사유), 큐레이션 자산이 톤 정확히 안 맞으면 부담
 - **재검토 트리거**: 큐레이션 자산만으로 디자인 영혼 표현 한계 / 사용자 반응 "픽셀이 차갑다 / 옛날 같다" 신호
 
-### D4. [에셋 모델] 큐레이션 우선 (LimeZu / Sprout Lands / Mystic Woods) + Claude UI 코드
+### D4. [에셋 모델] Commercial-safe + GitHub-publishable 큐레이션 (표준 라이선스 우선)
 
-- **왜**: 본심 워크샵 후 사용자 결정 ("AI는 일단 없이 베이스로 가고 기본적 UI 등 만들거 만들고 싶어"). 디자인 감각 부담 ↓, 톤 일관성 ◎, 비용 ↓
+- **왜**: 본심 워크샵 후 사용자 결정 — 서비스 런칭 + 광고 도입 의향 (2026-05-04). 비상업적 자산 = commercial 전환 시 전부 교체. 또한 Public GitHub 레포 = redistribute 명시 허용된 자산만 commit OK
+- **확정 자산 — git commit OK (라이선스 본문에 redistribute 명시 허용)**:
+  - **Kenney Tiny Town + RPG Urban Pack** — **CC0** (저작권 포기, 무조건 자유) — 마을 타일맵, 캐릭터, 132+486 tiles
+  - **LimeZu Serene Village** — **CC BY 4.0** (Share/redistribute 명시 + Attribution 필수) — 마을 풍경, 24종 집, 자연 모티브
+- **로컬 사용 가능, git ignore (redistribute 금지 명시)**:
+  - LimeZu Modern Interiors Free — 작가 custom ("Resell or distribute the asset to others" 금지) — `.gitignore` 등록 (`frontend/public/assets/village/limezu/modern-interiors-free/`). Step 6 시점 더 나은 CC0 가구 자산으로 교체 검토 또는 작가 직접 문의
+- **영구 제외 (redistribute 명시 금지)**:
+  - Cup Nooble Sprout Lands (Free/Premium 모두) — "resold/redistributed 금지"
+  - Game Endeavor Mystic Woods (Free/Premium 모두) — "redistribute or resale 금지"
 - **대안** (learning 69 비교):
-  - 옵션 B 풀 AI 생성 — **검토 후 거부**. 비용 폭발 위험 (월 $600~$1200 시나리오), 픽셀 톤 일관성 어려움, 진짜 픽셀 X
-  - 옵션 C 하이브리드 — **검토 후 보류**. 베이스 + AI 악센트, 두 시스템 운영 부담. D7 재검토 트리거 도달 시 재고
-  - 옵션 D 캐릭터만 AI — **검토 후 거부**. 사용자 본인 의도 ("내 캐릭 AI") 였으나 톤 일관성 우선
-- **빈틈**: 무료 자산 톤이 마을 컨셉 정확히 안 맞을 위험 / 자산 라이선스 commercial use 확인 필요
-- **재검토 트리거**: 큐레이션만으로 꾸미기 핵심 가치 표현 한계 도달 / 사용자 생성 콘텐츠 욕구 ↑ / PixelLab.ai $9.99/월 비용 회수 가능 시점
+  - 옵션 B 풀 AI 생성 — 거부 (비용·일관성)
+  - 옵션 C 하이브리드 — 보류 (D7 재검토 트리거)
+  - 비상업적 자산 사용 — **거부 (광고 도입 시 라이선스 위반 + GitHub 공개 위험)**
+  - 직접 그리기 — 거부 (디자인 감각 부담)
+- **Attribution 의무**: `frontend/public/assets/village/LICENSE.md` + 화면 "About/Credits" 페이지에 명시
+  - Kenney (CC0, 비강제이지만 권장)
+  - LimeZu Serene Village (CC BY 4.0, 강제)
+- **표준 라이선스 우선 원칙**: 자산 추가 시 CC0 또는 CC BY 우선. 작가 custom 라이선스는 redistribute 조항 명시적 확인 필수. 모호하면 작가 직접 문의 또는 다른 자산
+- **빈틈**: Kenney (단순 픽셀) + LimeZu Serene Village (따뜻한 마을) 톤 결합이 통일감 깨질 가능성 / 가구 자산 부족 (Modern Interiors 가 .gitignore)
+- **재검토 트리거**: 톤 통일 부족 신호 / 가구 자산 한계 도달 (Step 6) → 다른 CC0 가구 검색 또는 LimeZu 작가 문의 / 큐레이션 전반 한계 → AI 도입 (D7)
 
 ### D5. [메커니즘] Stardew 차용 / 분리
 
@@ -145,18 +158,42 @@ last-updated: 2026-05-04
 - **빈틈**: 토큰 추출 누락 위험 (체크리스트로 보강)
 - **재검토 트리거**: Step 3~ 시점에 토큰 충돌 / 일관성 깨짐 신호
 
+### D9. [PR 흐름] 트랙 통합 PR (long-lived feature branch)
+
+- **왜**: CD 파이프라인 (`.github/workflows/deploy.yml`) 은 main push 시 즉시 자동 배포 (`paths-ignore: docs/**`). 트랙 진행 중 step PR 마다 main 머지 = 매번 운영 반영 = 사용자 마을이 마디마다 시각적으로 변함 = 일관 경험 깨짐. (b) 시나리오 (실 사용자 노출 중) 정합
+- **흐름**:
+  - **통합 브랜치 `feat/village-design-mvp`** (long-lived, main 기반) 운영
+  - 각 step PR base = 통합 브랜치 (main 아님)
+  - step PR 머지 = 통합 브랜치에 누적 (main 안 들어감, 운영 영향 0)
+  - 트랙 종료 시 통합 브랜치 → main 단일 PR = 사용자에게 "마을 새단장" 일관 경험 일괄 반영
+- **대안**:
+  - 각 step main 머지 — 거부 (운영 마디마다 반영, (b) 시나리오 위화감)
+  - Staging 환경 (dev.ghworld.co) — 보류 (인프라 추가 부담)
+  - CD trigger 비활성 (workflow_dispatch only) — 거부 (매번 수동 부담)
+  - Feature flag — 보류 (코드 복잡도)
+- **운영 정책**:
+  - 통합 브랜치 main sync 주기 — 다른 트랙이 main 머지 시마다 통합으로 `git merge origin/main` 또는 rebase. 안 그러면 트랙 종료 시 충돌
+  - 각 step PR 생성 시 `gh pr create --base feat/village-design-mvp --head feat/village-design-mvp-stepN-...`
+  - CodeRabbit 리뷰는 step PR 마다 작동 (코드 품질은 매 step 검증)
+  - 트랙 종료 PR 은 비대 — step PR 마다 미리 검증된 게 누적
+- **빈틈**: 통합 브랜치 main sync 누락 시 트랙 종료 충돌 / 통합 PR 비대로 리뷰 부담
+- **재검토 트리거**: 다른 트랙 main 머지 후 통합 sync 안 함 신호 / 트랙 길이 너무 길어 일괄 머지 위험 ↑ → 중간 partial main 머지 검토
+
 ## 5. Tasks (= Steps)
 
-> 1 step = 1 PR (엄격). `docs/conventions/git.md` §4.
+> 1 step = 1 PR (엄격, **base = 통합 브랜치 `feat/village-design-mvp`** — D9 정책). `docs/conventions/git.md` §4 + 본 spec D9.
 
 | Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | PR |
 |------|------|------|---------------|------|-----|
-| **1** | **마을 입장 화면 + Welcome + 디자인 시스템 토큰·컴포넌트 동시 추출** | — | `frontend/src/styles/`, `frontend/src/app/village/`, `frontend/src/components/ui/`, `frontend/public/assets/village/` | (현재) #56 | (작업 시 채움) |
-| 2 | 채팅 UI 리디자인 + 디자인 토큰 확장 | step1 | `frontend/src/components/chat/`, tokens 확장 | (별도 발급) | — |
-| 3 | 집 꾸미기 인벤토리 + 슬롯 시스템 첫 시안 | step1 | `frontend/src/components/inventory/`, 도메인 모델 | (별도) | — |
-| 4 | NPC 매일 안부 카드 시스템 첫 시안 | step1 | `frontend/src/components/npc/`, 시간 트리거 | (별도) | — |
-| 5 | 비동기 편지·흔적 시스템 첫 시안 | step1·step3 | 도메인 모델 + UI | (별도) | — |
-| 6 | 환경음·BGM 통합 | step1 | `frontend/src/lib/audio/`, 자산 큐레이션 | (별도) | — |
+| **1** | **자산 토대 + Welcome 모션 + 디자인 시스템 점검** — `.gitignore` 정정, LICENSE.md, WelcomeOverlay (React 페이드인), GameLoader 갱신, 기존 토큰 점검. VillageScene 변경 X (Step 2 에서) | — | `frontend/public/assets/`, `frontend/src/components/ui/WelcomeOverlay.tsx`, `frontend/src/app/GameLoader.tsx`, `.gitignore`, `docs/specs/`, `docs/handover/` | (현재) #56 | (작업 시) |
+| **2** | **VillageScene Tilemap 토대** — 기존 `drawGround` 폐기 + Kenney Tiny Town tilemap 통합 (background tiles). 기존 placeDecorations 폐기. 캐릭터/NPC/동기화 보존 | step1 | `frontend/src/game/scenes/VillageScene.ts` | (별도 발급) | — |
+| **3** | **LimeZu Serene Village 마을 본격 풍경** — 24종 집 + 자연 모티브 추가. 사용자 다운로드 후 진행 | step2, LimeZu 자산 | `VillageScene.ts`, `frontend/public/assets/village/limezu/serene-village/` | (별도) | — |
+| **4** | **캐릭터 스프라이트 (Kenney RPG Urban Pack)** — 원형 placeholder 교체 + 4방향 walk 애니메이션 | step2 | `VillageScene.ts` (createCharacter) | (별도) | — |
+| **5** | 채팅 UI 리디자인 + 디자인 토큰 확장 | step1 | `frontend/src/components/chat/`, tokens 확장 | (별도) | — |
+| **6** | 집 꾸미기 인벤토리 + 슬롯 시스템 첫 시안 | step1 | `frontend/src/components/inventory/`, 도메인 모델, **가구 자산 결정 (Modern Interiors 작가 문의 결과 또는 다른 CC0 가구)** | (별도) | — |
+| **7** | NPC 매일 안부 카드 시스템 첫 시안 | step4 | `frontend/src/components/npc/`, 시간 트리거 | (별도) | — |
+| **8** | 비동기 편지·흔적 시스템 첫 시안 | step1·step6 | 도메인 모델 + UI | (별도) | — |
+| **9** | 환경음·BGM 통합 | step1 | `frontend/src/lib/audio/`, 자산 큐레이션 (freesound.org / Pixabay) | (별도) | — |
 
 ## 6. Verification (수용 기준 — track §0.5 와 1:1)
 

@@ -38,7 +38,7 @@
     "@types/sockjs-client": "^1.5.4",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/ui": "^4.1.5",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "16.2.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-simple-import-sort": "^13.0.0",

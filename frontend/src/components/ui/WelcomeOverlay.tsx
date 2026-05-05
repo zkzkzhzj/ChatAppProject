@@ -6,27 +6,38 @@ const STORAGE_KEY = 'village-welcomed';
 const FADE_OUT_AFTER_MS = 2200;
 const FADE_DURATION_MS = 800;
 
+type Phase = 'hidden' | 'fading-in' | 'visible' | 'fading-out';
+
+function getInitialPhase(): Phase {
+  if (typeof window === 'undefined') return 'hidden';
+  if (window.localStorage.getItem(STORAGE_KEY) === '1') return 'hidden';
+  return 'fading-in';
+}
+
 export default function WelcomeOverlay() {
-  const [phase, setPhase] = useState<'hidden' | 'fading-in' | 'visible' | 'fading-out'>('hidden');
+  const [phase, setPhase] = useState<Phase>(getInitialPhase);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (window.localStorage.getItem(STORAGE_KEY) === '1') return;
+    // mount 시 한 번만 — phase 진행은 setTimeout callback 으로
+    if (phase === 'hidden') return;
 
-    const fadeIn = window.setTimeout(() => setPhase('visible'), 16);
-    const fadeOut = window.setTimeout(() => setPhase('fading-out'), FADE_OUT_AFTER_MS);
+    const fadeIn = window.setTimeout(() => {
+      setPhase('visible');
+    }, 16);
+    const fadeOut = window.setTimeout(() => {
+      setPhase('fading-out');
+    }, FADE_OUT_AFTER_MS);
     const finish = window.setTimeout(() => {
       setPhase('hidden');
       window.localStorage.setItem(STORAGE_KEY, '1');
     }, FADE_OUT_AFTER_MS + FADE_DURATION_MS);
-
-    setPhase('fading-in');
 
     return () => {
       window.clearTimeout(fadeIn);
       window.clearTimeout(fadeOut);
       window.clearTimeout(finish);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (phase === 'hidden') return null;
@@ -39,7 +50,7 @@ export default function WelcomeOverlay() {
       className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center transition-opacity ease-in-out"
       style={{
         opacity,
-        transitionDuration: `${FADE_DURATION_MS}ms`,
+        transitionDuration: `${String(FADE_DURATION_MS)}ms`,
         backgroundColor: 'rgba(250, 246, 240, 0.92)',
       }}
     >

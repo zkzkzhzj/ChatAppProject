@@ -16,6 +16,9 @@ reviews:
     drafts: false
     base_branches:
       - main
+      # 트랙 통합 브랜치 (long-lived, D9 정책 — docs/specs/features/village-design-mvp.md)
+      # 트랙 종료 시 본 항목 제거. 새 트랙 통합 브랜치 추가 시 1줄 추가.
+      - feat/village-design-mvp
     ignore_title_keywords:
       - "WIP"
       - "DO NOT MERGE"

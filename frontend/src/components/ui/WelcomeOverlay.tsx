@@ -61,10 +61,7 @@ export default function WelcomeOverlay() {
         >
           ghworld에 오신 것을 환영합니다
         </p>
-        <p
-          className="mt-3 text-sm"
-          style={{ color: 'var(--color-bark-light)' }}
-        >
+        <p className="mt-3 text-sm" style={{ color: 'var(--color-bark-light)' }}>
           말 안 해도 괜찮아요. 천천히 머무세요.
         </p>
       </div>

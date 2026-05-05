@@ -48,7 +48,7 @@ export default function WelcomeOverlay() {
           className="font-display text-2xl"
           style={{ color: 'var(--color-bark)', letterSpacing: '0.02em' }}
         >
-          마음의 고향에 오신 것을 환영합니다
+          ghworld에 오신 것을 환영합니다
         </p>
         <p
           className="mt-3 text-sm"

@@ -12,7 +12,7 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
-| — | — | (활성 트랙 없음) | — | — | — |
+| `village-design-mvp` | [track-village-design-mvp.md](./track-village-design-mvp.md) | Frontend (UI/UX, Phaser 마을, 디자인 시스템) + 자산 큐레이션 | 🔧 Step 1 진행 중 (마을 입장 + 디자인 시스템 동시 추출) | #56 | 2026-05-04 |
 
 > ws-redis Step 3 (클라이언트 재작성 + WS 모듈 분리) 착수 시 본 표에 다시 추가. `track-ws-redis.md` §9 인수인계 참조.
 > 새 트랙을 시작할 때 이 표에 한 줄 추가하고, 해당 트랙 파일을 신규 작성한다.
@@ -37,7 +37,6 @@
 |---------|---------------|------|
 | `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, WS 토큰 갱신, 게스트 영속 식별자 | 수행계획서·결정 게이트 통과·구현계획서 [track-token-auto-renewal.md](./track-token-auto-renewal.md) 에 보존. **2026-05-02 재차 보류** — Redis 저장소 선택의 5패턴 비교 + 블로그 포스팅까지 깊이 있게 가져갈 주제로 판단, UI 디자인 트랙 우선 처리 후 재개 |
 | `s3-media` | S3 도입 (집 배경 이미지, 캐릭터 등) | 사전 결정 필요: 무엇을 올릴지 / 비용 정책 / 유해 필터 |
-| UI 디자인 트랙 (트랙 ID 미정) | 마을/UI 디자인 개선 | **다음 착수 예정** (token-auto-renewal 보류 후 우선) |
 
 > 시작 시점에 위 표에서 빼서 "활성 트랙" 표로 옮긴다.
 

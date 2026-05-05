@@ -122,6 +122,14 @@
 |---|------|------|
 | [65](./65-cookie-security-attributes-deep-dive.md) | HttpOnly · Secure · SameSite cookie 깊은 다이브 (`infra-tls-hardening` 트랙) | 각 속성이 막는 공격·못 막는 공격·삼위일체 매트릭스. LocalStorage → HttpOnly cookie 전환 근거 + 마음의 고향 옵션 A/B 분기 |
 
+## UI · 비즈니스 모델 결정
+
+| # | 제목 | 한 줄 |
+|---|------|------|
+| [69](./69-asset-model-curated-vs-ai-generation.md) | 에셋 모델 — 큐레이션 vs AI 생성 vs 하이브리드 (UI/꾸미기 트랙 D1 후보) | 안식처 가치·비용·시각 일관성·인벤토리 모델 4축 비교. AI 이미지 API 가격 실측 + Roblox·ZEP·Scenario·Genie 사례 + PoC 설계 + 재검토 트리거 7종. **결정 전 자료** |
+| [70](./70-village-mood-aesthetic-decision.md) | 마을 차별점 + 에셋 톤 결정 — 왜 "조용한 호숫가" 인가 (UI 트랙 D2) | 산업 패턴 7개 (#4 위안 + #6 세계관 + #7 감각적 안식 합성) + 에셋 톤 5개 비교 → **벡터/미니멀 (Monument Valley·Alto's Odyssey·Sky 결)** 채택. 미니멀 톤 ↔ AI 생성 충돌 → learning 69 보강 옵션 D 제안. 재검토 트리거 4종 + 사운드 디자인 비중 ↑. **#71 에서 본심 워크샵 거쳐 (가) Stardew 결 픽셀로 재정정** |
+| [71](./71-design-tone-from-self-interview.md) | 본심에서 디자인 길어내기 — 자기 인터뷰로 톤·자산·AI 활용을 결정한 워크샵 기록 (UI 트랙) | 디자인 막막함 → 활동 방 컨셉 피벗 도피 → 본심 직시 → **자기 인터뷰 4단계 워크샵 (Q1~Q4 + 키워드 5개 + 5축 분석 + 무드보드)** → Alone Together (Sherry Turkle) 학술 컨셉 발견 → 톤 3번 변경 (벡터/미니멀 → 따뜻한 일러스트 → **Stardew 결 픽셀**) → 자산 큐레이션 (LimeZu/Sprout Lands/Mystic Woods) + AI 보류. 마플 커피챗 인사이트 ("본인 말로 풀게 하기 / AI 끌려다니지 말기 / 트레이드오프 토론") 모범 사례. 본심 워크샵 4단계 가이드 + 컨셉 피벗 검토 3질문 + 재검토 트리거 7종 |
+
 ---
 
 ## 빈 번호 (병합으로 사라진)

@@ -42,10 +42,12 @@ backend/.gradle/
 # Gradle home cache
 backend/.gradle-home/
 
-# Pixel assets (외부 구매 에셋, 라이선스 제한)
+# Pixel assets — redistribute 금지 자산만 ignore (track village-design-mvp D4, 2026-05-04)
+# CC0 (Kenney) / CC BY (LimeZu Serene Village) 는 라이선스 본문에 redistribute 명시 허용 → git commit OK.
+# 작가 custom 라이선스로 redistribute 금지 명시된 자산만 아래에 추가.
 pixel-assets-all/
 pixel-assets-all.zip
-frontend/public/assets/
+frontend/public/assets/village/limezu/modern-interiors-free/
 
 # Load test local artifacts (JWT·결과 민감 정보)
 loadtest/tokens.json

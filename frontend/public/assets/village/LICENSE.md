@@ -44,7 +44,7 @@
 
 ### Attribution 표기 (화면 Credits 페이지 + 본 LICENSE.md)
 
-```
+```text
 Serene Village asset by LimeZu
 https://limezu.itch.io/serenevillagerevamped
 Licensed under CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/

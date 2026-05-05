@@ -31,7 +31,10 @@ last-updated: 2026-05-04
 
 - 디자인 시스템 토큰 (컬러 팔레트 / 타이포 스케일 / 스페이싱 / 라운드 / 그림자) — Step 1 화면 만들면서 동시 도출 ("design system as you go")
 - 마을 입장 화면 + Welcome 모션 (Step 1)
-- Stardew 결 픽셀 자산 통합 (LimeZu Modern Interiors / Cup Nooble Sprout Lands / Game Endeavor Mystic Woods)
+- Stardew 결 픽셀 자산 통합 — D4 정책에 따라 commercial-safe + redistribute 명시 허용 자산만:
+  - LimeZu Serene Village (CC BY 4.0)
+  - Kenney Tiny Town + RPG Urban Pack (CC0)
+  - 비고: LimeZu Modern Interiors Free 는 `.gitignore` 로 분리 (D4 — 가구는 Step 6 시점 별도 결정). Sprout Lands / Mystic Woods 는 영구 제외 (D4)
 - 머무는 이유 4축 첫 시안:
   - (i) NPC 매일 안부 카드
   - (iii) 비동기 편지·흔적 시스템
@@ -56,7 +59,7 @@ last-updated: 2026-05-04
 | 차원 | 제약 |
 |------|------|
 | 성능 | Phaser 2D + Next.js baseline 유지. 2D 렌더링 60fps 목표 |
-| 비용 | 무료 자산 우선, 유료는 $5~$20 범위 (LimeZu / Sprout Lands / Mystic Woods 합쳐 ≤ $50) |
+| 비용 | 무료 자산만 (Kenney CC0 + LimeZu Serene Village CC BY 4.0). Sprout Lands / Mystic Woods Premium 은 D4 의 영구 제외라 유료 검토 안 함. PixelLab.ai 등 AI 도구는 D7 재검토 트리거 도달 시 |
 | 시간 | Step 1 (마을 입장 + 디자인 시스템) 1~2주 목표 |
 | 인프라 | 추가 인프라 0 (정적 자산만 추가) |
 | 정책/규제 | 자산 라이선스 — CC0 / CC BY 우선, 상용 사용 가능 명시 |
@@ -200,7 +203,7 @@ last-updated: 2026-05-04
 - [ ] 사용자가 마을 입장 시 Stardew 결 따뜻한 톤 즉시 느낌 (Step 1)
 - [ ] 디자인 시스템 토큰화 완료 (컬러·타이포·스페이싱) (Step 1)
 - [ ] UI 컴포넌트 키트 5종 이상 (Button / Card / Modal / Toast / Input) — 사용처 등장 분만큼 (Step 1~2)
-- [ ] 환경음 1종 이상 통합 (Step 6)
+- [ ] 환경음 1종 이상 통합 (Step 9)
 - [ ] 머무는 이유 4축 중 1개 이상 첫 시안 동작 (Step 4 또는 5)
 - [ ] 자산 라이선스 명시 (commercial use 확인) — 트랙 종료 전
 

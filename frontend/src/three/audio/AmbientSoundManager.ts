@@ -33,7 +33,11 @@ export class AmbientSoundManager {
         src: [def.src],
         loop: def.loop,
         volume: def.volume,
-        html5: false, // Web Audio API (positional audio 결 결 결로 박음)
+        // HTML5 Audio — Web Audio API 디코더가 일부 mp3 인코딩에 까다로워서
+        // "Decoding audio data failed" 발생 (파일 자체는 정상 mp3 인데).
+        // Step 2 = 글로벌 BGM 만 박음 → HTML5 Audio 결로 충분.
+        // Step 2.5 PositionalAudio 도입 시 Web Audio API 필요 → 그때 자산 인코딩 검증 + 결 정정.
+        html5: true,
         preload: true,
         onloaderror: (_id, error) => {
           // 자산 누락 시 무음으로 graceful 진행 (sound-config.ts ALLOW_MISSING_ASSETS 정책)

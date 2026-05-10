@@ -40,9 +40,10 @@
 
 | Step | 내용 | 의존 | 상태 | 이슈 | PR |
 |------|------|------|------|------|-----|
-| **1** | **Three.js PoC** — 마을 박스 레이아웃 + 캐릭터 이동 (걷기 + 점프) + 도서관 별도 Scene 전환 + warm 라이팅 + Fog. 자산 X 기본 geometry. **멀티유저 동기화 X** | — | 🔧 PR #68 (리뷰 대응 중) | #67 | #68 |
+| **1** | Three.js PoC — 마을 박스 레이아웃 + 캐릭터 이동 (걷기 + 점프) + 도서관 별도 Scene 전환 + warm 라이팅 + Fog. 자산 X 기본 geometry. 멀티유저 동기화 X | — | ✅ 머지 | #67 | #68 |
 | **1.5** | 멀티유저 위치 동기화 마이그 — 옛 Phaser `sendPosition`/`onPositionUpdate`/`onTypingUpdate` 결 Three.js 통합. Codex P1 (PR #68) 회귀 방지 | step1 | 대기 | (별도) | — |
-| 2 | 환경음 통합 ⭐ — Howler.js + freesound.org (빗소리·바람·새) + Three.js `PositionalAudio` (연못·캠프파이어 결) | step1 | 대기 | (별도) | — |
+| **2** | **환경음 통합** ⭐ — Howler.js + 환경음 자산 (forest-birds·gentle-wind·pond-water) + Scene 전환 결 음량 fade. D6(v) 본질 가치 첫 시안. Step 2.5 결로 Three.js `PositionalAudio` (연못·캠프파이어 결) 별도 결 | step1 | 🔧 진행 중 | #67 | (작업 시) |
+| 2.5 | PositionalAudio 결 — 연못·캠프파이어 결 가까이 갈수록 음량 ↑. Three.js `PositionalAudio` + AudioListener | step2 | 대기 | (별도) | — |
 | 3 | 캐릭터 3D 모델 + 4방향 walk 애니메이션 (Quaternius Ultimate Modular Men) | step1 | 대기 | (별도) | — |
 | 4 | 도서관 인테리어 + 글 작성·조회·댓글 첫 시안 + AI 추천 + 백엔드 도메인 (`confession`) | step1 + 백엔드 | 대기 | (별도) | — |
 | 5 | NPC 매일 안부 카드 시스템 (D6 i) — 캠프파이어 NPC 자리 결 통합 | step3, 백엔드 | 대기 | (별도) | — |

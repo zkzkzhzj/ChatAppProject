@@ -117,22 +117,31 @@ predecessor: docs/specs/features/village-design-mvp.md
 - **빈틈**: 3D 의 "사진 같은 사실감" 결로 빠질 위험 (Unreal Engine MetaHuman 결 = 결 충돌). low-poly + warm 셰이더 결 박음
 - **재검토 트리거**: 사용자 반응 "차갑다 / 무미건조하다 / 사실감만 있고 결 안 느껴짐" 신호
 
-### D4'. [에셋 모델] 3D 기본 geometry → CC0 3D 모델 점진 통합 (옛 D4 정정)
+### D4'. [에셋 모델] binary asset 외부 인프라 결 — 옛 D4 정정 (사용자 직관 박음, 2026-05-11)
 
-- **왜**: PoC 단계 = 자산 0 (`BoxGeometry` · `PlaneGeometry` · `SphereGeometry` · `CylinderGeometry` 만으로 1주 PoC). 점진 단계 = CC0 3D 모델 통합. 옛 트랙 D4 의 "Commercial-safe + GitHub-publishable" 원칙 그대로 승계.
-- **확정 자산 후보** (Step 1 이후):
+- **왜**: 옛 D4 ("Commercial-safe + GitHub-publishable, redistribute 허용 자산 git commit OK") 는 게임/프론트엔드 컨벤션 결인데, 사용자 백엔드 직관과 충돌. binary asset (mp3 · 3D 모델 · 텍스처) 은 외부 인프라 (S3 / CDN) 결로 분리하는 게 자연스러움 — git diff 의미 X, 저장소 부풀림, 자산 교체 history 누적, 라이선스 관리 결 인프라 분리.
+- **본 트랙 결**:
+  - PoC 단계 (Step 1) = 자산 0, Three.js 기본 geometry 만
+  - 점진 단계 (Step 2~) 자산 = 사용자 다운로드 + `.gitignore` + README 가이드 결 (개발 단계 graceful)
+  - 운영 단계 = 별도 트랙 `s3-media` 결로 마이그 (S3 또는 Cloudflare R2)
+- **추적 결**: `LICENSE.md` · `README.md` 등 텍스트 정책 문서만 git 추적. mp3 / fbx / glb / png / jpg 등 binary 는 `.gitignore`.
+- **자산 출처 (사용자 다운로드)**:
   - **Quaternius CC0** ([quaternius.com](https://quaternius.com)) — Ultimate Nature Pack · Ultimate Modular Men · Ultimate Animated Animal Pack 등. 무조건 자유
   - **Kenney 3D Pack** (CC0) — Tower Defense Kit · Mini Characters 1 · Castle Kit 등
   - **Sketchfab CC0/BY** — 개별 모델, 라이선스 페이지별 확인
-- **로컬 사용 결 (redistribute 금지 자산)**: `.gitignore` 등록, 작가 직접 문의 후 결정
-- **영구 제외**: redistribute 명시 금지 자산 (옛 트랙 Sprout Lands · Mystic Woods 결과 동일 원칙)
-- **대안** (learning 69 결 그대로):
-  - 풀 AI 생성 (Meshy.ai 등) — 보류 (D7 트리거)
-  - 직접 모델링 (Blender) — 거부 (디자인 감각 부담, 옛 D4 결 그대로)
-  - 비상업적 자산 — 거부 (광고 도입 시 라이선스 위반)
-- **Attribution 의무**: `frontend/public/assets/village-3d/LICENSE.md` 신규 작성 + 화면 "About/Credits" 페이지 명시
-- **빈틈**: 3D CC0 자산이 2D 픽셀보다 좁음 / 톤 통일 부족 가능성 (Quaternius low-poly + Kenney 3D 결합)
-- **재검토 트리거**: 톤 통일 부족 신호 / 자산 한계 도달 (Step 4 도서관 인테리어) → 다른 CC0 검색 또는 AI 도입 (D7)
+- **대안**:
+  - 옛 D4 그대로 (binary git commit) — 거부 (사용자 직관 충돌, 저장소 부풀림)
+  - hotlinking (외부 URL 직접 참조) — 거부 (외부 서비스 불안정 + hotlinking 금지 사이트)
+  - 풀 AI 생성 (Meshy.ai · Scenario.gg) — 보류 (D7 트리거)
+  - 직접 모델링 (Blender) — 거부 (디자인 감각 부담)
+- **Attribution 의무**: `frontend/public/assets/{village-3d|audio}/LICENSE.md` 작성 (텍스트 정책 문서, git 추적 ✅) + 화면 "About/Credits" 페이지 명시
+- **빈틈**:
+  - `s3-media` 트랙 보류 중 — 임시 결 (사용자 다운로드 + `.gitignore`) 가 머지 후 누적되면 협업·CI 환경에서 자산 검증 결 안 됨 (graceful 무음·시각 fallback)
+  - 3D CC0 자산이 2D 픽셀보다 좁음 / 톤 통일 부족 가능성 (Quaternius low-poly + Kenney 3D 결합)
+- **재검토 트리거**:
+  - `s3-media` 트랙 착수 = 본 D4' 운영 결 마이그 시점
+  - 자산 한계 도달 (Step 4 도서관 인테리어) → 다른 CC0 검색 또는 AI 도입 (D7)
+  - 마이그 후 운영 비용 임계 도달 시 트랙 재정정
 
 ### D5. [메커니즘] Stardew 차용 / 분리 (옛 트랙 승계)
 
@@ -206,7 +215,8 @@ predecessor: docs/specs/features/village-design-mvp.md
 |------|------|------|---------------|------|-----|
 | **1** | **Three.js PoC** — 마을 박스 레이아웃 (입구·캠프파이어·연못·도서관·숲 wall) + 캐릭터 이동 (걷기 + 점프) + 도서관 별도 Scene 전환 + warm 라이팅 + Fog. 자산 X 기본 geometry. **멀티유저 위치 동기화 X (Step 1.5 결로 분리)** | — | `frontend/src/three/`, `frontend/src/app/GameLoader.tsx`, `frontend/package.json` (three 추가) | #67 | #68 |
 | **1.5** | **멀티유저 위치 동기화 마이그** — 옛 Phaser 코드의 `sendPosition` / `onPositionUpdate` / `onTypingUpdate` 결을 Three.js Scene 결로 통합. 다른 유저 박스 placeholder 결로 렌더 (Step 3 캐릭터 모델 결과 통합 가능). Codex P1 (PR #68) 회귀 방지 | step1 | `frontend/src/three/scenes/VillageScene.ts`, `lib/websocket/positionBridge` 결 결합 | (별도) | — |
-| **2** | **환경음 통합** ⭐ — Howler.js + freesound.org (빗소리·바람·새) + Three.js `PositionalAudio` (연못 결, 캠프파이어 결) | step1 | `frontend/src/lib/audio/`, 자산 큐레이션 | (별도) | — |
+| **2** | **환경음 통합** ⭐ — Howler.js + 환경음 자산 3종 (forest-birds·gentle-wind·pond-water) + Scene 전환 결 음량 fade (마을 = 모두 ON / 도서관 = 새·물 OFF, 바람만 옅게). 자산 가이드 README. D6(v) 본질 가치 첫 시안 | step1 | `frontend/src/three/audio/`, `frontend/public/assets/audio/ambient/`, `frontend/package.json` (howler 추가) | #67 | (작업 시) |
+| 2.5 | Three.js `PositionalAudio` 결 — 연못·캠프파이어 결 가까이 갈수록 음량 ↑. 공간감 결 결 결 (Step 2 의 글로벌 BGM 결과 보완) | step2 | `frontend/src/three/audio/positional.ts` 결 | (별도) | — |
 | **3** | **캐릭터 3D 모델 + 4방향 walk 애니메이션** (Quaternius Ultimate Modular Men 결) | step1 | `frontend/src/three/character/`, `frontend/public/assets/village-3d/` | (별도) | — |
 | **4** | **도서관 인테리어 + 글 작성·조회·댓글 첫 시안** — 책장 (글 list) + 책상 (글 작성) + 댓글 다대다 + NPC 답변 1개 + AI 추천 사이드바. 백엔드 API 동반 (`POST /confessions`, `GET /confessions`, `POST /confessions/{id}/comments`, 익명 닉 생성, 임베딩 추천) | step1, 백엔드 도메인 (`confession`) | `frontend/src/three/library/`, `frontend/src/components/library/`, 백엔드 새 도메인 | (별도) | — |
 | **5** | **NPC 매일 안부 카드 시스템** (D6 i) — Spring 스케줄러 + 카드 UI + 캠프파이어 NPC 자리 결 통합 | step3, 백엔드 | `frontend/src/components/npc/`, 백엔드 스케줄러 | (별도) | — |

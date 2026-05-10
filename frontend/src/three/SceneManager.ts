@@ -136,6 +136,10 @@ export class SceneManager {
 
     sceneObj.updateCamera(this.camera);
 
+    // 위치 기반 환경음 (sound-config.ts zone 결로 음량 결 결)
+    const charPos = sceneObj.character.position;
+    this.ambientSound.updatePosition(charPos.x, charPos.z);
+
     // 페이드 결
     if (this.fadeDirection !== 0) {
       this.fadeAlpha += (this.fadeDirection * delta * 1000) / TRANSITION.FADE_DURATION_MS;

@@ -58,6 +58,7 @@ predecessor: docs/specs/features/village-design-mvp.md
 - **모바일 우선 디자인** — 데스크탑 only. 3D 성능 결로 모바일 최적화는 후속 트랙
 - **자유 카메라 회전 (orbit controls)** — D11 가드레일 위반. 정적 follow 만
 - **Phaser 2D 코드 보존** — 옛 트랙 Step 2 미커밋 결 폐기됨, Welcome 모션·LICENSE 만 보존
+- **Step 1 한계 — 멀티유저 위치 동기화** — Step 1 PoC 는 시각·이동·점프·Scene 전환만. 옛 Phaser 코드의 `sendPosition` / `onPositionUpdate` / `onTypingUpdate` (마을 다른 유저 위치 broadcast) 통합은 **별도 step 결로 분리** (Step 1.5 또는 Step 3 캐릭터 모델 결과 같이 박음). Codex P1 리뷰 결 (PR #68) — Step 1 단독 머지 시 멀티유저 위치 동기화 회귀 발생, 의도적 한계로 명시
 
 ## 3. Constraints (비기능 제약)
 
@@ -203,7 +204,8 @@ predecessor: docs/specs/features/village-design-mvp.md
 
 | Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | PR |
 |------|------|------|---------------|------|-----|
-| **1** | **Three.js PoC** — 마을 박스 레이아웃 (입구·캠프파이어·연못·도서관·숲 wall) + 캐릭터 이동 (걷기 + 점프) + 도서관 별도 Scene 전환 + warm 라이팅 + Fog. 자산 X 기본 geometry | — | `frontend/src/three/`, `frontend/src/app/GameLoader.tsx`, `frontend/package.json` (three 추가) | (Step 발급 시) | — |
+| **1** | **Three.js PoC** — 마을 박스 레이아웃 (입구·캠프파이어·연못·도서관·숲 wall) + 캐릭터 이동 (걷기 + 점프) + 도서관 별도 Scene 전환 + warm 라이팅 + Fog. 자산 X 기본 geometry. **멀티유저 위치 동기화 X (Step 1.5 결로 분리)** | — | `frontend/src/three/`, `frontend/src/app/GameLoader.tsx`, `frontend/package.json` (three 추가) | #67 | #68 |
+| **1.5** | **멀티유저 위치 동기화 마이그** — 옛 Phaser 코드의 `sendPosition` / `onPositionUpdate` / `onTypingUpdate` 결을 Three.js Scene 결로 통합. 다른 유저 박스 placeholder 결로 렌더 (Step 3 캐릭터 모델 결과 통합 가능). Codex P1 (PR #68) 회귀 방지 | step1 | `frontend/src/three/scenes/VillageScene.ts`, `lib/websocket/positionBridge` 결 결합 | (별도) | — |
 | **2** | **환경음 통합** ⭐ — Howler.js + freesound.org (빗소리·바람·새) + Three.js `PositionalAudio` (연못 결, 캠프파이어 결) | step1 | `frontend/src/lib/audio/`, 자산 큐레이션 | (별도) | — |
 | **3** | **캐릭터 3D 모델 + 4방향 walk 애니메이션** (Quaternius Ultimate Modular Men 결) | step1 | `frontend/src/three/character/`, `frontend/public/assets/village-3d/` | (별도) | — |
 | **4** | **도서관 인테리어 + 글 작성·조회·댓글 첫 시안** — 책장 (글 list) + 책상 (글 작성) + 댓글 다대다 + NPC 답변 1개 + AI 추천 사이드바. 백엔드 API 동반 (`POST /confessions`, `GET /confessions`, `POST /confessions/{id}/comments`, 익명 닉 생성, 임베딩 추천) | step1, 백엔드 도메인 (`confession`) | `frontend/src/three/library/`, `frontend/src/components/library/`, 백엔드 새 도메인 | (별도) | — |

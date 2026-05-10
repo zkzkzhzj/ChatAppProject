@@ -24,6 +24,9 @@ export class SceneManager {
   private library: LibraryScene;
   private input: InputState;
   private active: Active = 'village';
+  // active === 'transitioning' 동안 어떤 Scene 을 렌더링할지 — fade out 결과 source scene 유지
+  // (Codex P2 — fade out 시작하자마자 default 로 떨어져서 화면 pop 되는 결 막음)
+  private sourceScene: 'village' | 'library' = 'village';
   private fadeAlpha = 0;
   private fadeDirection: -1 | 0 | 1 = 0;
   private fadeOverlay: HTMLDivElement;
@@ -78,6 +81,10 @@ export class SceneManager {
   }
 
   private activeScene(): VillageScene | LibraryScene {
+    if (this.active === 'transitioning') {
+      // transition 중에는 source scene 유지 (fade out 끝날 때까지)
+      return this.sourceScene === 'library' ? this.library : this.village;
+    }
     return this.active === 'library' ? this.library : this.village;
   }
 
@@ -146,6 +153,8 @@ export class SceneManager {
   private pendingTarget: Active = 'village';
 
   private startTransition(target: 'village' | 'library'): void {
+    // 현재 보이는 scene 을 source 로 박아 fade out 동안 유지
+    this.sourceScene = target === 'library' ? 'village' : 'library';
     this.pendingTarget = target;
     this.active = 'transitioning';
     this.fadeDirection = 1; // fade out
@@ -156,10 +165,12 @@ export class SceneManager {
       // 도서관 진입 — 입구 결로 reset
       this.library.character.position.set(0, 0, 4);
     } else {
-      // 마을 복귀 — 도서관 입구 앞 결로 reset (트리거 결 결 결 결 결로 약간 거리)
+      // 마을 복귀 — 도서관 입구 앞 결로 reset (트리거 즉시 재진입 막는 거리)
       this.village.character.position.set(0, 0, VILLAGE.LIBRARY_Z + 5);
     }
-    this.active = this.pendingTarget;
+    // fade in 동안 active='transitioning' 유지하되 sourceScene 은 target 으로 갱신
+    // (그래야 activeScene() 이 새 scene 을 렌더링하면서 fade in 진행)
+    this.sourceScene = this.pendingTarget;
     this.fadeDirection = -1; // fade in
   }
 

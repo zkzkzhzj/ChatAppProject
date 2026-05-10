@@ -40,7 +40,8 @@
 
 | Step | 내용 | 의존 | 상태 | 이슈 | PR |
 |------|------|------|------|------|-----|
-| **1** | **Three.js PoC** — 마을 박스 레이아웃 (입구·캠프파이어·연못·도서관·숲 wall) + 캐릭터 이동 (걷기 + 점프) + 도서관 별도 Scene 전환 + warm 라이팅 + Fog. 자산 X 기본 geometry | — | 🔧 다음 진행 | (Step 발급 시) | — |
+| **1** | **Three.js PoC** — 마을 박스 레이아웃 + 캐릭터 이동 (걷기 + 점프) + 도서관 별도 Scene 전환 + warm 라이팅 + Fog. 자산 X 기본 geometry. **멀티유저 동기화 X** | — | 🔧 PR #68 (리뷰 대응 중) | #67 | #68 |
+| **1.5** | 멀티유저 위치 동기화 마이그 — 옛 Phaser `sendPosition`/`onPositionUpdate`/`onTypingUpdate` 결 Three.js 통합. Codex P1 (PR #68) 회귀 방지 | step1 | 대기 | (별도) | — |
 | 2 | 환경음 통합 ⭐ — Howler.js + freesound.org (빗소리·바람·새) + Three.js `PositionalAudio` (연못·캠프파이어 결) | step1 | 대기 | (별도) | — |
 | 3 | 캐릭터 3D 모델 + 4방향 walk 애니메이션 (Quaternius Ultimate Modular Men) | step1 | 대기 | (별도) | — |
 | 4 | 도서관 인테리어 + 글 작성·조회·댓글 첫 시안 + AI 추천 + 백엔드 도메인 (`confession`) | step1 + 백엔드 | 대기 | (별도) | — |
@@ -75,6 +76,7 @@
 - 도서관 인테리어 = 빈 박스 (Step 4 에서 책장·책상)
 - 자산 = 0 (기본 geometry 만, Step 2 이후 점진 통합)
 - 환경음 = X (Step 2 에서 통합)
+- **멀티유저 위치 동기화 X** — Codex P1 리뷰 (PR #68) 결로 명시. 옛 Phaser 의 `sendPosition`/`onPositionUpdate`/`onTypingUpdate` 통합은 **Step 1.5** 별도 step 결로 분리
 
 **spec.decisions 동기화**: D-prev 정정 + D3' (3D 무드 톤) + D4' (자산) + D10 (Scene 전환) + D11 (가드레일 6축) 직접 적용
 

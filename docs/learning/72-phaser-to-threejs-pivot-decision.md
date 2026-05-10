@@ -95,11 +95,11 @@ but 차별점 코드 X 면 시각만 바꿔도 ZEP 결로 회귀.
 
 ## 6. 마을 레이아웃 (사용자 결 박음, 2026-05-10)
 
-```
+```text
         ╱╲╱╲╱╲ 숲 wall (collision) ╱╲╱╲╱╲
        🌲                              🌲
        🌲      🏛️ 마음 도서관           🌲
-       🌲       ↑ Phaser Scene 전환     🌲
+       🌲       ↑ Three.js Scene 전환    🌲
        🌲          (URL 안 바뀜)         🌲
        🌲                              🌲
        🌲    ~ 연못 (물소리) ~          🌲
@@ -113,7 +113,7 @@ but 차별점 코드 X 면 시각만 바꿔도 ZEP 결로 회귀.
 ```
 
 - 도서관 = "마음 도서관" 메타포 (고해소 진중함 X, 따뜻한 결 — 사용자 톤 결 선택)
-- 진입 = Phaser Scene 전환 (`VillageScene` → `LibraryScene`, URL 안 바뀜) — 게임 결 자연
+- 진입 = **별도 Three.js Scene 결** (`VillageScene` → `LibraryScene`, 같은 React 페이지 안 state 결로 전환, URL 안 바뀜) — Phaser Scene Manager 결 X. Three.js 는 `THREE.Scene` 인스턴스 결로 두 개 박고 React state 결로 mount 결 박음 (또는 R3F 의 컴포넌트 mount/unmount 결). 결 박는 결 = 게임 결 자연 (Stardew 결로 농장↔마을 화면 전환 결 정합)
 - 책장 = 사람들이 두고 간 글, 책상 = 글 쓰기, 댓글 다대다 + NPC 답변 1개 자동
 - AI 추천 = "비슷한 마음의 책" 사이드바 (작성 중 실시간, 임베딩 + 벡터 검색)
 - 익명성 = 자동 랜덤 닉 ("오후 3시의 누군가" 결, 완전 익명 X)

@@ -29,7 +29,7 @@
 
 **다음 후보 트랙** (착수 시 사용자 결정):
 
-- **`village-3d` — 다음 착수 예정** (2026-05-10). `village-design-mvp` 승계 결. Three.js 기본 geometry → 점진 CC0 3D 모델 결. 본질 가치 D1 안식처 · D2 Alone Together · D6 4축 (NPC 안부 · 비동기 편지·고해 도서관 · 환경음 · 안식 의식) 결 박음. 마을 레이아웃 = 입구 (남) → 캠프파이어 → 연못 → 도서관 (북) 세로 구도. 도서관 진입 = Phaser Scene 전환 결 (URL 안 바뀜). 안식처 결 가드레일 6축 (정적 카메라 · warm 라이팅 · Fog · 걷기+점프(가벼운 깡총)·뛰기 X · 환경음 우선 · 텍스트 익명). learning 72 → 새 spec `docs/specs/features/village-3d.md` 결로 박음 (트랙 시작 PR 결)
+- **`village-3d` — 다음 착수 예정** (2026-05-10). `village-design-mvp` 승계 결. Three.js 기본 geometry → 점진 CC0 3D 모델 결. 본질 가치 D1 안식처 · D2 Alone Together · D6 4축 (NPC 안부 · 비동기 편지·고해 도서관 · 환경음 · 안식 의식) 결 박음. 마을 레이아웃 = 입구 (남) → 캠프파이어 → 연못 → 도서관 (북) 세로 구도. 도서관 진입 = **별도 Three.js Scene 결** (`VillageScene` → `LibraryScene`, 같은 React 페이지 안 state 결로 전환, URL 안 바뀜 — Phaser Scene Manager 결 X, Three.js 는 `THREE.Scene` 인스턴스 결 / R3F 는 컴포넌트 mount 결). 안식처 결 가드레일 6축 (정적 카메라 · warm 라이팅 · Fog · 걷기+점프(가벼운 깡총)·뛰기 X · 환경음 우선 · 텍스트 익명). learning 72 → 새 spec `docs/specs/features/village-3d.md` 결로 박음 (트랙 시작 PR 결)
 - `token-auto-renewal` (Issue #38, **closed — 보류 코멘트 보존**) — 결정 게이트 통과 (A 도메인 / 단계 분할), 구현계획서 §6 `track-token-auto-renewal.md` 보존. **재차 보류 사유**: Redis 저장소 5패턴 비교 + 블로그 포스팅까지 깊이 가져갈 가치 → UI 트랙 우선. 재개 시 Issue #38 reopen + Step 0 (Redis 5패턴 학습노트) 선행 검토
 - `npc-evaluator-lmops` — NPC 응답 evaluator + prompt 버전 관리 + LLM 비용 추적 + 회귀 detector. 사전 ADR: [learning 68](./learning/68-npc-service-differentiator-adr.md) §3·§4. `harness-spec-driven` 머지 후 `/spec-new` 첫 사용자로 dry-run 겸용
 - `ai-observability` — 분산 trace + LLM 메트릭 (응답시간/토큰/비용) Grafana dashboard. `npc-evaluator-lmops` 와 병행 가능

@@ -40,3 +40,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# binary asset (spec D4' — 외부 인프라 마이그 예정, s3-media 트랙)
+# 환경음 / 3D 모델 / 텍스처 등은 git 추적 X. 사용자 다운로드 (README 가이드) 또는 s3-media 트랙 마이그 후 외부 URL.
+# 단 텍스트 자산 (LICENSE.md · README.md · 정책 문서) 은 추적.
+public/assets/audio/ambient/*.mp3
+public/assets/audio/ambient/*.ogg
+public/assets/audio/ambient/*.wav
+public/assets/audio/ambient/*.m4a

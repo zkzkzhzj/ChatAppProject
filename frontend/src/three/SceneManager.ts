@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { AmbientSoundManager } from './audio/AmbientSoundManager';
 import { CAMERA, TRANSITION, VILLAGE } from './constants';
 import { InputState } from './input';
 import { LibraryScene } from './scenes/LibraryScene';
@@ -23,6 +24,7 @@ export class SceneManager {
   private village: VillageScene;
   private library: LibraryScene;
   private input: InputState;
+  private ambientSound: AmbientSoundManager;
   private active: Active = 'village';
   // active === 'transitioning' 동안 어떤 Scene 을 렌더링할지 — fade out 결과 source scene 유지
   // (Codex P2 — fade out 시작하자마자 default 로 떨어져서 화면 pop 되는 결 막음)
@@ -57,6 +59,10 @@ export class SceneManager {
 
     // Input
     this.input = new InputState();
+
+    // Ambient sound (D6 v + D11 음향 결)
+    this.ambientSound = new AmbientSoundManager();
+    this.ambientSound.enterVillage();
 
     // 페이드 오버레이 (Scene 전환 결)
     this.fadeOverlay = document.createElement('div');
@@ -164,9 +170,11 @@ export class SceneManager {
     if (this.pendingTarget === 'library') {
       // 도서관 진입 — 입구 결로 reset
       this.library.character.position.set(0, 0, 4);
+      this.ambientSound.enterLibrary();
     } else {
       // 마을 복귀 — 도서관 입구 앞 결로 reset (트리거 즉시 재진입 막는 거리)
       this.village.character.position.set(0, 0, VILLAGE.LIBRARY_Z + 5);
+      this.ambientSound.enterVillage();
     }
     // fade in 동안 active='transitioning' 유지하되 sourceScene 은 target 으로 갱신
     // (그래야 activeScene() 이 새 scene 을 렌더링하면서 fade in 진행)
@@ -180,6 +188,7 @@ export class SceneManager {
     cancelAnimationFrame(this.rafId);
     window.removeEventListener('resize', this.onResize);
     this.input.destroy();
+    this.ambientSound.destroy();
     this.renderer.dispose();
     this.renderer.domElement.remove();
     this.fadeOverlay.remove();

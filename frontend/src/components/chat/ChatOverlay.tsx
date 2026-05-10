@@ -11,7 +11,10 @@ import ChatMessageList from './ChatMessageList';
 import LoginPrompt from './LoginPrompt';
 
 const CHAT_HEIGHT = { min: 100, max: 600, initial: 240 };
-const CHAT_WIDTH = { min: 300, max: 800, initial: 400 };
+// 큰 모니터(4K~5K) 에서 width 400 은 화면 비율 7~10% → 사용자 인지 어려움.
+// initial 700 + max 1200 으로 늘려 큰 화면에서도 채팅창이 한눈에 보이게 한다.
+// 드래그로 사용자가 자기 모니터에 맞게 추가 조정 가능 (useResize).
+const CHAT_WIDTH = { min: 360, max: 1200, initial: 700 };
 
 export default function ChatOverlay() {
   const inputRef = useRef<HTMLInputElement>(null);

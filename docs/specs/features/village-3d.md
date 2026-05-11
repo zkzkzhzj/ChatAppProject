@@ -200,7 +200,7 @@ predecessor: docs/specs/features/village-design-mvp.md
 | 라이팅 | warm tone hex (예: `#fff5e0` ambient + `#ffd9a3` directional) + soft shadow + `Fog` 옅게 | 차가운 흰 라이팅 → 사무실 결 |
 | 물리 | 걷기 + **점프 (가벼운 깡총, 높이 ≤ 1 unit)** + 뛰기·달리기 X | 빠른 이동 (속도 > 5 units/s) → VRChat 결 |
 | 카메라 워크 | 페이드 + 천천히 zoom (Scene 전환 결 박음) | 영화적 회전 → 게임 결 |
-| 음향 | 환경음 (물·바람·새) 우선, BGM 잔잔 (음량 ≤ 0.3) | EDM · 시끄러운 BGM → 게이머 결 |
+| 음향 | 환경음 (물·바람·새) 우선, BGM 잔잔. **각 사운드 maxVolume ≤ 0.3 기준** — 실효 음량 모델: `Howler.volume(MASTER) × maxVolume × proximity` (MASTER = 1.0 정합 가정, maxVolume 이 D11 한도 직접 게이트). Step 2 결정 (2026-05-11). | EDM · 시끄러운 BGM → 게이머 결 |
 | UI | 텍스트 익명 (자동 랜덤 닉), 음성·화면공유 X | 음성 채팅 추가 → 활동 메타버스 |
 
 - **대안**: 가드레일 X (자유 결) — **거부** (사용자 본인이 도피·시각 욕심 분기 결 인지 + 가드레일 결 동의)
@@ -264,3 +264,4 @@ predecessor: docs/specs/features/village-design-mvp.md
 | 날짜 | 변경 |
 |------|------|
 | 2026-05-11 | 초안 작성. 옛 트랙 `village-design-mvp` (closed-superseded) 의 D1·D2·D5·D6·D7·D8·D9 승계, D3·D4 정정 (D3' D4'), D-prev (정정 사유) + D10 (도서관 진입 모델) + D11 (안식처 가드레일 6축) 신설. |
+| 2026-05-11 | Step 2 — D11 §음향 음량 기준 명시 (각 사운드 maxVolume ≤ 0.3 + MASTER 1.0 모델). 가드레일 모호점 (실효 음량 vs maxVolume) 해소. |

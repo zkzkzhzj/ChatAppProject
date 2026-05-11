@@ -42,7 +42,7 @@
 |------|------|------|------|------|-----|
 | **1** | Three.js PoC — 마을 박스 레이아웃 + 캐릭터 이동 (걷기 + 점프) + 도서관 별도 Scene 전환 + warm 라이팅 + Fog. 자산 X 기본 geometry. 멀티유저 동기화 X | — | ✅ 머지 | #67 | #68 |
 | **1.5** | 멀티유저 위치 동기화 마이그 — 옛 Phaser `sendPosition`/`onPositionUpdate`/`onTypingUpdate` 결 Three.js 통합. Codex P1 (PR #68) 회귀 방지 | step1 | 대기 | (별도) | — |
-| **2** | **환경음 통합** ⭐ — Howler.js + 환경음 자산 (forest-birds·gentle-wind·pond-water) + Scene 전환 결 음량 fade. D6(v) 본질 가치 첫 시안. Step 2.5 결로 Three.js `PositionalAudio` (연못·캠프파이어 결) 별도 결 | step1 | 🔧 진행 중 | #67 | (작업 시) |
+| **2** | **환경음 통합** ⭐ — Howler.js + 환경음 자산 4종 (gentle-wind·crackling-fire·pond-water·forest-birds) + 위치 기반 음량 (global·point·forest-edge) + smoothing + Scene 전환 결 음량 fade. D6(v) 본질 가치 첫 시안. 부수 fix — dev 환경 메모리 폭주 진단 (`.next` 캐시 손상·Turbopack workspace root·Howler html5 pool·Three.js dispose 누락·React Strict Mode 영향) | step1 | 🟢 작업 완료, PR 박는 중 | #67 | (작업 시) |
 | 2.5 | PositionalAudio 결 — 연못·캠프파이어 결 가까이 갈수록 음량 ↑. Three.js `PositionalAudio` + AudioListener | step2 | 대기 | (별도) | — |
 | 3 | 캐릭터 3D 모델 + 4방향 walk 애니메이션 (Quaternius Ultimate Modular Men) | step1 | 대기 | (별도) | — |
 | 4 | 도서관 인테리어 + 글 작성·조회·댓글 첫 시안 + AI 추천 + 백엔드 도메인 (`confession`) | step1 + 백엔드 | 대기 | (별도) | — |
@@ -52,34 +52,50 @@
 
 ## 3. 현재 단계 상세
 
-### Step 1 — Three.js PoC (다음 진행)
+### Step 1 — Three.js PoC (✅ 머지됨, PR #68)
 
-**무엇**:
-- `three` 패키지 설치 (`frontend/package.json`)
-- `frontend/src/three/VillageScene.ts` — 마을 박스 레이아웃 (`Box`·`Plane`·`Sphere`·`Cylinder`)
-- 마을 레이아웃 — 입구 (남, 캐릭터 spawn) → 캠프파이어 (모임 광장) → 연못 (PlaneGeometry + 거품) → 도서관 (큰 박스, 진입 트리거 타일) → 숲 외곽 wall (CylinderGeometry collision)
-- 캐릭터 이동 — 걷기 (WASD) + **점프** (Space, 가벼운 깡총 높이 ≤ 1 unit) + 뛰기·달리기 X
-- 도서관 진입 — 별도 Scene 전환 (`VillageScene` ↔ `LibraryScene`, React state 결로 mount/unmount, URL 안 바뀜)
-- 라이팅 — `AmbientLight` (warm tone hex `#fff5e0`) + `DirectionalLight` (`#ffd9a3`, soft shadow) + `Fog` (옅게)
-- 카메라 — 정적 follow (lerp 0.05~0.10), orbit 자유 회전 X
-- 옛 트랙 보존분 활용 — `WelcomeOverlay.tsx` (React 페이드인) · `LICENSE.md` (자산 라이선스 인프라)
+Three.js + 마을 박스 레이아웃 (입구·캠프파이어·연못·도서관·숲 wall) + 캐릭터 (걷기·점프) + Scene 전환 + warm 라이팅 + Fog. 자산 X 기본 geometry. 멀티유저 X (Step 1.5 분리). D-prev·D3'·D4'·D10·D11 직접 적용.
 
-**산출물**:
-- `frontend/package.json` (three 추가)
-- `frontend/src/three/VillageScene.ts` (신규)
-- `frontend/src/three/LibraryScene.ts` (신규, 빈 박스만)
-- `frontend/src/three/character/Character.ts` (신규, 박스 결로 placeholder)
-- `frontend/src/three/lighting.ts` (신규, warm 라이팅 결)
-- `frontend/src/app/GameLoader.tsx` (Phaser → Three.js 마이그)
+### Step 2 — 환경음 통합 ⭐ (🟢 작업 완료, PR 박는 중)
 
-**의도적 한계**:
-- 캐릭터 = 박스 + 구 placeholder (Step 3 에서 Quaternius 모델 통합)
-- 도서관 인테리어 = 빈 박스 (Step 4 에서 책장·책상)
-- 자산 = 0 (기본 geometry 만, Step 2 이후 점진 통합)
-- 환경음 = X (Step 2 에서 통합)
-- **멀티유저 위치 동기화 X** — Codex P1 리뷰 (PR #68) 결로 명시. 옛 Phaser 의 `sendPosition`/`onPositionUpdate`/`onTypingUpdate` 통합은 **Step 1.5** 별도 step 결로 분리
+**무엇** (구현됨):
+- Howler.js + @types/howler 추가 (`frontend/package.json`)
+- `frontend/src/three/audio/AmbientSoundManager.ts` — 4 사운드 preload + unlock + 매 프레임 위치 기반 음량 + smoothing (lerp 0.05) + Scene 전환 결 zone 변경 (`enterVillage` / `enterLibrary`)
+- `frontend/src/three/audio/sound-config.ts` — 3 위치 모델 (`global` · `point` · `forest-edge`) + 마을 4 사운드 + 도서관 1 사운드 + MASTER_VOLUME
+- mp3 자산 4종 — `frontend/public/assets/audio/ambient/*.mp3` (사용자 다운로드, `.gitignore` 결 D4' 정정 — binary 외부 인프라)
 
-**spec.decisions 동기화**: D-prev 정정 + D3' (3D 무드 톤) + D4' (자산) + D10 (Scene 전환) + D11 (가드레일 6축) 직접 적용
+**부수 fix — dev 환경 메모리 폭주 진단 결**:
+
+> 사용자 컴퓨터 2회 강종 + Node heap 폭식 신호. 시점 단서 ("Step 2 환경음 추가 후"): root cause 4축.
+
+| 원인 | 위치 | fix |
+|---|---|---|
+| **.next 캐시 손상** | 디스크 254MB 캐시 | 수동 삭제 (`rd /s /q frontend\.next`) — 진짜 root cause |
+| **Turbopack workspace root 오인식** | 루트 + frontend 두 lockfile | `frontend/next.config.ts` 에 `turbopack.root` 명시 |
+| **Howler html5 audio pool exhausted** | React Strict Mode + dev HMR → Howl 4×2 = 풀(10) 거의 고갈 | `Howler.html5PoolSize = 30` |
+| **Three.js Geometry/Material dispose 누락** | `renderer.dispose()` 만으로는 mesh 리소스 leak | `disposeScene()` 헬퍼 + `destroy()` 결 호출 |
+| Howler unlock 리스너 cleanup 누락 | unmount 시 window 리스너 leak | `detachUnlockListeners()` 결 `destroy()` 통합 |
+| Turbopack + howler 호환 | UMD + dynamic feature detection | `transpilePackages: ['howler']` (보험) |
+
+**음량 디자인 (사용자 검증 통과)**:
+- MASTER_VOLUME 0.5 → 1.0 (단일 곱 모델)
+- gentle-wind 0.1 → 0.25 · forest-birds 0.18 → 0.25 (D11 한도 ≤ 0.3 결)
+- crackling-fire 0.22 · pond-water 0.20 유지
+- spec D11 §음향 음량 기준 명시 (maxVolume 기준 — Step 2 변경 이력)
+
+**부수 deprecation 정리**:
+- `THREE.PCFSoftShadowMap` → `THREE.PCFShadowMap` (three r184)
+- `pendingTarget` 타입 `Active` → `'village' | 'library'` (Step 1 부터 박혀있던 type error)
+
+**의도적 한계** (Step 1 결과 동일):
+- 멀티유저 위치 동기화 X (Step 1.5)
+- Three.js `PositionalAudio` 결 (Step 2.5)
+- 캐릭터 3D 모델 X (Step 3)
+- 도서관 인테리어 X (Step 4)
+
+**spec.decisions 동기화**: D6(v) 본질 가치 첫 시안 실현 + D11 §음향 음량 기준 명시 (변경 이력 박힘)
+
+### 다음 진행 — Step 1.5 (멀티유저 위치 동기화) 또는 사용자 결정 결
 
 ## 4. 충돌 위험 파일
 

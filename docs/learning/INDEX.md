@@ -131,6 +131,12 @@
 | [71](./71-design-tone-from-self-interview.md) | 본심에서 디자인 길어내기 — 자기 인터뷰로 톤·자산·AI 활용을 결정한 워크샵 기록 (UI 트랙) | 디자인 막막함 → 활동 방 컨셉 피벗 도피 → 본심 직시 → **자기 인터뷰 4단계 워크샵 (Q1~Q4 + 키워드 5개 + 5축 분석 + 무드보드)** → Alone Together (Sherry Turkle) 학술 컨셉 발견 → 톤 3번 변경 (벡터/미니멀 → 따뜻한 일러스트 → **Stardew 결 픽셀**) → 자산 큐레이션 (LimeZu/Sprout Lands/Mystic Woods) + AI 보류. 마플 커피챗 인사이트 ("본인 말로 풀게 하기 / AI 끌려다니지 말기 / 트레이드오프 토론") 모범 사례. 본심 워크샵 4단계 가이드 + 컨셉 피벗 검토 3질문 + 재검토 트리거 7종 |
 | [72](./72-phaser-to-threejs-pivot-decision.md) | Phaser 2D → Three.js 3D 전환 결정 — 도피 진단 vs 시각 욕심 구분 + 안식처 가드레일 6축 (UI 트랙 종료 결) | 큐레이션 자산만으로 안식처 결 표현 한계 도달 + 사용자 명시 결 (도피 X 시각 욕심 결로 정정). 시안 거부 5회 + 흔들림 사이클 7단계 + 도피/시각 욕심 분기 방법론 (5축 신호 표) + 트레이드오프 8축 (자산·학습·코드·성능·차별점·디자인 막힘·PoC·Alone Together) + 본질 가치 4축 시각 차원 독립 + 안식처 가드레일 6축 (카메라·라이팅·물리[걷기+점프]·카메라워크·음향·UI 위반 신호) + 마을 레이아웃 (입구·캠프파이어·연못·도서관 세로 구도, 별도 Three.js Scene 전환·URL 안 바뀜) + 자기 정정 추적 (D3 거부 → 6일 후 정정). 새 트랙 `village-3d` 신설 |
 
+## dev 환경·툴체인 진단
+
+| # | 제목 | 한 줄 |
+|---|------|------|
+| [78](./78-nextjs-three-howler-dev-memory-explosion-diagnosis.md) | Next.js + Three.js + Howler dev 서버 Node heap 폭주 진단기 (`village-3d` Step 2) | 사용자 컴퓨터 2회 강종 사건 — 가설 4개 (Three dispose / Howler unlock cleanup / Turbopack workspace root / howler UMD 호환성) 박은 fix 적용해도 폭주 지속 → 진짜 root cause는 `.next` 캐시 손상 (254MB, 정상은 수십 MB). 트레이드오프 5개 (Howler html5 모드·MASTER vs maxVolume·Turbopack root·Strict Mode 이중 실행·캐시 손상 복구) + 일반화된 진단 휴리스틱 6단계 (캐시 크기 먼저 → lockfile → internal error → 시점 단서 → Strict Mode dispose → OS 자원) + 부수 발견 (PCFSoftShadowMap deprecated · pendingTarget 타입 좁힘 · CI에 tsc 빠짐) |
+
 ---
 
 ## 빈 번호 (병합으로 사라진)

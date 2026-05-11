@@ -20,7 +20,7 @@
   "dependencies": {
     "@stomp/stompjs": "^7.3.0",
     "axios": "1.14.0",
-    "next": "16.2.2",
+    "next": "16.2.6",
     "phaser": "^3.90.0",
     "react": "19.2.5",
     "react-dom": "19.2.5",

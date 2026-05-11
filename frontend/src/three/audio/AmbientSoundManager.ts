@@ -33,6 +33,10 @@ export class AmbientSoundManager {
   private destroyed = false;
 
   constructor() {
+    // Howler html5 모드의 audio pool 기본값은 10. React Strict Mode dev 에서
+    // useEffect 가 두 번 실행되며 Howl 4개 × 2 = 8개 시도하면 풀이 거의 고갈,
+    // 일부 사운드가 audio 객체를 못 잡아 무음이 되는 현상 (pool exhausted 경고) 차단.
+    Howler.html5PoolSize = 30;
     Howler.volume(MASTER_VOLUME);
     this.preloadAll();
     this.attachUnlockListeners();
@@ -65,19 +69,24 @@ export class AmbientSoundManager {
 
   /** 첫 사용자 interaction (click·keypress·touchstart) → 자동 재생 시작 */
   private attachUnlockListeners(): void {
-    const unlock = (): void => {
-      if (this.unlocked || this.destroyed) return;
-      this.unlocked = true;
-      for (const { howl } of this.sounds.values()) {
-        howl.play();
-      }
-      window.removeEventListener('click', unlock);
-      window.removeEventListener('keydown', unlock);
-      window.removeEventListener('touchstart', unlock);
-    };
-    window.addEventListener('click', unlock);
-    window.addEventListener('keydown', unlock);
-    window.addEventListener('touchstart', unlock);
+    window.addEventListener('click', this.unlock);
+    window.addEventListener('keydown', this.unlock);
+    window.addEventListener('touchstart', this.unlock);
+  }
+
+  private unlock = (): void => {
+    if (this.unlocked || this.destroyed) return;
+    this.unlocked = true;
+    for (const { howl } of this.sounds.values()) {
+      howl.play();
+    }
+    this.detachUnlockListeners();
+  };
+
+  private detachUnlockListeners(): void {
+    window.removeEventListener('click', this.unlock);
+    window.removeEventListener('keydown', this.unlock);
+    window.removeEventListener('touchstart', this.unlock);
   }
 
   enterVillage(): void {
@@ -132,6 +141,9 @@ export class AmbientSoundManager {
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
+    // unlock 트리거 전에 unmount 되면 window 리스너가 그대로 남아 누적되는 leak 방지.
+    // unlock 이 이미 호출됐다면 멱등 (detachUnlockListeners 가 removeEventListener 만 호출).
+    this.detachUnlockListeners();
     for (const { howl } of this.sounds.values()) {
       howl.stop();
       howl.unload();

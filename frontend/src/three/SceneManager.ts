@@ -42,7 +42,8 @@ export class SceneManager {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(parent.clientWidth, parent.clientHeight);
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // three r184 에서 PCFSoftShadowMap deprecated. PCFShadowMap 으로 대체.
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     parent.appendChild(this.renderer.domElement);
 
     // Camera (정적 follow, spec D11 — orbit X)
@@ -160,7 +161,9 @@ export class SceneManager {
     this.rafId = requestAnimationFrame(this.tick);
   };
 
-  private pendingTarget: Active = 'village';
+  // pendingTarget 은 startTransition 호출 시점에 'village' | 'library' 만 들어가므로
+  // sourceScene 과 동일하게 좁힌 타입 사용. 'transitioning' 은 active 만 가짐.
+  private pendingTarget: 'village' | 'library' = 'village';
 
   private startTransition(target: 'village' | 'library'): void {
     // 현재 보이는 scene 을 source 로 박아 fade out 동안 유지
@@ -193,8 +196,31 @@ export class SceneManager {
     window.removeEventListener('resize', this.onResize);
     this.input.destroy();
     this.ambientSound.destroy();
+    // React Strict Mode + HMR 환경에서 mount/unmount 가 반복되며
+    // Geometry/Material 이 GPU 와 JS heap 양쪽에 누적되는 leak 방지.
+    // renderer.dispose() 만으로는 텍스처 캐시만 정리되므로 Scene 직접 traverse.
+    this.disposeScene(this.village.scene);
+    this.disposeScene(this.library.scene);
     this.renderer.dispose();
     this.renderer.domElement.remove();
     this.fadeOverlay.remove();
+  }
+
+  private disposeScene(scene: THREE.Scene): void {
+    scene.traverse((obj) => {
+      if (!(obj instanceof THREE.Mesh)) return;
+      // THREE.Mesh 의 generic default 가 unsafe-* 룰을 자극하므로 명시적 cast.
+      const mesh = obj as THREE.Mesh;
+      mesh.geometry.dispose();
+      const material = mesh.material;
+      if (Array.isArray(material)) {
+        material.forEach((m) => {
+          m.dispose();
+        });
+      } else {
+        material.dispose();
+      }
+    });
+    scene.clear();
   }
 }

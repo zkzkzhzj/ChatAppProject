@@ -12,7 +12,7 @@
 
 ---
 
-## 예약 현황 (마지막 사용 번호: 72)
+## 예약 현황 (마지막 사용 번호: 78)
 
 | 번호 | 트랙 | 예상 주제 | 상태 |
 |------|------|----------|------|
@@ -48,7 +48,7 @@
 | 75   | `village-3d` | 3D 자산 모델 비교 (Quaternius CC0 / Kenney 3D / Sketchfab CC0 / Synty / Mixamo) — 큐레이션 vs AI 생성 (Meshy.ai) 재검토 | 예약 |
 | 76   | `village-3d` | 3D 카메라·이동·점프·zone 분할 패턴 — Stardew 결 정적 카메라 + 안식처 가드레일 6축 구현 | 예약 |
 | 77   | `village-3d` | 본질 가치 4축 첫 시안 (환경음 Howler.js + NPC 안부 + 비동기 편지·고해 도서관) — 3D 컨텍스트 적용 | 예약 |
-| 78   | `village-3d` | (예비) | 미사용 |
+| 78   | `village-3d` | Next.js + Three.js + Howler dev 서버 Node heap 폭주 진단기 (Step 2 환경음 통합 결, `.next` 캐시 손상 root cause + 일반화된 진단 휴리스틱) | ✅ 사용 완료 (2026-05-11) |
 
 > 79번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
 

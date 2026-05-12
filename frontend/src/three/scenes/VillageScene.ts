@@ -1,17 +1,23 @@
 import * as THREE from 'three';
 
+import type { PositionBroadcast } from '@/lib/websocket/stompClient';
+
 import { Character } from '../character/Character';
+import { RemotePlayer } from '../character/RemotePlayer';
 import { CAMERA, VILLAGE } from '../constants';
 import { applyWarmLighting } from '../lighting';
 
 /**
  * 마을 Scene — 입구·캠프파이어·연못·도서관 세로 구도 (사용자 결, 2026-05-10).
  * Step 1 PoC: 박스·구·실린더 기본 geometry 만. 자산 X.
+ * Step 1.5: 다른 유저 placeholder (RemotePlayer) 동기화 추가.
  */
 export class VillageScene {
   readonly scene = new THREE.Scene();
   readonly character: Character;
   readonly libraryDoor: THREE.Vector3;
+  /** 다른 유저 placeholder — key = displayId. spec §2.2 Out: 도서관 진입 유저는 표시 X. */
+  private remotePlayers = new Map<string, RemotePlayer>();
 
   constructor() {
     applyWarmLighting(this.scene);
@@ -173,5 +179,46 @@ export class VillageScene {
   /** 캐릭터가 도서관 진입 트리거 안에 있는가? */
   isAtLibraryDoor(): boolean {
     return this.character.position.distanceTo(this.libraryDoor) < VILLAGE.LIBRARY_TRIGGER_RADIUS;
+  }
+
+  /**
+   * STOMP 위치 broadcast 수신 시 호출. self filter 는 호출자(SceneManager) 책임.
+   * 백엔드 contract y → Three.js z 로 매핑한다 (옛 Phaser 2D 호환).
+   */
+  applyRemotePosition(pos: PositionBroadcast): void {
+    if (pos.userType === 'LEAVE') {
+      this.removeRemotePlayer(pos.id);
+      return;
+    }
+    const existing = this.remotePlayers.get(pos.id);
+    if (existing) {
+      existing.setTarget(pos.x, pos.y);
+      return;
+    }
+    const player = new RemotePlayer(pos.x, pos.y);
+    this.remotePlayers.set(pos.id, player);
+    this.scene.add(player.group);
+  }
+
+  /** 매 프레임 호출 — RemotePlayer 의 lerp 진행. */
+  updateRemotePlayers(): void {
+    for (const player of this.remotePlayers.values()) {
+      player.update();
+    }
+  }
+
+  /** 도서관 진입 시 호출 — 모든 placeholder 제거 + dispose. */
+  clearRemotePlayers(): void {
+    for (const id of [...this.remotePlayers.keys()]) {
+      this.removeRemotePlayer(id);
+    }
+  }
+
+  private removeRemotePlayer(id: string): void {
+    const player = this.remotePlayers.get(id);
+    if (!player) return;
+    this.scene.remove(player.group);
+    player.dispose();
+    this.remotePlayers.delete(id);
   }
 }

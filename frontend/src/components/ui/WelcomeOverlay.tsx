@@ -8,18 +8,16 @@ const FADE_DURATION_MS = 800;
 
 type Phase = 'hidden' | 'fading-in' | 'visible' | 'fading-out';
 
-function getInitialPhase(): Phase {
-  if (typeof window === 'undefined') return 'hidden';
-  if (window.localStorage.getItem(STORAGE_KEY) === '1') return 'hidden';
-  return 'fading-in';
-}
-
 export default function WelcomeOverlay() {
-  const [phase, setPhase] = useState<Phase>(getInitialPhase);
+  // SSR/CSR 양쪽 결 같은 초기값 — hydration mismatch 차단.
+  // localStorage 접근 / fade 시작은 useEffect 안 (브라우저 only).
+  const [phase, setPhase] = useState<Phase>('hidden');
 
   useEffect(() => {
-    // mount 시 한 번만 — phase 진행은 setTimeout callback 으로
-    if (phase === 'hidden') return;
+    if (window.localStorage.getItem(STORAGE_KEY) === '1') return;
+    // SSR mismatch 차단 결 mount 후 1회 fade-in 진입 — re-render 1회 비용은 의도적.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPhase('fading-in');
 
     const fadeIn = window.setTimeout(() => {
       setPhase('visible');
@@ -37,7 +35,6 @@ export default function WelcomeOverlay() {
       window.clearTimeout(fadeOut);
       window.clearTimeout(finish);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (phase === 'hidden') return null;

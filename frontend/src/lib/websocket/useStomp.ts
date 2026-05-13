@@ -9,6 +9,7 @@ import { getDisplayIdFromToken, isTokenExpired } from '@/lib/auth';
 import { useChatStore } from '@/store/useChatStore';
 import type { ChatMessage, MessageResponse } from '@/types/chat';
 
+import { emitChatMessage } from './chatBridge';
 import { emitNpcTypingUpdate, emitPositionUpdate, emitTypingUpdate } from './positionBridge';
 import {
   connectWithAuth,
@@ -165,6 +166,8 @@ export function useStomp(): void {
             emitNpcTypingUpdate(false);
           }
           addMessage(chatMsg);
+          // Step 1.7 — 머리 위 말풍선 결로 broadcast (Three.js Scene 구독)
+          emitChatMessage(chatMsg);
         });
 
         posSubRef.current = subscribeToPositions((pos) => {

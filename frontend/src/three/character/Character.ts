@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { SpeechBubble } from '../chat/SpeechBubble';
 import { PHYSICS } from '../constants';
 
 /**
@@ -15,6 +16,18 @@ export class Character {
   private readonly velocityY = { value: 0 };
   private isOnGround = true;
   private readonly bodyHeight = 1.4;
+  /**
+   * 말풍선 stack — 새 메시지가 머리 바로 위, 기존 결 위로 밀어 올림.
+   * 6초 timer 결로 자연 해제 결로 한도 X (안전판 50). spacing = 텍스트 줄 결 + 여유.
+   */
+  private bubbles: SpeechBubble[] = [];
+  private static readonly MAX_BUBBLES = 50;
+  private static readonly BUBBLE_BASE_Y = 2.4;
+  private static readonly BUBBLE_STACK_SPACING = 0.95;
+  /** tap-to-move target (Step 1.7, learning 50 결정 마이그). null = 키보드 입력 우선. */
+  private touchTargetX: number | null = null;
+  private touchTargetZ: number | null = null;
+  private static readonly TOUCH_REACHED_EPSILON = 0.3;
 
   constructor(spawn: THREE.Vector3) {
     // 몸통 (박스)
@@ -36,14 +49,41 @@ export class Character {
     this.group.position.copy(spawn);
   }
 
+  /** tap-to-move target 설정 (SceneManager → PointerMoveInput → 본 메서드). */
+  setTouchTarget(x: number, z: number): void {
+    this.touchTargetX = x;
+    this.touchTargetZ = z;
+  }
+
   /** 입력 결과 적용해서 한 프레임 이동. delta = 초. */
   update(input: { dx: number; dz: number; jump: boolean }, delta: number): void {
     // 수평 이동 (걷기 only — 뛰기 결 X)
     const speed = PHYSICS.WALK_SPEED;
-    const length = Math.hypot(input.dx, input.dz);
+    let dx = input.dx;
+    let dz = input.dz;
+
+    // 키보드 우선: WASD 누른 결 결 touchTarget 무효화
+    if (dx !== 0 || dz !== 0) {
+      this.touchTargetX = null;
+      this.touchTargetZ = null;
+    } else if (this.touchTargetX !== null && this.touchTargetZ !== null) {
+      // 키보드 없을 때만 tap target 결로 이동
+      const tdx = this.touchTargetX - this.group.position.x;
+      const tdz = this.touchTargetZ - this.group.position.z;
+      const dist = Math.hypot(tdx, tdz);
+      if (dist < Character.TOUCH_REACHED_EPSILON) {
+        this.touchTargetX = null;
+        this.touchTargetZ = null;
+      } else {
+        dx = tdx / dist;
+        dz = tdz / dist;
+      }
+    }
+
+    const length = Math.hypot(dx, dz);
     if (length > 0) {
-      const nx = input.dx / length;
-      const nz = input.dz / length;
+      const nx = dx / length;
+      const nz = dz / length;
       this.group.position.x += nx * speed * delta;
       this.group.position.z += nz * speed * delta;
 
@@ -90,5 +130,53 @@ export class Character {
       this.group.position.x = centerX + (dx / dist) * radius;
       this.group.position.z = centerZ + (dz / dist) * radius;
     }
+  }
+
+  /**
+   * 채팅 메시지 결 머리 위 말풍선 attach (Step 1.7).
+   *
+   * 새 메시지는 머리 바로 위(BUBBLE_BASE_Y), 기존 bubble 들은 한 칸씩(STACK_SPACING) 위로 밀려 올라간다.
+   * 6초 timer 는 각 bubble 별로 독립 — 만료 순서대로 자기 위치에서 dispose (남은 결로 위치 조정 X).
+   * MAX_BUBBLES 초과 시 가장 오래된 결로 즉시 dispose (FIFO).
+   */
+  attachBubble(text: string): void {
+    // FIFO 한도 — 가장 오래된 결로 즉시 제거 (timer 무관)
+    if (this.bubbles.length >= Character.MAX_BUBBLES) {
+      const oldest = this.bubbles.shift();
+      if (oldest) {
+        this.group.remove(oldest.sprite);
+        oldest.dispose();
+      }
+    }
+
+    // 기존 bubble 들 한 칸씩 위로
+    for (const existing of this.bubbles) {
+      existing.sprite.position.y += Character.BUBBLE_STACK_SPACING;
+    }
+
+    // 새 bubble 은 머리 바로 위
+    const bubble: SpeechBubble = new SpeechBubble(text, () => {
+      this.removeBubble(bubble);
+    });
+    bubble.sprite.position.y = this.bodyHeight + Character.BUBBLE_BASE_Y;
+    this.bubbles.push(bubble);
+    this.group.add(bubble.sprite);
+  }
+
+  private removeBubble(bubble: SpeechBubble): void {
+    const idx = this.bubbles.indexOf(bubble);
+    if (idx === -1) return;
+    this.bubbles.splice(idx, 1);
+    this.group.remove(bubble.sprite);
+    bubble.dispose();
+  }
+
+  /** SceneManager destroy 시 호출 — Sprite 는 disposeScene traverse 결로 안 잡혀서 명시 해제. */
+  dispose(): void {
+    for (const bubble of this.bubbles) {
+      this.group.remove(bubble.sprite);
+      bubble.dispose();
+    }
+    this.bubbles = [];
   }
 }

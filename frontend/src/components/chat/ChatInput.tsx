@@ -44,10 +44,12 @@ interface Mentionable {
 
 interface ChatInputProps {
   onLoginRequired: () => void;
+  /** 메시지 전송 직후 호출 — ChatInputAnchor 가 입력창 자동 닫는 결로 사용 (Step 1.7). */
+  onSent?: () => void;
 }
 
 const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInput(
-  { onLoginRequired },
+  { onLoginRequired, onSent },
   ref,
 ) {
   const [draft, setDraft] = useState('');
@@ -163,7 +165,8 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
     });
     setDraft('');
     setShowDropdown(false);
-  }, [draft, connected, hasToken, onLoginRequired, setNpcTyping]);
+    onSent?.();
+  }, [draft, connected, hasToken, onLoginRequired, onSent, setNpcTyping]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     e.stopPropagation();
@@ -217,7 +220,7 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
         : '연결이 끊겼어요. 다시 로그인해 주세요'
       : connected
         ? hasToken
-          ? '@마을 주민 으로 NPC에게 말걸기'
+          ? 'Enter로 전송 · @마을 주민 으로 NPC에게 말걸기'
           : '로그인 후 대화할 수 있어요'
         : '마을에 연결 중...';
 
@@ -240,7 +243,7 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
   );
 
   return (
-    <div className="relative flex gap-2">
+    <div className="relative">
       {/* 멘션 드롭다운 */}
       {showDropdown && (
         <div className="absolute bottom-full left-0 mb-1 w-52 rounded-xl border border-sand bg-cream p-1 shadow-lg">
@@ -284,16 +287,9 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
           sendTypingStatus(false);
         }}
         placeholder={placeholder}
-        className="flex-1 rounded-2xl border-[1.5px] border-sand/50 bg-cream/92 px-4 py-2.5 text-sm text-bark outline-none backdrop-blur-sm transition-all focus:border-leaf/40"
+        className="w-full rounded-2xl border-[1.5px] border-sand/50 bg-cream/92 px-4 py-2.5 text-sm text-bark outline-none backdrop-blur-sm transition-all focus:border-leaf/40"
         maxLength={1000}
       />
-      <button
-        onClick={handleSend}
-        disabled={!draft.trim() || !connected}
-        className="rounded-2xl bg-leaf px-4 py-2.5 text-sm font-medium text-cream transition-all hover:bg-leaf-dark disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        전송
-      </button>
     </div>
   );
 });

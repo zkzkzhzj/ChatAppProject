@@ -214,6 +214,16 @@ export class VillageScene {
     }
   }
 
+  /**
+   * 다른 유저의 채팅 메시지 결 해당 RemotePlayer 머리 위 말풍선 attach (Step 1.7).
+   * 본 displayId 의 placeholder 가 없으면 무시 (도서관 진입 중 또는 미도착).
+   */
+  applyChatBubbleTo(displayId: string, body: string): void {
+    const player = this.remotePlayers.get(displayId);
+    if (!player) return;
+    player.attachBubble(body);
+  }
+
   private removeRemotePlayer(id: string): void {
     const player = this.remotePlayers.get(id);
     if (!player) return;

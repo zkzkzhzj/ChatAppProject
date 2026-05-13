@@ -2,11 +2,13 @@ import * as THREE from 'three';
 
 import type { PositionBroadcast } from '@/lib/websocket/stompClient';
 import { sendLeaveVillage } from '@/lib/websocket/stompClient';
+import type { ChatMessage } from '@/types/chat';
 
 import { AmbientSoundManager } from './audio/AmbientSoundManager';
 import { CAMERA, TRANSITION, VILLAGE } from './constants';
 import { InputState } from './input';
 import { PositionSync } from './network/PositionSync';
+import { PointerMoveInput } from './PointerMoveInput';
 import { LibraryScene } from './scenes/LibraryScene';
 import { VillageScene } from './scenes/VillageScene';
 
@@ -28,6 +30,7 @@ export class SceneManager {
   private village: VillageScene;
   private library: LibraryScene;
   private input: InputState;
+  private pointerInput: PointerMoveInput;
   private ambientSound: AmbientSoundManager;
   private positionSync: PositionSync;
   private active: Active = 'village';
@@ -63,8 +66,17 @@ export class SceneManager {
     this.village = new VillageScene();
     this.library = new LibraryScene();
 
-    // Input
+    // Input — 키보드(WASD/점프) + 포인터(tap-to-move, learning 50)
     this.input = new InputState();
+    this.pointerInput = new PointerMoveInput(
+      this.renderer.domElement,
+      () => this.camera,
+      (x, z) => {
+        // 마을 활성 + 입력창 비포커스 결만 적용 — 도서관 안에서는 무시
+        if (this.active !== 'village') return;
+        this.village.character.setTouchTarget(x, z);
+      },
+    );
 
     // Ambient sound (D6 v + D11 음향 결)
     this.ambientSound = new AmbientSoundManager();
@@ -235,7 +247,40 @@ export class SceneManager {
   /** 토큰 발급·변경 시 외부에서 호출 (tokenBridge.onDisplayIdChange). */
   setSelfId(id: string | null): void {
     this.positionSync.setSelfId(id);
+    this.selfDisplayId = id;
   }
+
+  /** ChatInputAnchor 결로 사용 — 자기 캐릭터 머리 위 위치 계산용. 마을 활성 시에만 유효. */
+  getMyCharacterPosition(): THREE.Vector3 | null {
+    if (this.destroyed || this.active !== 'village') return null;
+    return this.village.character.position;
+  }
+
+  /** ChatInputAnchor 결로 사용 — projection matrix 결로 Vector3→screen 변환. */
+  getCamera(): THREE.PerspectiveCamera | null {
+    if (this.destroyed) return null;
+    return this.camera;
+  }
+
+  /**
+   * 채팅 메시지 수신 시 외부에서 호출 (chatBridge.onChatMessage).
+   * USER 메시지만 머리 위 말풍선 — NPC/SYSTEM 은 ChatDrawer 내역에만 표시.
+   * senderId → `user-{id}` (백엔드 PositionUpdateEvent.displayId 정합).
+   */
+  applyChatMessage(msg: ChatMessage): void {
+    if (this.destroyed) return;
+    if (this.active !== 'village') return;
+    if (msg.senderType !== 'USER' || msg.senderId == null) return;
+
+    const displayId = `user-${String(msg.senderId)}`;
+    if (displayId === this.selfDisplayId) {
+      this.village.character.attachBubble(msg.body);
+      return;
+    }
+    this.village.applyChatBubbleTo(displayId, msg.body);
+  }
+
+  private selfDisplayId: string | null = null;
 
   destroy(): void {
     if (this.destroyed) return;
@@ -243,7 +288,12 @@ export class SceneManager {
     cancelAnimationFrame(this.rafId);
     window.removeEventListener('resize', this.onResize);
     this.input.destroy();
+    this.pointerInput.destroy();
     this.ambientSound.destroy();
+    // 자기 캐릭터·RemotePlayer bubble 명시 해제 (Sprite 결 disposeScene traverse 결 안 잡힘)
+    this.village.character.dispose();
+    this.library.character.dispose();
+    this.village.clearRemotePlayers();
     // React Strict Mode + HMR 환경에서 mount/unmount 가 반복되며
     // Geometry/Material 이 GPU 와 JS heap 양쪽에 누적되는 leak 방지.
     // renderer.dispose() 만으로는 텍스처 캐시만 정리되므로 Scene 직접 traverse.

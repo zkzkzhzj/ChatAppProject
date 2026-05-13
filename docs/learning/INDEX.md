@@ -85,6 +85,7 @@
 | [34](./34-react-nextjs-production-code-patterns.md) | React + Next.js 프로덕션 코드 패턴 | 백엔드 개발자가 프론트를 제대로 쓰기 — UI·프론트 시리즈 hub (#26 #32 #49 #50과 함께 읽기) |
 | [49](./49-react-input-ime-handling.md) | React 입력 컴포넌트 IME 조합 처리 | F-3 macOS 한글 IME 마지막 음절 중복 — `isComposing` 가드 한 줄 뒤의 4개 층 |
 | [50](./50-mobile-touch-movement.md) | 모바일 터치 이동 (tap-to-move vs 가상 조이스틱) | F-1 모바일 진입 결함 — 충돌 없는 마을에서 직선 이동만으로 충분한 이유 |
+| [74](./74-3d-chat-ui-redesign-decisions.md) | 3D 채팅 UI 재설계 — 말풍선·입력창·내역 패널·시간 4개 결정 (`village-3d` Step 1.7) | 옛 ChatOverlay (좌측 하단 사이드바) 폐기. (D12) 3D Sprite CanvasTexture vs HTML overlay vs TextGeometry — 카메라 자동 정렬 + occlusion + 동기화 비용 X 채택. (D13) 머리 위 인라인 HTML input — IME isComposing 가드 + chat/normal mode 상태 머신. (D14) 우측 사이드 드로우어 — 마을 단절감 최소 + 좌측 시각 요소와 겹침 회피. (D15) 6초 — 한국어 5자/초 × 평균 20자 + 여유. Animal Crossing + Stardew 결합 패턴과 정합, ZEP/VRChat 활동 메타버스 패턴 거부 |
 
 ## LLM · NPC 시리즈
 

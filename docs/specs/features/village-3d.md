@@ -190,6 +190,44 @@ predecessor: docs/specs/features/village-design-mvp.md
 - **빈틈**: Scene 전환 시 캐릭터 위치 결 결 결 결 결 (state 결로 박음). 메모리 결 결 (`THREE.Scene` 인스턴스 두 개 vs 하나만 두고 child 결 결로 박음)
 - **재검토 트리거**: Scene 전환 결 결 결 결 (느림 / 깨짐) / 사용자 결 결 결 결
 
+### D12. [채팅 — 말풍선 렌더] 3D Sprite (CanvasTexture)
+
+- **왜**: 캐릭터(자기·RemotePlayer) 머리 위에 자연스러운 3D 프로젝션. 거리 따라 크기 축소, 카메라 회전 따라 자동 정렬 (Sprite는 항상 카메라 향함). HTML overlay 결로 박으려면 매 프레임 Vector3→screen coords 변환 + DOM 위치 재계산 결 발생 → Three.js Scene과 별개 레이어로 동기화 비용.
+- **대안**:
+  - HTML overlay (Vector3→screen coords 변환) — **거부**: 매 프레임 DOM 갱신, occlusion(다른 mesh 뒤로 가려짐) 처리 X, 한국어 렌더링 자연스럽지만 3D 자연감 부족
+  - 3D 텍스트 메시 (`TextGeometry`) — **거부**: 한국어 폰트 변환 무거움, 동적 텍스트 변경 비싸다
+- **빈틈**: CanvasTexture 메모리 누적 — 말풍선 사라질 때 `texture.dispose()` 명시. 한국어 antialias 품질 — Canvas2D `textBaseline` + `font` 설정 + 적정 DPR 픽셀 결정 필요
+- **재검토 트리거**: 사용자 검증 결 "글자가 흐릿하다 / 잘 안 보인다" 신호. fps 저하 결 (말풍선 N개 동시 시 dispose 누락 의심)
+
+### D13. [채팅 — 입력 위치] 머리 위 인라인 HTML input
+
+- **왜**: 사용자 결정 — 디스코드/카톡식 하단 고정 결 X, 캐릭터에 붙은 인라인 입력. "내가 말하는 위치 = 내 캐릭터 머리 위" 직관 정합. 입력창과 말풍선의 시각 연속성.
+- **대안**:
+  - 하단 중앙 고정 (discord 패턴) — **거부** (사용자 결정)
+  - 화면 한쪽 패널 (ChatOverlay 옛 모델) — **거부** (옛 결 폐기 결정)
+- **빈틈**:
+  - IME 포커스 충돌 — 캐릭터 이동 키(WASD) 입력 중 채팅 입력창 포커스 결 충돌 막아야 함. `Enter` 결로 입력창 열기 / `Escape` 결로 닫기 (옛 ChatOverlay 결과 동일)
+  - Vector3→screen coords 매 프레임 갱신 — 캐릭터 이동 시 입력창도 같이 따라감. 비용 ↑ 가능성 (단 1개 객체라 영향 미미)
+  - 입력창 화면 밖으로 나갈 때 처리 — 캐릭터가 화면 가장자리 결로 갈 때 입력창이 잘림. 닫음 또는 화면 안 clamp
+- **재검토 트리거**: 사용자 검증 결 "입력 답답하다 / IME 결 끊긴다 / 안 보인다" 신호 → 하단 고정으로 fallback 검토
+
+### D14. [채팅 — 내역 패널] 우측 사이드 드로우어
+
+- **왜**: 화면 우측 가장자리 결 토글 버튼 + 클릭 시 슬라이드 인 결로 옛 ChatMessageList 재사용. 옛 사이드바 좌측 결로 X — 우측 결로 옮김 (마을 입구·도서관 결로 좌측 시각 결로 결합). 화면 가운데 modal 결로 X — 마을 단절감 결.
+- **대안**:
+  - 모달 중앙 — **거부**: 마을과 단절. 시각 결 단절감.
+  - 하단 슬라이드 업 — **거부**: 입력창 결 겹침.
+  - 자동 표시 (말풍선 외 추가 결 없음) — **거부**: 놓친 대화 결 안 보임. 채팅 흐름 결 못 잡음.
+- **빈틈**: 화면 좁은 모바일 결 결 결 X — D11 데스크탑 우선 결로 데스크탑만. 화면 폭 ≥ 1024px 가정.
+- **재검토 트리거**: 사용자 결 "드로우어 자체가 안 보임 / 클릭 어렵다" 신호
+
+### D15. [채팅 — 말풍선 시간] 6초
+
+- **왜**: 사용자 결정 — 한국어 평균 한 문장(20자) 읽기 ≈ 3초 + 여유 3초. 4초는 긴 문장 결 잘림 가능, 8초는 화면 결 누적 ↑.
+- **대안**: 4초 / 8초 — **거부** (사용자 결정).
+- **빈틈**: 연속 발화 결 — 6초 내 새 메시지 결 들어오면 이전 결 즉시 교체 결 vs 누적. **교체** 결로 (한 캐릭터 = 한 말풍선, 메모리 효율 + 화면 정리).
+- **재검토 트리거**: 사용자 결 "메시지 결 너무 빨리 사라진다 / 못 읽는다" 신호
+
 ### D11. [안식처 가드레일] 3D 에서 ZEP 회귀 막는 6축 spec
 
 - **왜**: 3D = ZEP 메타버스 결로 회귀 위험 (D-prev 빈틈 결 결). 6축 결 박음 — 위반 시 신호 결 박음. learning 72 §5 결 그대로.
@@ -214,7 +252,8 @@ predecessor: docs/specs/features/village-design-mvp.md
 | Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | PR |
 |------|------|------|---------------|------|-----|
 | **1** | **Three.js PoC** — 마을 박스 레이아웃 (입구·캠프파이어·연못·도서관·숲 wall) + 캐릭터 이동 (걷기 + 점프) + 도서관 별도 Scene 전환 + warm 라이팅 + Fog. 자산 X 기본 geometry. **멀티유저 위치 동기화 X (Step 1.5 결로 분리)** | — | `frontend/src/three/`, `frontend/src/app/GameLoader.tsx`, `frontend/package.json` (three 추가) | #67 | #68 |
-| **1.5** | **멀티유저 위치 동기화 마이그** — 옛 Phaser 코드의 `sendPosition` / `onPositionUpdate` / `onTypingUpdate` 결을 Three.js Scene 결로 통합. 다른 유저 박스 placeholder 결로 렌더 (Step 3 캐릭터 모델 결과 통합 가능). Codex P1 (PR #68) 회귀 방지 | step1 | `frontend/src/three/scenes/VillageScene.ts`, `lib/websocket/positionBridge` 결 결합 | (별도) | — |
+| **1.5** | **멀티유저 위치 동기화 마이그** — 옛 Phaser 코드의 `sendPosition` / `onPositionUpdate` / `onTypingUpdate` 을 Three.js Scene 으로 통합. 다른 유저 박스 placeholder 렌더 (Step 3 캐릭터 모델과 같이 교체 예정). Codex P1 (PR #68) 회귀 방지 | step1 | `frontend/src/three/scenes/VillageScene.ts`, `lib/websocket/positionBridge` 결합 | #67 | #84 |
+| **1.7** | **채팅 UI 재설계** — 좌측하단 ChatOverlay 폐기. (a) 머리 위 3D Sprite 말풍선 (CanvasTexture, 6초 fade) (b) 머리 위 인라인 HTML 입력창 (c) 우측 사이드 드로우어 (채팅 내역 토글). NPC typing/멘션은 기존 결 재사용 | step1.5 | `frontend/src/three/chat/` (신규), `frontend/src/components/chat/` (대폭 변경 또는 폐기), `frontend/src/three/character/` (Character + RemotePlayer에 말풍선 anchor) | #67 | (작업 중) |
 | **2** | **환경음 통합** ⭐ — Howler.js + 환경음 자산 3종 (forest-birds·gentle-wind·pond-water) + Scene 전환 결 음량 fade (마을 = 모두 ON / 도서관 = 새·물 OFF, 바람만 옅게). 자산 가이드 README. D6(v) 본질 가치 첫 시안 | step1 | `frontend/src/three/audio/`, `frontend/public/assets/audio/ambient/`, `frontend/package.json` (howler 추가) | #67 | (작업 시) |
 | 2.5 | Three.js `PositionalAudio` 결 — 연못·캠프파이어 결 가까이 갈수록 음량 ↑. 공간감 결 결 결 (Step 2 의 글로벌 BGM 결과 보완) | step2 | `frontend/src/three/audio/positional.ts` 결 | (별도) | — |
 | **3** | **캐릭터 3D 모델 + 4방향 walk 애니메이션** (Quaternius Ultimate Modular Men 결) | step1 | `frontend/src/three/character/`, `frontend/public/assets/village-3d/` | (별도) | — |

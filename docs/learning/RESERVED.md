@@ -44,7 +44,7 @@
 | 71   | `village-design-mvp` | 본심에서 디자인 길어내기 — 자기 인터뷰 4단계 워크샵 + 컨셉 피벗 검토 + 톤·자산·AI 활용 결정 (Alone Together 학술 다이브 + 톤 3번 변경 흐름 + 마플 커피챗 인사이트 모범 사례) | ✅ 사용 완료 (2026-05-02) |
 | 72   | `village-design-mvp` | Phaser 2D → Three.js 3D 전환 결정 — 도피 진단 vs 시각 욕심 구분 + 트레이드오프 + 안식처 가드레일 6축 + 자기 정정 추적 (D3 재검토 트리거 도달, 6일 후 정정) | ✅ 사용 완료 (2026-05-10) |
 | 73   | (반환) | (구 village-design-mvp 예비) | 반환 — 트랙 종료 (2026-05-10) |
-| 74   | `village-3d` | Three.js / R3F 도입 결정 + Phaser 2D 거부 사유 정정 + 3D 마이그레이션 트레이드오프 (자산·코드·학습·성능) | 예약 (트랙 시작 시) |
+| 74   | `village-3d` | 3D 채팅 UI 재설계 — 말풍선 (3D Sprite CanvasTexture) · 입력창 (머리 위 인라인 HTML) · 내역 패널 (우측 드로우어) · 시간 (6초) 4개 결정. (옛 주제 — Three.js / R3F 도입 결정 — 은 learning 72에 통합 작성됐으므로 본 번호 재배정) | ✅ 사용 완료 (2026-05-13) |
 | 75   | `village-3d` | 3D 자산 모델 비교 (Quaternius CC0 / Kenney 3D / Sketchfab CC0 / Synty / Mixamo) — 큐레이션 vs AI 생성 (Meshy.ai) 재검토 | 예약 |
 | 76   | `village-3d` | 3D 카메라·이동·점프·zone 분할 패턴 — Stardew 결 정적 카메라 + 안식처 가드레일 6축 구현 | 예약 |
 | 77   | `village-3d` | 본질 가치 4축 첫 시안 (환경음 Howler.js + NPC 안부 + 비동기 편지·고해 도서관) — 3D 컨텍스트 적용 | 예약 |

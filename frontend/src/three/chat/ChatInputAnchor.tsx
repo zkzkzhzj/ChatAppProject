@@ -126,7 +126,27 @@ export default function ChatInputAnchor({ sceneManager, onLoginRequired }: ChatI
     inputRef.current?.blur();
   }, []);
 
-  if (!active) return null;
+  const handleOpen = useCallback(() => {
+    setActive(true);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }, []);
+
+  // 모바일 비활성 결 채팅 진입 FAB — 하드웨어 키보드 없는 터치 사용자 결로 Enter 진입 경로 X (Codex P2).
+  // ChatDrawer 토글 버튼(우측 하단)과 안 겹치게 그 위(bottom-20)로 배치.
+  if (!active) {
+    if (!isMobile) return null;
+    return (
+      <button
+        type="button"
+        onClick={handleOpen}
+        aria-label="채팅 입력 열기"
+        className="fixed right-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
+        style={{ bottom: 80 }}
+      >
+        <span className="text-xl">✏️</span>
+      </button>
+    );
+  }
 
   // 모바일 = 하단 고정 도크 (가상 키보드 결 가려질 위험 회피, 리서치 권고).
   // 데스크탑 = 캐릭터 머리 위 인라인 (Vector3→screen 매 프레임 갱신).

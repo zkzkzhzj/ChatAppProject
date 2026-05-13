@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useResize } from '@/hooks/useResize';
-import { useStomp } from '@/lib/websocket/useStomp';
 import { useChatStore } from '@/store/useChatStore';
 
 import ChatInput from './ChatInput';
@@ -26,7 +25,7 @@ export default function ChatOverlay() {
   const [chatHeight, startResizeY] = useResize('y', CHAT_HEIGHT);
   const [chatWidth, startResizeX] = useResize('x', CHAT_WIDTH);
 
-  useStomp();
+  // STOMP 연결은 GameLoader 의 useStomp() 가 단일 책임 (Step 1.5 결로 끌어올림)
 
   const handleGlobalKeyDown = useCallback(
     (e: KeyboardEvent) => {

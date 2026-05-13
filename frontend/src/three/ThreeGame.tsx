@@ -2,12 +2,16 @@
 
 import { useEffect, useRef } from 'react';
 
+import { onPositionUpdate } from '@/lib/websocket/positionBridge';
+import { onDisplayIdChange } from '@/lib/websocket/tokenBridge';
+
 import { SceneManager } from './SceneManager';
 
 /**
- * Three.js 진입점 — Phaser PhaserGame 결과 동등.
- * Step 1 PoC: 마을 + 도서관 두 Scene + 캐릭터 + 점프 + 페이드 전환.
- * WebSocket·캐릭터 동기화는 Step 결 결로 박음 (옛 트랙 코드 참고).
+ * Three.js 진입점.
+ * Step 1.5: STOMP 위치 broadcast 를 SceneManager 에 전달 + 토큰 발급 시 selfId 동기화.
+ *
+ * STOMP 연결 자체는 GameLoader 의 `useStomp()` 가 책임. 본 컴포넌트는 bridge 구독만.
  */
 export default function ThreeGame() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -17,7 +21,17 @@ export default function ThreeGame() {
     if (!container) return undefined;
 
     const manager = new SceneManager(container);
+
+    const unsubPosition = onPositionUpdate((pos) => {
+      manager.applyRemotePosition(pos);
+    });
+    const unsubDisplayId = onDisplayIdChange((id) => {
+      manager.setSelfId(id);
+    });
+
     return () => {
+      unsubPosition();
+      unsubDisplayId();
       manager.destroy();
     };
   }, []);

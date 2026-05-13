@@ -1,8 +1,12 @@
 import * as THREE from 'three';
 
+import type { PositionBroadcast } from '@/lib/websocket/stompClient';
+import { sendLeaveVillage } from '@/lib/websocket/stompClient';
+
 import { AmbientSoundManager } from './audio/AmbientSoundManager';
 import { CAMERA, TRANSITION, VILLAGE } from './constants';
 import { InputState } from './input';
+import { PositionSync } from './network/PositionSync';
 import { LibraryScene } from './scenes/LibraryScene';
 import { VillageScene } from './scenes/VillageScene';
 
@@ -25,6 +29,7 @@ export class SceneManager {
   private library: LibraryScene;
   private input: InputState;
   private ambientSound: AmbientSoundManager;
+  private positionSync: PositionSync;
   private active: Active = 'village';
   // active === 'transitioning' 동안 어떤 Scene 을 렌더링할지 — fade out 결과 source scene 유지
   // (Codex P2 — fade out 시작하자마자 default 로 떨어져서 화면 pop 되는 결 막음)
@@ -64,6 +69,9 @@ export class SceneManager {
     // Ambient sound (D6 v + D11 음향 결)
     this.ambientSound = new AmbientSoundManager();
     this.ambientSound.enterVillage();
+
+    // 멀티유저 위치 송신·필터 (Step 1.5)
+    this.positionSync = new PositionSync();
 
     // 페이드 오버레이 (Scene 전환 결)
     this.fadeOverlay = document.createElement('div');
@@ -133,6 +141,17 @@ export class SceneManager {
       } else if (this.active === 'library' && (sceneObj as LibraryScene).isAtExit()) {
         this.startTransition('village');
       }
+
+      // 마을에 있을 때만 자기 위치 broadcast (도서관은 spec §2.2 Out)
+      if (this.active === 'village') {
+        const p = sceneObj.character.position;
+        this.positionSync.sendIfChanged(p.x, p.z);
+      }
+    }
+
+    // RemotePlayer lerp 진행 (마을 전용)
+    if (this.active === 'village' || (this.active === 'transitioning' && this.sourceScene === 'village')) {
+      this.village.updateRemotePlayers();
     }
 
     sceneObj.updateCamera(this.camera);
@@ -171,6 +190,12 @@ export class SceneManager {
     this.pendingTarget = target;
     this.active = 'transitioning';
     this.fadeDirection = 1; // fade out
+
+    // 도서관 진입 즉시 LEAVE broadcast — 다른 클라이언트에서 본인 placeholder 제거 (Codex P1).
+    // disconnect listener 는 STOMP 세션 종료 시점에만 동작 결로 마을 떠나기에는 닿지 X.
+    if (target === 'library') {
+      sendLeaveVillage();
+    }
   }
 
   private completeTransition(): void {
@@ -178,6 +203,10 @@ export class SceneManager {
       // 도서관 진입 — 입구 결로 reset
       this.library.character.position.set(0, 0, 4);
       this.ambientSound.enterLibrary();
+      // 마을 다른 유저 placeholder 모두 제거 + 송신 throttle 상태 초기화
+      // (도서관 밖 위치 변화는 spec §2.2 Out)
+      this.village.clearRemotePlayers();
+      this.positionSync.reset();
     } else {
       // 마을 복귀 — 도서관 입구 앞 결로 reset (트리거 즉시 재진입 막는 거리)
       this.village.character.position.set(0, 0, VILLAGE.LIBRARY_Z + 5);
@@ -187,6 +216,25 @@ export class SceneManager {
     // (그래야 activeScene() 이 새 scene 을 렌더링하면서 fade in 진행)
     this.sourceScene = this.pendingTarget;
     this.fadeDirection = -1; // fade in
+  }
+
+  /**
+   * STOMP 위치 broadcast 수신 시 외부에서 호출 (ThreeGame 가 bridge 구독).
+   * self filter 통과 + 마을 활성 상태에서만 적용.
+   */
+  applyRemotePosition(pos: PositionBroadcast): void {
+    if (this.destroyed) return;
+    if (!this.positionSync.shouldRender(pos)) return;
+    // 마을 활성 상태에서만 적용. transitioning 결로 fade-in (sourceScene=library)
+    // 결로 들어오는 broadcast 결로 offscreen 마을에 stale placeholder 박힘 → 마을 복귀 시
+    // 재출현하는 회귀 차단 (Codex P2).
+    if (this.active !== 'village') return;
+    this.village.applyRemotePosition(pos);
+  }
+
+  /** 토큰 발급·변경 시 외부에서 호출 (tokenBridge.onDisplayIdChange). */
+  setSelfId(id: string | null): void {
+    this.positionSync.setSelfId(id);
   }
 
   destroy(): void {

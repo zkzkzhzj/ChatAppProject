@@ -115,3 +115,14 @@ export function sendPosition(x: number, y: number): void {
     body: JSON.stringify({ x, y }),
   });
 }
+
+/**
+ * 마을을 벗어났음을 backend에 알린다 (도서관 진입 결로 호출).
+ * backend는 `userType=LEAVE` broadcast 결로 다른 클라이언트에 통지 → placeholder 제거.
+ * STOMP 세션은 살아있어 disconnect listener 결로는 안 잡힘 — 명시 신호 필요 (Codex P1).
+ */
+export function sendLeaveVillage(): void {
+  const client = getStompClient();
+  if (!client.connected) return;
+  client.publish({ destination: '/app/village/leave', body: '{}' });
+}

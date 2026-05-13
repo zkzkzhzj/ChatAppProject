@@ -53,6 +53,24 @@ public class PositionHandler {
         messagingTemplate.convertAndSend(TOPIC_POSITIONS, broadcast);
     }
 
+    /**
+     * 마을을 벗어났음을 다른 클라이언트에 알린다 (예: 도서관 진입).
+     *
+     * STOMP 세션은 살아있어 {@link PositionDisconnectListener} 는 동작하지 X.
+     * 그래서 명시적 신호 없이는 다른 클라이언트가 본 유저를 마지막 좌표에 ghost 상태로 유지함.
+     * 트리거: village-3d Step 1.5 dev 검증 중 Codex P1 리뷰.
+     */
+    @MessageMapping("/village/leave")
+    public void handleLeave(Principal principal) {
+        if (!(principal instanceof AuthenticatedUser user)) {
+            return;
+        }
+        PositionBroadcast leave = new PositionBroadcast(
+                user.displayId(), PositionUserType.LEAVE, 0, 0
+        );
+        messagingTemplate.convertAndSend(TOPIC_POSITIONS, leave);
+    }
+
     private boolean isValidCoordinate(double x, double y) {
         return Double.isFinite(x) && Double.isFinite(y);
     }

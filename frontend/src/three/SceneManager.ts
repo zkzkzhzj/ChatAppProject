@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import type { PositionBroadcast } from '@/lib/websocket/stompClient';
+import { sendLeaveVillage } from '@/lib/websocket/stompClient';
 
 import { AmbientSoundManager } from './audio/AmbientSoundManager';
 import { CAMERA, TRANSITION, VILLAGE } from './constants';
@@ -189,6 +190,12 @@ export class SceneManager {
     this.pendingTarget = target;
     this.active = 'transitioning';
     this.fadeDirection = 1; // fade out
+
+    // 도서관 진입 즉시 LEAVE broadcast — 다른 클라이언트에서 본인 placeholder 제거 (Codex P1).
+    // disconnect listener 는 STOMP 세션 종료 시점에만 동작 결로 마을 떠나기에는 닿지 X.
+    if (target === 'library') {
+      sendLeaveVillage();
+    }
   }
 
   private completeTransition(): void {
@@ -218,8 +225,10 @@ export class SceneManager {
   applyRemotePosition(pos: PositionBroadcast): void {
     if (this.destroyed) return;
     if (!this.positionSync.shouldRender(pos)) return;
-    // 도서관 진입 시 placeholder 모두 제거됐으므로 추가도 막는다.
-    if (this.active === 'library') return;
+    // 마을 활성 상태에서만 적용. transitioning 결로 fade-in (sourceScene=library)
+    // 결로 들어오는 broadcast 결로 offscreen 마을에 stale placeholder 박힘 → 마을 복귀 시
+    // 재출현하는 회귀 차단 (Codex P2).
+    if (this.active !== 'village') return;
     this.village.applyRemotePosition(pos);
   }
 

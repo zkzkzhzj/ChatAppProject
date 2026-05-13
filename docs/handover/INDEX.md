@@ -12,8 +12,8 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
-| — | — | (활성 트랙 없음 — 새 트랙 `village-3d` 시작 PR 결로 추가 결) | — | — | — |
 
+> 활성 트랙 없음 (2026-05-13 기준). `village-3d` 종료 → 운영 머지 후 프로젝트 점검 시간.
 > ws-redis Step 3 (클라이언트 재작성 + WS 모듈 분리) 착수 시 본 표에 다시 추가. `track-ws-redis.md` §9 인수인계 참조.
 > 새 트랙을 시작할 때 이 표에 한 줄 추가하고, 해당 트랙 파일을 신규 작성한다.
 
@@ -21,6 +21,7 @@
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
+| `village-3d` | [74 (3D 채팅 UI 재설계 4축)](../learning/74-3d-chat-ui-redesign-decisions.md) · [78 (Next 16 + Three.js + Howler dev 메모리 폭주)](../learning/78-next-three-howler-dev-memory-diagnosis.md) | 2026-05-13 | #68 (Step 1) · #69 + #78 (Step 2) · #79 (핫픽스) · #84 (Step 1.5 멀티유저) · #85 (Step 1.7 채팅 UI) — 트랙 머지 PR 별도 |
 | `village-design-mvp` | [69 (에셋 모델)](../learning/69-asset-model-curated-vs-ai-generation.md) · [70 (마을 톤·미감)](../learning/70-village-mood-aesthetic-decision.md) · [71 (디자인 톤 자기 인터뷰)](../learning/71-design-tone-from-self-interview.md) · [72 (Phaser 2D → Three.js 3D 전환)](../learning/72-phaser-to-threejs-pivot-decision.md) | 2026-05-10 | #57 · #64 (Step 1 만 머지) — 종료 사유: 큐레이션 자산 한계 → `village-3d` 승계 |
 | `harness-spec-driven` | [66 (spec-driven 4층 + fix-loop + Comprehension Gate)](../learning/66-spec-driven-fix-loop-comprehension-gate.md) · [67 (wiki 활용 강화 — 폐지 권고 철회)](../learning/67-wiki-policy-rejection-reversal.md) · [68 (NPC 차별점 ADR)](../learning/68-npc-service-differentiator-adr.md) | 2026-04-30 | #47 |
 | `infra-tls-hardening` | [65 (Cookie 보안 속성 깊은 다이브)](../learning/65-cookie-security-attributes-deep-dive.md) | 2026-04-28 | #43 |

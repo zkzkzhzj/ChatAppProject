@@ -169,8 +169,23 @@ export default function ChatInputAnchor({ sceneManager, onLoginRequired }: ChatI
       };
 
   return (
-    <div ref={containerRef} style={style}>
-      <ChatInput ref={inputRef} onLoginRequired={onLoginRequired} onSent={handleSent} />
-    </div>
+    <>
+      <div ref={containerRef} style={style}>
+        <ChatInput ref={inputRef} onLoginRequired={onLoginRequired} onSent={handleSent} />
+      </div>
+      {/* 모바일 결 FAB 토글 — 활성 결 ✕ 결로 큰 버튼 (옛 ✏️ FAB 자리). Escape 키 없는 터치 결 닫기 경로.
+          데스크탑 결 Escape 결로 닫음 결로 표시 X. */}
+      {isMobile && (
+        <button
+          type="button"
+          onClick={handleSent}
+          aria-label="채팅 입력 닫기"
+          className="fixed right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-bark/85 text-cream shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
+          style={{ bottom: 80 }}
+        >
+          <span className="text-xl leading-none">✕</span>
+        </button>
+      )}
+    </>
   );
 }

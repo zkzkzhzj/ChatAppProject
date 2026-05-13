@@ -9,6 +9,9 @@
 export class InputState {
   private keys = new Set<string>();
   private destroyed = false;
+  /** 가상 조이스틱 입력 (Step 1.7 모바일 hybrid). 0 = 비활성. */
+  private joystickDx = 0;
+  private joystickDz = 0;
 
   constructor() {
     window.addEventListener('keydown', this.onKeyDown);
@@ -47,7 +50,13 @@ export class InputState {
     if (document.hidden) this.release();
   };
 
-  /** 한 프레임 입력 결과 반환. */
+  /** 가상 조이스틱 입력 갱신 (VirtualJoystick → InputState). dx/dz ∈ [-1, 1]. */
+  setJoystick(dx: number, dz: number): void {
+    this.joystickDx = dx;
+    this.joystickDz = dz;
+  }
+
+  /** 한 프레임 입력 결과 반환. 키보드 우선, 키보드 없으면 조이스틱. */
   read(): { dx: number; dz: number; jump: boolean } {
     let dx = 0;
     let dz = 0;
@@ -55,6 +64,11 @@ export class InputState {
     if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) dx += 1;
     if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) dz -= 1;
     if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) dz += 1;
+    // 키보드 없을 때만 조이스틱 결 반영 — 두 입력 합치면 방향 결 모호
+    if (dx === 0 && dz === 0) {
+      dx = this.joystickDx;
+      dz = this.joystickDz;
+    }
     const jump = this.keys.has('Space');
     return { dx, dz, jump };
   }

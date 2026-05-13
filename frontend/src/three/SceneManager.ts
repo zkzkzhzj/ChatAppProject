@@ -8,7 +8,6 @@ import { AmbientSoundManager } from './audio/AmbientSoundManager';
 import { CAMERA, TRANSITION, VILLAGE } from './constants';
 import { InputState } from './input';
 import { PositionSync } from './network/PositionSync';
-import { PointerMoveInput } from './PointerMoveInput';
 import { LibraryScene } from './scenes/LibraryScene';
 import { VillageScene } from './scenes/VillageScene';
 
@@ -30,7 +29,6 @@ export class SceneManager {
   private village: VillageScene;
   private library: LibraryScene;
   private input: InputState;
-  private pointerInput: PointerMoveInput;
   private ambientSound: AmbientSoundManager;
   private positionSync: PositionSync;
   private active: Active = 'village';
@@ -66,17 +64,9 @@ export class SceneManager {
     this.village = new VillageScene();
     this.library = new LibraryScene();
 
-    // Input — 키보드(WASD/점프) + 포인터(tap-to-move, learning 50)
+    // Input — 키보드(WASD/점프) + 모바일 가상 조이스틱(InputState.setJoystick).
+    // tap-to-move 결 거부 (사용자 결정 2026-05-13) — 모바일은 조이스틱 상시 노출 결로 정합.
     this.input = new InputState();
-    this.pointerInput = new PointerMoveInput(
-      this.renderer.domElement,
-      () => this.camera,
-      (x, z) => {
-        // 마을 활성 + 입력창 비포커스 결만 적용 — 도서관 안에서는 무시
-        if (this.active !== 'village') return;
-        this.village.character.setTouchTarget(x, z);
-      },
-    );
 
     // Ambient sound (D6 v + D11 음향 결)
     this.ambientSound = new AmbientSoundManager();
@@ -250,6 +240,12 @@ export class SceneManager {
     this.selfDisplayId = id;
   }
 
+  /** 가상 조이스틱 입력 (Step 1.7 모바일 hybrid). dx/dz ∈ [-1, 1]. */
+  setJoystickInput(dx: number, dz: number): void {
+    if (this.destroyed) return;
+    this.input.setJoystick(dx, dz);
+  }
+
   /** ChatInputAnchor 결로 사용 — 자기 캐릭터 머리 위 위치 계산용. 마을 활성 시에만 유효. */
   getMyCharacterPosition(): THREE.Vector3 | null {
     if (this.destroyed || this.active !== 'village') return null;
@@ -288,7 +284,6 @@ export class SceneManager {
     cancelAnimationFrame(this.rafId);
     window.removeEventListener('resize', this.onResize);
     this.input.destroy();
-    this.pointerInput.destroy();
     this.ambientSound.destroy();
     // 자기 캐릭터·RemotePlayer bubble 명시 해제 (Sprite 결 disposeScene traverse 결 안 잡힘)
     this.village.character.dispose();

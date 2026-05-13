@@ -24,10 +24,6 @@ export class Character {
   private static readonly MAX_BUBBLES = 50;
   private static readonly BUBBLE_BASE_Y = 2.4;
   private static readonly BUBBLE_STACK_SPACING = 0.95;
-  /** tap-to-move target (Step 1.7, learning 50 결정 마이그). null = 키보드 입력 우선. */
-  private touchTargetX: number | null = null;
-  private touchTargetZ: number | null = null;
-  private static readonly TOUCH_REACHED_EPSILON = 0.3;
 
   constructor(spawn: THREE.Vector3) {
     // 몸통 (박스)
@@ -49,41 +45,14 @@ export class Character {
     this.group.position.copy(spawn);
   }
 
-  /** tap-to-move target 설정 (SceneManager → PointerMoveInput → 본 메서드). */
-  setTouchTarget(x: number, z: number): void {
-    this.touchTargetX = x;
-    this.touchTargetZ = z;
-  }
-
   /** 입력 결과 적용해서 한 프레임 이동. delta = 초. */
   update(input: { dx: number; dz: number; jump: boolean }, delta: number): void {
     // 수평 이동 (걷기 only — 뛰기 결 X)
     const speed = PHYSICS.WALK_SPEED;
-    let dx = input.dx;
-    let dz = input.dz;
-
-    // 키보드 우선: WASD 누른 결 결 touchTarget 무효화
-    if (dx !== 0 || dz !== 0) {
-      this.touchTargetX = null;
-      this.touchTargetZ = null;
-    } else if (this.touchTargetX !== null && this.touchTargetZ !== null) {
-      // 키보드 없을 때만 tap target 결로 이동
-      const tdx = this.touchTargetX - this.group.position.x;
-      const tdz = this.touchTargetZ - this.group.position.z;
-      const dist = Math.hypot(tdx, tdz);
-      if (dist < Character.TOUCH_REACHED_EPSILON) {
-        this.touchTargetX = null;
-        this.touchTargetZ = null;
-      } else {
-        dx = tdx / dist;
-        dz = tdz / dist;
-      }
-    }
-
-    const length = Math.hypot(dx, dz);
+    const length = Math.hypot(input.dx, input.dz);
     if (length > 0) {
-      const nx = dx / length;
-      const nz = dz / length;
+      const nx = input.dx / length;
+      const nz = input.dz / length;
       this.group.position.x += nx * speed * delta;
       this.group.position.z += nz * speed * delta;
 

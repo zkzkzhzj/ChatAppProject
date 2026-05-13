@@ -26,10 +26,7 @@ export class InputState {
   private onKeyDown = (e: KeyboardEvent): void => {
     // input·textarea 에 포커스가 있으면 게임 입력 X (채팅 입력 보호).
     // e.target 이 Window·Document 일 수도 있어 instanceof 로 좁힘.
-    if (
-      e.target instanceof HTMLInputElement ||
-      e.target instanceof HTMLTextAreaElement
-    ) {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
       return;
     }
 

@@ -72,7 +72,11 @@ export class VillageScene {
         new THREE.SphereGeometry(0.15 + Math.random() * 0.1, 8, 6),
         new THREE.MeshLambertMaterial({ color: 0xf4faff }),
       );
-      bubble.position.set(-5 + (Math.random() - 0.5) * 4, 0.05, VILLAGE.POND_Z + (Math.random() - 0.5) * 4);
+      bubble.position.set(
+        -5 + (Math.random() - 0.5) * 4,
+        0.05,
+        VILLAGE.POND_Z + (Math.random() - 0.5) * 4,
+      );
       this.scene.add(bubble);
     }
   }
@@ -92,7 +96,11 @@ export class VillageScene {
     // 모닥불 (Cone, 주황 톤)
     const fire = new THREE.Mesh(
       new THREE.ConeGeometry(0.4, 1.2, 8),
-      new THREE.MeshLambertMaterial({ color: 0xff7a3a, emissive: 0xff5500, emissiveIntensity: 0.6 }),
+      new THREE.MeshLambertMaterial({
+        color: 0xff7a3a,
+        emissive: 0xff5500,
+        emissiveIntensity: 0.6,
+      }),
     );
     fire.position.set(0, 0.7, VILLAGE.CAMPFIRE_Z);
     this.scene.add(fire);
@@ -171,7 +179,11 @@ export class VillageScene {
   /** 카메라 follow — 정적 + 천천히 (orbit X). spec D11. */
   updateCamera(camera: THREE.PerspectiveCamera): void {
     const target = this.character.position;
-    const desired = new THREE.Vector3(target.x, target.y + CAMERA.HEIGHT_OFFSET, target.z + CAMERA.DISTANCE);
+    const desired = new THREE.Vector3(
+      target.x,
+      target.y + CAMERA.HEIGHT_OFFSET,
+      target.z + CAMERA.DISTANCE,
+    );
     camera.position.lerp(desired, CAMERA.FOLLOW_LERP);
     camera.lookAt(target.x, target.y + 1, target.z);
   }

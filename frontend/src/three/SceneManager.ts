@@ -152,7 +152,10 @@ export class SceneManager {
     }
 
     // RemotePlayer lerp 진행 (마을 전용)
-    if (this.active === 'village' || (this.active === 'transitioning' && this.sourceScene === 'village')) {
+    if (
+      this.active === 'village' ||
+      (this.active === 'transitioning' && this.sourceScene === 'village')
+    ) {
       this.village.updateRemotePlayers();
     }
 

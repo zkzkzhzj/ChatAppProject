@@ -93,7 +93,12 @@ export class SpeechBubble {
     ctx.font = `${String(FONT_SIZE)}px "Gowun Dodum", "IBM Plex Sans KR", -apple-system, sans-serif`;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
-    ctx.fillText(truncated, CANVAS_WIDTH / 2, (CANVAS_HEIGHT - 14) / 2 + 2, CANVAS_WIDTH - PADDING_X * 2);
+    ctx.fillText(
+      truncated,
+      CANVAS_WIDTH / 2,
+      (CANVAS_HEIGHT - 14) / 2 + 2,
+      CANVAS_WIDTH - PADDING_X * 2,
+    );
 
     this.texture.needsUpdate = true;
   }

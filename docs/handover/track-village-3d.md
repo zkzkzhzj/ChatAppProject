@@ -1,10 +1,14 @@
-# Track: village-3d
+# Track: village-3d ✅ 종료 (2026-05-13)
 
 > 작업 영역: Frontend (Three.js 3D 마을 + 도서관 + 본질 가치 4축) + 백엔드 (도서관 confessions·comments 도메인, Step 4 이후) + 자산 큐레이션
 > 시작일: 2026-05-11
+> 종료일: 2026-05-13
 > Issue: #67
-> 브랜치: `feat/village-3d` (통합) / `feat/village-3d-step1-three-poc` (Step 1)
+> 브랜치: `feat/village-3d` (통합)
 > Spec: [docs/specs/features/village-3d.md](../specs/features/village-3d.md)
+> 머지된 PR: #68 (Step 1) · #69 + #78 (Step 2) · #79 (입력 키 stuck 핫픽스) · #84 (Step 1.5) · #85 (Step 1.7)
+>
+> **종료 사유**: 사용자 결정 — 위치공유(Step 1.5) + 채팅 UI(Step 1.7) 결까지 박고 운영 머지 + 프로젝트 점검 시간. Step 3·4·5·6·7 (캐릭터 모델·도서관·NPC·편지·인벤토리)은 후속 트랙으로 분리.
 
 ## 0. 한 줄 요약
 
@@ -14,13 +18,15 @@
 
 > spec §6 Verification 과 1:1 매핑. 트랙 종료 시 같이 체크.
 
-- [ ] 사용자가 마을 입장 시 안식처 결 즉시 느낌 (Step 1) — warm 라이팅 + Fog + 정적 카메라
-- [ ] 안식처 가드레일 6축 (D11) 위반 X (Step 1) — 카메라·라이팅·물리·카메라워크·음향·UI 모두 코드로 강제
-- [ ] 환경음 1종 이상 통합 (Step 2)
-- [ ] 도서관 진입 + 글 작성·조회 + 댓글 동작 (Step 4)
-- [ ] 머무는 이유 D6 4축 중 1개 이상 첫 시안 동작 (Step 2 또는 5)
-- [ ] 3D 자산 라이선스 명시 (commercial use 확인) — 트랙 종료 전
-- [ ] 60fps 목표 (최소 FPS ≥ 30) — Step 1 PoC 시점 측정
+- [x] 사용자가 마을 입장 시 안식처 결 즉시 느낌 (Step 1) — warm 라이팅 + Fog + 정적 카메라 ✅ PR #68
+- [x] 안식처 가드레일 6축 (D11) 위반 X (Step 1) — 카메라·라이팅·물리·카메라워크·음향·UI 모두 코드로 강제 ✅
+- [x] 환경음 1종 이상 통합 (Step 2) ✅ PR #69 — 4종 통합 (gentle-wind·crackling-fire·pond-water·forest-birds)
+- [ ] 도서관 진입 + 글 작성·조회 + 댓글 동작 (Step 4) — **후속 트랙으로 분리** (사용자 결정 2026-05-12)
+- [x] 머무는 이유 D6 4축 중 1개 이상 첫 시안 동작 ✅ Step 2 환경음(v) — Step 1.5 멀티유저 + Step 1.7 채팅 결로 Alone Together 결 시각·청각 차원도 동시 충족
+- [ ] 3D 자산 라이선스 명시 — **N/A** (본 트랙 결 자산 결 X, 기본 geometry만. Step 3 캐릭터 모델 시점에 확인)
+- [x] 60fps 목표 (최소 FPS ≥ 30) ✅ Step 1 PoC dev 검증 통과
+
+**통과**: 5/7 (도서관·자산 라이선스는 후속 트랙 의제 결로 분리).
 
 ## 1. 배경 / 왜
 

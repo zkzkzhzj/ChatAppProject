@@ -53,23 +53,37 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 ## 4. Critical Rules (절대 위반 금지)
 
 이 규칙들은 컨벤션이 아니라 **아키텍처 무결성을 지키기 위한 불변 규칙**이다.
+XML 태그 (Anthropic 공식 prompt engineering 패턴 — [`use-xml-tags`](https://docs.anthropic.com/en/docs/use-xml-tags)) 로 감싸 명령 강도 강화. 트랙 `ai-native-2026-05-upgrade` D2 / sweep v1 §A.5 직접 출처.
 
-1. **Domain Entity에 인프라 어노테이션 금지.** `@Entity`, `@Column`, `@Table` 등 JPA 어노테이션은 Persistence Entity에만 사용한다. Domain Entity는 순수 POJO로 유지한다.
-2. **도메인 간 직접 참조 금지.** 다른 도메인의 Entity나 Repository를 import하지 않는다. 도메인 간 통신은 Kafka 이벤트 또는 Application Service의 Port를 통해서만 한다.
-3. **`@Autowired` 필드 주입 금지.** 모든 의존성은 생성자 주입(`@RequiredArgsConstructor`)을 사용한다.
-4. **`throw new RuntimeException()` 금지.** 반드시 `[domain]/error/`에 정의된 커스텀 예외를 사용한다. 적절한 예외가 없으면 새로 정의한다.
-5. **테스트 없는 기능 완료 금지.** 기능 구현과 테스트는 하나의 작업 단위다. 테스트 없이 "완료"라고 하지 않는다.
-6. **상태 변경 로직에서 동시성을 무시하지 마라.** 포인트 차감, 아이템 구매, 좌석 점유 등 상태를 변경하는 모든 로직은 동시 요청 시나리오를 반드시 고려한다. "단일 요청에서 잘 돌아간다"는 완료 조건이 아니다. 동시성 전략(낙관적 락, 비관적 락, 분산 락 등)의 선택과 이유를 명시한다.
-7. **트레이드오프 논의가 발생하면 그 응답 안에서 즉시 학습노트를 작성하라.** 대화 중 "A vs B 중 뭘 쓸까", "왜 이 방식인가", "다른 방법은 없나" 같은 기술 선택·비교가 나오면, 해당 응답을 끝내기 전에 learning-agent를 호출하여 `docs/learning/`에 학습노트를 남긴다. "나중에 쓰지"는 "안 쓴다"와 같다. 번호 정책:
-   - 단일 작업: 기존 마지막 번호 + 1
-   - 병행 트랙 활성 시: `docs/learning/RESERVED.md`에서 자기 트랙 예약 번호 중 가장 작은 미사용 번호 사용
-   - 상세: §8 Parallel Tracks · `docs/conventions/parallel-work.md` 참조
-8. **커밋/PR 전에 메모리와 인수인계 문서를 반드시 최신화하라.** 코드를 올리기 전에 `memory/` 파일과 인수인계 문서가 현재 작업 내용을 반영하고 있는지 확인한다. 다음 세션이 이 문서만 보고 이어서 작업할 수 있어야 한다. 갱신 대상:
-   - 단일 작업: `docs/handover.md` 직접 갱신
-   - 병행 트랙 활성 시: 자기 트랙의 `docs/handover/track-{id}.md`만 갱신 (메인 `docs/handover.md`는 **트랙 머지 PR 안에서만** — 머지 후 별도 docs PR 금지)
-   - 상세: §8 Parallel Tracks · `docs/conventions/parallel-work.md` 참조
-9. **요청되지 않은 추상화·유연성 금지.** 단발성 코드에 추상 인터페이스를 만들지 마라. "나중에 쓸 수도 있다"는 이유로 옵션·설정·확장 포인트를 추가하지 않는다. **YAGNI 가 헥사고날보다 우선이다.** 두 번째 사용처가 실제로 등장한 다음에 추상화한다. 헥사고날 환경에서 가장 잘 생기는 함정 — Port 미리 만들기, 사용처 1곳인 인터페이스, "혹시 모르니" Strategy/Factory 도입 모두 거부 (Karpathy "Simplicity First").
-10. **Surgical Changes — 사용자 요청 밖 코드 손대지 마라.** 기능 구현 중 인접 코드 "정리·포매팅·개선" 금지. 변경된 모든 줄은 작업 의도에 직접 추적 가능해야 한다. 다른 영역의 결함을 발견하면 이슈만 등록하고 자기 작업으로 복귀한다. 진짜 리팩토링은 §5.3 별도 PR (`feedback_track_scope_discipline.md` 의 코드 레벨 적용 / Karpathy "Surgical Changes").
+<rule id="1">**Domain Entity에 인프라 어노테이션 금지.** `@Entity`, `@Column`, `@Table` 등 JPA 어노테이션은 Persistence Entity에만 사용한다. Domain Entity는 순수 POJO로 유지한다.</rule>
+
+<rule id="2">**도메인 간 직접 참조 금지.** 다른 도메인의 Entity나 Repository를 import하지 않는다. 도메인 간 통신은 Kafka 이벤트 또는 Application Service의 Port를 통해서만 한다.</rule>
+
+<rule id="3">**`@Autowired` 필드 주입 금지.** 모든 의존성은 생성자 주입(`@RequiredArgsConstructor`)을 사용한다.</rule>
+
+<rule id="4">**`throw new RuntimeException()` 금지.** 반드시 `[domain]/error/`에 정의된 커스텀 예외를 사용한다. 적절한 예외가 없으면 새로 정의한다.</rule>
+
+<rule id="5">**테스트 없는 기능 완료 금지.** 기능 구현과 테스트는 하나의 작업 단위다. 테스트 없이 "완료"라고 하지 않는다.</rule>
+
+<rule id="6">**상태 변경 로직에서 동시성을 무시하지 마라.** 포인트 차감, 아이템 구매, 좌석 점유 등 상태를 변경하는 모든 로직은 동시 요청 시나리오를 반드시 고려한다. "단일 요청에서 잘 돌아간다"는 완료 조건이 아니다. 동시성 전략(낙관적 락, 비관적 락, 분산 락 등)의 선택과 이유를 명시한다.</rule>
+
+<rule id="7">**트레이드오프 논의가 발생하면 그 응답 안에서 즉시 학습노트를 작성하라.** 대화 중 "A vs B 중 뭘 쓸까", "왜 이 방식인가", "다른 방법은 없나" 같은 기술 선택·비교가 나오면, 해당 응답을 끝내기 전에 learning-agent를 호출하여 `docs/learning/`에 학습노트를 남긴다. "나중에 쓰지"는 "안 쓴다"와 같다. 번호 정책:
+
+- 단일 작업: 기존 마지막 번호 + 1
+- 병행 트랙 활성 시: `docs/learning/RESERVED.md`에서 자기 트랙 예약 번호 중 가장 작은 미사용 번호 사용
+- 상세: §8 Parallel Tracks · `docs/conventions/parallel-work.md` 참조
+</rule>
+
+<rule id="8">**커밋/PR 전에 메모리와 인수인계 문서를 반드시 최신화하라.** 코드를 올리기 전에 `memory/` 파일과 인수인계 문서가 현재 작업 내용을 반영하고 있는지 확인한다. 다음 세션이 이 문서만 보고 이어서 작업할 수 있어야 한다. 갱신 대상:
+
+- 단일 작업: `docs/handover.md` 직접 갱신
+- 병행 트랙 활성 시: 자기 트랙의 `docs/handover/track-{id}.md`만 갱신 (메인 `docs/handover.md`는 **트랙 머지 PR 안에서만** — 머지 후 별도 docs PR 금지)
+- 상세: §8 Parallel Tracks · `docs/conventions/parallel-work.md` 참조
+</rule>
+
+<rule id="9">**요청되지 않은 추상화·유연성 금지.** 단발성 코드에 추상 인터페이스를 만들지 마라. "나중에 쓸 수도 있다"는 이유로 옵션·설정·확장 포인트를 추가하지 않는다. **YAGNI 가 헥사고날보다 우선이다.** 두 번째 사용처가 실제로 등장한 다음에 추상화한다. 헥사고날 환경에서 가장 잘 생기는 함정 — Port 미리 만들기, 사용처 1곳인 인터페이스, "혹시 모르니" Strategy/Factory 도입 모두 거부 (Karpathy "Simplicity First").</rule>
+
+<rule id="10">**Surgical Changes — 사용자 요청 밖 코드 손대지 마라.** 기능 구현 중 인접 코드 "정리·포매팅·개선" 금지. 변경된 모든 줄은 작업 의도에 직접 추적 가능해야 한다. 다른 영역의 결함을 발견하면 이슈만 등록하고 자기 작업으로 복귀한다. 진짜 리팩토링은 §5.3 별도 PR (`feedback_track_scope_discipline.md` 의 코드 레벨 적용 / Karpathy "Surgical Changes").</rule>
 
 ---
 
@@ -85,6 +99,7 @@ Test: JUnit 5 · Cucumber BDD · Testcontainers
 > 1. Phase A 의 "요구사항 확인" 에 **Spec 파일 작성** (`docs/specs/features/{feature}.md`, [`_template.md`](./docs/specs/features/_template.md)) 이 포함된다. spec 의 `decisions` 4축 (왜·대안·빈틈·재검토) 미리 채우면 Comprehension Gate 자동 통과
 > 2. Phase B 의 "단계 N 구현" 은 **1 step = 1 PR (엄격, [`git.md`](./docs/conventions/git.md) §4)**. 한 PR 에 여러 step 섞지 않으며, 한 step 이 여러 PR 로 쪼개지지 않음. 메타·도구 트랙만 1 PR · N 커밋 예외
 > 3. Phase C 의 "완료 보고" 는 **`/track-end` 자동화** (P3 산출물) — Acceptance Criteria 검증 + wiki 영향 분석 ([`wiki-policy.md`](./docs/conventions/wiki-policy.md) §2.1) + handover 정합 + RESERVED 닫기 + learning 노트 작성
+> 4. **컨텍스트 관리 — 60% 시점 proactive compaction** (트랙 `ai-native-2026-05-upgrade` D1, 2026-05-17 도입). Opus 4.7 1M 컨텍스트 시대에도 lost-in-the-middle 발생. autocompact 기다리지 말고 **컨텍스트 사용량 60% 시점에 `/compact` 자동 발동**. 큰 sub-agent 출격 / 백그라운드 결과 dump 직후가 trigger 가장 적합. sweep v1 §D.1 / sweep v2 §D.2 직접 출처.
 
 ### 5.1 새 기능 구현
 

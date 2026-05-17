@@ -13,15 +13,16 @@
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
 
-> 활성 트랙 없음 (2026-05-16 기준, `ctx-refresh-post-village-3d` 종료 직후).
-> 다음 후보: ⓑ `harden-village-ops` (운영 P1 두 개 — JWT_SECRET + idempotency leak) → ⓒ `ai-native-2026-05-upgrade` (compaction 60% / CodeRabbit / XML 태그). 사용자 결정 후 착수.
-> ws-redis Step 3 (클라이언트 재작성 + WS 모듈 분리) 도 후보. `track-ws-redis.md` §9 인수인계 참조.
-> 새 트랙을 시작할 때 이 표에 한 줄 추가하고, 해당 트랙 파일을 신규 작성한다.
+> 활성 트랙 없음 (2026-05-17 기준, 트랙 `ai-native-2026-05-upgrade` 종료 직후).
+> 보류: ⓑ `harden-village-ops` (Issue #92, branch `fix/harden-village-ops`, commit `a99e4cc`) — origin 보존, 사용자 재개 결정 대기.
+> Planned: skills-progressive-disclosure (Step 4·5) / anthropic-outcomes-trial (Step 6) / npc-evaluator-lmops 보강 (sweep v2 §B·§E).
+> ws-redis Step 3 도 후보. `track-ws-redis.md` §9 인수인계 참조.
 
 ## 완료 트랙 (Recently Closed)
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
+| `ai-native-2026-05-upgrade` | [83 (트랙 ⓒ 회고 — sweep 2축 + 즉시 도입 3종 + MCP baseline)](../learning/83-ai-native-2026-05-upgrade-trial.md) | 2026-05-17 | PR #94 |
 | `ctx-refresh-post-village-3d` | [79 (컨텍스트 노화 사이클 메타 학습)](../learning/79-context-refresh-cycle-meta-learning.md) | 2026-05-16 | (PR #91) |
 | `village-3d` | [74 (3D 채팅 UI 재설계 4축)](../learning/74-3d-chat-ui-redesign-decisions.md) · [78 (Next 16 + Three.js + Howler dev 메모리 폭주)](../learning/78-next-three-howler-dev-memory-diagnosis.md) | 2026-05-13 | #68 (Step 1) · #69 + #78 (Step 2) · #79 (핫픽스) · #84 (Step 1.5 멀티유저) · #85 (Step 1.7 채팅 UI) — 트랙 머지 PR 별도 |
 | `village-design-mvp` | [69 (에셋 모델)](../learning/69-asset-model-curated-vs-ai-generation.md) · [70 (마을 톤·미감)](../learning/70-village-mood-aesthetic-decision.md) · [71 (디자인 톤 자기 인터뷰)](../learning/71-design-tone-from-self-interview.md) · [72 (Phaser 2D → Three.js 3D 전환)](../learning/72-phaser-to-threejs-pivot-decision.md) | 2026-05-10 | #57 · #64 (Step 1 만 머지) — 종료 사유: 큐레이션 자산 한계 → `village-3d` 승계 |
@@ -41,8 +42,10 @@
 
 | 트랙 ID | 예상 작업 영역 | 메모 |
 |---------|---------------|------|
-| `harden-village-ops` | 운영 P1 두 개 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test + JaCoCo 0.50 복원 | **Pre-scaffolded (2026-05-17, PR #91 동봉)** — spec/track 파일 작성 완료. 다음 세션이 spec 보고 즉시 Step 1 진입 가능. Issue/브랜치만 생성하면 됨. learning 80~82 예약. |
-| `ai-native-2026-05-upgrade` | sweep v1 매트릭스 적용 (CLAUDE.md compaction 60% + XML 태그 + CodeRabbit 플러그인) + sweep v2 sub-research (MCP / AI Eval / AGENTS.md) + Skills 마이그 + Agent OS 패턴 차용 | **Pre-scaffolded (2026-05-17, PR #91 동봉)** — spec/track 파일 작성 완료. Step 0 = sweep v2 (research-agent 위임) 부터 시작. learning 83~85 예약. |
+| `harden-village-ops` | 운영 P1 두 개 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test + JaCoCo 0.50 복원 | **보류 (2026-05-17)** — Issue #92, branch `fix/harden-village-ops`, Step 0 commit `a99e4cc` (origin 보존). 사용자 의도 ⓒ 우선 진행 후 재개 결정. learning 80~82 예약. |
+| `skills-progressive-disclosure` | track-start / track-end SKILL.md supporting files 분리 + `/discover-domain-patterns` 자체 슬래시 스킬 (Agent OS 패턴 차용) | 트랙 ⓒ Step 4·5 분리 산출. sweep v1 §C.4·§B.5 + learning 83 D4 출처. 후속 — spec-new / step-start 마이그 Phase 2. |
+| `anthropic-outcomes-trial` | Anthropic Outcomes public beta 시범 — 우리 spec verification 결박 자동 grader 결합 가능성 | 트랙 ⓒ Step 6 분리 산출. sweep v2 §D.2 출처. |
+| `npc-evaluator-lmops` 보강 | Langfuse self-host + OpenLIT + Grafana Anthropic prebuilt (sweep v2 §B·§E) | 사전 ADR learning 68 결박 보강. sweep v2 결박 결박 결박 결박. |
 | `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, WS 토큰 갱신, 게스트 영속 식별자 | 수행계획서·결정 게이트 통과·구현계획서 [track-token-auto-renewal.md](./track-token-auto-renewal.md) 에 보존. **2026-05-02 재차 보류** — Redis 저장소 선택의 5패턴 비교 + 블로그 포스팅까지 깊이 있게 가져갈 주제로 판단, UI 디자인 트랙 우선 처리 후 재개 |
 | `s3-media` | S3 도입 (집 배경 이미지, 캐릭터 등) | 사전 결정 필요: 무엇을 올릴지 / 비용 정책 / 유해 필터 |
 

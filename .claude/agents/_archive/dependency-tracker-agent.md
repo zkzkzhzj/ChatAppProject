@@ -1,6 +1,6 @@
 ---
 name: dependency-tracker-agent
-description: 프로젝트 핵심 의존성 버전 추적. Spring Boot 4.x, Java 21, Kafka, Redis, Cassandra, Next.js 최신 릴리즈·보안 패치·breaking change 감지. "의존성 확인", "라이브러리 업데이트", "버전 체크", "security patch" 요청 시 매칭.
+description: '[ARCHIVED 2026-04-30 — Dependabot 으로 대체됨. 호출 X.] 옛 프로젝트 의존성 버전 추적 에이전트. 본 파일은 history 보존 결로만 유지 — 라우팅 매칭 X.'
 tools: WebSearch, Read, Write, Edit, Bash
 ---
 

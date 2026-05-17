@@ -31,7 +31,9 @@
 | `ghost-session` | [54 (presence cleanup 진단)](../learning/54-presence-cleanup-ghost-character-diagnosis.md) · [60 (STOMP reconnect 두 레이어)](../learning/60-stomp-reconnect-layered-conflict.md) | 2026-04-27 ~ 2026-04-28 | #36 · #37 · #41 |
 | `ui-mvp-feedback` | [49 (React IME)](../learning/49-react-input-ime-handling.md) · [50 (모바일 터치)](../learning/50-mobile-touch-movement.md) | 2026-04-26 | #27 |
 
-> 완료된 트랙의 `track-*.md`는 머지 후 삭제하고 학습노트로 결정 이력만 보존한다 (메인 `handover.md` §2 "전체 완료 요약" 표에도 한 줄 등록).
+> 완료된 트랙의 `track-*.md`는 학습노트로 결정 이력이 충분히 옮겨졌고 후속 트랙이 더 이상 참조하지 않을 때 삭제한다. 후속 의제로 살아있는 트랙 (예: `ws-redis` Step 3, `token-auto-renewal` 재개) 은 종료 표시 후 보존한다. 메인 `handover.md` §2 "전체 완료 요약" 표에는 머지 시점 한 줄 등록 (보존 여부와 무관).
+>
+> **현재 잔존 트랙 파일** (2026-05-16 시점): `track-ws-redis.md` (Step 3 대기) · `track-token-auto-renewal.md` (재개 대기) · `track-village-3d.md` · `track-village-design-mvp.md` · `track-harness-spec-driven.md` · `track-infra-tls-hardening.md` · `track-ghost-session.md` — 후속 트랙 의제 정리되면 일괄 삭제 (별도 트랙).
 
 ---
 

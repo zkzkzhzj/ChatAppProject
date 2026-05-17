@@ -2,7 +2,7 @@
 feature: ai-native-2026-05-upgrade
 track: ai-native-2026-05-upgrade
 issue: "#93 (트랙 시작 시 gh issue create)"
-status: draft
+status: complete
 created: 2026-05-17
 last-updated: 2026-05-17
 ---

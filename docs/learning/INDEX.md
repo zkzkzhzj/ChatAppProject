@@ -17,6 +17,7 @@
 | [67](./67-wiki-policy-rejection-reversal.md) | Wiki 폐지 권고를 철회한 이유 | 노화의 원인을 잘못 짚었다 — 카파시 LLM Wiki 패턴 + 갱신 자동화 4종 |
 | [68](./68-npc-service-differentiator-adr.md) | NPC 중심 서비스의 차별점 ADR | Evaluator + LMOps + RAG 3축 — PyTorch/LangChain/외부 vector DB 배제 이유. 후속 트랙 사전 ADR |
 | [79](./79-context-refresh-cycle-meta-learning.md) | 컨텍스트 노화 사이클 메타 학습 + 3개 서브에이전트 동시 출격 회고 | 트랙 `ctx-refresh-post-village-3d` 산출 — 노화 정리 사이클 (점검·분류·트랙·실행) + 1 PR · 6 commit 구조 + pre-commit hook auto-fix 버그 진단 + lint config 한국어 docs 친화 + D1·D2·D3 결정 회고 |
+| [83](./83-ai-native-2026-05-upgrade-trial.md) | 트랙 `ai-native-2026-05-upgrade` 회고 — sweep 2축 + 즉시 도입 3종 + MCP baseline | sweep v1 + v2 통합 매트릭스 적용 (도입 권고 6개 중 3건 + MCP 보안 5규칙) + D1·D2·D3·D4 회고 + 후속 트랙 분리 (skills-progressive-disclosure · anthropic-outcomes-trial · npc-evaluator-lmops 보강) + 메타 트랙 4 commit 구조 + 사용자 의도 정정 사례 (ⓑ→ⓒ) |
 
 ## 인프라·빌드 초기 셋업
 

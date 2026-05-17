@@ -12,7 +12,7 @@
 
 ---
 
-## 예약 현황 (마지막 사용 번호: 79, 마지막 예약 번호: 85)
+## 예약 현황 (마지막 사용 번호: 83, 마지막 예약 번호: 84)
 
 | 번호 | 트랙 | 예상 주제 | 상태 |
 |------|------|----------|------|
@@ -53,9 +53,9 @@
 | 80   | `harden-village-ops` | idempotency marker leak 패턴 — Kafka consumer + IdempotencyGuard 의 release 의무. UserRegistered vs ConversationSummary 두 consumer 비교 + DLT vs release 트레이드오프 | 예약 (트랙 시작 시) |
 | 81   | `harden-village-ops` | JWT_SECRET 운영 폴백 제거 — 12-factor + fail-fast + @Validated @NotBlank @Size 의 정당화. application-prod.yml 분리 검토 결과 | 예약 (트랙 시작 시) |
 | 82   | `harden-village-ops` | (예비 — identity/village 동시성 unit test 패턴 정리 또는 JaCoCo 0.50 복원 회고) | 예약 (트랙 시작 시) |
-| 83   | `ai-native-2026-05-upgrade` | sweep v2 (MCP / AI Eval / AGENTS.md / Karpathy 후속 / 경쟁 환경) sub-research + sweep v1 와의 통합 결정 매트릭스 | 예약 (트랙 시작 시) |
-| 84   | `ai-native-2026-05-upgrade` | CodeRabbit Claude Code 플러그인 1주 시범 결과 — 자율 루프 협력 vs 충돌 판단 + 정책 정착 결정 | 예약 (트랙 시작 시) |
-| 85   | `ai-native-2026-05-upgrade` | (예비 — track-start/end SKILL.md 마이그 + Agent OS /discover-standards 차용 회고) | 예약 (트랙 시작 시) |
+| 83   | `ai-native-2026-05-upgrade` | 트랙 ⓒ 회고 — sweep 2축 통합 매트릭스 적용 + 즉시 도입 3종 + MCP 보안 5규칙 + D1·D2·D3·D4 + 후속 트랙 분리 + 메타 4 commit + 사용자 의도 정정 (ⓑ→ⓒ) | ✅ 사용 완료 (2026-05-17) |
+| 84   | `ai-native-2026-05-upgrade` (후속) | CodeRabbit Claude Code 플러그인 1주 시범 결과 — 자율 루프 협력 vs 충돌 판단 + 정책 정착 결정 | 예약 (2026-05-24 ~ 시범 종료 시) |
+| 85   | (반환) | (구 ai-native 예비 — Skills 마이그 회고는 후속 트랙 `skills-progressive-disclosure` 결박 결박 결박) | 반환 — 재예약 가능 |
 
 > 86번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
 

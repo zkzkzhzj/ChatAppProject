@@ -10,7 +10,7 @@
 
 운영 환경(`ghworld.co`)에서 환경음 4종 + BGM 무음 상태. 원인:
 
-- `frontend/.gitignore:44-50` 결로 mp3 추적 X (spec D4' "외부 인프라 마이그 예정" 결로 미뤄둠)
+- `frontend/.gitignore:44-50`에서 mp3 추적 X (spec D4' "외부 인프라 마이그 예정" 결정으로 미뤄둠)
 - Docker 이미지 빌드 컨텍스트에 mp3 미포함 → 컨테이너 재시작/재배포 시마다 무음
 - 사용자가 BGM mp3를 EC2에 SCP로 직접 올렸으나, 새 이미지 배포 시 사라짐
 
@@ -87,7 +87,7 @@ Permissions → "Bucket policy" → Edit → 붙여넣기 → Save:
 }
 ```
 
-`v1/` prefix만 public read. `uploads/` 결로 결로 결로 결로 결로 결로 결로 결로 (사용자 업로드 결로 비공개 유지 — 후속 트랙에서 별도 sigv4 또는 presigned URL 결로 결로 결로 결로).
+`v1/` prefix만 public read. `uploads/` 같은 사용자 업로드 경로는 비공개 유지 — 후속 트랙에서 sigv4 또는 presigned URL로 접근 제공.
 
 ### 3. CORS (브라우저 cross-origin fetch 허용)
 
@@ -111,29 +111,39 @@ Permissions → "Cross-origin resource sharing (CORS)" → Edit → 붙여넣기
 
 ### 4. IAM Role (GitHub Actions OIDC — Step 3에서 박힘)
 
-Step 3 CD sync workflow 결로 필요. 기존 OIDC role(`learning 37` 참조)에 정책 추가:
+Step 3 CD sync workflow에서 필요. 기존 OIDC role(`learning 37` 참조)에 정책 추가:
 
 ```json
 {
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "ListV1Prefix",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::gohyang-s3-buket-20260514",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ["v1/*"]
+        }
+      }
+    },
+    {
+      "Sid": "WriteV1Objects",
       "Effect": "Allow",
       "Action": [
         "s3:PutObject",
-        "s3:DeleteObject",
-        "s3:ListBucket"
+        "s3:DeleteObject"
       ],
-      "Resource": [
-        "arn:aws:s3:::gohyang-s3-buket-20260514",
-        "arn:aws:s3:::gohyang-s3-buket-20260514/v1/*"
-      ]
+      "Resource": "arn:aws:s3:::gohyang-s3-buket-20260514/v1/*"
     }
   ]
 }
 ```
 
-> 본 Step 1에서는 정책 정의만 박아두고, 실제 권한 부착은 Step 3 결로.
+> 두 Statement로 분리한 이유: `s3:ListBucket`은 bucket-level action (object ARN에 못 붙음), `s3:PutObject`·`s3:DeleteObject`는 object-level action. ListBucket을 `s3:prefix` Condition으로 제한해서 CD가 `v1/` 밖을 못 본다.
+>
+> 본 Step 1에서는 정책 정의만 박아두고, 실제 권한 부착은 Step 3에서.
 
 ## versioned prefix 패턴
 
@@ -141,29 +151,29 @@ Step 3 CD sync workflow 결로 필요. 기존 OIDC role(`learning 37` 참조)에
 
 ```
 s3://gohyang-s3-buket-20260514/v1/audio/ambient/gentle-wind.mp3   ← 현재
-s3://gohyang-s3-buket-20260514/v2/audio/ambient/gentle-wind.mp3   ← 다음 결로 결로 결로 결로
+s3://gohyang-s3-buket-20260514/v2/audio/ambient/gentle-wind.mp3   ← 다음 세대 (전환 후)
 ```
 
 전환 시 동시 갱신:
 - `NEXT_PUBLIC_ASSETS_BASE_URL` (frontend env)
 - GitHub Actions sync target prefix
-- 이 ADR 결로 결로 결로 결로
+- 이 ADR의 인프라 사양 표 + 운영 매뉴얼 prefix
 
 > 첫 전환 절차는 Step 2~4 끝나고 정형화.
 
 ## 빈틈·재검토 트리거
 
 - **CORS 헤더 직접 관리** — CloudFront 도입 후 단순화 가능
-- **캐시 TTL S3 기본값** — 매 요청 fetch. CloudFront 또는 Cloudflare proxy 결로 결로 결로 결로 결로 결로 (latency 부담 발견 시)
+- **캐시 TTL S3 기본값** — 매 요청 fetch. CloudFront 또는 Cloudflare proxy로 캐시 레이어 보강 (latency 부담 발견 시)
 - **다중 리전·글로벌 사용자 latency** — CloudFront 후속
-- **자산 합산 > 1GB** — R2 마이그 재검토 결로 결로 결로 결로 결로 결로 결로
+- **자산 합산 > 1GB** — R2 마이그 재검토 (egress 비용 임계치 도달 시)
 
 ## 후속 결정
 
-- Step 2 — `NEXT_PUBLIC_ASSETS_BASE_URL` 환경변수 패턴 (learning 52 결로)
+- Step 2 — `NEXT_PUBLIC_ASSETS_BASE_URL` 환경변수 패턴 (learning 52에서 정리 예정)
 - Step 3 — GitHub Actions sync workflow + OIDC 권한 추가
-- Step 4 — BGM mp3 + `BgmManager.ts` 통합 + D11 가드 (≤0.3)
-- 후속 트랙 — `s3-media-uploads` (채팅 이미지 결로 비공개 sigv4·presigned URL)
+- ~~Step 4 — BGM mp3 + `BgmManager.ts` 통합~~ — **폐기 (2026-05-18)**: BGM = 환경음 4종으로 확정. 별도 BGM 매니저 만들지 않음
+- 후속 트랙 — `s3-media-uploads` (채팅 이미지용 비공개 sigv4·presigned URL)
 
 ## 참조
 

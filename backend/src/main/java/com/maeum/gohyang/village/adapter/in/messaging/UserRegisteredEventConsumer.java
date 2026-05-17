@@ -43,8 +43,9 @@ public class UserRegisteredEventConsumer {
     @Transactional
     public void handle(ConsumerRecord<String, String> record) {
         log.debug("user.registered 수신: key={}", record.key());
+        UUID idempotencyKey = null;
         try {
-            UUID idempotencyKey = KafkaEventIdExtractor.extract(record);
+            idempotencyKey = KafkaEventIdExtractor.extract(record);
             if (!idempotencyGuard.tryAcquire(idempotencyKey)) {
                 log.debug("중복 이벤트 무시: eventId={}", idempotencyKey);
                 return;
@@ -58,6 +59,11 @@ public class UserRegisteredEventConsumer {
             long userId = userIdNode.asLong();
             initializeUserVillageUseCase.execute(userId);
         } catch (Exception e) {
+            // 처리 실패 시 멱등성 마킹 해제 → Kafka 재시도 허용
+            // ConversationSummaryEventConsumer:103-107 동일 패턴
+            if (idempotencyKey != null) {
+                idempotencyGuard.release(idempotencyKey);
+            }
             alertPort.critical(
                     AlertContext.of("village-consumer", record.key(), record.key()),
                     "user.registered 처리 실패: " + e.getMessage()

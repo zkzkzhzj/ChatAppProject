@@ -41,6 +41,8 @@
 
 | 트랙 ID | 예상 작업 영역 | 메모 |
 |---------|---------------|------|
+| `harden-village-ops` | 운영 P1 두 개 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test + JaCoCo 0.50 복원 | **Pre-scaffolded (2026-05-17, PR #91 동봉)** — spec/track 파일 작성 완료. 다음 세션이 spec 보고 즉시 Step 1 진입 가능. Issue/브랜치만 생성하면 됨. learning 80~82 예약. |
+| `ai-native-2026-05-upgrade` | sweep v1 매트릭스 적용 (CLAUDE.md compaction 60% + XML 태그 + CodeRabbit 플러그인) + sweep v2 sub-research (MCP / AI Eval / AGENTS.md) + Skills 마이그 + Agent OS 패턴 차용 | **Pre-scaffolded (2026-05-17, PR #91 동봉)** — spec/track 파일 작성 완료. Step 0 = sweep v2 (research-agent 위임) 부터 시작. learning 83~85 예약. |
 | `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, WS 토큰 갱신, 게스트 영속 식별자 | 수행계획서·결정 게이트 통과·구현계획서 [track-token-auto-renewal.md](./track-token-auto-renewal.md) 에 보존. **2026-05-02 재차 보류** — Redis 저장소 선택의 5패턴 비교 + 블로그 포스팅까지 깊이 있게 가져갈 주제로 판단, UI 디자인 트랙 우선 처리 후 재개 |
 | `s3-media` | S3 도입 (집 배경 이미지, 캐릭터 등) | 사전 결정 필요: 무엇을 올릴지 / 비용 정책 / 유해 필터 |
 

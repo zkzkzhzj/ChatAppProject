@@ -12,7 +12,7 @@
 
 ---
 
-## 예약 현황 (마지막 사용 번호: 78, 마지막 예약 번호: 79)
+## 예약 현황 (마지막 사용 번호: 79, 마지막 예약 번호: 85)
 
 | 번호 | 트랙 | 예상 주제 | 상태 |
 |------|------|----------|------|
@@ -50,11 +50,14 @@
 | 77   | (반환) | (구 village-3d 본질 가치 4축 — Step 2 환경음만 통합 결로 별도 결 X) | 반환 — 재예약 가능 |
 | 78   | `village-3d` | Next.js + Three.js + Howler dev 서버 Node heap 폭주 진단기 (Step 2 환경음 통합 결, `.next` 캐시 손상 root cause + 일반화된 진단 휴리스틱) | ✅ 사용 완료 (2026-05-11) |
 | 79   | `ctx-refresh-post-village-3d` | 컨텍스트 노화 사이클 메타 학습 — 3개 서브에이전트 동시 출격 (research + context-health + full-review) 결로 발견된 노화 패턴 + village-3d 머지 후 잔존 사실 정리 사이클 자체에 대한 회고 | ✅ 사용 완료 (2026-05-16) |
+| 80   | `harden-village-ops` | idempotency marker leak 패턴 — Kafka consumer + IdempotencyGuard 의 release 의무. UserRegistered vs ConversationSummary 두 consumer 비교 + DLT vs release 트레이드오프 | 예약 (트랙 시작 시) |
+| 81   | `harden-village-ops` | JWT_SECRET 운영 폴백 제거 — 12-factor + fail-fast + @Validated @NotBlank @Size 의 정당화. application-prod.yml 분리 검토 결과 | 예약 (트랙 시작 시) |
+| 82   | `harden-village-ops` | (예비 — identity/village 동시성 unit test 패턴 정리 또는 JaCoCo 0.50 복원 회고) | 예약 (트랙 시작 시) |
+| 83   | `ai-native-2026-05-upgrade` | sweep v2 (MCP / AI Eval / AGENTS.md / Karpathy 후속 / 경쟁 환경) sub-research + sweep v1 와의 통합 결정 매트릭스 | 예약 (트랙 시작 시) |
+| 84   | `ai-native-2026-05-upgrade` | CodeRabbit Claude Code 플러그인 1주 시범 결과 — 자율 루프 협력 vs 충돌 판단 + 정책 정착 결정 | 예약 (트랙 시작 시) |
+| 85   | `ai-native-2026-05-upgrade` | (예비 — track-start/end SKILL.md 마이그 + Agent OS /discover-standards 차용 회고) | 예약 (트랙 시작 시) |
 
-> 80번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
->
-> 트랙 ⓑ `harden-village-ops` 시작 시 80~82 예약 예정.
-> 트랙 ⓒ `ai-native-2026-05-upgrade` 시작 시 83~85 예약 예정.
+> 86번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
 
 ---
 

@@ -1,8 +1,8 @@
 # Track: harden-village-ops
 
 > 작업 영역: 백엔드 운영 P1 — `UserRegisteredEventConsumer` idempotency release + `JWT_SECRET` 폴백 제거
-> 시작일: TBD (트랙 시작 시 본 줄 갱신)
-> Issue: #TBD (gh issue create + label `track:harden-village-ops`)
+> 시작일: 2026-05-17
+> Issue: #92 (gh issue create + label `track:harden-village-ops`)
 > 브랜치: `fix/harden-village-ops` (main 기준 분기)
 > Spec: [docs/specs/features/harden-village-ops.md](../specs/features/harden-village-ops.md)
 > 사전 ADR: PR #91 `full-review-agent` 결과 (운영 리스크 Top 5 R1·R2·R3)
@@ -36,16 +36,16 @@ PR #91 (`ctx-refresh-post-village-3d`) 의 `full-review-agent` 가 잡은 운영
 
 | Step | 내용 | 의존 | 상태 | 이슈 | PR |
 |------|------|------|------|------|-----|
-| 1 | UserRegisteredEventConsumer.release + Kafka 재배달 시나리오 테스트 | — | 대기 | #TBD | — |
-| 2 | JWT_SECRET 폴백 제거 + ConfigurationProperties Validated NotBlank Size(min=64) | step1 | 대기 | #TBD | — |
-| 3 | identity/village 동시성 unit test + JaCoCo 0.40→0.50 복원 | step1 | 대기 | #TBD | — |
+| 1 | UserRegisteredEventConsumer.release + Kafka 재배달 시나리오 테스트 | — | 대기 | #92 | — |
+| 2 | JWT_SECRET 폴백 제거 + ConfigurationProperties Validated NotBlank Size(min=64) | step1 | 대기 | #92 | — |
+| 3 | identity/village 동시성 unit test + JaCoCo 0.40→0.50 복원 | step1 | 대기 | #92 | — |
 
 ## 3. 현재 단계 상세
 
 **트랙 미시작** — PR #91 머지 후 시작 권장. `/track-start harden-village-ops` 또는 수동:
 
 1. `gh label create track:harden-village-ops` + `gh issue create`
-2. `docs/handover/INDEX.md` 활성 표 1행 추가 (#TBD → 발급된 #N)
+2. `docs/handover/INDEX.md` 활성 표 1행 추가 (#92 → 발급된 #N)
 3. `docs/learning/RESERVED.md` 80~82 예약 (이미 pre-scaffold 됨)
 4. `git checkout -b fix/harden-village-ops origin/main` (PR #91 머지 후 main 기준)
 5. Step 1 진입

@@ -12,9 +12,9 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
+| `harden-village-ops` | [track-harden-village-ops.md](./track-harden-village-ops.md) | 백엔드 운영 P1 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test | 🔧 Step 1 진행 (release + 테스트 박힘, PR #95) | #92 | 2026-05-17 |
 
-> 활성 트랙 없음 (2026-05-17 기준, 트랙 `ai-native-2026-05-upgrade` 종료 직후).
-> 보류: ⓑ `harden-village-ops` (Issue #92, branch `fix/harden-village-ops`, commit `a99e4cc`) — origin 보존, 사용자 재개 결정 대기.
+> PR #94 (트랙 ⓒ ai-native-2026-05-upgrade) 머지 직후 트랙 ⓑ `harden-village-ops` 활성. Step 1 (UserRegisteredEventConsumer release + 회귀 테스트 + Codex P1 acquired flag) 진행 중.
 > Planned: skills-progressive-disclosure (Step 4·5) / anthropic-outcomes-trial (Step 6) / npc-evaluator-lmops 보강 (sweep v2 §B·§E).
 > ws-redis Step 3 도 후보. `track-ws-redis.md` §9 인수인계 참조.
 
@@ -42,10 +42,9 @@
 
 | 트랙 ID | 예상 작업 영역 | 메모 |
 |---------|---------------|------|
-| `harden-village-ops` | 운영 P1 두 개 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test + JaCoCo 0.50 복원 | **보류 (2026-05-17)** — Issue #92, branch `fix/harden-village-ops`, Step 0 commit `a99e4cc` (origin 보존). 사용자 의도 ⓒ 우선 진행 후 재개 결정. learning 80~82 예약. |
 | `skills-progressive-disclosure` | track-start / track-end SKILL.md supporting files 분리 + `/discover-domain-patterns` 자체 슬래시 스킬 (Agent OS 패턴 차용) | 트랙 ⓒ Step 4·5 분리 산출. sweep v1 §C.4·§B.5 + learning 83 D4 출처. 후속 — spec-new / step-start 마이그 Phase 2. |
-| `anthropic-outcomes-trial` | Anthropic Outcomes public beta 시범 — 우리 spec verification 결박 자동 grader 결합 가능성 | 트랙 ⓒ Step 6 분리 산출. sweep v2 §D.2 출처. |
-| `npc-evaluator-lmops` 보강 | Langfuse self-host + OpenLIT + Grafana Anthropic prebuilt (sweep v2 §B·§E) | 사전 ADR learning 68 결박 보강. sweep v2 결박 결박 결박 결박. |
+| `anthropic-outcomes-trial` | Anthropic Outcomes public beta 시범 — 우리 spec verification 과 자동 grader 결합 가능성 | 트랙 ⓒ Step 6 분리 산출. sweep v2 §D.2 출처. |
+| `npc-evaluator-lmops` 보강 | Langfuse self-host + OpenLIT + Grafana Anthropic prebuilt (sweep v2 §B·§E) | 사전 ADR learning 68 의 보강. sweep v2 결과 매트릭스 직접 반영. |
 | `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, WS 토큰 갱신, 게스트 영속 식별자 | 수행계획서·결정 게이트 통과·구현계획서 [track-token-auto-renewal.md](./track-token-auto-renewal.md) 에 보존. **2026-05-02 재차 보류** — Redis 저장소 선택의 5패턴 비교 + 블로그 포스팅까지 깊이 있게 가져갈 주제로 판단, UI 디자인 트랙 우선 처리 후 재개 |
 | `s3-media` | S3 도입 (집 배경 이미지, 캐릭터 등) | 사전 결정 필요: 무엇을 올릴지 / 비용 정책 / 유해 필터 |
 

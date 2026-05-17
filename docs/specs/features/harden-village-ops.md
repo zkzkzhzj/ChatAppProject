@@ -1,7 +1,7 @@
 ---
 feature: harden-village-ops
 track: harden-village-ops
-issue: "#TBD (트랙 시작 시 gh issue create)"
+issue: "#92 (트랙 시작 시 gh issue create)"
 status: draft
 created: 2026-05-17
 last-updated: 2026-05-17
@@ -78,9 +78,9 @@ last-updated: 2026-05-17
 
 | Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | PR |
 |------|------|------|---------------|------|-----|
-| 1 | `UserRegisteredEventConsumer.handle` catch 블록 `idempotencyGuard.release()` 추가 + Cucumber/unit 시나리오 (Kafka 재배달) | — | `backend/.../village/adapter/in/messaging/UserRegisteredEventConsumer.java` + test | #TBD | TBD |
-| 2 | JWT_SECRET 폴백 제거 — `application.yml` + `docker-compose.yml` + `@ConfigurationProperties` + `@Validated` `@NotBlank` `@Size(min=64)` | step1 | `backend/src/main/resources/application.yml`, `deploy/docker-compose.yml`, `backend/.../global/security/JwtProperties.java` | #TBD | TBD |
-| 3 | 회원가입 동시성 unit test (`RegisterUserServiceConcurrencyTest` + `InitializeUserVillageServiceConcurrencyTest`) + JaCoCo 0.40 → 0.50 복원 검증 | step1 | `backend/src/test/java/.../identity/` + `backend/src/test/java/.../village/` + `backend/build.gradle.kts` | #TBD | TBD |
+| 1 | `UserRegisteredEventConsumer.handle` catch 블록 `idempotencyGuard.release()` 추가 + Cucumber/unit 시나리오 (Kafka 재배달) | — | `backend/.../village/adapter/in/messaging/UserRegisteredEventConsumer.java` + test | #92 | TBD |
+| 2 | JWT_SECRET 폴백 제거 — `application.yml` + `docker-compose.yml` + `@ConfigurationProperties` + `@Validated` `@NotBlank` `@Size(min=64)` | step1 | `backend/src/main/resources/application.yml`, `deploy/docker-compose.yml`, `backend/.../global/security/JwtProperties.java` | #92 | TBD |
+| 3 | 회원가입 동시성 unit test (`RegisterUserServiceConcurrencyTest` + `InitializeUserVillageServiceConcurrencyTest`) + JaCoCo 0.40 → 0.50 복원 검증 | step1 | `backend/src/test/java/.../identity/` + `backend/src/test/java/.../village/` + `backend/build.gradle.kts` | #92 | TBD |
 
 ## 6. Verification
 

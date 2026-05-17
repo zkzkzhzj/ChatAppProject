@@ -27,15 +27,30 @@ Claude writes code
 - [claude.com/plugins/coderabbit](https://claude.com/plugins/coderabbit) — Anthropic 공식 플러그인 마켓 등재
 - [docs.coderabbit.ai/cli/claude-code-integration](https://docs.coderabbit.ai/cli/claude-code-integration) — CodeRabbit 측 통합 가이드
 
-### 2.2 설치 명령
+### 2.2 CodeRabbit CLI 설치 + 인증 (필수 선결)
 
-Claude Code 안에서:
+Claude Code 플러그인은 내부적으로 **CodeRabbit CLI** 를 호출하므로 CLI 설치 + 인증이 선결 의무 — 공식 docs (docs.coderabbit.ai/cli/claude-code-integration) 의 명시 단계.
+
+```bash
+# CodeRabbit CLI 설치
+npm install -g @coderabbitai/cli
+# 또는 macOS: brew install coderabbit-cli
+
+# 인증 (OAuth 브라우저 플로우)
+coderabbit auth login
+```
+
+CodeRabbit Pro 구독 필요 (트라이얼 / 무료 플랜으로도 일정 한도 내 가능).
+
+### 2.3 Claude Code 플러그인 설치
+
+CLI 인증 완료 후 Claude Code 안에서:
 
 ```text
 /plugin install coderabbit
 ```
 
-또는 CLI 결박:
+또는 외부 CLI:
 
 ```bash
 claude plugin install coderabbit
@@ -49,17 +64,17 @@ claude plugin install coderabbit
 
 → `coderabbit` 등록 확인.
 
-### 2.3 인증
+### 2.4 설치 검증 — 공식 slash 명령
 
-CodeRabbit 계정 필요 (기존 PR 봇 계정 재사용 가능). 첫 호출 시 OAuth 플로우 자동 트리거. CodeRabbit Pro 구독 필요 (트라이얼 결박 결박 결박 결박 가능).
-
-### 2.4 설치 검증
+Anthropic / CodeRabbit 공식 docs 의 정식 명령은 **`/coderabbit:review`** (콜론 + scope, 우리가 기존 잘못 박은 `/coderabbit review --staged` 와 다름):
 
 ```text
-/coderabbit review --staged
+/coderabbit:review uncommitted
+/coderabbit:review committed
+/coderabbit:review --base main
 ```
 
-→ staged 파일 리뷰 결과 출력되면 정상.
+→ 각각 staged / uncommitted, 최근 committed, base 와의 비교 결과 출력. **uncommitted** 가 첫 검증에 가장 적합.
 
 ## 3. 사용 패턴
 

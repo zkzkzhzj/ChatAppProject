@@ -41,7 +41,7 @@ PR #91 (`ctx-refresh-post-village-3d`) 의 sweep v1 (`docs/knowledge/ai-native/2
 | 0 | sweep v2 sub-research (research-agent 위임) | — | ✅ 완료 | #93 | (트랙 머지 PR #94) |
 | 1 | CLAUDE.md compaction 60% 룰 + Critical Rules XML 태그 | step0 | ✅ 완료 | #93 | (트랙 머지 PR #94) |
 | 2 | CodeRabbit Claude Code 플러그인 가이드 + 1주 시범 시작 | step1 | ✅ 완료 | #93 | (트랙 머지 PR #94) |
-| 3 | (1주 후 2026-05-24) CodeRabbit 협력 vs 충돌 판단 + 정책 정착 | step2 + 1주 | ⏸ 시간 의존 (learning 84 결박) | #93 | (별도) |
+| 3 | (1주 후 2026-05-24) CodeRabbit 협력 vs 충돌 판단 + 정책 정착 | step2 + 1주 | ⏸ 시간 의존 (learning 84 작성 예정) | #93 | (별도) |
 | 4 | track-start / track-end SKILL.md supporting files 분리 | step1 | 🔀 후속 트랙 `skills-progressive-disclosure` 분리 | (별도) | — |
 | 5 | `/discover-domain-patterns` 자체 슬래시 스킬 (Agent OS 패턴 차용) | step1 | 🔀 후속 트랙 `skills-progressive-disclosure` 분리 | (별도) | — |
 | 6 | Anthropic Outcomes 시범 (spec verification 결박 자동 grader 결합) | step0 | 🔀 후속 트랙 `anthropic-outcomes-trial` 분리 | (별도) | — |

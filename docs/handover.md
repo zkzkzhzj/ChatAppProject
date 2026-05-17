@@ -19,6 +19,7 @@
 
 **최근 종료 트랙** (시간 역순):
 
+- `village-3d` (PR #68·#69·#78·#79·#84·#85, 트랙 머지 PR #86, 2026-05-13) — Three.js 3D 마을 + 멀티유저 위치 동기화 + 환경음(D6 v) + 채팅 UI 재설계(머리 위 3D Sprite 말풍선 + 인라인 입력 + 우측 드로우어 + tap-to-move 모바일). 안식처 가드레일 6축 (D11) 코드 강제. **종료 사유**: 사용자 결정 — 본질 가치 1축(환경음) + 멀티유저 + 새 채팅 UI까지 박은 결로 운영 머지 + 점검 시간. Step 3·4·5·6·7 (캐릭터 모델·도서관·NPC·편지·인벤토리)은 후속 트랙으로 분리. learning 74·78
 - `village-design-mvp` (PR #57·#64, 2026-05-10, Step 1 만 머지) — 마을 디자인 MVP (Stardew 결 픽셀 + Alone Together 차별점). **종료 사유: D3 재검토 트리거 (큐레이션 자산만으로 디자인 영혼 표현 한계) 도달 + 사용자 결 명시 박음 (시안 1·2·3 거부 누적 → 3D 시각 욕심 결로 정정).** D1 안식처 · D2 Alone Together · D6 4축 본질 가치는 새 트랙 `village-3d` 로 승계. D3 (Stardew 픽셀) · D4 (큐레이션 자산) 폐기. learning 69·70·71·72
 - `harness-spec-driven` (PR #47, 2026-04-30) — spec-driven 4층 분리 모델 (Issue/Spec/Track/Step) + 자동 fix-loop + Comprehension Gate (13 카테고리/Tier A·B·C) + wiki 활용 강화 4종 + Dependabot 도입 (dependency-tracker-agent 대체). learning 66·67·68
 - `infra-tls-hardening` (PR #43, 2026-04-28) — Cloudflare SSL Flexible→Full(strict), Origin CA, HSTS, 보안그룹 prefix list, nginx 표준 구조 마이그. learning 65
@@ -26,8 +27,6 @@
 - `ws-redis` Step 2 (PR #26, 2026-04-27) — raw WS + Redis Pub/Sub 백엔드. 토폴로지 ③ 결정. learning 44·45·46·53·59
 - `ghost-session` (PR #36 · #37, 2026-04-27) — presence cleanup 진단 + 게스트 토큰 stale fix 5종. learning 54
 - `ui-mvp-feedback` (PR #27, 2026-04-26) — F-1 모바일 터치 + F-2 typing cleanup + F-3 IME 가드. learning 49·50
-
-- `village-3d` (2026-05-11 ~ 2026-05-13, PR #68 + #69 + #78 + #79 + #84 + #85) — Three.js 3D 마을 + 멀티유저 위치 동기화 + 환경음(D6 v) + 채팅 UI 재설계(머리 위 3D Sprite 말풍선 + 인라인 입력 + 우측 드로우어 + tap-to-move 모바일). 안식처 가드레일 6축 (D11) 코드 강제. **종료 사유**: 사용자 결정 — 본질 가치 1축(환경음) + 멀티유저 + 새 채팅 UI까지 박은 결로 운영 머지 + 점검 시간. Step 3·4·5·6·7 (캐릭터 모델·도서관·NPC·편지·인벤토리)은 후속 트랙으로 분리. learning 74·78
 
 **다음 후보 트랙** (착수 시 사용자 결정):
 

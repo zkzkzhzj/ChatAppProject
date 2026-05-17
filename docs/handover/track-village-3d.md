@@ -48,7 +48,7 @@
 |------|------|------|------|------|-----|
 | **1** | Three.js PoC — 마을 박스 레이아웃 + 캐릭터 이동 (걷기 + 점프) + 도서관 별도 Scene 전환 + warm 라이팅 + Fog. 자산 X 기본 geometry. 멀티유저 동기화 X | — | ✅ 머지 | #67 | #68 |
 | **1.5** | 멀티유저 위치 동기화 — PositionSync + RemotePlayer + tokenBridge late-subscriber fix + backend coord clamp 제거. Codex P1 (PR #68) 회수 | step1 | ✅ 머지 | #67 | #84 |
-| **1.7** | **채팅 UI 재설계** — 좌측하단 ChatOverlay 폐기, 머리 위 3D Sprite 말풍선 (6초) + 인라인 입력 + 우측 사이드 드로우어 | step1.5 | 🟢 작업 완료·검증 중 | #67 | (작업 중) |
+| **1.7** | **채팅 UI 재설계** — 좌측하단 ChatOverlay 폐기, 머리 위 3D Sprite 말풍선 (6초) + 인라인 입력 + 우측 사이드 드로우어 | step1.5 | ✅ 머지 | #67 | #85 |
 | **2** | **환경음 통합** ⭐ — Howler.js + 환경음 자산 4종 (gentle-wind·crackling-fire·pond-water·forest-birds) + 위치 기반 음량 (global·point·forest-edge) + smoothing + Scene 전환 음량 fade. D6(v) 본질 가치 첫 시안. 부수 fix — dev 환경 메모리 폭주 진단 (.next 캐시 손상·Turbopack workspace root·Howler html5 pool·Three.js dispose 누락·React Strict Mode 영향) | step1 | ✅ 머지 | #67 | #69 + #78 (보강) |
 | 2.5 | PositionalAudio 결 — 연못·캠프파이어 결 가까이 갈수록 음량 ↑. Three.js `PositionalAudio` + AudioListener | step2 | 대기 | (별도) | — |
 | 3 | 캐릭터 3D 모델 + 4방향 walk 애니메이션 (Quaternius Ultimate Modular Men) | step1 | 대기 | (별도) | — |

@@ -26,7 +26,7 @@
 **마음의 고향**은 대화가 그리운 사람을 위한 장소 기반 의사소통 서비스다.
 
 누군가의 온기가 필요할 때, 고향에 온 듯한 편안함을 느끼며 대화할 수 있는 **마을**을 제공한다.
-인터랙티브 2D 공간에서 캐릭터가 마을을 돌아다니고, 자기 공간을 꾸미며, 이웃(유저 또는 AI 주민)과 자연스럽게 소통하는 서비스다.
+인터랙티브 3D 마을 공간에서 캐릭터가 돌아다니고, 자기 공간을 꾸미며, 이웃(유저 또는 AI 주민)과 자연스럽게 소통하는 서비스다.
 
 - **"대화가 그리운 사람을 위한 안식처"가 서비스의 핵심 가치다.** 가벼운 일상 수다부터 마음속 이야기까지, 감정의 무게와 관계없이 누구나 편히 찾아올 수 있는 곳이다. 모든 기능과 설계 결정은 이 가치를 기준으로 판단한다.
 - **공간 꾸미기**가 유저 유입의 핵심 전략이다. 귀여운 아이템으로 "내 안식처"를 만드는 경험을 제공한다.
@@ -41,7 +41,7 @@
 ```text
 Java 21 / Spring Boot 4.x / Gradle Kotlin DSL / Hexagonal Architecture
 PostgreSQL · Redis · Cassandra · Kafka · WebSocket(STOMP) · WebRTC (추후 추가 예정)
-Frontend: Next.js (React) + Phaser.js (2D 공간 렌더링)
+Frontend: Next.js (React) + Three.js (3D 마을 렌더링) + Howler.js (환경음)
 Notification: FCM (Web Push)
 Test: JUnit 5 · Cucumber BDD · Testcontainers
 ```

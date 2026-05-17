@@ -2,6 +2,52 @@
 
 ---
 
+## 2026-05-16
+
+### 트랙 `ctx-refresh-post-village-3d` — 종합 점검 + 노화 정리 사이클
+
+3개 서브에이전트 (research-agent + context-health-agent + full-review-agent) 동시 출격 결박 발견된 노화·운영 리스크 일괄 정리 트랙 산출물.
+
+#### 신규 문서: `ai-native/2026-05-ai-native-sweep.md`
+
+Karpathy Skills 분석 (2026-04-30) 이후 16일 공백 종합 점검. 4섹션:
+
+- **A. MD vs HTML / XML for LLM prompts** — Thariq (Anthropic Claude Code) 의 "Unreasonable Effectiveness of HTML" 분석 + Anthropic 공식 권고는 변함 X (XML > MD > HTML 유지) + HN 반박 4축 + 우리 적용 매트릭스 (대부분 보류)
+- **B. Agent OS (Builder Methods v3)** — Brian Casel 의 spec-driven 표준화 프레임워크 정체 + 우리 spec-driven 4층 모델과 비교 + `/discover-standards` 만 차용 조건부
+- **C. Anthropic Skills (SKILL.md) 진화** — Claude Agent SDK 리브랜드 / Progressive Disclosure 3층 / Slash Command ↔ Skill merge / 우리 7개 슬래시 supporting files 분리 검토
+- **D. 2026 Q1~Q2 Claude Code 신기능** — Opus 4.7 1M 컨텍스트 + 60% 시점 proactive compaction / Plugin Marketplace + Hooks $CLAUDE_EFFORT / Memory Bank 패턴 / CodeRabbit Claude Code 통합
+
+#### 카테고리 재분류
+
+- `3d-game-chat-ui-patterns.md` (2026-05-13 작성) — 루트 → `realtime/` 이동
+  - 사유: 3D 채팅 UI 패턴 비교라 realtime 카테고리에 자연 정합
+  - 결정 D3 (트랙 spec): realtime 이동 vs 신규 frontend-3d 카테고리 vs 루트 보존 → realtime 채택
+
+#### 노화 경고 박스 (wiki 결박)
+
+- `docs/wiki/frontend/{phaser-setup, asset-guide}.md` + `docs/wiki/village/character-system.md` 3페이지 → NOTICE 박스 + INDEX 카탈로그 ⚠️ stale 표기
+- 사유: village-3d 머지 (2026-05-13) 후 wiki 본문이 Phaser 2D 시점에 머물러 있음. 새 세션 진입 시 잘못된 컨텍스트 차단.
+
+---
+
+## 2026-04-30
+
+### Karpathy Skills 의도 분석 + CLAUDE.md 보강 매핑
+
+(이전 changelog 누락 — 본 트랙 정리 시점에 보강 추가)
+
+#### 신규 문서: `ai-native/karpathy-skills-analysis.md`
+
+- forrestchang/andrej-karpathy-skills 4원칙 (Think Before / Simplicity First / Surgical Changes / Goal-Driven Execution) 의도 추출
+- 우리 CLAUDE.md 매핑 + 보강 제안 4개:
+  - Critical Rule #9 — 요청되지 않은 추상화·유연성 금지 (YAGNI > 헥사고날)
+  - Critical Rule #10 — Surgical Changes (사용자 요청 밖 코드 손대지 마라)
+  - §5.1 검증형 success criteria (명령형 X → 검증형 O)
+  - §7 Verification Checklist 신규 2항 (추상화·인접 코드 점검)
+- 안 가져온 것 4개 — 우리 환경에 안 맞는 패턴 식별
+
+---
+
 ## 2026-04-24 (2nd)
 
 ### Handover 충돌 관리 + Agent Teams 실전 디테일 (직전 노트 후속 심화)

@@ -1,3 +1,9 @@
+---
+name: blog-writer-agent
+description: zlog 블로그 글 작성 전문. docs/learning, docs/architecture/decisions, 대화 맥락에서 소재 추출 후 Astro v6 MDX 결로 글 작성. "블로그", "blog", "zlog", "글 써줘", "포스팅" 요청 시 매칭.
+tools: Read, Write, Edit, Glob, Grep, WebSearch
+---
+
 # Blog Writer Agent — zlog 블로그 글 작성 전문
 
 마음의 고향 프로젝트에서 학습한 내용, 기술 선택, 트레이드오프 고민을 블로그 글로 변환하는 에이전트.

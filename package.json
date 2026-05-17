@@ -22,10 +22,10 @@
       "bash -c './backend/gradlew -p backend checkstyleMain checkstyleTest'"
     ],
     "*.md": [
-      "markdownlint-cli2 --fix"
+      "markdownlint-cli2"
     ],
     "docs/**/*.md": [
-      "markdownlint-cli2 --fix"
+      "markdownlint-cli2"
     ]
   }
 }

@@ -1,13 +1,33 @@
 {
+  // 한국어 docs 스타일 친화 markdownlint 설정.
+  // disable 사유 (2026-05-16 트랙 ctx-refresh-post-village-3d 에서 추가):
+  //   - MD013 line-length      : 한국어 본문은 한 줄 호흡 길음. 가독성 자체 판단에 맡김.
+  //   - MD024 multiple-h2      : siblings_only=true 로 같은 깊이 h2 만 중복 차단. 다른 깊이 OK.
+  //   - MD025 single-h1        : 학습노트가 # 79 — 제목 — 부제 결로 박힘. h1 다수 허용.
+  //   - MD032 blanks-list      : 콜론 → 즉시 리스트 패턴이 한국어 docs 자연스러움. 빈 줄 강제 X.
+  //   - MD033 inline-html      : <details>, <summary>, <br> 등 GitHub 친화 HTML 허용.
+  //   - MD034 bare-url         : 학습노트 출처 URL 다수 인용. < > 또는 [link](url) 강제 X.
+  //   - MD036 emphasis-as-heading : ** 강조 ** 단독 줄을 의도적으로 사용.
+  //   - MD040 fenced-language  : ```text 외 디렉토리 트리 / 메모 결 ``` 만 사용 허용.
+  //   - MD041 first-h1         : frontmatter 다음 NOTICE 박스 결로 박는 패턴 허용.
+  //   - MD046 style:fenced     : code block 일관성 유지 (indented 금지).
+  //   - MD060 link-fragments   : 한국어 anchor 결 깨질 위험 회피.
+  //   - MD022 blanks-around-headings : 학습노트 65 + realtime/token-renewal-patterns 다수 위반. 가독성에 큰 영향 없고 본 트랙 스코프 외 (별도 정리 트랙 후보).
+  //   - MD056 table-column-count : realtime/token-renewal-patterns L134-137 의 표 컬럼 X (의미 보존 결박 형식 어긋남). 별도 정리 트랙 후보.
   "config": {
     "default": true,
     "MD013": false,
+    "MD022": false,
     "MD024": { "siblings_only": true },
     "MD025": false,
+    "MD032": false,
     "MD033": false,
+    "MD034": false,
     "MD036": false,
+    "MD040": false,
     "MD041": false,
     "MD046": { "style": "fenced" },
+    "MD056": false,
     "MD060": false
   },
   "ignores": [

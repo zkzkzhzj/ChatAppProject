@@ -16,7 +16,9 @@ successor: docs/specs/features/village-3d.md
 > Step 1 (자산 토대 + Welcome 모션) PR #57·#64 머지 결만 보존 (LICENSE 인프라). Step 2~9 미수행. §6 Verification 미충족 — **트랙 결정 변경으로 종료**.
 >
 > 결정 정정 사유 + 자기 정정 추적: [learning 72 — Phaser 2D → Three.js 3D 전환 결정](../../learning/72-phaser-to-threejs-pivot-decision.md)
-
+>
+> ---
+>
 > 이 spec 은 트랙 `village-design-mvp` (Issue #56) 의 **요구사항 진실** 이다.
 > 진행 상태는 [`docs/handover/track-village-design-mvp.md`](../../handover/track-village-design-mvp.md), 결정의 사고 과정은 [`docs/learning/69`](../../learning/69-asset-model-curated-vs-ai-generation.md) · [`70`](../../learning/70-village-mood-aesthetic-decision.md) · [`71`](../../learning/71-design-tone-from-self-interview.md) · [`72`](../../learning/72-phaser-to-threejs-pivot-decision.md).
 > 4층 분리 모델: [conventions/spec-driven.md](../../conventions/spec-driven.md) §1.

@@ -13,14 +13,16 @@
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
 
-> 활성 트랙 없음 (2026-05-13 기준). `village-3d` 종료 → 운영 머지 후 프로젝트 점검 시간.
-> ws-redis Step 3 (클라이언트 재작성 + WS 모듈 분리) 착수 시 본 표에 다시 추가. `track-ws-redis.md` §9 인수인계 참조.
+> 활성 트랙 없음 (2026-05-16 기준, `ctx-refresh-post-village-3d` 종료 직후).
+> 다음 후보: ⓑ `harden-village-ops` (운영 P1 두 개 — JWT_SECRET + idempotency leak) → ⓒ `ai-native-2026-05-upgrade` (compaction 60% / CodeRabbit / XML 태그). 사용자 결정 후 착수.
+> ws-redis Step 3 (클라이언트 재작성 + WS 모듈 분리) 도 후보. `track-ws-redis.md` §9 인수인계 참조.
 > 새 트랙을 시작할 때 이 표에 한 줄 추가하고, 해당 트랙 파일을 신규 작성한다.
 
 ## 완료 트랙 (Recently Closed)
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
+| `ctx-refresh-post-village-3d` | [79 (컨텍스트 노화 사이클 메타 학습)](../learning/79-context-refresh-cycle-meta-learning.md) | 2026-05-16 | (PR #91) |
 | `village-3d` | [74 (3D 채팅 UI 재설계 4축)](../learning/74-3d-chat-ui-redesign-decisions.md) · [78 (Next 16 + Three.js + Howler dev 메모리 폭주)](../learning/78-next-three-howler-dev-memory-diagnosis.md) | 2026-05-13 | #68 (Step 1) · #69 + #78 (Step 2) · #79 (핫픽스) · #84 (Step 1.5 멀티유저) · #85 (Step 1.7 채팅 UI) — 트랙 머지 PR 별도 |
 | `village-design-mvp` | [69 (에셋 모델)](../learning/69-asset-model-curated-vs-ai-generation.md) · [70 (마을 톤·미감)](../learning/70-village-mood-aesthetic-decision.md) · [71 (디자인 톤 자기 인터뷰)](../learning/71-design-tone-from-self-interview.md) · [72 (Phaser 2D → Three.js 3D 전환)](../learning/72-phaser-to-threejs-pivot-decision.md) | 2026-05-10 | #57 · #64 (Step 1 만 머지) — 종료 사유: 큐레이션 자산 한계 → `village-3d` 승계 |
 | `harness-spec-driven` | [66 (spec-driven 4층 + fix-loop + Comprehension Gate)](../learning/66-spec-driven-fix-loop-comprehension-gate.md) · [67 (wiki 활용 강화 — 폐지 권고 철회)](../learning/67-wiki-policy-rejection-reversal.md) · [68 (NPC 차별점 ADR)](../learning/68-npc-service-differentiator-adr.md) | 2026-04-30 | #47 |
@@ -29,7 +31,9 @@
 | `ghost-session` | [54 (presence cleanup 진단)](../learning/54-presence-cleanup-ghost-character-diagnosis.md) · [60 (STOMP reconnect 두 레이어)](../learning/60-stomp-reconnect-layered-conflict.md) | 2026-04-27 ~ 2026-04-28 | #36 · #37 · #41 |
 | `ui-mvp-feedback` | [49 (React IME)](../learning/49-react-input-ime-handling.md) · [50 (모바일 터치)](../learning/50-mobile-touch-movement.md) | 2026-04-26 | #27 |
 
-> 완료된 트랙의 `track-*.md`는 머지 후 삭제하고 학습노트로 결정 이력만 보존한다 (메인 `handover.md` §2 "전체 완료 요약" 표에도 한 줄 등록).
+> 완료된 트랙의 `track-*.md`는 학습노트로 결정 이력이 충분히 옮겨졌고 후속 트랙이 더 이상 참조하지 않을 때 삭제한다. 후속 의제로 살아있는 트랙 (예: `ws-redis` Step 3, `token-auto-renewal` 재개) 은 종료 표시 후 보존한다. 메인 `handover.md` §2 "전체 완료 요약" 표에는 머지 시점 한 줄 등록 (보존 여부와 무관).
+>
+> **현재 잔존 트랙 파일** (2026-05-16 시점): `track-ws-redis.md` (Step 3 대기) · `track-token-auto-renewal.md` (재개 대기) · `track-village-3d.md` · `track-village-design-mvp.md` · `track-harness-spec-driven.md` · `track-infra-tls-hardening.md` · `track-ghost-session.md` — 후속 트랙 의제 정리되면 일괄 삭제 (별도 트랙).
 
 ---
 
@@ -37,6 +41,8 @@
 
 | 트랙 ID | 예상 작업 영역 | 메모 |
 |---------|---------------|------|
+| `harden-village-ops` | 운영 P1 두 개 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test + JaCoCo 0.50 복원 | **Pre-scaffolded (2026-05-17, PR #91 동봉)** — spec/track 파일 작성 완료. 다음 세션이 spec 보고 즉시 Step 1 진입 가능. Issue/브랜치만 생성하면 됨. learning 80~82 예약. |
+| `ai-native-2026-05-upgrade` | sweep v1 매트릭스 적용 (CLAUDE.md compaction 60% + XML 태그 + CodeRabbit 플러그인) + sweep v2 sub-research (MCP / AI Eval / AGENTS.md) + Skills 마이그 + Agent OS 패턴 차용 | **Pre-scaffolded (2026-05-17, PR #91 동봉)** — spec/track 파일 작성 완료. Step 0 = sweep v2 (research-agent 위임) 부터 시작. learning 83~85 예약. |
 | `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, WS 토큰 갱신, 게스트 영속 식별자 | 수행계획서·결정 게이트 통과·구현계획서 [track-token-auto-renewal.md](./track-token-auto-renewal.md) 에 보존. **2026-05-02 재차 보류** — Redis 저장소 선택의 5패턴 비교 + 블로그 포스팅까지 깊이 있게 가져갈 주제로 판단, UI 디자인 트랙 우선 처리 후 재개 |
 | `s3-media` | S3 도입 (집 배경 이미지, 캐릭터 등) | 사전 결정 필요: 무엇을 올릴지 / 비용 정책 / 유해 필터 |
 

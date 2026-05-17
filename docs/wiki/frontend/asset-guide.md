@@ -5,6 +5,12 @@ related: [frontend/phaser-setup.md, village/space-system.md, village/character-s
 last-verified: 2026-04-13
 ---
 
+> ⚠️ NOTICE (2026-05-16 / 트랙 `ctx-refresh-post-village-3d`): 이 페이지는 **32x32 픽셀 시점 작성** (Phaser 2D 자산 모델).
+> `village-3d` 트랙 (2026-05-13 머지) 이후 자산 모델이 **Three.js 기본 geometry + Howler 환경음** 으로 전환,
+> 후속 트랙에서 **Quaternius 3D 캐릭터 모델** 도입 예정.
+> 본문의 32x32 / 픽셀아트 / Tiled 관련 결정은 **사실 X**.
+> Three.js 결 자산 가이드 신규 작성은 후속 트랙 대기.
+
 # 에셋 가이드
 
 ## 아트 스타일 방향: 32x32 픽셀, 따뜻한 파스텔톤

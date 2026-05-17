@@ -34,7 +34,7 @@
 | 페이지 | 한 줄 요약 | tags |
 |--------|-----------|------|
 | [공간 시스템](village/space-system.md) | 공간 생성, 꾸미기, 테마 | `village, space, decoration` |
-| [캐릭터 시스템](village/character-system.md) | 캐릭터 생성, 장비, 게스트 기본 캐릭터 | `village, character, equipment` |
+| [캐릭터 시스템](village/character-system.md) | 캐릭터 생성, 장비, 게스트 기본 캐릭터 (⚠️ 렌더 결정은 Phaser 스프라이트 시점 — Three.js 박스 placeholder 로 코드 어긋남, 도메인 모델은 정합) | `village, character, equipment, stale` |
 
 ### Infra
 
@@ -48,9 +48,9 @@
 
 | 페이지 | 한 줄 요약 | tags |
 |--------|-----------|------|
-| [Phaser.js + Next.js 통합](frontend/phaser-setup.md) | Phaser 설정, Next.js 통합 구조, 현재 상태 | `frontend, phaser, nextjs` |
-| [WebSocket 클라이언트](frontend/websocket-client.md) | STOMP 연결, 메시지 송수신, 인증 | `frontend, websocket, stomp` |
-| [에셋 가이드](frontend/asset-guide.md) | 에셋 소스, 규격, 라이선스, 스타일 방향 | `frontend, assets, pixel-art, tiled` |
+| [Phaser.js + Next.js 통합](frontend/phaser-setup.md) | Phaser 설정, Next.js 통합 구조 (⚠️ Phaser 2D 시점 — village-3d 머지 후 Three.js 전환, 갱신 필요) | `frontend, phaser, nextjs, stale` |
+| [WebSocket 클라이언트](frontend/websocket-client.md) | STOMP 연결, 메시지 송수신, 인증 (ws-redis Step 3 이후 raw WS 전환 예정) | `frontend, websocket, stomp` |
+| [에셋 가이드](frontend/asset-guide.md) | 에셋 소스, 규격, 라이선스, 스타일 방향 (⚠️ 32x32 픽셀 시점 — Three.js + Quaternius 3D 결로 전환, 갱신 필요) | `frontend, assets, pixel-art, tiled, stale` |
 
 ---
 

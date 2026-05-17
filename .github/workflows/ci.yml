@@ -63,3 +63,21 @@ jobs:
       - name: Build
         working-directory: frontend
         run: npm run build
+
+  markdown:
+    name: Markdown lint (docs/ + root *.md)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install root devDependencies
+        run: npm ci
+
+      - name: Lint markdown
+        run: npm run lint:md

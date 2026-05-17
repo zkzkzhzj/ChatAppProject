@@ -1,7 +1,7 @@
 # 실시간 미디어 기술 지식 베이스
 
 > 관리: realtime-tech-agent
-> 마지막 업데이트: 2026-04-27
+> 마지막 업데이트: 2026-05-16
 
 ---
 
@@ -11,6 +11,7 @@
 |------|--------|-------------|
 | [chat.md](chat.md) | WebSocket/STOMP 채팅, Kafka 파이프라인, 스케일링 | 2026-04-23 |
 | [token-renewal-patterns.md](token-renewal-patterns.md) | JWT 토큰 갱신·게스트 sessionId·refresh token rotation 산업 사례 (Discord/Slack/Twitch/Gather/ZEP/Channel.io 비교) | 2026-04-27 |
+| [3d-game-chat-ui-patterns.md](3d-game-chat-ui-patterns.md) | 3D 게임·메타버스 채팅 입력·말풍선·내역 UI 패턴 (동물의숲·ZEP·Gather·VRChat·Roblox 비교, village-3d Step 1.7 채팅 UI 재설계 1차 출처) | 2026-05-13 |
 | [webrtc.md](webrtc.md) | WebRTC 음성/영상/화면공유, SFU/MCU, 시그널링 | - |
 | [streaming.md](streaming.md) | 라이브 스트리밍, HLS/DASH/RTMP, CDN | - |
 

@@ -13,8 +13,10 @@
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
 | `harden-village-ops` | [track-harden-village-ops.md](./track-harden-village-ops.md) | 백엔드 운영 P1 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test | 🔧 Step 1 진행 (release + 테스트 박힘, PR #95) | #92 | 2026-05-17 |
+| `s3-media` | [track-s3-media.md](./track-s3-media.md) | 정적 에셋 외부 호스팅 인프라 — AWS S3 + CD 자동 sync + BGM 운영 정상화 + 도서관 자산 토대 | 🔧 Step 1 진행 (AWS S3 + IAM + CORS + ADR) | #89 | 2026-05-17 |
 
 > PR #94 (트랙 ⓒ ai-native-2026-05-upgrade) 머지 직후 트랙 ⓑ `harden-village-ops` 활성. Step 1 (UserRegisteredEventConsumer release + 회귀 테스트 + Codex P1 acquired flag) 진행 중.
+> 트랙 `s3-media` 병렬 활성 (2026-05-17) — 영역 분리 (백엔드 vs frontend/AWS S3/CD). 충돌 위험 파일은 각 트랙 파일 §4 참조.
 > Planned: skills-progressive-disclosure (Step 4·5) / anthropic-outcomes-trial (Step 6) / npc-evaluator-lmops 보강 (sweep v2 §B·§E).
 > ws-redis Step 3 도 후보. `track-ws-redis.md` §9 인수인계 참조.
 
@@ -46,7 +48,6 @@
 | `anthropic-outcomes-trial` | Anthropic Outcomes public beta 시범 — 우리 spec verification 과 자동 grader 결합 가능성 | 트랙 ⓒ Step 6 분리 산출. sweep v2 §D.2 출처. |
 | `npc-evaluator-lmops` 보강 | Langfuse self-host + OpenLIT + Grafana Anthropic prebuilt (sweep v2 §B·§E) | 사전 ADR learning 68 의 보강. sweep v2 결과 매트릭스 직접 반영. |
 | `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, WS 토큰 갱신, 게스트 영속 식별자 | 수행계획서·결정 게이트 통과·구현계획서 [track-token-auto-renewal.md](./track-token-auto-renewal.md) 에 보존. **2026-05-02 재차 보류** — Redis 저장소 선택의 5패턴 비교 + 블로그 포스팅까지 깊이 있게 가져갈 주제로 판단, UI 디자인 트랙 우선 처리 후 재개 |
-| `s3-media` | S3 도입 (집 배경 이미지, 캐릭터 등) | 사전 결정 필요: 무엇을 올릴지 / 비용 정책 / 유해 필터 |
 
 > 시작 시점에 위 표에서 빼서 "활성 트랙" 표로 옮긴다.
 

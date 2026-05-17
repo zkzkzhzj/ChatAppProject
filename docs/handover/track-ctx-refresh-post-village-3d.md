@@ -1,10 +1,12 @@
-# Track: ctx-refresh-post-village-3d
+# Track: ctx-refresh-post-village-3d ✅ 종료 (2026-05-16)
 
 > 작업 영역: docs (CLAUDE.md / handover / wiki / knowledge) + `.claude/agents/*.md` (3개)
 > 시작일: 2026-05-16
-> Issue: #90 (사용자 확인 후 GH 생성)
+> 종료일: 2026-05-16 (1일 트랙)
+> Issue: #90
 > 브랜치: `chore/ctx-refresh-post-village-3d` (main 기준 분기)
 > Spec: [docs/specs/features/ctx-refresh-post-village-3d.md](../specs/features/ctx-refresh-post-village-3d.md)
+> Learning: [79 (컨텍스트 노화 사이클 메타 학습)](../learning/79-context-refresh-cycle-meta-learning.md)
 
 ## 0. 한 줄 요약
 
@@ -41,21 +43,19 @@
 
 | Step | 내용 | 의존 | 상태 | 이슈 | PR |
 |------|------|------|------|------|-----|
-| 1 | CLAUDE.md L29+L44 + market-research-agent L11 + handover.md §1 표 + track-village-3d.md step 1.7 정정 | — | 대기 | #90 | — |
-| 2 | wiki frontend 3페이지 노화 경고 박스 + INDEX 카탈로그 표기 | step1 | 대기 | #90 | — |
-| 3 | knowledge INDEX/changelog 갱신 + 3d-game-chat-ui-patterns realtime 이동 | step1 | 대기 | #90 | — |
-| 4 | blog-writer-agent frontmatter + dependency-tracker-agent ARCHIVED + handover/INDEX L32 정책 | step1 | 대기 | #90 | — |
+| 0 | 트랙 시작 절차 + lint config 처치 (pre-commit hook auto-fix 버그) | — | ✅ 완료 | #90 | (트랙 머지 PR) |
+| 1 | CLAUDE.md L29+L44 + market-research-agent L11 + handover.md §1 표 + track-village-3d.md step 1.7 정정 | step0 | ✅ 완료 | #90 | (트랙 머지 PR) |
+| 2 | wiki frontend 3페이지 노화 경고 박스 + INDEX 카탈로그 표기 | step1 | ✅ 완료 | #90 | (트랙 머지 PR) |
+| 3 | knowledge INDEX/changelog 갱신 + 3d-game-chat-ui-patterns realtime 이동 + MD040 disable | step1 | ✅ 완료 | #90 | (트랙 머지 PR) |
+| 4 | blog-writer-agent frontmatter + dependency-tracker-agent ARCHIVED + handover/INDEX L32 정책 | step1 | ✅ 완료 | #90 | (트랙 머지 PR) |
+| 5 | 트랙 종료 — learning 79 작성 + 메인 handover §1·§2 갱신 + handover/INDEX 활성→완료 + RESERVED 79 사용 완료 + spec/track ✅ 종료 표기 | step4 | ✅ 완료 | #90 | (트랙 머지 PR) |
 
 ## 3. 현재 단계 상세
 
-**Step 0** — 트랙 시작 절차 진행 중 (parallel-work.md §2.1):
-- ✅ spec 파일 작성 완료
-- ✅ track 파일 작성 완료
-- ✅ RESERVED 79 예약 완료 (작성 예정)
-- ✅ handover/INDEX.md 활성 표 추가 완료
-- ⏸ Issue 생성 (gh) — 사용자 확인 대기
-- ⏸ git 브랜치 생성 — 사용자 확인 대기
-- ⏸ Step 1 진입 — 사용자 확인 대기
+**모든 step 완료** — 6 commit (Step 0~5) 후 트랙 머지 PR 생성 예정.
+
+종료 시점 발견 사항 (learning 79 의 §9):
+- "결박" 단어 자가증식 발생 — memory feedback_korean_output_quality 룰 위반. 본 트랙 종료 후 memory 갱신 검토.
 
 **Decision 4축** (spec §4 와 동기화):
 - D1 wiki Phaser 3페이지 — 노화 경고 박스 채택

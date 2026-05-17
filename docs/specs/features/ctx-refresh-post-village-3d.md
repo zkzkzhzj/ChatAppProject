@@ -2,7 +2,7 @@
 feature: ctx-refresh-post-village-3d
 track: ctx-refresh-post-village-3d
 issue: "#90"
-status: draft
+status: complete
 created: 2026-05-16
 last-updated: 2026-05-16
 ---

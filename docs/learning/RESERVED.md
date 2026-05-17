@@ -49,7 +49,7 @@
 | 76   | (반환) | (구 village-3d 카메라·이동 — Step 1 PoC 결 단순 결로 학습노트 결 안 박음) | 반환 — 재예약 가능 |
 | 77   | (반환) | (구 village-3d 본질 가치 4축 — Step 2 환경음만 통합 결로 별도 결 X) | 반환 — 재예약 가능 |
 | 78   | `village-3d` | Next.js + Three.js + Howler dev 서버 Node heap 폭주 진단기 (Step 2 환경음 통합 결, `.next` 캐시 손상 root cause + 일반화된 진단 휴리스틱) | ✅ 사용 완료 (2026-05-11) |
-| 79   | `ctx-refresh-post-village-3d` | 컨텍스트 노화 사이클 메타 학습 — 3개 서브에이전트 동시 출격 (research + context-health + full-review) 결로 발견된 노화 패턴 + village-3d 머지 후 잔존 사실 정리 사이클 자체에 대한 회고 | 예약 (트랙 종료 시 작성) |
+| 79   | `ctx-refresh-post-village-3d` | 컨텍스트 노화 사이클 메타 학습 — 3개 서브에이전트 동시 출격 (research + context-health + full-review) 결로 발견된 노화 패턴 + village-3d 머지 후 잔존 사실 정리 사이클 자체에 대한 회고 | ✅ 사용 완료 (2026-05-16) |
 
 > 80번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
 >

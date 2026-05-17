@@ -16,6 +16,7 @@
 | [66](./66-spec-driven-fix-loop-comprehension-gate.md) | spec-driven 4층 + 자동 fix-loop + Comprehension Gate | Spec Kit/BMAD/AB Method 비교 + 마음의 고향 맞춤화 (트랙 `harness-spec-driven`) |
 | [67](./67-wiki-policy-rejection-reversal.md) | Wiki 폐지 권고를 철회한 이유 | 노화의 원인을 잘못 짚었다 — 카파시 LLM Wiki 패턴 + 갱신 자동화 4종 |
 | [68](./68-npc-service-differentiator-adr.md) | NPC 중심 서비스의 차별점 ADR | Evaluator + LMOps + RAG 3축 — PyTorch/LangChain/외부 vector DB 배제 이유. 후속 트랙 사전 ADR |
+| [79](./79-context-refresh-cycle-meta-learning.md) | 컨텍스트 노화 사이클 메타 학습 + 3개 서브에이전트 동시 출격 회고 | 트랙 `ctx-refresh-post-village-3d` 산출 — 노화 정리 사이클 (점검·분류·트랙·실행) + 1 PR · 6 commit 구조 + pre-commit hook auto-fix 버그 진단 + lint config 한국어 docs 친화 + D1·D2·D3 결정 회고 |
 
 ## 인프라·빌드 초기 셋업
 

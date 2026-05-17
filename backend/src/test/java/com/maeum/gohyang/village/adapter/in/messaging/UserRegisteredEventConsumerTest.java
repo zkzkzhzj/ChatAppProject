@@ -129,4 +129,21 @@ class UserRegisteredEventConsumerTest {
         verify(idempotencyGuard, times(1)).release(any(UUID.class));
         verify(initializeUserVillageUseCase, never()).execute(any(Long.class));
     }
+
+    @Test
+    @DisplayName("tryAcquire 자체 예외 시 release 호출 안 함 — 다른 consumer 의 marker 보호 (Codex P1)")
+    void tryAcquire_자체_예외_시_release_호출_안_함() {
+        // given — tryAcquire 가 DB pool 고갈 등으로 throw. 본 consumer 는 marker acquire X.
+        ConsumerRecord<String, String> record = userRegisteredRecord("user-1", "{\"userId\":1}");
+        when(idempotencyGuard.tryAcquire(any(UUID.class)))
+                .thenThrow(new RuntimeException("DB connection pool exhausted"));
+
+        // when + then
+        assertThatThrownBy(() -> consumer.handle(record))
+                .isInstanceOf(RuntimeException.class);
+
+        // release 호출 X — 이미 다른 consumer 가 박은 marker 를 삭제하면 안 됨
+        verify(idempotencyGuard, never()).release(any());
+        verify(initializeUserVillageUseCase, never()).execute(any(Long.class));
+    }
 }

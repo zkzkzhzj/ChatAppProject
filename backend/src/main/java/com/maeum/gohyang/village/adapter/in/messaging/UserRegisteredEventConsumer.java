@@ -44,12 +44,17 @@ public class UserRegisteredEventConsumer {
     public void handle(ConsumerRecord<String, String> record) {
         log.debug("user.registered 수신: key={}", record.key());
         UUID idempotencyKey = null;
+        boolean acquired = false;
         try {
             idempotencyKey = KafkaEventIdExtractor.extract(record);
             if (!idempotencyGuard.tryAcquire(idempotencyKey)) {
                 log.debug("중복 이벤트 무시: eventId={}", idempotencyKey);
                 return;
             }
+            // 본 consumer 가 tryAcquire true 반환을 직접 받은 경우에만 acquired = true.
+            // 이 가드 없이 catch 결박 release 하면 — tryAcquire 자체 예외 (DB pool 고갈 등) 시
+            // 이미 다른 consumer instance 가 박은 marker 까지 삭제할 위험 (Codex P1, PR #95).
+            acquired = true;
             JsonNode root = objectMapper.readTree(record.value());
             JsonNode userIdNode = root.get("userId");
             if (userIdNode == null || userIdNode.isNull()) {
@@ -59,9 +64,9 @@ public class UserRegisteredEventConsumer {
             long userId = userIdNode.asLong();
             initializeUserVillageUseCase.execute(userId);
         } catch (Exception e) {
-            // 처리 실패 시 멱등성 마킹 해제 → Kafka 재시도 허용
-            // ConversationSummaryEventConsumer:103-107 동일 패턴
-            if (idempotencyKey != null) {
+            // 본 consumer 가 직접 acquire 한 marker 만 release.
+            // ConversationSummaryEventConsumer:103-107 의 idempotencyKey != null 패턴 보다 안전.
+            if (acquired) {
                 idempotencyGuard.release(idempotencyKey);
             }
             alertPort.critical(

@@ -2,6 +2,54 @@
 
 ---
 
+## 2026-05-17
+
+### 트랙 `ai-native-2026-05-upgrade` (#93) Step 0 — sweep v1 누락 6축 보강 (sweep v2)
+
+sweep v1 (2026-05-16) 작성 직후 "최신 정보 더 없나" 사용자 시그널 → 누락 영역 6축을 1차 출처 깊이로 보강.
+
+#### 신규 문서: `ai-native/2026-05-ai-native-sweep-v2.md`
+
+6 섹션 + v1+v2 통합 매트릭스:
+
+- **A. MCP 생태계** — 표준 현황 (2025-11 spec, 2026-Q1 SEP, 2026-06 다음 릴리즈), 서버 규모 (공식 6개 + community 15,000+), 우리 백엔드 (PG·Redis·Kafka·Cassandra) 매핑, **PostgreSQL MCP CVE급 취약점** (Datadog Security Labs, SQL injection bypass read-only), Spring AI MCP server starter 패턴, 보안 5규칙
+- **B. AI Eval 6 도구 비교** — Langfuse / LangSmith / Arize Phoenix / Braintrust / Helicone / OpenAI Evals, license / self-host / Spring AI 통합 매트릭스, NPC 트랙 (learning 68) 직접 보강
+- **C. AGENTS.md v1.1** — Linux Foundation Agentic AI Foundation 거버넌스 (MCP + goose + AGENTS.md 통합), Issue #135 progressive disclosure / frontmatter 제안, **Claude Code 만 네이티브 미지원** 갭, 우리 CLAUDE.md → AGENTS.md 마이그 3 옵션 (풀 / symlink / 양립)
+- **D. Karpathy 5월 + Anthropic 5월** — Karpathy Sequoia Ascent 2026 (vibe coding obsolete, agentic engineering, 2025-12 inflection point), **Code w/ Claude 2026 (5-6 SF) 4종 신기능** (Memory public beta / Dreaming research preview / Outcomes public beta / Multiagent Orchestration / Webhooks)
+- **E. LMOps Grafana·k6** — Grafana AI Observability 5 dashboard 세트 (GenAI / Evaluations / Vector DB / MCP / GPU), OpenLIT 자동 instrumentation, **k6 LLM 함정** (TTFT 측정 누락 → TianPan 2026-03 분석), 우리 npc-evaluator-lmops 트랙 사전 ADR 빈자리 직접 보강
+- **F. 경쟁 환경** — Cursor 3 / 3.2 (Agent-first redesign, /multitask), Antigravity v1.20.3 (AGENTS.md+GEMINI.md), Copilot Agent Mode (VS / JetBrains inline / CLI agent), Aider (4.2x 적은 토큰), 4가지 일반화 패턴, 우리 셋업 위치 재확인
+
+#### sweep v1 통합 매트릭스 v2 갱신 (신규 8 항목)
+
+도입 권고 (신규): Langfuse self-host / Grafana Anthropic prebuilt / MCP 보안 5규칙
+조건부 (신규): 로컬 PG MCP / Spring Boot MCP server 변환 / Anthropic Outcomes 시범 / k6 TTFT / OpenLIT / Webhooks
+보류 (신규): AGENTS.md 풀마이그 / nested AGENTS.md / 운영 PG MCP 직노출 / SaaS MCP / 경쟁 IDE 도입 / Anthropic Dreaming / LangSmith·Braintrust / Anthropic Remote Agents
+
+#### 핵심 1차 출처 (v2 신규)
+
+- Datadog Security Labs SQL injection in Postgres MCP: <https://securitylabs.datadoghq.com/articles/mcp-vulnerability-case-study-SQL-injection-in-the-postgresql-mcp-server/>
+- NimbleBrain State of MCP Security March 2026: <https://nimblebrain.ai/blog/state-of-mcp-security-2026/>
+- The Register MCP DB flaws 2026-05-13: <https://www.theregister.com/security/2026/05/13/bug-hunter-tracks-down-three-serious-mcp-database-flaws-one-left-unpatched/5238916>
+- MCP Auth spec 2025-11-25: <https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization>
+- MCP transport future: <https://blog.modelcontextprotocol.io/posts/2025-12-19-mcp-transport-future/>
+- Spring AI MCP Server Boot Starter: <https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html>
+- Spring AI 1.0 GA: <https://spring.io/blog/2025/05/20/spring-ai-1-0-GA-released/>
+- Langfuse Spring AI OTel: <https://langfuse.com/integrations/frameworks/spring-ai>
+- Langfuse self-hosting: <https://langfuse.com/self-hosting>
+- AGENTS.md v1.1 Issue #135: <https://github.com/agentsmd/agents.md/issues/135>
+- Linux Foundation Agentic AI Foundation: <https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation>
+- Karpathy Sequoia Ascent 2026: <https://karpathy.bearblog.dev/sequoia-ascent-2026/>
+- Karpathy X Fireside: <https://x.com/karpathy/status/2049903821095354523>
+- Simon Willison Code w/ Claude 2026-05-06 live: <https://simonwillison.net/2026/May/6/code-w-claude-2026/>
+- The New Stack Anthropic dreaming: <https://thenewstack.io/anthropic-managed-agents-dreaming-outcomes/>
+- 9to5Mac Managed Agents 3 features 2026-05-07: <https://9to5mac.com/2026/05/07/anthropic-updates-claude-managed-agents-with-three-new-features/>
+- Grafana MCP observability: <https://grafana.com/blog/ai-observability-MCP-servers/>
+- TianPan k6 LLM lie 2026-03-19: <https://tianpan.co/blog/2026-03-19-load-testing-llm-applications>
+- Cursor 3 blog: <https://cursor.com/blog/cursor-3>
+- Antigravity Google: <https://developers.googleblog.com/build-with-google-antigravity-our-new-agentic-development-platform/>
+
+---
+
 ## 2026-05-16
 
 ### 트랙 `ctx-refresh-post-village-3d` — 종합 점검 + 노화 정리 사이클

@@ -12,8 +12,10 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
+| `ctx-refresh-post-village-3d` | [track-ctx-refresh-post-village-3d.md](./track-ctx-refresh-post-village-3d.md) | docs (CLAUDE.md / handover / wiki / knowledge) + `.claude/agents/*.md` 3개 | 🔧 Step 1 진행 | #90 | 2026-05-16 |
 
-> 활성 트랙 없음 (2026-05-13 기준). `village-3d` 종료 → 운영 머지 후 프로젝트 점검 시간.
+> 2026-05-16 종합 점검에서 발견된 컨텍스트 노화 CRITICAL 2건 + WARNING 3건 일괄 정리 트랙.
+> 후속 트랙 후보: ⓑ `harden-village-ops` (운영 P1 두 개) → ⓒ `ai-native-2026-05-upgrade` (compaction 60% / CodeRabbit / XML 태그).
 > ws-redis Step 3 (클라이언트 재작성 + WS 모듈 분리) 착수 시 본 표에 다시 추가. `track-ws-redis.md` §9 인수인계 참조.
 > 새 트랙을 시작할 때 이 표에 한 줄 추가하고, 해당 트랙 파일을 신규 작성한다.
 

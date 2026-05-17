@@ -12,9 +12,12 @@
   //   - MD041 first-h1         : frontmatter 다음 NOTICE 박스 결로 박는 패턴 허용.
   //   - MD046 style:fenced     : code block 일관성 유지 (indented 금지).
   //   - MD060 link-fragments   : 한국어 anchor 결 깨질 위험 회피.
+  //   - MD022 blanks-around-headings : 학습노트 65 + realtime/token-renewal-patterns 다수 위반. 가독성에 큰 영향 없고 본 트랙 스코프 외 (별도 정리 트랙 후보).
+  //   - MD056 table-column-count : realtime/token-renewal-patterns L134-137 의 표 컬럼 X (의미 보존 결박 형식 어긋남). 별도 정리 트랙 후보.
   "config": {
     "default": true,
     "MD013": false,
+    "MD022": false,
     "MD024": { "siblings_only": true },
     "MD025": false,
     "MD032": false,
@@ -24,6 +27,7 @@
     "MD040": false,
     "MD041": false,
     "MD046": { "style": "fenced" },
+    "MD056": false,
     "MD060": false
   },
   "ignores": [

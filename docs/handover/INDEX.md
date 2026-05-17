@@ -22,7 +22,7 @@
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
-| `ai-native-2026-05-upgrade` | [83 (트랙 ⓒ 회고 — sweep 2축 + 즉시 도입 3종 + MCP baseline)](../learning/83-ai-native-2026-05-upgrade-trial.md) | 2026-05-17 | (본 트랙 머지 PR — push 후 갱신) |
+| `ai-native-2026-05-upgrade` | [83 (트랙 ⓒ 회고 — sweep 2축 + 즉시 도입 3종 + MCP baseline)](../learning/83-ai-native-2026-05-upgrade-trial.md) | 2026-05-17 | PR #94 |
 | `ctx-refresh-post-village-3d` | [79 (컨텍스트 노화 사이클 메타 학습)](../learning/79-context-refresh-cycle-meta-learning.md) | 2026-05-16 | (PR #91) |
 | `village-3d` | [74 (3D 채팅 UI 재설계 4축)](../learning/74-3d-chat-ui-redesign-decisions.md) · [78 (Next 16 + Three.js + Howler dev 메모리 폭주)](../learning/78-next-three-howler-dev-memory-diagnosis.md) | 2026-05-13 | #68 (Step 1) · #69 + #78 (Step 2) · #79 (핫픽스) · #84 (Step 1.5 멀티유저) · #85 (Step 1.7 채팅 UI) — 트랙 머지 PR 별도 |
 | `village-design-mvp` | [69 (에셋 모델)](../learning/69-asset-model-curated-vs-ai-generation.md) · [70 (마을 톤·미감)](../learning/70-village-mood-aesthetic-decision.md) · [71 (디자인 톤 자기 인터뷰)](../learning/71-design-tone-from-self-interview.md) · [72 (Phaser 2D → Three.js 3D 전환)](../learning/72-phaser-to-threejs-pivot-decision.md) | 2026-05-10 | #57 · #64 (Step 1 만 머지) — 종료 사유: 큐레이션 자산 한계 → `village-3d` 승계 |

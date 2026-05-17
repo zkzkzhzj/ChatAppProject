@@ -38,23 +38,24 @@ PR #91 (`ctx-refresh-post-village-3d`) 의 sweep v1 (`docs/knowledge/ai-native/2
 
 | Step | 내용 | 의존 | 상태 | 이슈 | PR |
 |------|------|------|------|------|-----|
-| 0 | sweep v2 sub-research (research-agent 위임) | — | 대기 | #93 | — |
-| 1 | CLAUDE.md compaction 60% 룰 + Critical Rules XML 태그 | step0 | 대기 | #93 | — |
-| 2 | CodeRabbit Claude Code 플러그인 설치 + 1주 시범 | step1 | 대기 | #93 | — |
-| 3 | (1주 후) CodeRabbit 협력 vs 충돌 판단 + 정책 정착 | step2 + 1주 | 대기 | #93 | — |
-| 4 | track-start / track-end SKILL.md supporting files 분리 | step1 | 대기 | #93 | — |
-| 5 | `/discover-domain-patterns` 자체 슬래시 스킬 (Agent OS 패턴 차용) | step1 | 대기 | #93 | — |
-| 6 | (sweep v2 추가 액션) | step0 | TBD | #93 | — |
+| 0 | sweep v2 sub-research (research-agent 위임) | — | ✅ 완료 | #93 | (트랙 머지 PR #94) |
+| 1 | CLAUDE.md compaction 60% 룰 + Critical Rules XML 태그 | step0 | ✅ 완료 | #93 | (트랙 머지 PR #94) |
+| 2 | CodeRabbit Claude Code 플러그인 가이드 + 1주 시범 시작 | step1 | ✅ 완료 | #93 | (트랙 머지 PR #94) |
+| 3 | (1주 후 2026-05-24) CodeRabbit 협력 vs 충돌 판단 + 정책 정착 | step2 + 1주 | ⏸ 시간 의존 (learning 84 결박) | #93 | (별도) |
+| 4 | track-start / track-end SKILL.md supporting files 분리 | step1 | 🔀 후속 트랙 `skills-progressive-disclosure` 분리 | (별도) | — |
+| 5 | `/discover-domain-patterns` 자체 슬래시 스킬 (Agent OS 패턴 차용) | step1 | 🔀 후속 트랙 `skills-progressive-disclosure` 분리 | (별도) | — |
+| 6 | Anthropic Outcomes 시범 (spec verification 결박 자동 grader 결합) | step0 | 🔀 후속 트랙 `anthropic-outcomes-trial` 분리 | (별도) | — |
+| 7 | MCP 보안 5규칙 baseline (sweep v2 §A 추가) | step1 | ✅ 완료 | #93 | (트랙 머지 PR #94) |
 
 ## 3. 현재 단계 상세
 
-**트랙 미시작** — PR #91 머지 후 시작 권장. `/track-start ai-native-2026-05-upgrade` 또는 수동:
+**✅ 트랙 종료 (2026-05-17)** — PR #94 (1 PR · 6 commit, 메타 트랙).
 
-1. `gh label create track:ai-native-2026-05-upgrade` + `gh issue create`
-2. `docs/handover/INDEX.md` 활성 표 1행 추가
-3. `docs/learning/RESERVED.md` 83~85 예약 (이미 pre-scaffold 됨)
-4. `git checkout -b chore/ai-native-2026-05-upgrade origin/main`
-5. Step 0 (sweep v2 research-agent 위임) 진입
+완료된 step: **0·1·2·7** (즉시 도입 3건 + 보안 baseline 1건).
+시간 의존 step: **3** (2026-05-24 CodeRabbit 시범 종료 시 → learning 84).
+후속 트랙 분리: **4·5** → `skills-progressive-disclosure` / **6** → `anthropic-outcomes-trial`.
+
+회고: [learning 83](../learning/83-ai-native-2026-05-upgrade-trial.md)
 
 ## 4. 충돌 위험 파일
 

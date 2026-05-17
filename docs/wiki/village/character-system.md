@@ -5,6 +5,12 @@ related: [village/space-system.md, identity/guest-policy.md]
 last-verified: 2026-04-15
 ---
 
+> ⚠️ NOTICE (2026-05-16 / 트랙 `ctx-refresh-post-village-3d`): 이 페이지의 **캐릭터 렌더링·스프라이트 결정은 Phaser 2D 시점**.
+> `village-3d` 트랙 (2026-05-13 머지) 이후 캐릭터는 **Three.js 박스 placeholder + RemotePlayer** 로 렌더 (`frontend/src/three/character/`).
+> 도메인 모델 (Character / Equipment / 게스트 기본 캐릭터) 자체는 변경 X — 백엔드 결박 그대로.
+> 본문의 **스프라이트 시트 / 32x48 프레임** 결정은 **사실 X**.
+> 후속 트랙 (`village-3d-step3-character-model`, Quaternius Ultimate Modular Men) 에서 본문 신규.
+
 # 캐릭터 시스템
 
 ## 도메인 모델

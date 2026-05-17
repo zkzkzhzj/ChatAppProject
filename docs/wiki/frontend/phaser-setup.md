@@ -5,6 +5,11 @@ related: [frontend/websocket-client.md, frontend/asset-guide.md]
 last-verified: 2026-04-13
 ---
 
+> ⚠️ NOTICE (2026-05-16 / 트랙 `ctx-refresh-post-village-3d`): 이 페이지는 **Phaser 2D 시점 작성**.
+> `village-3d` 트랙 (2026-05-13 머지, PR #86) 이후 코드가 **Three.js 3D 로 전환**됨 (`frontend/src/three/` 트리).
+> 본문의 Phaser 관련 구조 (`PhaserCanvas`, `PixelArtScene` 등) 는 **사실 X**.
+> Three.js 본문 신규 작성 (`frontend/three-setup.md`) 은 후속 트랙 대기.
+
 # Phaser.js + Next.js 통합
 
 ## 현재 구조

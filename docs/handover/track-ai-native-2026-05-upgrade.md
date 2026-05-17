@@ -1,8 +1,8 @@
 # Track: ai-native-2026-05-upgrade
 
 > 작업 영역: AI Native 하네스 진화 — CLAUDE.md 보강 + Skills 마이그 + CodeRabbit 플러그인 + sweep v2 sub-research
-> 시작일: TBD (트랙 시작 시 본 줄 갱신)
-> Issue: #TBD (gh issue create + label `track:ai-native-2026-05-upgrade`)
+> 시작일: 2026-05-17
+> Issue: #93 (gh issue create + label `track:ai-native-2026-05-upgrade`)
 > 브랜치: `chore/ai-native-2026-05-upgrade` (main 기준 분기)
 > Spec: [docs/specs/features/ai-native-2026-05-upgrade.md](../specs/features/ai-native-2026-05-upgrade.md)
 > 사전 ADR: [sweep v1](../knowledge/ai-native/2026-05-ai-native-sweep.md)
@@ -36,13 +36,13 @@ PR #91 (`ctx-refresh-post-village-3d`) 의 sweep v1 (`docs/knowledge/ai-native/2
 
 | Step | 내용 | 의존 | 상태 | 이슈 | PR |
 |------|------|------|------|------|-----|
-| 0 | sweep v2 sub-research (research-agent 위임) | — | 대기 | #TBD | — |
-| 1 | CLAUDE.md compaction 60% 룰 + Critical Rules XML 태그 | step0 | 대기 | #TBD | — |
-| 2 | CodeRabbit Claude Code 플러그인 설치 + 1주 시범 | step1 | 대기 | #TBD | — |
-| 3 | (1주 후) CodeRabbit 협력 vs 충돌 판단 + 정책 정착 | step2 + 1주 | 대기 | #TBD | — |
-| 4 | track-start / track-end SKILL.md supporting files 분리 | step1 | 대기 | #TBD | — |
-| 5 | `/discover-domain-patterns` 자체 슬래시 스킬 (Agent OS 패턴 차용) | step1 | 대기 | #TBD | — |
-| 6 | (sweep v2 추가 액션) | step0 | TBD | #TBD | — |
+| 0 | sweep v2 sub-research (research-agent 위임) | — | 대기 | #93 | — |
+| 1 | CLAUDE.md compaction 60% 룰 + Critical Rules XML 태그 | step0 | 대기 | #93 | — |
+| 2 | CodeRabbit Claude Code 플러그인 설치 + 1주 시범 | step1 | 대기 | #93 | — |
+| 3 | (1주 후) CodeRabbit 협력 vs 충돌 판단 + 정책 정착 | step2 + 1주 | 대기 | #93 | — |
+| 4 | track-start / track-end SKILL.md supporting files 분리 | step1 | 대기 | #93 | — |
+| 5 | `/discover-domain-patterns` 자체 슬래시 스킬 (Agent OS 패턴 차용) | step1 | 대기 | #93 | — |
+| 6 | (sweep v2 추가 액션) | step0 | TBD | #93 | — |
 
 ## 3. 현재 단계 상세
 

@@ -1,7 +1,7 @@
 ---
 feature: ai-native-2026-05-upgrade
 track: ai-native-2026-05-upgrade
-issue: "#TBD (트랙 시작 시 gh issue create)"
+issue: "#93 (트랙 시작 시 gh issue create)"
 status: draft
 created: 2026-05-17
 last-updated: 2026-05-17
@@ -105,13 +105,13 @@ last-updated: 2026-05-17
 
 | Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | PR |
 |------|------|------|---------------|------|-----|
-| 0 | sweep v2 sub-research — MCP / AI Eval / AGENTS.md / Karpathy 후속 / 경쟁 환경 (research-agent 위임) | — | `docs/knowledge/ai-native/2026-05-ai-native-sweep-v2.md` (신규) | #TBD | TBD |
-| 1 | CLAUDE.md compaction 60% 룰 추가 (1줄) + Critical Rules XML 태그 (`<rule id=N>`) 보강 | step0 | `CLAUDE.md` | #TBD | TBD |
-| 2 | CodeRabbit Claude Code 플러그인 설치 + 사용 가이드 + 1주 시범 시작 | step1 | `.claude/plugins/` 또는 `.claude/settings.json` + 가이드 문서 | #TBD | TBD |
-| 3 | (시범 1주 후) CodeRabbit 협력 vs 충돌 판단 + 정책 정착 결정 | step2 + 1주 | learning 노트 (결정 기록) | #TBD | TBD |
-| 4 | `track-start` / `track-end` SKILL.md supporting files 분리 (체크리스트 / wiki 영향 분석 / RESERVED 정리 별도 md) | step1 | `.claude/skills/track-start/`, `.claude/skills/track-end/` | #TBD | TBD |
-| 5 | Agent OS `/discover-standards` 패턴 차용 — 자체 슬래시 스킬 `/discover-domain-patterns` 신규 작성 | step1 | `.claude/skills/discover-domain-patterns/SKILL.md` (신규) | #TBD | TBD |
-| 6 | (sweep v2 결과 결박 결박 결박 결박 결박 결박) | step0 | TBD | #TBD | TBD |
+| 0 | sweep v2 sub-research — MCP / AI Eval / AGENTS.md / Karpathy 후속 / 경쟁 환경 (research-agent 위임) | — | `docs/knowledge/ai-native/2026-05-ai-native-sweep-v2.md` (신규) | #93 | TBD |
+| 1 | CLAUDE.md compaction 60% 룰 추가 (1줄) + Critical Rules XML 태그 (`<rule id=N>`) 보강 | step0 | `CLAUDE.md` | #93 | TBD |
+| 2 | CodeRabbit Claude Code 플러그인 설치 + 사용 가이드 + 1주 시범 시작 | step1 | `.claude/plugins/` 또는 `.claude/settings.json` + 가이드 문서 | #93 | TBD |
+| 3 | (시범 1주 후) CodeRabbit 협력 vs 충돌 판단 + 정책 정착 결정 | step2 + 1주 | learning 노트 (결정 기록) | #93 | TBD |
+| 4 | `track-start` / `track-end` SKILL.md supporting files 분리 (체크리스트 / wiki 영향 분석 / RESERVED 정리 별도 md) | step1 | `.claude/skills/track-start/`, `.claude/skills/track-end/` | #93 | TBD |
+| 5 | Agent OS `/discover-standards` 패턴 차용 — 자체 슬래시 스킬 `/discover-domain-patterns` 신규 작성 | step1 | `.claude/skills/discover-domain-patterns/SKILL.md` (신규) | #93 | TBD |
+| 6 | (sweep v2 결과 결박 결박 결박 결박 결박 결박) | step0 | TBD | #93 | TBD |
 
 ## 6. Verification
 

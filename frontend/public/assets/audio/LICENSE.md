@@ -31,4 +31,4 @@
 - 다운로드 일자
 - (CC BY인 경우) 저작자 + 표기 의무 내용
 
-자산이 변경되거나 추가되면 S3 sync workflow가 자동으로 `v1/audio/`에 반영 (Step 3 산출물 예정).
+자산이 변경되거나 추가되면 **사용자가 AWS 콘솔/CLI 결로 `v1/audio/`에 직접 업로드**. mp3는 git 추적 X 결로 자동 sync 불가 (CD trigger 안 됨). ADR 009 §운영 매뉴얼 참조.

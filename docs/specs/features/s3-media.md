@@ -33,6 +33,7 @@ last-updated: 2026-05-17
 - AWS S3 버킷 신설 (`ap-northeast-2`, public read on `v1/*`)
 - IAM 정책 + 버킷 정책 + CORS 설정 (`ghworld.co` origin 허용)
 - **CloudFront + OAC 도입** — S3 직접 public 차단, CloudFront만 경로. 캐싱·DDoS·hotlinking 방어 (Step 5)
+- mp3·자산 S3 업로드는 **사용자가 콘솔/CLI 결로 직접 진행** (git 추적 X, source of truth는 S3)
 - `frontend/public/assets/` 의 mp3 4종 → S3 마이그 (`s3://bucket/v1/audio/ambient/`)
 - 코드: `sound-config.ts`의 src를 환경변수 `NEXT_PUBLIC_ASSETS_BASE_URL`로 prefix해서 외부 URL 주입
 - GitHub Actions 자산 sync workflow (`frontend/assets/` 변경 감지 → `aws s3 sync`)
@@ -47,6 +48,7 @@ last-updated: 2026-05-17
 > Out 이 spec 가치의 절반. "안 만드는 것" 을 적어야 다음 세션이 스코프 침범 안 함.
 
 - **`uploads/chat/` 사용자 업로드 경로 활성화** — 채팅 이미지 트랙에서 (별도 버킷 + Presigned URL 패턴 검토)
+- **CD 자동 mp3 sync** — mp3가 git 추적 X 결로 GitHub Actions trigger 불가. 자산 변경은 사용자 수동 S3 콘솔/CLI 업로드. (~~Step 3 폐기~~)
 - **도서관 3D 모델 마이그** — 도서관 트랙에서 (자산 폴더 구조만 미리 박음)
 - **캐시 무효화 자동화** — 수동 prefix 갱신(`v1` → `v2`)으로 시작
 - **BGM 곡 수 확장** — 현재는 마을·도서관 동일 곡, 도서관에서 페이드만 (Scene 별 곡 분기는 후속)
@@ -142,7 +144,7 @@ last-updated: 2026-05-17
 |------|------|------|---------------|------|-----|
 | 1 | AWS S3 버킷 생성 + IAM + CORS + 버킷 정책. 인프라 수동 작업 + ADR 박음 | — | `docs/architecture/decisions/009-s3-asset-hosting.md` (신규), AWS 콘솔 (수동) | #89 | #96 ✅ |
 | 2 | frontend 코드 — `sound-config.ts` 환경변수화 + `.env`·`.env.local` 분리 + Dockerfile/CD build-args + `.gitignore` 정리 + LICENSE.md (환경음 4곡) | step 1 | `frontend/src/three/audio/sound-config.ts`, `frontend/.env*`, `frontend/Dockerfile`, `.github/workflows/deploy.yml`, `frontend/.gitignore`, `frontend/public/assets/audio/LICENSE.md` | #89 | 🔧 |
-| 3 | GitHub Actions workflow 신규 (`frontend/public/assets/` 변경 감지 → `aws s3 sync`) + OIDC IAM role 권한 추가 | step 1 | `.github/workflows/asset-sync.yml` (신규), AWS IAM (수동) | #89 | 대기 |
+| ~~3~~ | ~~GitHub Actions asset-sync workflow~~ — **폐기 (2026-05-18)**: mp3가 git 추적 X 결로 trigger 불가. S3 업로드는 사용자 수동 진행 (콘솔/CLI) | — | — | — | — |
 | ~~4~~ | ~~BGM mp3 + BgmManager.ts 신규~~ — **폐기 (2026-05-18)**: BGM = 환경음 4종으로 확정 | — | — | — | — |
 | 5 | CloudFront + OAC 도입 — S3 직접 public 차단, CloudFront만 경로. cache policy + Bucket Policy 갱신 (Principal을 OAC service principal로). `NEXT_PUBLIC_ASSETS_BASE_URL`을 CloudFront 도메인으로 갱신. ADR 갱신 | step 2 | AWS 콘솔 (수동), `frontend/.env*`, `frontend/Dockerfile`, `.github/workflows/deploy.yml`, ADR 009 갱신 | #89 | 대기 |
 
@@ -150,17 +152,24 @@ last-updated: 2026-05-17
 
 > 이게 통과하면 spec 종료. track 파일의 `§0.5 Acceptance Criteria` 와 1:1 매핑.
 
-- [ ] S3 버킷 생성 + public read 정책 (`v1/*` 한정) + CORS의 `ghworld.co` origin 허용 확인 (AWS 콘솔 + curl로 검증)
+**Step 1 (현재 시점, S3 raw)**:
+- [ ] S3 버킷 생성 + public read 정책 (`v1/*` 한정) + CORS의 `ghworld.co` origin 허용 확인 (AWS 콘솔 + curl로 검증, S3 직접 GET 200)
+
+**Step 2 (frontend env)**:
 - [ ] frontend 빌드 시 `NEXT_PUBLIC_ASSETS_BASE_URL` 환경변수로 자산 URL 주입 확인 (`npm run build` 결과의 fetch URL 확인)
 - [ ] dev `npm run dev`에서 환경음 4종 정상 재생 (사용자 청취 검증)
 - [ ] prod 배포 후 운영 환경(`ghworld.co`)에서 환경음 4종 정상 재생 (현재 무음 해결 — 사용자 청취 검증)
-- [ ] GitHub Actions workflow가 `frontend/public/assets/` 변경 시 S3 sync 자동 실행 확인 (workflow run 로그)
-- [ ] **CloudFront + OAC** 도입 후 S3 직접 GET 차단 확인 (S3 URL 직접 호출 시 403, CloudFront 도메인 호출 시 200)
-- [ ] CloudFront 캐싱 hit ratio > 80% 확인 (CloudWatch CloudFront 메트릭 결로 첫 1주일)
+
+**Step 5 (CloudFront + OAC 도입 후, 보호 진입)**:
+- [ ] Bucket Policy를 OAC 전용으로 변경 → **S3 직접 GET 403** (Step 1의 public read는 이 시점에 무효화됨, 단방향 전환)
+- [ ] CloudFront 도메인 호출 시 200 + cache `HIT` 확인
+- [ ] CloudFront 캐싱 hit ratio > 80% (CloudWatch CloudFront 메트릭 첫 1주일)
+
+**트랙 종료 공통**:
+- [ ] 학습노트 51 (R2 vs S3 + versioned prefix + CloudFront/OAC) + 52 (frontend 자산 외부화 패턴) 작성 완료
 - [ ] 환경음 D11 음량 가드 (≤ 0.3) 코드 강제 확인 (기존 `AmbientSoundManager` + `sound-config.ts`의 maxVolume 상수)
 - [ ] LICENSE.md에 환경음 4곡 출처·라이선스 명시
 - [ ] 루트 `package-lock.json` commit 확인 (husky 재현성)
-- [ ] 학습노트 51 (R2 vs S3 ADR + versioned prefix) + 52 (frontend 자산 외부화 패턴) 작성 완료
 
 ## 7. References
 
@@ -182,3 +191,4 @@ last-updated: 2026-05-17
 | 2026-05-17 | 초안 작성 (사용자 결정 4단계 사이클 — R2 vs S3 트레이드오프 끝에 S3 통일 + raw URL + dev/prod 외부 + CD 자동 + versioned prefix). decisions 6축 미리 박음으로 Comprehension Gate 자동 통과 의도 |
 | 2026-05-18 | D6 (BgmManager 분리) 폐기 — BGM = 환경음 4종으로 확정, 별도 매니저 없음. 기록 보존. Verification에서 BGM 관련 항목 환경음으로 통합 |
 | 2026-05-18 | D2 갱신 + 새 D7 추가 — CloudFront + OAC를 본 트랙 안에서 끝내기로 (Step 5 추가). 원래 "raw S3 + CloudFront 후속" 결정 정정. Step 4 폐기 + Step 5 신설. Verification에 CloudFront 항목 2개 추가. 이유: 공용 에셋 버킷은 정석으로 한 번에, 사용자 업로드(`uploads/`)는 별도 후속 트랙 |
+| 2026-05-18 | Step 3 (CD 자동 sync) 폐기 — mp3가 git 추적 X 결로 GitHub Actions trigger 불가 (Codex P2 리뷰). 자산 업로드는 사용자가 콘솔/CLI 결로 수동 진행. Verification을 Step 1·Step 2·Step 5 시점별로 분리 (CodeRabbit 단계별 분리 지적 반영). |

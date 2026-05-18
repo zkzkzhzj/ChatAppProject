@@ -225,6 +225,8 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8080}
         NEXT_PUBLIC_WS_URL: ${PUBLIC_WS_URL:-http://localhost:8080/ws}
+        # S3 정적 자산 base URL. ADR 009. Step 5 (CloudFront+OAC) 후 cloudfront 도메인으로 갱신 예정.
+        NEXT_PUBLIC_ASSETS_BASE_URL: ${PUBLIC_ASSETS_BASE_URL:-https://gohyang-s3-buket-20260514.s3.ap-northeast-2.amazonaws.com}
     container_name: gohyang-frontend
     ports:
       - "${FRONTEND_PORT:-3000}:3000"

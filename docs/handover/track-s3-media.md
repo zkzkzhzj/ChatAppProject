@@ -14,13 +14,20 @@
 
 > spec §6 Verification 과 1:1 매핑. 트랙 종료 시 같이 체크.
 
-- [ ] S3 버킷 생성 + public read 정책 (`v1/*` 한정) + CORS의 `ghworld.co` origin 허용 확인 (AWS 콘솔 + curl로 검증)
-- [ ] frontend 빌드 시 `NEXT_PUBLIC_ASSETS_BASE_URL` 환경변수로 S3 URL 주입 확인
+**Step 1 (S3 raw, 임시 상태)**:
+- [x] S3 버킷 생성 + public read 정책 (`v1/*` 한정) + CORS의 `ghworld.co` origin 허용 (Step 1 머지 시점에 검증 완료, S3 직접 GET 200)
+
+**Step 2 (frontend env)**:
+- [ ] frontend 빌드 시 `NEXT_PUBLIC_ASSETS_BASE_URL` 환경변수로 자산 URL 주입 확인
 - [ ] dev `npm run dev`에서 환경음 4종 정상 재생
 - [ ] prod 배포 후 운영 환경(`ghworld.co`)에서 환경음 4종 정상 재생 (현재 무음 해결 — 사용자 청취 검증)
-- [ ] GitHub Actions workflow가 `frontend/assets/` 변경 시 S3 sync 자동 실행 확인
-- [ ] 환경음 D11 음량 가드 (≤ 0.3) 코드 강제 확인 (기존 `AmbientSoundManager` + `sound-config.ts`의 maxVolume 상수)
+- [ ] 환경음 D11 음량 가드 (≤ 0.3) 코드 강제 확인 (`AmbientSoundManager` + `sound-config.ts`의 maxVolume 상수)
 - [ ] LICENSE.md에 환경음 4곡 출처·라이선스 명시
+
+**Step 5 (CloudFront + OAC, 보호 진입)**:
+- [ ] Bucket Policy를 OAC 전용으로 변경 → S3 직접 GET 403 (Step 1 public read는 단방향 전환됨)
+- [ ] CloudFront 도메인 호출 시 200 + cache `HIT` 확인
+- [ ] CloudFront 캐싱 hit ratio > 80% (첫 1주일, CloudWatch 메트릭)
 - [ ] 학습노트 51 (R2 vs S3 ADR + versioned prefix) + 52 (frontend 자산 외부화 패턴) 작성 완료
 
 ## 1. 배경 / 왜
@@ -40,10 +47,11 @@
 
 | Step | 내용 | 의존 | 상태 | 이슈 | PR |
 |------|------|------|------|------|-----|
-| 1 | AWS S3 버킷 + IAM + CORS + 버킷 정책. 인프라 수동 작업 + `docs/architecture/decisions/009-s3-asset-hosting.md` ADR | — | 🔧 리뷰 대응 | #89 | #96 |
-| 2 | frontend 코드 — `sound-config.ts` 환경변수화 + `.env`·`.env.local` 분리 + `.gitignore` 정리 + LICENSE.md (환경음 4곡) | step 1 | 대기 | #89 | — |
-| 3 | GitHub Actions workflow + OIDC IAM role 권한 추가 + `aws s3 sync` 자동화 | step 1 | 대기 | #89 | — |
+| 1 | AWS S3 버킷 + IAM + CORS + 버킷 정책. 인프라 수동 작업 + `docs/architecture/decisions/009-s3-asset-hosting.md` ADR | — | ✅ 완료 | #89 | #96 |
+| 2 | frontend 코드 — `sound-config.ts` 환경변수화 + `.env`·Dockerfile·CD build-args + `.gitignore` 정리 + LICENSE.md | step 1 | 🔧 진행 | #89 | #102 |
+| ~~3~~ | ~~CD 자동 sync workflow~~ — **폐기 (2026-05-18)**: mp3가 git 추적 X 결로 trigger 불가. 자산 업로드는 사용자 콘솔/CLI 수동 | — | 폐기 | — | — |
 | ~~4~~ | ~~BGM mp3 + BgmManager.ts 신규~~ — **폐기 (2026-05-18)**: BGM = 환경음 4종으로 확정 | — | 폐기 | — | — |
+| 5 | CloudFront + OAC 도입 — S3 직접 public 차단, CloudFront만 경로 + cache policy + Bucket Policy 갱신 + `NEXT_PUBLIC_ASSETS_BASE_URL` 갱신 + ADR 갱신 | step 2 | 대기 | #89 | — |
 
 ## 3. 현재 단계 상세
 

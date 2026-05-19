@@ -23,7 +23,7 @@
 ### 핵심 결정 3축
 
 1. **스토리지 = AWS S3** (Cloudflare R2 X) — spec D1
-2. **도메인 = raw S3 URL** (CloudFront 후속) — spec D2
+2. **클라 fetch = CloudFront + OAC** (S3 직접 노출 X, edge 캐싱 + DDoS 흡수 + Layer 3-4 Shield Standard) — spec D2. 갱신 2026-05-19: 원래 "raw S3 URL + CloudFront 후속"이었으나 Step 5에서 본 트랙으로 흡수
 3. **폴더 = versioned prefix** (`v1/`) — spec D5
 
 ### 인프라 사양
@@ -71,7 +71,7 @@
 
 ### 2. Bucket Policy
 
-**Step 1 시점 (S3 raw, 임시 — 무중단 마이그 결로 결로 유지)**:
+**Step 1 시점 (S3 raw, 임시 — 무중단 마이그 동안 유지)**:
 
 Permissions → "Bucket policy" → Edit → 붙여넣기 → Save:
 
@@ -94,7 +94,7 @@ Permissions → "Bucket policy" → Edit → 붙여넣기 → Save:
 
 **Step 5 시점 (CloudFront + OAC, 최종)**:
 
-S3 직접 GET 차단 + CloudFront만 접근. CloudFront distribution 생성 시 콘솔이 자동 생성한 정책 결로 결로:
+S3 직접 GET 차단 + CloudFront만 접근. CloudFront distribution 생성 시 콘솔이 자동 생성한 정책:
 
 ```json
 {
@@ -119,13 +119,13 @@ S3 직접 GET 차단 + CloudFront만 접근. CloudFront distribution 생성 시 
 }
 ```
 
-→ S3 직접 GET 403. CloudFront 결로만 200.
+→ S3 직접 GET 403. CloudFront 경유만 200.
 
 **무중단 마이그 순서**:
-1. CloudFront distribution 생성 (Bucket Policy는 Step 1 결로 유지 — public read)
-2. 코드 결로 `NEXT_PUBLIC_ASSETS_BASE_URL` → CloudFront 도메인 갱신 + 운영 배포
-3. 운영 결로 CloudFront 경로 환경음 동작 확인
-4. Bucket Policy 결로 Step 5 버전 결로 교체 (S3 직접 차단)
+1. CloudFront distribution 생성 (Bucket Policy는 Step 1 버전 유지 — public read)
+2. 코드의 `NEXT_PUBLIC_ASSETS_BASE_URL`을 CloudFront 도메인으로 갱신 + 운영 배포
+3. 운영에서 CloudFront 경로 환경음 동작 확인
+4. Bucket Policy를 Step 5 버전으로 교체 (S3 직접 차단)
 
 ### 3. CORS (브라우저 cross-origin fetch 허용)
 

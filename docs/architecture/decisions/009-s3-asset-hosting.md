@@ -108,7 +108,7 @@ S3 직접 GET 차단 + CloudFront만 접근. CloudFront distribution 생성 시 
         "Service": "cloudfront.amazonaws.com"
       },
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::gohyang-s3-buket-20260514/*",
+      "Resource": "arn:aws:s3:::gohyang-s3-buket-20260514/v1/*",
       "Condition": {
         "StringEquals": {
           "AWS:SourceArn": "arn:aws:cloudfront::{ACCOUNT_ID}:distribution/{DISTRIBUTION_ID}"

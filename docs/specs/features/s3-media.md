@@ -4,7 +4,7 @@ track: s3-media
 issue: "#89"
 status: draft
 created: 2026-05-17
-last-updated: 2026-05-17
+last-updated: 2026-05-19
 ---
 
 # 정적 에셋 외부 호스팅 인프라 (S3 + CD 자동 sync + BGM 운영 정상화)

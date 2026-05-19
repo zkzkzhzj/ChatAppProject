@@ -23,7 +23,7 @@
 ### 핵심 결정 3축
 
 1. **스토리지 = AWS S3** (Cloudflare R2 X) — spec D1
-2. **도메인 = raw S3 URL** (CloudFront 후속) — spec D2
+2. **클라 fetch = CloudFront + OAC** (S3 직접 노출 X, edge 캐싱 + DDoS 흡수 + Layer 3-4 Shield Standard) — spec D2. 갱신 2026-05-19: 원래 "raw S3 URL + CloudFront 후속"이었으나 Step 5에서 본 트랙으로 흡수
 3. **폴더 = versioned prefix** (`v1/`) — spec D5
 
 ### 인프라 사양
@@ -32,7 +32,8 @@
 |---|---|
 | 버킷 이름 | `gohyang-s3-buket-20260514` |
 | 리전 | `ap-northeast-2` (서울) |
-| URL 형식 | `https://gohyang-s3-buket-20260514.s3.ap-northeast-2.amazonaws.com/v1/{path}` |
+| CloudFront distribution | `d9btdaowoaya0.cloudfront.net` (Step 5, 2026-05-19) |
+| 클라 URL 형식 | `https://d9btdaowoaya0.cloudfront.net/v1/{path}` |
 | 정적 prefix | `v1/audio/{ambient,bgm}/`, `v1/models/`, `v1/textures/` (확장 예정) |
 | 사용자 업로드 prefix (후속) | `uploads/chat/{userId}/{messageId}.{ext}` — 비공개 유지 |
 
@@ -68,7 +69,9 @@
 
 저장 시 "confirm" 입력.
 
-### 2. Bucket Policy (public read on `v1/*`)
+### 2. Bucket Policy
+
+**Step 1 시점 (S3 raw, 임시 — 무중단 마이그 동안 유지)**:
 
 Permissions → "Bucket policy" → Edit → 붙여넣기 → Save:
 
@@ -88,6 +91,41 @@ Permissions → "Bucket policy" → Edit → 붙여넣기 → Save:
 ```
 
 `v1/` prefix만 public read. `uploads/` 같은 사용자 업로드 경로는 비공개 유지 — 후속 트랙에서 sigv4 또는 presigned URL로 접근 제공.
+
+**Step 5 시점 (CloudFront + OAC, 최종)**:
+
+S3 직접 GET 차단 + CloudFront만 접근. CloudFront distribution 생성 시 콘솔이 자동 생성한 정책:
+
+```json
+{
+  "Version": "2008-10-17",
+  "Id": "PolicyForCloudFrontPrivateContent",
+  "Statement": [
+    {
+      "Sid": "AllowCloudFrontServicePrincipal",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "cloudfront.amazonaws.com"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::gohyang-s3-buket-20260514/v1/*",
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceArn": "arn:aws:cloudfront::{ACCOUNT_ID}:distribution/{DISTRIBUTION_ID}"
+        }
+      }
+    }
+  ]
+}
+```
+
+→ S3 직접 GET 403. CloudFront 경유만 200.
+
+**무중단 마이그 순서**:
+1. CloudFront distribution 생성 (Bucket Policy는 Step 1 버전 유지 — public read)
+2. 코드의 `NEXT_PUBLIC_ASSETS_BASE_URL`을 CloudFront 도메인으로 갱신 + 운영 배포
+3. 운영에서 CloudFront 경로 환경음 동작 확인
+4. Bucket Policy를 Step 5 버전으로 교체 (S3 직접 차단)
 
 ### 3. CORS (브라우저 cross-origin fetch 허용)
 

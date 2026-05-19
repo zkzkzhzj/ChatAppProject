@@ -22,7 +22,7 @@ COPY . .
 # docker-compose.yml의 build.args에서 주입받는다.
 ARG NEXT_PUBLIC_API_URL=http://localhost:8080
 ARG NEXT_PUBLIC_WS_URL=http://localhost:8080/ws
-ARG NEXT_PUBLIC_ASSETS_BASE_URL=https://gohyang-s3-buket-20260514.s3.ap-northeast-2.amazonaws.com
+ARG NEXT_PUBLIC_ASSETS_BASE_URL=https://d9btdaowoaya0.cloudfront.net
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
 ENV NEXT_PUBLIC_ASSETS_BASE_URL=$NEXT_PUBLIC_ASSETS_BASE_URL

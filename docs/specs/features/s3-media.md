@@ -4,7 +4,7 @@ track: s3-media
 issue: "#89"
 status: draft
 created: 2026-05-17
-last-updated: 2026-05-17
+last-updated: 2026-05-19
 ---
 
 # 정적 에셋 외부 호스팅 인프라 (S3 + CD 자동 sync + BGM 운영 정상화)
@@ -192,3 +192,4 @@ last-updated: 2026-05-17
 | 2026-05-18 | D6 (BgmManager 분리) 폐기 — BGM = 환경음 4종으로 확정, 별도 매니저 없음. 기록 보존. Verification에서 BGM 관련 항목 환경음으로 통합 |
 | 2026-05-18 | D2 갱신 + 새 D7 추가 — CloudFront + OAC를 본 트랙 안에서 끝내기로 (Step 5 추가). 원래 "raw S3 + CloudFront 후속" 결정 정정. Step 4 폐기 + Step 5 신설. Verification에 CloudFront 항목 2개 추가. 이유: 공용 에셋 버킷은 정석으로 한 번에, 사용자 업로드(`uploads/`)는 별도 후속 트랙 |
 | 2026-05-18 | Step 3 (CD 자동 sync) 폐기 — mp3가 git 추적 X 결로 GitHub Actions trigger 불가 (Codex P2 리뷰). 자산 업로드는 사용자가 콘솔/CLI 결로 수동 진행. Verification을 Step 1·Step 2·Step 5 시점별로 분리 (CodeRabbit 단계별 분리 지적 반영). |
+| 2026-05-19 | Step 5 진행 — CloudFront distribution `d9btdaowoaya0.cloudfront.net` 생성, OAC 결합. fallback 4곳 (Dockerfile / deploy.yml / docker-compose.yml / .env.local.example) CloudFront 도메인으로 갱신. Bucket Policy 결로 OAC 교체는 운영 검증 후 별도 (무중단 마이그). |

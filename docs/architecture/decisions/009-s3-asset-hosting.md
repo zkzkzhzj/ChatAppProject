@@ -32,7 +32,8 @@
 |---|---|
 | 버킷 이름 | `gohyang-s3-buket-20260514` |
 | 리전 | `ap-northeast-2` (서울) |
-| URL 형식 | `https://gohyang-s3-buket-20260514.s3.ap-northeast-2.amazonaws.com/v1/{path}` |
+| CloudFront distribution | `d9btdaowoaya0.cloudfront.net` (Step 5, 2026-05-19) |
+| 클라 URL 형식 | `https://d9btdaowoaya0.cloudfront.net/v1/{path}` |
 | 정적 prefix | `v1/audio/{ambient,bgm}/`, `v1/models/`, `v1/textures/` (확장 예정) |
 | 사용자 업로드 prefix (후속) | `uploads/chat/{userId}/{messageId}.{ext}` — 비공개 유지 |
 
@@ -68,7 +69,9 @@
 
 저장 시 "confirm" 입력.
 
-### 2. Bucket Policy (public read on `v1/*`)
+### 2. Bucket Policy
+
+**Step 1 시점 (S3 raw, 임시 — 무중단 마이그 결로 결로 유지)**:
 
 Permissions → "Bucket policy" → Edit → 붙여넣기 → Save:
 
@@ -88,6 +91,41 @@ Permissions → "Bucket policy" → Edit → 붙여넣기 → Save:
 ```
 
 `v1/` prefix만 public read. `uploads/` 같은 사용자 업로드 경로는 비공개 유지 — 후속 트랙에서 sigv4 또는 presigned URL로 접근 제공.
+
+**Step 5 시점 (CloudFront + OAC, 최종)**:
+
+S3 직접 GET 차단 + CloudFront만 접근. CloudFront distribution 생성 시 콘솔이 자동 생성한 정책 결로 결로:
+
+```json
+{
+  "Version": "2008-10-17",
+  "Id": "PolicyForCloudFrontPrivateContent",
+  "Statement": [
+    {
+      "Sid": "AllowCloudFrontServicePrincipal",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "cloudfront.amazonaws.com"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::gohyang-s3-buket-20260514/*",
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceArn": "arn:aws:cloudfront::{ACCOUNT_ID}:distribution/{DISTRIBUTION_ID}"
+        }
+      }
+    }
+  ]
+}
+```
+
+→ S3 직접 GET 403. CloudFront 결로만 200.
+
+**무중단 마이그 순서**:
+1. CloudFront distribution 생성 (Bucket Policy는 Step 1 결로 유지 — public read)
+2. 코드 결로 `NEXT_PUBLIC_ASSETS_BASE_URL` → CloudFront 도메인 갱신 + 운영 배포
+3. 운영 결로 CloudFront 경로 환경음 동작 확인
+4. Bucket Policy 결로 Step 5 버전 결로 교체 (S3 직접 차단)
 
 ### 3. CORS (브라우저 cross-origin fetch 허용)
 

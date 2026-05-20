@@ -21,8 +21,8 @@
 | 48   | `ws-redis` | Step 5 운영 배포 + Sweep 4 결과 — 진짜 Before/After | 예약 |
 | 49   | `ui-mvp-feedback` | F-3 React 입력 컴포넌트 IME 조합 처리 | 사용 완료 |
 | 50   | `ui-mvp-feedback` | F-1 모바일 터치 이동 (tap-to-move vs 가상 조이스틱) | 사용 완료 |
-| 51   | `s3-media` | (트랙 시작 시 첫 노트 — S3 도입 결정 + 비용 정책) | 미사용 |
-| 52   | `s3-media` | (예비) | 미사용 |
+| 51   | `s3-media` | R2 vs S3 + CloudFront + OAC 설계 결정 (트레이드오프 종합) | ✅ 사용 완료 (2026-05-20) |
+| 52   | `s3-media` | frontend 자산 외부화 패턴 — NEXT_PUBLIC_* 빌드 inline + 무중단 마이그 절차 | ✅ 사용 완료 (2026-05-20) |
 | 53   | `ws-redis` | 헥사고날 outbound port 호출자 룰 (publish는 port로, subscribe lifecycle은 어댑터 내부로) | ✅ 사용 완료 (2026-04-26) |
 | 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | ✅ 사용 완료 (2026-04-27) |
 | 55   | `token-auto-renewal` | sliding session vs refresh vs WS push 트레이드오프 (본 트랙 종합 노트) | 예약 (트랙 재개 시) |

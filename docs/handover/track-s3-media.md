@@ -1,7 +1,9 @@
-# Track: s3-media
+# Track: s3-media ✅ 종료 (2026-05-20)
 
 > 작업 영역: 정적 에셋 외부 호스팅 인프라 (AWS S3 통일). BGM 운영 무음 문제 해결 + 환경음 운영 정상화 + 도서관/캐릭터/채팅 이미지 자산 토대.
-> 시작일: 2026-05-17
+> 시작일: 2026-05-17 / 종료일: 2026-05-20
+> PR: #96 (Step 1) · #102 (Step 2) · #103 (Step 5) + 본 트랙 종료 docs PR
+> 결정 이력: ADR 009, learning 51 · 52
 > Issue: [#89](https://github.com/zkzkzhzj/ChatAppProject/issues/89)
 > 브랜치: `infra/s3-media-step1` (Step 1) — 후속 step은 step 별 브랜치 분기
 > Spec: [docs/specs/features/s3-media.md](../specs/features/s3-media.md)

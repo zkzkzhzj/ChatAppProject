@@ -13,10 +13,8 @@
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
 | `harden-village-ops` | [track-harden-village-ops.md](./track-harden-village-ops.md) | 백엔드 운영 P1 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test | 🔧 Step 1 진행 (release + 테스트 박힘, PR #95) | #92 | 2026-05-17 |
-| `s3-media` | [track-s3-media.md](./track-s3-media.md) | 정적 에셋 외부 호스팅 인프라 — AWS S3 + CD 자동 sync + BGM 운영 정상화 + 도서관 자산 토대 | 🔧 Step 1 진행 (AWS S3 + IAM + CORS + ADR) | #89 | 2026-05-17 |
 
 > PR #94 (트랙 ⓒ ai-native-2026-05-upgrade) 머지 직후 트랙 ⓑ `harden-village-ops` 활성. Step 1 (UserRegisteredEventConsumer release + 회귀 테스트 + Codex P1 acquired flag) 진행 중.
-> 트랙 `s3-media` 병렬 활성 (2026-05-17) — 영역 분리 (백엔드 vs frontend/AWS S3/CD). 충돌 위험 파일은 각 트랙 파일 §4 참조.
 > Planned: skills-progressive-disclosure (Step 4·5) / anthropic-outcomes-trial (Step 6) / npc-evaluator-lmops 보강 (sweep v2 §B·§E).
 > ws-redis Step 3 도 후보. `track-ws-redis.md` §9 인수인계 참조.
 
@@ -24,6 +22,7 @@
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
+| `s3-media` | [51 (R2 vs S3 + CloudFront + OAC 설계 결정)](../learning/51-s3-vs-r2-cloudfront-oac-decision.md) · [52 (frontend 자산 외부화 패턴 — NEXT_PUBLIC env + 무중단 마이그)](../learning/52-frontend-asset-externalization-pattern.md) | 2026-05-20 | #96 (Step 1) · #102 (Step 2) · #103 (Step 5) |
 | `ai-native-2026-05-upgrade` | [83 (트랙 ⓒ 회고 — sweep 2축 + 즉시 도입 3종 + MCP baseline)](../learning/83-ai-native-2026-05-upgrade-trial.md) | 2026-05-17 | PR #94 |
 | `ctx-refresh-post-village-3d` | [79 (컨텍스트 노화 사이클 메타 학습)](../learning/79-context-refresh-cycle-meta-learning.md) | 2026-05-16 | (PR #91) |
 | `village-3d` | [74 (3D 채팅 UI 재설계 4축)](../learning/74-3d-chat-ui-redesign-decisions.md) · [78 (Next 16 + Three.js + Howler dev 메모리 폭주)](../learning/78-next-three-howler-dev-memory-diagnosis.md) | 2026-05-13 | #68 (Step 1) · #69 + #78 (Step 2) · #79 (핫픽스) · #84 (Step 1.5 멀티유저) · #85 (Step 1.7 채팅 UI) — 트랙 머지 PR 별도 |

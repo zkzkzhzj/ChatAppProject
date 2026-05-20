@@ -50,10 +50,10 @@
 | Step | 내용 | 의존 | 상태 | 이슈 | PR |
 |------|------|------|------|------|-----|
 | 1 | AWS S3 버킷 + IAM + CORS + 버킷 정책. 인프라 수동 작업 + `docs/architecture/decisions/009-s3-asset-hosting.md` ADR | — | ✅ 완료 | #89 | #96 |
-| 2 | frontend 코드 — `sound-config.ts` 환경변수화 + `.env`·Dockerfile·CD build-args + `.gitignore` 정리 + LICENSE.md | step 1 | 🔧 진행 | #89 | #102 |
+| 2 | frontend 코드 — `sound-config.ts` 환경변수화 + `.env`·Dockerfile·CD build-args + `.gitignore` 정리 + LICENSE.md | step 1 | ✅ 완료 | #89 | #102 |
 | ~~3~~ | ~~CD 자동 sync workflow~~ — **폐기 (2026-05-18)**: mp3가 git 추적 X 결로 trigger 불가. 자산 업로드는 사용자 콘솔/CLI 수동 | — | 폐기 | — | — |
 | ~~4~~ | ~~BGM mp3 + BgmManager.ts 신규~~ — **폐기 (2026-05-18)**: BGM = 환경음 4종으로 확정 | — | 폐기 | — | — |
-| 5 | CloudFront + OAC 도입 — S3 직접 public 차단, CloudFront만 경로 + cache policy + Bucket Policy 갱신 + `NEXT_PUBLIC_ASSETS_BASE_URL` 갱신 + ADR 갱신 | step 2 | 대기 | #89 | — |
+| 5 | CloudFront + OAC 도입 — S3 직접 public 차단, CloudFront만 경로 + cache policy + Bucket Policy 갱신 + `NEXT_PUBLIC_ASSETS_BASE_URL` 갱신 + ADR 갱신 | step 2 | ✅ 코드 머지 (사용자 콘솔 Bucket Policy 교체 별건) | #89 | #103 |
 
 ## 3. 현재 단계 상세
 

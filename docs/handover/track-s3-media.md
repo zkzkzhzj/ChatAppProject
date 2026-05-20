@@ -1,7 +1,9 @@
-# Track: s3-media
+# Track: s3-media ✅ 종료 (2026-05-20)
 
 > 작업 영역: 정적 에셋 외부 호스팅 인프라 (AWS S3 통일). BGM 운영 무음 문제 해결 + 환경음 운영 정상화 + 도서관/캐릭터/채팅 이미지 자산 토대.
-> 시작일: 2026-05-17
+> 시작일: 2026-05-17 / 종료일: 2026-05-20
+> PR: #96 (Step 1) · #102 (Step 2) · #103 (Step 5) + 본 트랙 종료 docs PR
+> 결정 이력: ADR 009, learning 51 · 52
 > Issue: [#89](https://github.com/zkzkzhzj/ChatAppProject/issues/89)
 > 브랜치: `infra/s3-media-step1` (Step 1) — 후속 step은 step 별 브랜치 분기
 > Spec: [docs/specs/features/s3-media.md](../specs/features/s3-media.md)
@@ -48,10 +50,10 @@
 | Step | 내용 | 의존 | 상태 | 이슈 | PR |
 |------|------|------|------|------|-----|
 | 1 | AWS S3 버킷 + IAM + CORS + 버킷 정책. 인프라 수동 작업 + `docs/architecture/decisions/009-s3-asset-hosting.md` ADR | — | ✅ 완료 | #89 | #96 |
-| 2 | frontend 코드 — `sound-config.ts` 환경변수화 + `.env`·Dockerfile·CD build-args + `.gitignore` 정리 + LICENSE.md | step 1 | 🔧 진행 | #89 | #102 |
+| 2 | frontend 코드 — `sound-config.ts` 환경변수화 + `.env`·Dockerfile·CD build-args + `.gitignore` 정리 + LICENSE.md | step 1 | ✅ 완료 | #89 | #102 |
 | ~~3~~ | ~~CD 자동 sync workflow~~ — **폐기 (2026-05-18)**: mp3가 git 추적 X 결로 trigger 불가. 자산 업로드는 사용자 콘솔/CLI 수동 | — | 폐기 | — | — |
 | ~~4~~ | ~~BGM mp3 + BgmManager.ts 신규~~ — **폐기 (2026-05-18)**: BGM = 환경음 4종으로 확정 | — | 폐기 | — | — |
-| 5 | CloudFront + OAC 도입 — S3 직접 public 차단, CloudFront만 경로 + cache policy + Bucket Policy 갱신 + `NEXT_PUBLIC_ASSETS_BASE_URL` 갱신 + ADR 갱신 | step 2 | 대기 | #89 | — |
+| 5 | CloudFront + OAC 도입 — S3 직접 public 차단, CloudFront만 경로 + cache policy + Bucket Policy 갱신 + `NEXT_PUBLIC_ASSETS_BASE_URL` 갱신 + ADR 갱신 | step 2 | ✅ 코드 머지 (사용자 콘솔 Bucket Policy 교체 별건) | #89 | #103 |
 
 ## 3. 현재 단계 상세
 

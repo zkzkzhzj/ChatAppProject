@@ -30,6 +30,8 @@
 | [05](./05-supply-chain-attack-axios.md) | npm 공급망 공격 (axios 1.14.1) | `^` 범위 지정의 위험·대응 정책 |
 | [06](./06-spring-boot-profile-strategy.md) | Spring Boot 프로파일 전략 | local / docker / test 분기 구성 |
 | [07](./07-spring-boot-4-upgrade.md) | Spring Boot 3.5 → 4.0 업그레이드 | Testcontainers 2.x·TestAdapter HTTP 클라이언트 교체 |
+| [51](./51-s3-vs-r2-cloudfront-oac-decision.md) | R2 vs S3 + CloudFront + OAC 설계 결정 | 공개 자산 호스팅 — URL 노출 ≠ 보안 위협 / OAC = Principal + SourceArn / 무중단 마이그 4단계 (트랙 `s3-media`) |
+| [52](./52-frontend-asset-externalization-pattern.md) | frontend 자산 외부화 패턴 (NEXT_PUBLIC_*) | 빌드 시점 string inline / fallback vs vars-only 가드 트레이드오프 / 마이그 순서 (트랙 `s3-media`) |
 
 ## 헥사고날·레이어 패턴 (3부작 — 시점·범위 매핑)
 

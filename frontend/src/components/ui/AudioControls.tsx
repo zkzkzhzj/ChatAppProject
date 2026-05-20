@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { loadMasterVolume, saveMasterVolume } from '@/three/audio/master-volume-store';
 import type { SceneManager } from '@/three/SceneManager';
@@ -12,20 +12,51 @@ interface Props {
 /**
  * 마스터 음량 컨트롤 (spec village-3d-audio-improvements §4).
  *
- * - 상단 우측 (데스크탑·모바일 공통, safe-area-inset 적용)
- * - 슬라이더 1개 (0~100). 0 = 자동 음소거 (별도 토글 X — D1)
+ * UI 정합:
+ * - 채팅 FAB(💬, ✏️) 결로 같은 동그라미 패턴 (rounded-full · cream · shadow-lg)
+ * - 위치: 모바일 = ✏️(bottom 80) 바로 위, 데스크탑 = 💬(bottom 16) 바로 위
+ * - 닫힌 상태 = 동그라미 아이콘만, 클릭 시 슬라이더 위쪽으로 펼침
+ * - 0 = 자동 음소거 (별도 토글 X — D1)
  * - localStorage 영속 (D3)
  * - D11 가드 — 100% = 기존 zone maxVolume(≤ 0.3) 유지
  */
 export default function AudioControls({ sceneManager }: Props) {
-  // 0~100 정수 — slider value (UI 친화)
   const [volume, setVolume] = useState<number>(() => Math.round(loadMasterVolume() * 100));
+  const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
 
-  // sceneManager 마운트되면 현재 volume 값 동기화 (Strict Mode 결로 unmount/remount 대비)
+  // 모바일 분기 (GameLoader 결로 동일 breakpoint 768)
+  useEffect(() => {
+    const update = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  // sceneManager 마운트되면 현재 volume 값 동기화
   useEffect(() => {
     if (!sceneManager) return;
     sceneManager.setMasterVolume(volume / 100);
   }, [sceneManager, volume]);
+
+  // 외부 클릭 시 닫기
+  useEffect(() => {
+    if (!open) return;
+    const onDocPointer = (e: PointerEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', onDocPointer);
+    return () => {
+      document.removeEventListener('pointerdown', onDocPointer);
+    };
+  }, [open]);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = Number(e.target.value);
@@ -35,53 +66,56 @@ export default function AudioControls({ sceneManager }: Props) {
   };
 
   const muted = volume === 0;
+  // FAB 위치 — 모바일은 ✏️(80) 위, 데스크탑은 💬(16) 위
+  const fabBottom = isMobile ? 144 : 80;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
-        right: 'calc(env(safe-area-inset-right, 0px) + 12px)',
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '6px 10px',
-        background: 'rgba(20, 20, 20, 0.55)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        borderRadius: 999,
-        color: '#f5f5f5',
-        fontSize: 12,
-        userSelect: 'none',
-      }}
-      aria-label="환경음 음량 조절"
-    >
-      <SpeakerIcon muted={muted} />
-      <input
-        type="range"
-        min={0}
-        max={100}
-        step={1}
-        value={volume}
-        onChange={onChange}
-        aria-label={`환경음 음량 ${String(volume)}%`}
-        style={{
-          width: 88,
-          accentColor: muted ? '#9ca3af' : '#e5e7eb',
-          cursor: 'pointer',
+    <div ref={panelRef} className="fixed right-4 z-20" style={{ bottom: fabBottom }}>
+      {/* 슬라이더 패널 — 동그라미 위쪽으로 펼침 */}
+      {open && (
+        <div
+          className="absolute right-0 bottom-14 flex items-center gap-2 rounded-full bg-cream/95 px-3 py-2 text-bark shadow-lg backdrop-blur-sm"
+          role="dialog"
+          aria-label="환경음 음량 조절"
+        >
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={volume}
+            onChange={onChange}
+            aria-label={`환경음 음량 ${String(volume)}%`}
+            className="cursor-pointer"
+            style={{ width: 120, accentColor: muted ? '#9ca3af' : '#7c6f5a' }}
+          />
+          <span className="min-w-[28px] text-right text-xs tabular-nums text-bark-muted">
+            {volume}
+          </span>
+        </div>
+      )}
+
+      {/* FAB 동그라미 */}
+      <button
+        type="button"
+        onClick={() => {
+          setOpen((v) => !v);
         }}
-      />
+        aria-label={muted ? '환경음 음량 (음소거)' : `환경음 음량 ${String(volume)}%`}
+        aria-expanded={open}
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
+      >
+        <SpeakerIcon muted={muted} />
+      </button>
     </div>
   );
 }
 
 function SpeakerIcon({ muted }: { muted: boolean }) {
-  // 음량 0이면 X 표시(음소거 시각), 아니면 일반 스피커 — D1 통합 UI
   return (
     <svg
-      width={16}
-      height={16}
+      width={20}
+      height={20}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

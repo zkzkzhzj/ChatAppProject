@@ -31,6 +31,12 @@ export class AmbientSoundManager {
   private activeZone: ZoneName = 'village';
   private unlocked = false;
   private destroyed = false;
+  /**
+   * 마스터 음량 (0~1). UI 슬라이더가 제어. 0 = 음소거 (별도 토글 X — spec D1).
+   * 매 프레임 zone 음량(`target`) × master 곱으로 적용. D11 가드는 zone maxVolume 기준이라
+   * master 100%(=1)일 때 기존 maxVolume(≤ 0.3) 유지.
+   */
+  private master = 1.0;
 
   constructor() {
     // Howler html5 모드의 audio pool 기본값은 10. React Strict Mode dev 에서
@@ -98,6 +104,19 @@ export class AmbientSoundManager {
   }
 
   /**
+   * 마스터 음량 설정 (0~1). UI 슬라이더 또는 localStorage 초기 로드에서 호출.
+   * 0 = 음소거 (spec D1). 범위 밖 값은 clamp.
+   */
+  setMasterVolume(v: number): void {
+    this.master = Math.max(0, Math.min(1, v));
+  }
+
+  /** 현재 마스터 음량 (UI 초기 렌더링 시 동기화용). */
+  getMasterVolume(): number {
+    return this.master;
+  }
+
+  /**
    * 캐릭터 위치 결과 매 프레임 결 결 결 결 결 결 결 결 결.
    * SceneManager.tick() 결로 결 결.
    */
@@ -109,9 +128,9 @@ export class AmbientSoundManager {
       let target = 0;
       if (activeIds.has(id)) {
         const def = activeSounds.find((d) => d.id === id);
-        if (def) target = this.calculateVolume(def, charX, charZ);
+        if (def) target = this.calculateVolume(def, charX, charZ) * this.master;
       }
-      // smoothing — 갑작스런 점프 막음 (lerp 0.05 결로 결 결 결 결 결 약 0.5초 결)
+      // smoothing — 갑작스런 점프 막음 (lerp 0.05, 약 0.5초로 부드럽게 페이드)
       const current = entry.howl.volume();
       const currentNum = typeof current === 'number' ? current : 0;
       const next = currentNum + (target - currentNum) * 0.05;

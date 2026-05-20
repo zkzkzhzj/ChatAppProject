@@ -13,8 +13,10 @@
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
 | `harden-village-ops` | [track-harden-village-ops.md](./track-harden-village-ops.md) | 백엔드 운영 P1 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test | 🔧 Step 1 진행 (release + 테스트 박힘, PR #95) | #92 | 2026-05-17 |
+| `village-3d-audio-improvements` | [track-village-3d-audio-improvements.md](./track-village-3d-audio-improvements.md) | 음량 조절(0=음소거 통합) + 모바일(iOS/Android) 위치 기반 환경음 fix | 🔧 Step 1 진행 (음량 UI + localStorage 영속) | #105 | 2026-05-20 |
 
 > PR #94 (트랙 ⓒ ai-native-2026-05-upgrade) 머지 직후 트랙 ⓑ `harden-village-ops` 활성. Step 1 (UserRegisteredEventConsumer release + 회귀 테스트 + Codex P1 acquired flag) 진행 중.
+> 트랙 `village-3d-audio-improvements` 병렬 활성 (2026-05-20) — 영역 분리 (백엔드 vs frontend audio). 충돌 위험 파일은 각 트랙 파일 §4 참조.
 > Planned: skills-progressive-disclosure (Step 4·5) / anthropic-outcomes-trial (Step 6) / npc-evaluator-lmops 보강 (sweep v2 §B·§E).
 > ws-redis Step 3 도 후보. `track-ws-redis.md` §9 인수인계 참조.
 

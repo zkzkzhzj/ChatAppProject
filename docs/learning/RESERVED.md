@@ -12,7 +12,7 @@
 
 ---
 
-## 예약 현황 (마지막 사용 번호: 83, 마지막 예약 번호: 84)
+## 예약 현황 (마지막 사용 번호: 83, 마지막 예약 번호: 85)
 
 | 번호 | 트랙 | 예상 주제 | 상태 |
 |------|------|----------|------|
@@ -54,6 +54,8 @@
 | 81   | `harden-village-ops` | JWT_SECRET 운영 폴백 제거 — 12-factor + fail-fast + @Validated @NotBlank @Size 의 정당화. application-prod.yml 분리 검토 결과 | 예약 (트랙 시작 시) |
 | 82   | `harden-village-ops` | (예비 — identity/village 동시성 unit test 패턴 정리 또는 JaCoCo 0.50 복원 회고) | 예약 (트랙 시작 시) |
 | 83   | `ai-native-2026-05-upgrade` | 트랙 ⓒ 회고 — sweep 2축 통합 매트릭스 적용 + 즉시 도입 3종 + MCP 보안 5규칙 + D1·D2·D3·D4 + 후속 트랙 분리 + 메타 4 commit + 사용자 의도 정정 (ⓑ→ⓒ) | ✅ 사용 완료 (2026-05-17) |
+| 84   | `village-3d-audio-improvements` | iOS WebKit Howler html5 vs Web Audio 트레이드오프 — `<audio>` element volume API 무시 + Web Audio GainNode 결로 우회 | 예약 |
+| 85   | `village-3d-audio-improvements` | 음소거 UI 통합 패턴 — 별도 토글 X + 음량 0 = 자동 음소거 + localStorage 영속화 | 예약 |
 | 84   | `ai-native-2026-05-upgrade` (후속) | CodeRabbit Claude Code 플러그인 1주 시범 결과 — 자율 루프 협력 vs 충돌 판단 + 정책 정착 결정 | 예약 (2026-05-24 ~ 시범 종료 시) |
 | 85   | (반환) | (구 ai-native 예비 — Skills 마이그 회고는 후속 트랙 `skills-progressive-disclosure` 결박 결박 결박) | 반환 — 재예약 가능 |
 

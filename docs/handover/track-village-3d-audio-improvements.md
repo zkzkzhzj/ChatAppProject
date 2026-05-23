@@ -49,12 +49,14 @@
 
 | Step | 내용 | 의존 | 상태 | 이슈 | PR |
 |------|------|------|------|------|-----|
-| 1 | 음량 슬라이더 UI (상단 우측, 데스크탑·모바일 공통) + localStorage 영속 + master volume 곱 + 0=음소거 통합 | — | 🔧 진행 | #105 | (작업 시 채움) |
-| 2 | Howler `html5: false` (Web Audio) 전환 + onloaderror graceful + iOS·Android 운영 검증 | step 1 | 대기 | #105 | — |
+| 1 | 음량 슬라이더 UI (상단 우측, 데스크탑·모바일 공통) + localStorage 영속 + master volume 곱 + 0=음소거 통합 | — | ✅ 코드 완료 (53601dd·a5adc7a) | #105 | #106 |
+| 2 | Howler `html5: false` (Web Audio) 전환 + onloaderror·onplayerror graceful + iOS·Android 운영 검증 | step 1 | 🔧 코드 완료 / iOS·Android 검증 대기 | #105 | #106 (Step 1 통합) |
+
+> **PR #106 결로 Step 1+2 통합** (사용자 결정, 2026-05-21). cloudflared 결로 iOS 검증 결로 슬라이더 자체가 안 먹는 결함 발견 → Step 1(슬라이더)·Step 2(iOS 위치 음향) outcome 이 같은 한 줄(`html5: true`) 결로 인한 공통 원인이라 한 PR 결로 종결. 정책 1step=1PR 위반이지만 사용자 결정.
 
 ## 3. 현재 단계 상세
 
-### Step 1 — 음량 UI + localStorage 영속
+### Step 1 — 음량 UI + localStorage 영속 (✅ 코드 완료)
 
 **작업 항목**:
 
@@ -72,7 +74,50 @@
 - D3 영속 = localStorage
 - D6 master volume = AmbientSoundManager 책임
 
+**산출물**: commit 53601dd (Step 1 본 작업) · a5adc7a (UI 정합 — 채팅 FAB 결로 같은 동그라미 + 클릭 펼침)
+
 **막힌 지점**: 없음. UI 컴포넌트 결로 기존 React 패턴 (`frontend/src/three/` 결로 .tsx 결로 결로 결로 결로 결로) 따라감.
+
+### Step 2 — Web Audio 전환 + onloaderror/onplayerror graceful + iOS·Android 검증 (🔧 코드 완료 / 검증 대기)
+
+**작업 항목**:
+
+1. `frontend/src/three/audio/AmbientSoundManager.ts` L66 결로 `html5: true` → `html5: false`
+2. L43-46 결로 `Howler.html5PoolSize = 30` 라인 제거 (Web Audio 모드 결로 무의미)
+3. L63-64 결로 옛 코멘트 ("Web Audio 디코더 까다로워서") → spec D4 사유 결로 갱신
+4. `onplayerror` 핸들러 추가 — Web Audio context 결로 첫 play 실패 (autoplay 정책) graceful 처리
+5. iOS Chrome / Android Chrome 결로 cloudflared 결로 운영 검증 — 사용자 직접 단말
+6. **🔍 진단 흐름 결박 결론 (2026-05-23, v1→v3 진단 + cors probe 결박 단정 후 제거)**. iOS Chrome cloudflared 접속 결박 슬라이더·위치 둘 다 안 먹는 결함의 근본 원인:
+   - **사실**: v3 진단 결박 `r|W|h5/wa=F|0.00` + `probe: fail/Load failed` + `err=0` 잡힘. CORS 정책 결박 `AllowedOrigins`에 `https://ghworld.co`·`https://www.ghworld.co`·`http://localhost:3000` 셋만 박혀있고 cloudflared `*.trycloudflare.com` 결박 없음
+   - **인과**: CORS 차단 → Howler XHR(arraybuffer) 즉시 reject → Howler **silent 폴백** (`_html5=true`, `_webAudio=false` 박은 후 html5 결박 재로드, `onloaderror`는 안 부름 — learning 84 line 238: "Howler default = Web Audio 우선, 실패 시 html5 fallback") → html5 cross-origin은 허용 결박 들리긴 함 → 그러나 iOS WebKit `HTMLMediaElement.volume` read-only 결박 슬라이더·위치 음량 무력화
+   - **진짜 해결**: 운영 결박 (`https://ghworld.co`) 배포 결박 검증. S3 CORS 결박 이미 그 origin 결박 허용 결박 박혀있어서 추가 작업 0. cloudflared 결박 임시 검증은 CORS 함정 결박 부정확 — 더 쓰지 말 것
+   - **진단 코드 제거 완료**: v3 배지·err 패널·cors probe·diag/probe useState·진단 useEffect 2종·`getDiag/getErrors/probeFirstAsset/pushError/serializeError` 메서드·`AudioErrorLog` 타입 모두 되돌림
+
+**결정 사항** (spec §4 미리 박혔음):
+
+- D4 Web Audio API 전환 (html5:false) — iOS WebKit HTMLMediaElement.volume read-only 제약 우회
+- D5 onloaderror = 다른 자산 영향 X graceful (+ onplayerror 결로 첫 play 실패도 graceful)
+
+**막힌 지점**: 없음 (코드 1줄 + 핸들러 1개). 다만 운영 검증 결로 디코딩 실패 자산 가능성 — 발견 시 사용자 결정 결로 재인코딩 vs 후속 트랙 결로 미루기 (spec D4 빈틈 박힘).
+
+**검증 절차** (사용자 협업):
+
+```powershell
+# 1. frontend 컨테이너 stop (port 3000 해제)
+docker compose -f deploy/docker-compose.yml stop frontend
+# 2. dev 서버 결로 띄움 (hot reload 결로 코드 변경 즉시 반영)
+cd frontend && npm run dev
+# 3. cloudflared 그대로 두면 3000 결로 향함 → 모바일 결로 동일 URL 결로 접속
+```
+
+**검증 포인트**:
+
+- iOS Chrome 결로 슬라이더 0~100 결로 음량 즉시 반영
+- 슬라이더 0 = 모든 환경음 무음
+- 캠프파이어(0,8) 가까이 가면 crackling-fire ↑
+- 연못(-5,-5) 가까이 가면 pond-water ↑, fadeRadius 6 밖 = 무음
+- 마을 외곽(28+) 가까이 가면 forest-birds ↑
+- 콘솔 결로 `[AmbientSound] '...' 자산 로드 실패` 메시지 캡쳐 — 디코딩 실패 자산 있나 확인
 
 ## 4. 충돌 위험 파일
 
@@ -94,6 +139,7 @@
 
 ## 6. 보류 메모
 
+- **🟢 진단 결박 제거 완료** (2026-05-23) — §3 항목 6 결박 history. 운영 배포 결박 검증 결박만 남음
 - 자산 재인코딩 — Web Audio 디코딩 실패 발견 시 별건
 - 단축키 (`M` 같은 키보드) — 데스크탑 결로 후속 의제
 - 개별 환경음 음량 조절 — 4종 각각 슬라이더 X (마스터 1개만)

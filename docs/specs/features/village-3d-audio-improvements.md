@@ -121,8 +121,8 @@ last-updated: 2026-05-20
 
 | Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | PR |
 |------|------|------|---------------|------|-----|
-| 1 | 음량 슬라이더 UI (상단 우측, 데스크탑·모바일 공통) + localStorage 영속 + master volume 곱 + 0=음소거 통합 | — | `frontend/src/three/audio/AmbientSoundManager.ts`, `frontend/src/three/audio/sound-config.ts` (선택), `frontend/src/three/ui/AudioControls.tsx` 또는 React 컴포넌트 (신규), CSS 결로 결로 | #105 | (작업 시 채움) |
-| 2 | Howler `html5: false` (Web Audio) 전환 + onloaderror graceful + iOS·Android 운영 검증 | step 1 | `frontend/src/three/audio/AmbientSoundManager.ts` | #105 | (작업 시 채움) |
+| 1 | 음량 슬라이더 UI (상단 우측, 데스크탑·모바일 공통) + localStorage 영속 + master volume 곱 + 0=음소거 통합 | — | `frontend/src/three/audio/AmbientSoundManager.ts`, `frontend/src/three/audio/sound-config.ts` (선택), `frontend/src/three/ui/AudioControls.tsx` 또는 React 컴포넌트 (신규), CSS 결로 결로 | #105 | #106 |
+| 2 | Howler `html5: false` (Web Audio) 전환 + onloaderror·onplayerror graceful + iOS·Android 운영 검증 | step 1 | `frontend/src/three/audio/AmbientSoundManager.ts` | #105 | #106 (Step 1 통합) |
 
 ## 6. Verification (수용 기준)
 
@@ -162,3 +162,4 @@ last-updated: 2026-05-20
 | 날짜 | 변경 |
 |------|------|
 | 2026-05-20 | 초안 작성 (decisions 6축 미리 박음 → Comprehension Gate 자동 통과 의도). UI 위치·음소거 통합·Web Audio 전환·localStorage 영속 결정 |
+| 2026-05-21 | PR #106 결로 Step 1+2 통합 결정 (사용자 결정). cloudflared 결로 iOS 검증 중 슬라이더 자체가 안 먹는 결함 발견 — Step 1 outcome(슬라이더)·Step 2 outcome(iOS 위치 음향) 둘 다 같은 한 줄(`html5: true`) 결로 인한 공통 원인이라 한 PR 결로 종결. 정책 1step=1PR 위반이지만 한 결함이 두 outcome 회복시키므로 통합 결로 박음. spec §5 Tasks 결로 요구사항 차원 결로는 분리 유지, PR 컬럼만 통합 표기. `onplayerror` 핸들러 추가 (Web Audio context autoplay 정책 결로 첫 play 실패 graceful) — Step 2 작업 항목에 함께 박음 |

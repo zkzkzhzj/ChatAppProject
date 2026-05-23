@@ -121,7 +121,7 @@ last-updated: 2026-05-20
 
 | Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | PR |
 |------|------|------|---------------|------|-----|
-| 1 | 음량 슬라이더 UI (상단 우측, 데스크탑·모바일 공통) + localStorage 영속 + master volume 곱 + 0=음소거 통합 | — | `frontend/src/three/audio/AmbientSoundManager.ts`, `frontend/src/three/audio/sound-config.ts` (선택), `frontend/src/three/ui/AudioControls.tsx` 또는 React 컴포넌트 (신규), CSS 결로 결로 | #105 | #106 |
+| 1 | 음량 슬라이더 UI (상단 우측, 데스크탑·모바일 공통) + localStorage 영속 + master volume 곱 + 0=음소거 통합 | — | `frontend/src/three/audio/AmbientSoundManager.ts`, `frontend/src/three/audio/sound-config.ts` (선택), `frontend/src/components/ui/AudioControls.tsx` (신규), CSS 결로 결로 | #105 | #106 |
 | 2 | Howler `html5: false` (Web Audio) 전환 + onloaderror·onplayerror graceful + iOS·Android 운영 검증 | step 1 | `frontend/src/three/audio/AmbientSoundManager.ts` | #105 | #106 (Step 1 통합) |
 
 ## 6. Verification (수용 기준)

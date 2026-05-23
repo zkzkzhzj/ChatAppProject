@@ -70,7 +70,14 @@ export default function AudioControls({ sceneManager }: Props) {
   const fabBottom = isMobile ? 144 : 80;
 
   return (
-    <div ref={panelRef} className="fixed right-4 z-20" style={{ bottom: fabBottom }}>
+    <div
+      ref={panelRef}
+      className="fixed z-20"
+      style={{
+        bottom: `calc(${String(fabBottom)}px + env(safe-area-inset-bottom))`,
+        right: 'calc(1rem + env(safe-area-inset-right))',
+      }}
+    >
       {/* 슬라이더 패널 — 동그라미 위쪽으로 펼침 */}
       {open && (
         <div

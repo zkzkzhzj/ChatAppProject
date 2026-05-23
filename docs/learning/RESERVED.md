@@ -57,7 +57,6 @@
 | 84   | `village-3d-audio-improvements` | iOS WebKit Howler html5 vs Web Audio 트레이드오프 — `<audio>` element volume API 무시 + Web Audio GainNode 결로 우회 | ✅ 사용 완료 (2026-05-21) |
 | 85   | `village-3d-audio-improvements` | 음소거 UI 통합 패턴 — 별도 토글 X + 음량 0 = 자동 음소거 + localStorage 영속화 | ✅ 사용 완료 (2026-05-21) |
 | 86   | `ai-native-2026-05-upgrade` (후속) | CodeRabbit Claude Code 플러그인 1주 시범 결과 — 자율 루프 협력 vs 충돌 판단 + 정책 정착 결정 (구 예약 84 → village-3d-audio 결로 84 사용 결로 86 결로 이동) | 예약 (2026-05-24 ~ 시범 종료 시) |
-| 85   | (반환) | (구 ai-native 예비 — Skills 마이그 회고는 후속 트랙 `skills-progressive-disclosure` 결박 결박 결박) | 반환 — 재예약 가능 |
 
 > 86번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
 

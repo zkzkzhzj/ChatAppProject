@@ -130,7 +130,7 @@ cd frontend && npm run dev
 | `docs/learning/RESERVED.md` | 1 | 본 트랙 결로 84·85 예약 |
 | `frontend/src/three/audio/AmbientSoundManager.ts` | 2 | 본 트랙 전용 (master volume + Step 2 결로 Web Audio) |
 | `frontend/src/three/audio/sound-config.ts` | 2 | 본 트랙 전용 (선택 — 변경 없을 가능성 ↑) |
-| `frontend/src/three/ui/AudioControls.tsx` | 2 | 신규 (충돌 X) |
+| `frontend/src/components/ui/AudioControls.tsx` | 2 | 신규 (충돌 X) |
 
 ## 5. 다음 세션 착수 전 확인 사항
 

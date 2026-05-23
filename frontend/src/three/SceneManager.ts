@@ -5,6 +5,7 @@ import { sendLeaveVillage } from '@/lib/websocket/stompClient';
 import type { ChatMessage } from '@/types/chat';
 
 import { AmbientSoundManager } from './audio/AmbientSoundManager';
+import { loadMasterVolume } from './audio/master-volume-store';
 import { CAMERA, TRANSITION, VILLAGE } from './constants';
 import { InputState } from './input';
 import { PositionSync } from './network/PositionSync';
@@ -71,6 +72,9 @@ export class SceneManager {
     // Ambient sound (D6 v + D11 음향 결)
     this.ambientSound = new AmbientSoundManager();
     this.ambientSound.enterVillage();
+    // 첫 마운트 시 localStorage 값으로 master volume 동기화 (spec D3).
+    // store 내부에 SSR 가드(typeof window) 박혀있어서 정적 import 안전.
+    this.ambientSound.setMasterVolume(loadMasterVolume());
 
     // 멀티유저 위치 송신·필터 (Step 1.5)
     this.positionSync = new PositionSync();
@@ -259,6 +263,12 @@ export class SceneManager {
   getCamera(): THREE.PerspectiveCamera | null {
     if (this.destroyed) return null;
     return this.camera;
+  }
+
+  /** AudioControls UI 결로 사용 — 마스터 음량 설정 (0~1). 0 = 음소거 (spec D1). */
+  setMasterVolume(v: number): void {
+    if (this.destroyed) return;
+    this.ambientSound.setMasterVolume(v);
   }
 
   /**

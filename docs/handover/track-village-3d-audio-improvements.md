@@ -147,11 +147,12 @@ cd frontend && npm run dev
 
 ### 5.3 남은 작업 (현재 위치)
 
-- [x] gentle-wind.m4a 변환 + 업로드 + 코드 변경 + iOS 검증
-- [x] sound-config.ts 4종 전체 m4a 전환 + 위치 기반 복원 (코드 완료)
-- [ ] 나머지 3종 m4a 변환 + S3 업로드 (사용자 단말 ffmpeg 실행 대기)
+- [x] sound-config.ts 경로 변경 (4종 + 도서관 1종, .mp3 → .m4a)
+- [x] gentle-wind.m4a 변환 + S3 업로드 + iOS 검증
+- [x] crackling-fire, pond-water, forest-birds m4a 변환 + S3 업로드 (ffmpeg -c:a aac -b:a 128k)
+- [x] PR #112 생성
 - [ ] iOS 전체 4종 검증 (cloudflared로 가능)
-- [ ] PR 생성 + 머지
+- [ ] PR 머지 + 운영 배포
 
 ### 5.4 환경 정보
 

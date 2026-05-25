@@ -132,15 +132,37 @@ cd frontend && npm run dev
 | `frontend/src/three/audio/sound-config.ts` | 2 | 본 트랙 전용 (선택 — 변경 없을 가능성 ↑) |
 | `frontend/src/components/ui/AudioControls.tsx` | 2 | 신규 (충돌 X) |
 
-## 5. 다음 세션 착수 전 확인 사항
+## 5. 현재 작업 위치 — m4a 전환 (2026-05-25)
 
-- main 동기화 (`harden-village-ops` 트랙 머지 시 변경 사항 점검)
-- iOS·Android 결로 운영 검증 — 사용자 단말 결로 직접 확인 (Step 2 결로)
+### 5.1 가설 확정 완료
+
+- **gentle-wind.m4a cheap test 성공** (2026-05-25): iOS Chrome + cloudflared로 슬라이더 정상 반응 확인
+- 근본 원인 확정: iOS WebKit `decodeAudioData()`가 mp3 디코딩 실패 → Howler html5 폴백 → iOS `HTMLMediaElement.volume` read-only → 슬라이더·위치 무력
+- 해결: m4a(AAC) = Apple 네이티브 포맷 → `decodeAudioData()` 성공 → Web Audio 모드 유지 → GainNode 음량 제어 정상
+
+### 5.2 S3 CORS 개선 (이번 세션)
+
+- `https://*.trycloudflare.com` 추가 → 배포 없이 cloudflared로 iOS 검증 가능해짐
+- 이전에 배포 필수였던 이유: cloudflared 도메인이 CORS 미허용 → Web Audio XHR 차단 → html5 폴백 → m4a든 mp3든 같은 증상
+
+### 5.3 남은 작업 (현재 위치)
+
+- [x] gentle-wind.m4a 변환 + 업로드 + 코드 변경 + iOS 검증
+- [x] sound-config.ts 4종 전체 m4a 전환 + 위치 기반 복원 (코드 완료)
+- [ ] 나머지 3종 m4a 변환 + S3 업로드 (사용자 단말 ffmpeg 실행 대기)
+- [ ] iOS 전체 4종 검증 (cloudflared로 가능)
+- [ ] PR 생성 + 머지
+
+### 5.4 환경 정보
+
+- `aws cli` v2.34.34, `ffmpeg` 설치 완료
+- S3 버킷: `gohyang-s3-buket-20260514`, prefix `v1/audio/ambient/`
+- CloudFront: `d9btdaowoaya0.cloudfront.net`
+- S3 CORS AllowedOrigins: `ghworld.co`, `www.ghworld.co`, `localhost:3000`, `*.trycloudflare.com`
 
 ## 6. 보류 메모
 
 - **🟢 진단 결박 제거 완료** (2026-05-23) — §3 항목 6 결박 history. 운영 배포 결박 검증 결박만 남음
-- 자산 재인코딩 — Web Audio 디코딩 실패 발견 시 별건
 - 단축키 (`M` 같은 키보드) — 데스크탑 결로 후속 의제
 - 개별 환경음 음량 조절 — 4종 각각 슬라이더 X (마스터 1개만)
 - BGM/SFX 분리 채널 — 향후 BGM 채널 추가 시 별건

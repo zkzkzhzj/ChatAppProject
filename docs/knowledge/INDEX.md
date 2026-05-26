@@ -9,6 +9,7 @@
 
 | 문서 | 내용 | 최종 업데이트 |
 |------|------|-------------|
+| [AlgoSu 하네스 글 기반 적용 판단](ai-native/2026-05-algosu-harness-synthesis.md) | Codex primary 전환, 모델 중립 하네스, 슬라이딩 윈도우, 메인 AI + 서브 에이전트 구조 적용/보류 판단 | 2026-05-26 |
 | [소프트웨어 패러다임 전환](ai-native/software-paradigm.md) | Karpathy Software 3.0, LLM OS, Agentic Engineering, MicroGPT, Autoresearch | 2026-04-13 |
 | [Anthropic 2026 연구 동향](ai-native/anthropic-research.md) | Managed Agents, Trustworthy Agents, Risk Report v3.0, Economic Index | 2026-04-13 |
 | [Claude Code 파워유저 실천법](ai-native/claude-code-practices.md) | Hooks, Agent Teams, Remote Control, /loop, Computer Use | 2026-04-13 |

@@ -1,10 +1,37 @@
 # 에이전트 조직도 — 마음의 고향
 
-> 마지막 업데이트: 2026-04-30
+> 마지막 업데이트: 2026-05-26
+>
+> 현재 기본 실행 주체는 Codex다. 이 문서는 기존 Claude Code 에이전트 자산의
+> 조직도와 재사용 기준을 보존한다. 모델 중립 하네스와 Codex primary 구조는
+> [`docs/harness/agent-orchestration.md`](../harness/agent-orchestration.md)를 우선 참조한다.
 
 ---
 
-## 조직 구조
+## 현재 운영 구조
+
+```text
+사용자
+        ↓
+Main Codex Orchestrator
+        ↓
+필요한 경우에만 전문 역할 위임
+        ↓
+Claude Code 에이전트 자산 / Codex 서브 에이전트 / 리뷰 게이트
+```
+
+기존 Claude Code 조직은 폐기하지 않는다. 다만 모든 작업의 기본 경로에 23개
+에이전트를 올리지 않고, 위험도와 작업 유형에 맞춰 선택 호출한다.
+
+상세 분류:
+
+- 기본 역할: Domain, Adapter, Test, Critic, Security, Concurrency, Scribe, Research
+- 요청 시 역할: PR, 리뷰 대응, 블로그, 회고 리허설, 채용/JD 분석
+- 기본 경로 제외: 제품 개발과 직접 관련이 낮거나 매번 호출하면 노이즈가 큰 역할
+
+---
+
+## Claude Code 조직 구조
 
 ```text
 사용자 (방향 설정 + 최종 승인)

@@ -30,6 +30,8 @@
 | [05](./05-supply-chain-attack-axios.md) | npm 공급망 공격 (axios 1.14.1) | `^` 범위 지정의 위험·대응 정책 |
 | [06](./06-spring-boot-profile-strategy.md) | Spring Boot 프로파일 전략 | local / docker / test 분기 구성 |
 | [07](./07-spring-boot-4-upgrade.md) | Spring Boot 3.5 → 4.0 업그레이드 | Testcontainers 2.x·TestAdapter HTTP 클라이언트 교체 |
+| [51](./51-s3-vs-r2-cloudfront-oac-decision.md) | R2 vs S3 + CloudFront + OAC 설계 결정 | 공개 자산 호스팅 — URL 노출 ≠ 보안 위협 / OAC = Principal + SourceArn / 무중단 마이그 4단계 (트랙 `s3-media`) |
+| [52](./52-frontend-asset-externalization-pattern.md) | frontend 자산 외부화 패턴 (NEXT_PUBLIC_*) | 빌드 시점 string inline / fallback vs vars-only 가드 트레이드오프 / 마이그 순서 (트랙 `s3-media`) |
 
 ## 헥사고날·레이어 패턴 (3부작 — 시점·범위 매핑)
 
@@ -139,6 +141,13 @@
 | # | 제목 | 한 줄 |
 |---|------|------|
 | [78](./78-nextjs-three-howler-dev-memory-explosion-diagnosis.md) | Next.js + Three.js + Howler dev 서버 Node heap 폭주 진단기 (`village-3d` Step 2) | 사용자 컴퓨터 2회 강종 사건 — 가설 4개 (Three dispose / Howler unlock cleanup / Turbopack workspace root / howler UMD 호환성) 박은 fix 적용해도 폭주 지속 → 진짜 root cause는 `.next` 캐시 손상 (254MB, 정상은 수십 MB). 트레이드오프 5개 (Howler html5 모드·MASTER vs maxVolume·Turbopack root·Strict Mode 이중 실행·캐시 손상 복구) + 일반화된 진단 휴리스틱 6단계 (캐시 크기 먼저 → lockfile → internal error → 시점 단서 → Strict Mode dispose → OS 자원) + 부수 발견 (PCFSoftShadowMap deprecated · pendingTarget 타입 좁힘 · CI에 tsc 빠짐) |
+
+## 환경음·audio (트랙 `village-3d-audio-improvements`)
+
+| # | 제목 | 한 줄 |
+|---|------|------|
+| [84](./84-ios-webkit-howler-html5-vs-web-audio.md) | iOS WebKit Howler html5 vs Web Audio 트레이드오프 — `<audio>` element 의 volume API 가 iOS 결박 작동 안 함 | iOS Chrome 결박 마스터 음량 슬라이더 + 위치 기반 음량 둘 다 안 먹는 결함 진단. Apple 의 의도적 정책 (HTMLMediaElement.volume read-only) 결박 `html5: true` (`<audio>` element) 모드 무력화. Web Audio API (GainNode) 결박 우회. 5개 선택지 비교 (html5 유지 / Web Audio 전환 / UA 분기 / 자산 재인코딩 / 라이브러리 교체) + Apple HIG 사상 + 모바일 audio 운영 함정 지도 8축 (Android Chrome 차이·데스크탑 Safari vs iOS Safari·iOS Chrome WebKit 강제·suspended state·다른 프로젝트 패턴·silent mode·PWA background) |
+| [85](./85-mute-ui-unification-localstorage-pattern.md) | 음소거 UI 통합 + localStorage 영속 패턴 — 별도 토글을 안 만든 이유 | (D1) 음량 0 = 자동 음소거 통합 결정 결박 — UI 단순화 + 동기화 버그 0 + D11 미니멀 정합 + 빠른 토글 우선순위 낮음. (D3) localStorage 영속 결정 결박 — 디바이스별 환경 (헤드폰 vs 스피커) 차이 자연스럽게 반영 + 게스트 결박 동작 보장 + 백엔드 비용 0. 빈틈 명시 (한 번에 음소거 UX 부담·시크릿 모드). 다른 프로젝트 패턴 (Discord·YouTube·Spotify·ZEP·Stardew) 비교 + derived state 원칙 + localStorage 함정 종합 (Safari ITP·SSR 가드·try/catch·clamp·storage event) |
 
 ---
 

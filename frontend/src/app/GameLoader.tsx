@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 import ChatDrawer from '@/components/chat/ChatDrawer';
+import AudioControls from '@/components/ui/AudioControls';
 import WelcomeOverlay from '@/components/ui/WelcomeOverlay';
 import { useStomp } from '@/lib/websocket/useStomp';
 import { useChatStore } from '@/store/useChatStore';
@@ -40,6 +41,7 @@ export default function GameLoader() {
     <>
       <ThreeGame onReady={setManager} />
       <WelcomeOverlay />
+      <AudioControls sceneManager={manager} />
       <ChatInputAnchor
         sceneManager={manager}
         onLoginRequired={() => {

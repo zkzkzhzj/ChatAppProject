@@ -26,10 +26,18 @@ export interface SoundZone {
   readonly id: string;
   readonly src: string;
   readonly description: string;
-  /** 캐릭터 위치가 zone 결 결 결 결 결 결 결 음량. D11 결 ≤ 0.3 정합. */
+  /** 캐릭터 위치가 zone 안에 있을 때의 최대 음량. D11 안식처 가드레일 ≤ 0.3 정합. */
   readonly maxVolume: number;
   readonly model: SoundPositionModel;
 }
+
+/**
+ * 정적 자산 base URL — ADR 009 (`docs/architecture/decisions/009-s3-asset-hosting.md`) 참조.
+ * dev/prod 모두 외부 S3 fetch (spec D3). 미설정 시 빈 문자열로 path만 사용 →
+ * 의도적 404 (로컬 mp3 없음) → 환경음 무음. `.env.local.example` 따라 설정 필요.
+ */
+const ASSETS_BASE = process.env.NEXT_PUBLIC_ASSETS_BASE_URL ?? '';
+const assetUrl = (path: string): string => `${ASSETS_BASE}${path}`;
 
 /**
  * 마을 zone — 4개 사운드:
@@ -41,33 +49,33 @@ export interface SoundZone {
 export const VILLAGE_SOUNDS: readonly SoundZone[] = [
   {
     id: 'gentle-wind',
-    src: '/assets/audio/ambient/gentle-wind.mp3',
+    src: assetUrl('/v1/audio/ambient/gentle-wind.m4a'),
     description: '잔잔한 바람 (마을 전역 baseline)',
     maxVolume: 0.25,
     model: { kind: 'global' },
   },
   {
     id: 'crackling-fire',
-    src: '/assets/audio/ambient/crackling-fire.mp3',
+    src: assetUrl('/v1/audio/ambient/crackling-fire.m4a'),
     description: '캠프파이어 모닥불 (모임 광장 가까이)',
     maxVolume: 0.22,
     model: { kind: 'point', x: 0, z: 8, fadeRadius: 8 },
   },
   {
     id: 'pond-water',
-    src: '/assets/audio/ambient/pond-water.mp3',
+    src: assetUrl('/v1/audio/ambient/pond-water.m4a'),
     description: '연못 물소리 (사용자 의견 — "물소리 좋거든")',
     maxVolume: 0.2,
     model: { kind: 'point', x: -5, z: -5, fadeRadius: 6 },
   },
   {
     id: 'forest-birds',
-    src: '/assets/audio/ambient/forest-birds.mp3',
+    src: assetUrl('/v1/audio/ambient/forest-birds.m4a'),
     description: '숲 새소리 (마을 외곽 가까이)',
     maxVolume: 0.25,
     model: { kind: 'forest-edge', outerRadius: 28 },
   },
-] as const;
+];
 
 /**
  * 도서관 zone — 1개 사운드:
@@ -76,12 +84,12 @@ export const VILLAGE_SOUNDS: readonly SoundZone[] = [
 export const LIBRARY_SOUNDS: readonly SoundZone[] = [
   {
     id: 'gentle-wind',
-    src: '/assets/audio/ambient/gentle-wind.mp3',
+    src: assetUrl('/v1/audio/ambient/gentle-wind.m4a'),
     description: '실내 옅은 바람 (도서관 단조)',
     maxVolume: 0.1,
     model: { kind: 'global' },
   },
-] as const;
+];
 
 /**
  * 마스터 볼륨 — 전체 환경음 출력 곱. 1.0 = 개별 maxVolume 가 그대로 실효 음량.

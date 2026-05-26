@@ -13,8 +13,10 @@
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
 | `harden-village-ops` | [track-harden-village-ops.md](./track-harden-village-ops.md) | 백엔드 운영 P1 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test | 🔧 Step 1 진행 (release + 테스트 박힘, PR #95) | #92 | 2026-05-17 |
+| `village-3d-audio-improvements` | [track-village-3d-audio-improvements.md](./track-village-3d-audio-improvements.md) | 음량 조절(0=음소거 통합) + 모바일(iOS/Android) 위치 기반 환경음 fix | 🔧 Step 1 진행 (음량 UI + localStorage 영속) | #105 | 2026-05-20 |
 
 > PR #94 (트랙 ⓒ ai-native-2026-05-upgrade) 머지 직후 트랙 ⓑ `harden-village-ops` 활성. Step 1 (UserRegisteredEventConsumer release + 회귀 테스트 + Codex P1 acquired flag) 진행 중.
+> 트랙 `village-3d-audio-improvements` 병렬 활성 (2026-05-20) — 영역 분리 (백엔드 vs frontend audio). 충돌 위험 파일은 각 트랙 파일 §4 참조.
 > Planned: skills-progressive-disclosure (Step 4·5) / anthropic-outcomes-trial (Step 6) / npc-evaluator-lmops 보강 (sweep v2 §B·§E).
 > ws-redis Step 3 도 후보. `track-ws-redis.md` §9 인수인계 참조.
 
@@ -22,6 +24,7 @@
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
+| `s3-media` | [51 (R2 vs S3 + CloudFront + OAC 설계 결정)](../learning/51-s3-vs-r2-cloudfront-oac-decision.md) · [52 (frontend 자산 외부화 패턴 — NEXT_PUBLIC env + 무중단 마이그)](../learning/52-frontend-asset-externalization-pattern.md) | 2026-05-20 | #96 (Step 1) · #102 (Step 2) · #103 (Step 5) |
 | `ai-native-2026-05-upgrade` | [83 (트랙 ⓒ 회고 — sweep 2축 + 즉시 도입 3종 + MCP baseline)](../learning/83-ai-native-2026-05-upgrade-trial.md) | 2026-05-17 | PR #94 |
 | `ctx-refresh-post-village-3d` | [79 (컨텍스트 노화 사이클 메타 학습)](../learning/79-context-refresh-cycle-meta-learning.md) | 2026-05-16 | (PR #91) |
 | `village-3d` | [74 (3D 채팅 UI 재설계 4축)](../learning/74-3d-chat-ui-redesign-decisions.md) · [78 (Next 16 + Three.js + Howler dev 메모리 폭주)](../learning/78-next-three-howler-dev-memory-diagnosis.md) | 2026-05-13 | #68 (Step 1) · #69 + #78 (Step 2) · #79 (핫픽스) · #84 (Step 1.5 멀티유저) · #85 (Step 1.7 채팅 UI) — 트랙 머지 PR 별도 |
@@ -46,7 +49,6 @@
 | `anthropic-outcomes-trial` | Anthropic Outcomes public beta 시범 — 우리 spec verification 과 자동 grader 결합 가능성 | 트랙 ⓒ Step 6 분리 산출. sweep v2 §D.2 출처. |
 | `npc-evaluator-lmops` 보강 | Langfuse self-host + OpenLIT + Grafana Anthropic prebuilt (sweep v2 §B·§E) | 사전 ADR learning 68 의 보강. sweep v2 결과 매트릭스 직접 반영. |
 | `token-auto-renewal` | Issue #38 — refresh token + rotation, HttpOnly cookie 발급, WS 토큰 갱신, 게스트 영속 식별자 | 수행계획서·결정 게이트 통과·구현계획서 [track-token-auto-renewal.md](./track-token-auto-renewal.md) 에 보존. **2026-05-02 재차 보류** — Redis 저장소 선택의 5패턴 비교 + 블로그 포스팅까지 깊이 있게 가져갈 주제로 판단, UI 디자인 트랙 우선 처리 후 재개 |
-| `s3-media` | S3 도입 (집 배경 이미지, 캐릭터 등) | 사전 결정 필요: 무엇을 올릴지 / 비용 정책 / 유해 필터 |
 
 > 시작 시점에 위 표에서 빼서 "활성 트랙" 표로 옮긴다.
 

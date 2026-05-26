@@ -31,12 +31,14 @@ export class AmbientSoundManager {
   private activeZone: ZoneName = 'village';
   private unlocked = false;
   private destroyed = false;
+  /**
+   * 마스터 음량 (0~1). UI 슬라이더가 제어. 0 = 음소거 (별도 토글 X — spec D1).
+   * 매 프레임 zone 음량(`target`) × master 곱으로 적용. D11 가드는 zone maxVolume 기준이라
+   * master 100%(=1)일 때 기존 maxVolume(≤ 0.3) 유지.
+   */
+  private master = 1.0;
 
   constructor() {
-    // Howler html5 모드의 audio pool 기본값은 10. React Strict Mode dev 에서
-    // useEffect 가 두 번 실행되며 Howl 4개 × 2 = 8개 시도하면 풀이 거의 고갈,
-    // 일부 사운드가 audio 객체를 못 잡아 무음이 되는 현상 (pool exhausted 경고) 차단.
-    Howler.html5PoolSize = 30;
     Howler.volume(MASTER_VOLUME);
     this.preloadAll();
     this.attachUnlockListeners();
@@ -55,12 +57,18 @@ export class AmbientSoundManager {
         src: [def.src],
         loop: true,
         volume: 0, // 시작 = 무음 (위치 기반 결로 매 프레임 박음)
-        // HTML5 Audio — Web Audio API 디코더가 일부 mp3 인코딩에 까다로워서
-        // "Decoding audio data failed" 발생. Step 2 글로벌 음량 결로는 충분.
-        html5: true,
+        // Web Audio API (GainNode 결로 음량 제어) — iOS WebKit 의 HTMLMediaElement.volume
+        // read-only 제약 우회 (spec D4 / learning 84 참조). 디코딩 실패 자산은
+        // onloaderror 결로 graceful 처리 (spec D5) — 다른 환경음 정상 재생 유지.
+        html5: false,
         preload: true,
         onloaderror: (_id, error) => {
           console.warn(`[AmbientSound] '${def.id}' 자산 로드 실패 (무음 진행):`, error);
+        },
+        onplayerror: (_id, error) => {
+          // Web Audio context autoplay 정책 결로 첫 play 실패 가능 (iOS Safari/Chrome).
+          // unlock 결로 사용자 interaction 후 재시도 — 일단 console.warn 결로 graceful.
+          console.warn(`[AmbientSound] '${def.id}' 재생 실패 (graceful):`, error);
         },
       });
       this.sounds.set(def.id, { howl, def });
@@ -98,6 +106,19 @@ export class AmbientSoundManager {
   }
 
   /**
+   * 마스터 음량 설정 (0~1). UI 슬라이더 또는 localStorage 초기 로드에서 호출.
+   * 0 = 음소거 (spec D1). 범위 밖 값은 clamp.
+   */
+  setMasterVolume(v: number): void {
+    this.master = Math.max(0, Math.min(1, v));
+  }
+
+  /** 현재 마스터 음량 (UI 초기 렌더링 시 동기화용). */
+  getMasterVolume(): number {
+    return this.master;
+  }
+
+  /**
    * 캐릭터 위치 결과 매 프레임 결 결 결 결 결 결 결 결 결.
    * SceneManager.tick() 결로 결 결.
    */
@@ -109,9 +130,9 @@ export class AmbientSoundManager {
       let target = 0;
       if (activeIds.has(id)) {
         const def = activeSounds.find((d) => d.id === id);
-        if (def) target = this.calculateVolume(def, charX, charZ);
+        if (def) target = this.calculateVolume(def, charX, charZ) * this.master;
       }
-      // smoothing — 갑작스런 점프 막음 (lerp 0.05 결로 결 결 결 결 결 약 0.5초 결)
+      // smoothing — 갑작스런 점프 막음 (lerp 0.05, 약 0.5초로 부드럽게 페이드)
       const current = entry.howl.volume();
       const currentNum = typeof current === 'number' ? current : 0;
       const next = currentNum + (target - currentNum) * 0.05;

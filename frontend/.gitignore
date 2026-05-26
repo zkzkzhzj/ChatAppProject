@@ -41,10 +41,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# binary asset (spec D4' — 외부 인프라 마이그 예정, s3-media 트랙)
-# 환경음 / 3D 모델 / 텍스처 등은 git 추적 X. 사용자 다운로드 (README 가이드) 또는 s3-media 트랙 마이그 후 외부 URL.
+# binary asset — S3 외부 호스팅 (s3-media 트랙, ADR 009 참조).
+# 환경음 / 3D 모델 / 텍스처 등은 git 추적 X. 운영에선 NEXT_PUBLIC_ASSETS_BASE_URL 환경변수의 S3 base URL에서 fetch.
+# dev에서도 동일 (spec D3 — 환경 분기 없음). 로컬에 mp3 두지 않아도 동작.
 # 단 텍스트 자산 (LICENSE.md · README.md · 정책 문서) 은 추적.
-public/assets/audio/ambient/*.mp3
-public/assets/audio/ambient/*.ogg
-public/assets/audio/ambient/*.wav
-public/assets/audio/ambient/*.m4a
+public/assets/audio/**/*.mp3
+public/assets/audio/**/*.ogg
+public/assets/audio/**/*.wav
+public/assets/audio/**/*.m4a

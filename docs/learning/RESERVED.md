@@ -12,7 +12,7 @@
 
 ---
 
-## 예약 현황 (마지막 사용 번호: 83, 마지막 예약 번호: 84)
+## 예약 현황 (마지막 사용 번호: 85, 마지막 예약 번호: 85)
 
 | 번호 | 트랙 | 예상 주제 | 상태 |
 |------|------|----------|------|
@@ -21,8 +21,8 @@
 | 48   | `ws-redis` | Step 5 운영 배포 + Sweep 4 결과 — 진짜 Before/After | 예약 |
 | 49   | `ui-mvp-feedback` | F-3 React 입력 컴포넌트 IME 조합 처리 | 사용 완료 |
 | 50   | `ui-mvp-feedback` | F-1 모바일 터치 이동 (tap-to-move vs 가상 조이스틱) | 사용 완료 |
-| 51   | `s3-media` | (트랙 시작 시 첫 노트 — S3 도입 결정 + 비용 정책) | 미사용 |
-| 52   | `s3-media` | (예비) | 미사용 |
+| 51   | `s3-media` | R2 vs S3 + CloudFront + OAC 설계 결정 (트레이드오프 종합) | ✅ 사용 완료 (2026-05-20) |
+| 52   | `s3-media` | frontend 자산 외부화 패턴 — NEXT_PUBLIC_* 빌드 inline + 무중단 마이그 절차 | ✅ 사용 완료 (2026-05-20) |
 | 53   | `ws-redis` | 헥사고날 outbound port 호출자 룰 (publish는 port로, subscribe lifecycle은 어댑터 내부로) | ✅ 사용 완료 (2026-04-26) |
 | 54   | `ghost-session` | presence cleanup 분석 — 세션 종료/지연 연결 시 유령 캐릭터 원인 진단 | ✅ 사용 완료 (2026-04-27) |
 | 55   | `token-auto-renewal` | sliding session vs refresh vs WS push 트레이드오프 (본 트랙 종합 노트) | 예약 (트랙 재개 시) |
@@ -54,8 +54,9 @@
 | 81   | `harden-village-ops` | JWT_SECRET 운영 폴백 제거 — 12-factor + fail-fast + @Validated @NotBlank @Size 의 정당화. application-prod.yml 분리 검토 결과 | 예약 (트랙 시작 시) |
 | 82   | `harden-village-ops` | (예비 — identity/village 동시성 unit test 패턴 정리 또는 JaCoCo 0.50 복원 회고) | 예약 (트랙 시작 시) |
 | 83   | `ai-native-2026-05-upgrade` | 트랙 ⓒ 회고 — sweep 2축 통합 매트릭스 적용 + 즉시 도입 3종 + MCP 보안 5규칙 + D1·D2·D3·D4 + 후속 트랙 분리 + 메타 4 commit + 사용자 의도 정정 (ⓑ→ⓒ) | ✅ 사용 완료 (2026-05-17) |
-| 84   | `ai-native-2026-05-upgrade` (후속) | CodeRabbit Claude Code 플러그인 1주 시범 결과 — 자율 루프 협력 vs 충돌 판단 + 정책 정착 결정 | 예약 (2026-05-24 ~ 시범 종료 시) |
-| 85   | (반환) | (구 ai-native 예비 — Skills 마이그 회고는 후속 트랙 `skills-progressive-disclosure` 결박 결박 결박) | 반환 — 재예약 가능 |
+| 84   | `village-3d-audio-improvements` | iOS WebKit Howler html5 vs Web Audio 트레이드오프 — `<audio>` element volume API 무시 + Web Audio GainNode 결로 우회 | ✅ 사용 완료 (2026-05-21) |
+| 85   | `village-3d-audio-improvements` | 음소거 UI 통합 패턴 — 별도 토글 X + 음량 0 = 자동 음소거 + localStorage 영속화 | ✅ 사용 완료 (2026-05-21) |
+| 86   | `ai-native-2026-05-upgrade` (후속) | CodeRabbit Claude Code 플러그인 1주 시범 결과 — 자율 루프 협력 vs 충돌 판단 + 정책 정착 결정 (구 예약 84 → village-3d-audio 결로 84 사용 결로 86 결로 이동) | 예약 (2026-05-24 ~ 시범 종료 시) |
 
 > 86번 이후는 트랙 추가 시 본 표에 5번 단위로 예약.
 

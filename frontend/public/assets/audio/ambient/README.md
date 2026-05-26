@@ -1,7 +1,11 @@
 # 환경음 자산 가이드
 
 > spec [village-3d.md](../../../../../docs/specs/features/village-3d.md) D6 (v) 자연 환경음 + D11 안식처 가드레일 6축 정합.
-> Step 2 — 위치 기반 환경음 4종 (사용자 결 박음, 2026-05-11).
+> Step 2 — 위치 기반 환경음 4종 (사용자 결정 박음, 2026-05-11).
+>
+> **2026-05-18 갱신**: 자산은 S3 외부 호스팅 (`gohyang-s3-buket-20260514`, prefix `v1/audio/ambient/`).
+> `frontend/.gitignore`로 추적 X, 코드에선 `NEXT_PUBLIC_ASSETS_BASE_URL` 환경변수로 fetch.
+> 출처/라이선스는 [`../LICENSE.md`](../LICENSE.md), 호스팅 결정은 [ADR 009](../../../../../docs/architecture/decisions/009-s3-asset-hosting.md).
 
 ---
 

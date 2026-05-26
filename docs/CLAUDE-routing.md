@@ -77,6 +77,13 @@
 
 | 문서 | 경로 | 내용 |
 |------|------|------|
+| 모델 중립 하네스 | `/docs/harness/README.md` | Codex primary + Claude 보존 구조, 공통 하네스 SSoT |
+| 에이전트 오케스트레이션 | `/docs/harness/agent-orchestration.md` | Main Codex와 역할형 서브 에이전트 라우팅 |
+| 역할 카드 | `/docs/harness/agents/INDEX.md` | Codex primary 하네스의 역할별 모델 중립 페르소나 |
+| Agents vs Skills | `/docs/harness/skills-vs-agents.md` | 서브 에이전트와 스킬의 책임 구분 |
+| 하네스 스킬 | `/docs/harness/skills/INDEX.md` | 반복 절차, 체크리스트, 템플릿 실행 |
+| 컨텍스트 윈도우 | `/docs/harness/context-window.md` | 슬라이딩 윈도우 기반 세션 컨텍스트 관리 |
+| Critic Gates | `/docs/harness/critic-gates.md` | Codex/Claude 교차 검증, 위험도별 리뷰 게이트 |
 | 지식 베이스 인덱스 | `/docs/knowledge/INDEX.md` | AI Native 개발, Claude Code 실천법, Anthropic 연구 동향 |
 | 소프트웨어 패러다임 | `/docs/knowledge/ai-native/software-paradigm.md` | Karpathy Software 3.0, LLM OS, Agentic Engineering |
 | Anthropic 연구 동향 | `/docs/knowledge/ai-native/anthropic-research.md` | Managed Agents, Trustworthy Agents, 모델 업데이트 |

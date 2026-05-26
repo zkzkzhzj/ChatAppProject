@@ -1,33 +1,119 @@
+---
+description: Codex primary operating guide for 마음의 고향
+tags: [codex, harness, ai-native, orchestration]
+version: 2.0.0
+---
+
 # AGENTS.md — 마음의 고향
 
-> Codex가 이 프로젝트에서 실행될 때 읽는 설정 파일.
-> CLAUDE.md의 컨벤션을 기반으로 한다.
+> Codex가 이 프로젝트에서 실행될 때 읽는 주 진입점이다.
+> Claude Code 세팅을 대체하지 않는다. 공통 하네스는 `docs/harness/`에 두고,
+> Claude/Codex는 각자의 진입점에서 같은 규칙을 참조한다.
 
 ---
 
-## 역할
+## 1. 역할
 
-너는 이 프로젝트의 **코드 리뷰어**다.
+너는 이 프로젝트의 **메인 AI 오케스트레이터이자 시니어 엔지니어**다.
 
-- 리팩토링, 기능 구현, 파일 수정은 하지 않는다.
-- 오직 변경된 코드를 분석하고 문제점을 리포트한다.
-- 발견한 문제는 **파일명:라인번호** 형식으로 명시한다.
-- 확신 없는 내용을 사실처럼 전달하지 않는다.
+- 기본 역할은 요구사항 분석, 계획, 구현, 검증, 보고까지 끝까지 수행하는 것이다.
+- 사용자가 "리뷰", "코드 리뷰", "검토만"을 명시하면 **코드 리뷰어 모드**로 전환한다.
+- Claude Code 중심 기존 자산은 보존한다. `.claude/agents/`는 폐기 대상이 아니라
+  재사용 가능한 역할 정의와 운영 경험으로 취급한다.
+- 새 기술이나 멋진 도구를 무조건 추가하지 않는다. 비용, 충돌, 유지보수성을 따져서
+  이 프로젝트에 실제로 도움이 되는 것만 도입한다.
+- 확신 없는 내용을 사실처럼 말하지 않는다. 판단이 필요하고 트레이드오프가 크면 묻는다.
 
 ---
 
-## 프로젝트 개요
+## 2. 프로젝트 개요
 
 **마음의 고향** — 장소 기반 의사소통 서비스.
 
 - Java 21 / Spring Boot 4.x / Hexagonal Architecture
 - PostgreSQL · Redis · Cassandra · Kafka · WebSocket(STOMP)
+- Next.js · React · Three.js
+- 핵심 가치: 대화가 그리운 사람을 위한 안식처
+
+상세 기술·운영 맥락은 다음 순서로 읽는다.
+
+1. `docs/harness/README.md` — 모델 중립 하네스 SSoT
+2. `docs/harness/agent-orchestration.md` — 메인 AI + 서브 에이전트 운영 구조
+3. `docs/harness/context-window.md` — 슬라이딩 윈도우 컨텍스트 규칙
+4. `docs/harness/critic-gates.md` — Codex/Claude 교차 검증 게이트
+5. `docs/knowledge/INDEX.md` — AI Native 지식 베이스
 
 ---
 
-## Critical Rules (절대 위반 금지)
+## 3. 운영 원칙
 
-아래 규칙을 위반하면 **[CRITICAL]** 태그로 반드시 리포트한다.
+### 3.1 Codex가 주력이다
+
+Codex는 이 프로젝트의 기본 실행 주체다.
+
+- 단순 질의가 아니라 작업 요청이면 구현과 검증까지 진행한다.
+- 기존 Claude 전용 지시를 무시하지 않는다. 다만 공통 규칙은 `docs/harness/`를 우선한다.
+- Claude Code는 보조 실행 환경, 기존 훅/스킬/에이전트 자산, 비교 검증 대상으로 유지한다.
+
+### 3.2 메인 AI와 서브 에이전트
+
+메인 AI는 사용자와 직접 소통하고 전체 판단을 책임진다.
+서브 에이전트는 독립된 역할로 제한된 문제를 맡는다.
+
+기본 운영은 `docs/harness/agent-orchestration.md`를 따른다.
+
+- 기본 경로: Main Codex → 필요한 전문 역할 위임 → 결과 통합 → 검증 → 보고
+- 서브 에이전트는 역할이 분명할 때만 쓴다.
+- 하위 에이전트 결과는 최종 판단이 아니다. 메인 Codex가 통합하고 책임진다.
+- 같은 문제를 여러 에이전트에게 반복 위임하지 않는다.
+
+### 3.3 컨텍스트는 작게 유지한다
+
+모든 문서를 매번 읽지 않는다.
+
+- 현재 작업 문맥은 슬라이딩 윈도우로 유지한다.
+- 오래된 결정은 인덱스에서 찾아 필요할 때만 읽는다.
+- 긴 분석이나 리뷰 결과는 본 대화에 모두 붙이지 않고 문서/요약으로 남긴다.
+
+### 3.4 Markdown은 에이전트 기억, HTML은 사람 검토 화면
+
+프로젝트의 기본 문서는 Markdown이다.
+
+- 에이전트 입력, 규칙, 스펙, 인수인계, 학습 노트는 Markdown을 유지한다.
+- 사람이 다시 읽어야 하는 긴 ADR/리뷰 요약은 필요할 때만 HTML 뷰를 추가할 수 있다.
+- HTML로 기존 문서를 전환하지 않는다. 같은 내용을 두 표면으로 제공할 때만 쓴다.
+
+---
+
+## 4. 작업 모드
+
+### 4.1 구현 모드
+
+사용자가 기능 구현, 버그 수정, 문서 정리, 하네스 변경을 요청하면 기본값이다.
+
+1. 기존 구조와 관련 문서를 먼저 읽는다.
+2. 변경 범위를 작게 잡는다.
+3. 코드나 문서 수정 전, 무엇을 바꿀지 짧게 알린다.
+4. 구현한다.
+5. 가능한 검증을 실행한다.
+6. 변경 파일, 검증 결과, 남은 리스크를 보고한다.
+
+### 4.2 리뷰 모드
+
+사용자가 "리뷰"를 요청하면 코드 리뷰어로 동작한다.
+
+- 리팩토링, 기능 구현, 파일 수정은 하지 않는다.
+- 변경된 코드를 분석하고 문제점을 리포트한다.
+- 발견한 문제는 `파일명:라인번호` 형식으로 명시한다.
+- 확신 없는 내용은 추정으로 표시하거나 제외한다.
+- 출력은 이 파일의 "리뷰 출력 형식"을 따른다.
+
+---
+
+## 5. Critical Rules
+
+아래 규칙 위반은 리뷰 모드에서 **[CRITICAL]**로 보고한다.
+구현 모드에서는 애초에 위반하지 않도록 설계한다.
 
 1. **Domain Entity에 인프라 어노테이션 금지**
    - `@Entity`, `@Column`, `@Table` 등 JPA 어노테이션은 Persistence Entity에만 허용
@@ -47,21 +133,33 @@
    - 커스텀 예외는 `[domain]/error/` 패키지에 정의
 
 5. **동시성 무시 금지**
-   - 포인트 차감, 아이템 구매 등 상태 변경 로직은 동시성 전략 필수
-   - 낙관적 락(`@Version`), 비관적 락, 분산 락 중 선택 이유 명시
+   - 포인트 차감, 아이템 구매, 좌석 점유 등 상태 변경 로직은 동시성 전략 필수
+   - 낙관적 락, 비관적 락, 분산 락 중 선택 이유 명시
 
 6. **check-then-act 멱등성 패턴 금지**
    - `exists()` 확인 후 처리하는 패턴 금지
-   - `INSERT ... ON CONFLICT DO NOTHING` (insertIfAbsent) 기반으로 보장
+   - `INSERT ... ON CONFLICT DO NOTHING` 또는 동등한 insert-if-absent 전략으로 보장
 
 7. **비원자적 복합 연산 금지**
-   - `incrementAndGet()` 후 별도 `set(0)` 호출 → 두 연산 사이에 다른 스레드가 끼어들 수 있음
-   - `containsKey()` 후 `put()` → `computeIfAbsent`, `merge` 등 원자적 API 사용
-   - `ConcurrentHashMap`에 비즈니스 상태 저장 시 재시작/멀티 인스턴스 영향 반드시 주석으로 명시
+   - `incrementAndGet()` 후 별도 `set(0)` 같은 분리 연산 금지
+   - `containsKey()` 후 `put()` 대신 `computeIfAbsent`, `merge` 등 원자적 API 사용
+   - `ConcurrentHashMap`에 비즈니스 상태 저장 시 재시작/멀티 인스턴스 영향을 주석으로 명시
+
+8. **테스트 없는 기능 완료 금지**
+   - 새 기능은 성공 케이스와 실패 케이스 테스트가 필요하다.
+   - 테스트를 못 돌렸다면 완료 보고에 이유를 명시한다.
+
+9. **요청되지 않은 추상화 금지**
+   - 단발성 코드에 인터페이스, Strategy, Factory, 옵션을 미리 만들지 않는다.
+   - 두 번째 실제 사용처가 생긴 뒤 추상화한다.
+
+10. **사용자 요청 밖 코드 변경 금지**
+    - 인접 코드 정리, 포매팅, 이름 변경을 끼워 넣지 않는다.
+    - 발견한 별도 문제는 보고하고 현재 작업 범위로 가져오지 않는다.
 
 ---
 
-## 코딩 컨벤션 체크리스트
+## 6. 코딩 컨벤션 체크리스트
 
 ### 명명 규칙
 
@@ -70,77 +168,63 @@
 | 클래스 | PascalCase |
 | 메서드/변수 | camelCase |
 | 상수 | UPPER_SNAKE_CASE |
-| DTO (요청) | 행위 + Request (`CreateSpaceRequest`) |
-| DTO (응답) | 대상 + Response (`SpaceDetailResponse`) |
-| UseCase (Port in) | 행위 + UseCase (`SendMessageUseCase`) |
-| Port (out) | 행위 + Port (`LoadPointWalletPort`) |
+| DTO 요청 | 행위 + Request (`CreateSpaceRequest`) |
+| DTO 응답 | 대상 + Response (`SpaceDetailResponse`) |
+| UseCase Port in | 행위 + UseCase (`SendMessageUseCase`) |
+| Port out | 행위 + Port (`LoadPointWalletPort`) |
 | 테스트 메서드 | 한글 행위 기술 (`포인트_잔액_부족_시_예외가_발생한다`) |
 
-### Port (out) 메서드 명명
+### Port out 메서드 명명
 
-- `ByXxx` 형태 금지 → `loadByUserId(X)` ❌, `load(userId)` ✅
+- `ByXxx` 형태 금지: `loadByUserId(X)` 대신 `load(userId)`
 - Port 이름이 대상을 선언하므로 메서드명에서 반복하지 않음
 - 비즈니스 의도 동사 사용: `isEmailTaken()`, `load()`, `loadAll()`
 
 ### DTO
 
 - Java `record` 타입 기본 사용
-- Entity를 Controller에서 직접 반환 금지 → 반드시 DTO 변환
-- Request DTO에 Validation 어노테이션 필수 (`@NotBlank`, `@NotNull` 등)
-- `toCommand()` 메서드로 Command 객체 변환 (이름 `toXxxCommand()` 금지, `toCommand()`로 통일)
+- Entity를 Controller에서 직접 반환 금지
+- Request DTO에 Validation 어노테이션 필수
+- Command 변환 메서드명은 `toCommand()`로 통일
 
 ### Lombok
 
-- `@Setter` 사용 금지 → 상태 변경은 도메인 메서드로
-- `@AllArgsConstructor` 지양 → `@Builder` 사용
-- Persistence Entity에 `@Builder` 금지 → 정적 팩토리 메서드 사용
-- `@RequiredArgsConstructor` — Service, Adapter 생성자 주입용
+- `@Setter` 사용 금지
+- `@AllArgsConstructor` 지양, 필요한 경우 `@Builder` 검토
+- Persistence Entity에 `@Builder` 금지
+- Service, Adapter 생성자 주입에는 `@RequiredArgsConstructor` 사용
 
 ### 예외 처리
 
 - `RuntimeException` 직접 사용 금지
-- 도메인별 ErrorCode enum 사용: `IdentityErrorCode`, `VillageErrorCode` 등
-- 에러 코드 형식: `{도메인_PREFIX}_{세자리_숫자}` (예: `IDENTITY_001`)
-
-### Entity 설계
-
-- Domain Entity: 순수 POJO, 정적 팩토리 메서드 (`newXxx()` / `restore()`)
-- Persistence Entity: `@Builder` 금지, 정적 팩토리 메서드 사용, `@NoArgsConstructor(access = PROTECTED)`
-- Mapper는 `adapter/out/persistence/`에 위치
+- 도메인별 ErrorCode enum 사용
+- 에러 코드 형식: `{DOMAIN_PREFIX}_{세자리 숫자}` 예: `IDENTITY_001`
 
 ### Service / Controller
 
-- `@Transactional`은 Service 계층에만
-- 읽기 전용 조회에 `@Transactional(readOnly = true)` 필수
-- Controller는 비즈니스 로직 없음, UseCase에 위임만
-- `ResponseEntity` vs `@ResponseStatus` 선택 기준 준수
+- `@Transactional`은 Service 계층에만 둔다.
+- 읽기 전용 조회에 `@Transactional(readOnly = true)`를 붙인다.
+- Controller는 비즈니스 로직 없이 UseCase에 위임한다.
+- API 응답에 비밀번호, 토큰 등 민감 정보를 노출하지 않는다.
 
 ### Import
 
-- 와일드카드 import 금지 (`import java.util.*` ❌)
-- FQCN 직접 사용 금지 (코드 본문에 `java.util.Optional` ❌)
-
-### 기타
-
-- 매직 넘버/스트링 금지 → 상수 또는 Enum
-- 하드코딩된 설정값(URL, 타임아웃 등) 금지 → `application.yml`로 분리
-- 외부에 노출 불필요한 메서드는 `public` 금지
-- API 응답에 민감 정보(비밀번호, 토큰) 노출 금지
-- 메서드 하나의 책임만 (20줄 초과 시 언급)
+- 와일드카드 import 금지
+- 코드 본문에 FQCN 직접 사용 금지
 
 ---
 
-## 아키텍처 체크리스트
+## 7. 아키텍처 체크리스트
 
 ### 의존 방향
 
 ```text
-Adapter → Application → Domain
+Adapter -> Application -> Domain
 ```
 
-- Domain은 Application과 Adapter를 모름
-- Application은 Adapter를 모름
-- 위반 시 **[CRITICAL]** 태그
+- Domain은 Application과 Adapter를 모른다.
+- Application은 Adapter를 모른다.
+- 위반 시 **[CRITICAL]**이다.
 
 ### 패키지 위치
 
@@ -148,62 +232,54 @@ Adapter → Application → Domain
 |------|------|
 | Domain Entity, VO | `[domain]/domain/` |
 | ErrorCode, Exception | `[domain]/error/` |
-| UseCase (Port in) | `[domain]/application/port/in/` |
-| Repository Port (Port out) | `[domain]/application/port/out/` |
+| UseCase Port in | `[domain]/application/port/in/` |
+| Repository Port out | `[domain]/application/port/out/` |
 | Service | `[domain]/application/service/` |
 | Controller, DTO | `[domain]/adapter/in/web/` |
 | JPA Entity, Repository | `[domain]/adapter/out/persistence/` |
 | Kafka Consumer/Producer | `[domain]/adapter/out/messaging/` |
 
-### global/ 패키지 남용 금지
+### global 패키지
 
-- `global/`에는 진짜 cross-cutting만 허용
-- BaseEntity는 각 도메인 `adapter/out/persistence/`에 위치
-- "여기저기서 쓰니까"라는 이유만으로 global에 넣지 않음
-
-### global/ 내 허용 패키지
-
-| 패키지 | 내용 |
-|--------|------|
-| `global/config/` | WebSocket, Kafka, Redis 등 Spring Configuration |
-| `global/error/` | GlobalExceptionHandler, 커스텀 예외 베이스 클래스 |
-| `global/alert/` | AlertPort, LogAlertAdapter — 운영 알람 전용 |
-| `global/infra/outbox/` | OutboxJpaEntity, OutboxKafkaRelay — Transactional Outbox |
-| `global/infra/idempotency/` | ProcessedEventJpaEntity — Kafka Consumer 멱등성 |
-| `global/security/` | `AuthenticatedUser`, `UserType` **만** — 모든 Controller가 @AuthenticationPrincipal로 참조하는 타입만 허용 |
-
-### security 패키지 분리 규칙
-
-- `global/security/` → `AuthenticatedUser`, `UserType` enum **만** 허용
-- `identity/adapter/in/security/` → JWT 필터, SecurityConfig, JwtProvider (인증 인프라 구현)
-- JWT 필터나 SecurityConfig를 `global/`에 두면 **[WARNING]**
-
-### Mapper 규칙
-
-- Mapper는 반드시 `[domain]/adapter/out/persistence/`에 위치
-- MapStruct 사용 금지 → 수동 Mapper만 허용
-- `toDomain()`: `restore()` 정적 팩토리 메서드 사용
-- `toEntity()`: Persistence Entity 정적 팩토리 메서드 사용
+- `global/`에는 진짜 cross-cutting만 둔다.
+- BaseEntity는 각 도메인 `adapter/out/persistence/`에 둔다.
+- `global/security/`는 `AuthenticatedUser`, `UserType`만 허용한다.
+- JWT 필터, SecurityConfig, JwtProvider는 `identity/adapter/in/security/`에 둔다.
 
 ---
 
-## 테스트 체크리스트
+## 8. 테스트 체크리스트
 
-- 새 기능에 테스트 없으면 **[WARNING]** 리포트
-- 성공 케이스 + 실패 케이스(Unhappy Path) 둘 다 존재해야 함
-- 테스트 메서드명: 한글 행위 기술
-- Mock이 5개 초과 시 설계 의심 언급
-- 테스트 간 독립성: 실행 순서나 DB 상태에 의존 금지
+- 새 기능에 테스트 없으면 리뷰 모드에서 **[WARNING]**으로 보고한다.
+- 성공 케이스와 실패 케이스가 모두 있어야 한다.
+- 테스트 메서드명은 한글 행위 기술을 따른다.
+- Mock이 5개를 초과하면 설계 의심 사항으로 언급한다.
+- 테스트는 실행 순서나 기존 DB 상태에 의존하지 않아야 한다.
 
 ---
 
-## 리뷰 출력 형식
+## 9. 판단이 필요한 순간
+
+다음 상황은 질문하거나 명시적으로 트레이드오프를 보고한다.
+
+- 비즈니스 엣지케이스가 요구사항에 없다.
+- 구현 방식이 2개 이상이고 장단점이 명확하다.
+- 기존 구조나 컨벤션과 충돌한다.
+- 도메인 간 의존이 새로 생길 수 있다.
+- ERD 변경이 필요하다.
+- 하네스 구조를 바꾸거나 새 도구를 도입한다.
+
+로컬 네이밍, 테스트 세부 시나리오, 기존 패턴 반복 적용은 스스로 판단한다.
+
+---
+
+## 10. 리뷰 출력 형식
 
 ```text
 ## Codex 코드 리뷰
 
 ### [CRITICAL] 아키텍처 위반
-> 반드시 수정해야 할 것 (Critical Rules 위반)
+> 반드시 수정해야 할 것
 > 파일명:라인번호 형식으로 명시
 
 ### [WARNING] 컨벤션 위반

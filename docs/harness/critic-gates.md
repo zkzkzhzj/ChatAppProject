@@ -58,12 +58,12 @@ Claude Code 자산은 다음 방식으로 유지한다.
 |-----------|---------------|
 | 문서만 변경 | Main Codex 자체 검증 |
 | 단순 UI/문구 | Main Codex + 필요한 경우 Test Engineer |
-| 새 API/DTO | Critic + Docs/Learning Scribe |
+| 새 API/DTO | Critic + Docs Consistency Check skill |
 | DB/JPA/마이그레이션 | Critic + Concurrency Critic |
 | 인증/인가/토큰 | Security Critic 필수 |
 | 포인트/아이템/좌석/메시지 상태 변경 | Concurrency Critic 필수 |
 | Kafka/outbox/idempotency | Concurrency Critic + Critic 필수 |
-| 하네스/CI/훅 변경 | Critic + Docs/Learning Scribe 필수 |
+| 하네스/CI/훅 변경 | Critic + Docs Consistency Check / Learning Note skills 필수 |
 
 ---
 
@@ -92,7 +92,9 @@ Claude Code 자산은 다음 방식으로 유지한다.
 
 ## 절차 위반 가드
 
-Critic은 PR이 있어야 호출된다. 따라서 PR 자체를 우회하는 행위는 별도 가드가 필요하다.
+Critic은 커밋 전, PR 전, PR 중 어느 시점에도 호출할 수 있다.
+다만 GitHub review comment나 PR discussion은 PR이 있어야 남길 수 있으므로,
+PR 자체를 우회하는 행위는 별도 가드가 필요하다.
 
 금지:
 

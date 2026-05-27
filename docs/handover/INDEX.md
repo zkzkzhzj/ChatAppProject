@@ -12,6 +12,7 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
+| `library-confession-mvp` | [track-library-confession-mvp.md](./track-library-confession-mvp.md) | 도서관 익명 고백 기록 + 비공개 편지 + 감사 답장 + 이모지 공감 + 태그 기반 NPC 안내 | 🔧 Step 1 진행 (구조 조사 + 도메인/API 상세 설계) | #116 | 2026-05-28 |
 | `harden-village-ops` | [track-harden-village-ops.md](./track-harden-village-ops.md) | 백엔드 운영 P1 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test | 🔧 Step 1 진행 (release + 테스트 박힘, PR #95) | #92 | 2026-05-17 |
 | `village-3d-audio-improvements` | [track-village-3d-audio-improvements.md](./track-village-3d-audio-improvements.md) | 음량 조절(0=음소거 통합) + 모바일(iOS/Android) 위치 기반 환경음 fix | 🔧 Step 1 진행 (음량 UI + localStorage 영속) | #105 | 2026-05-20 |
 

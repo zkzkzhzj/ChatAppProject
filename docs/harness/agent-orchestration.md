@@ -196,6 +196,32 @@ Controller, DTO, Persistence Adapter, Messaging Adapter를 맡는다.
 4. 각 서브 에이전트는 명확한 파일/책임 범위를 가진다.
 5. 하위 결과는 그대로 합치지 않는다. 메인 Codex가 검토 후 통합한다.
 6. 서브 에이전트가 서로 충돌하면 메인 Codex가 조정한다.
+7. 사용자가 명시적으로 멈추라고 하지 않으면, 한 절차가 끝난 뒤 다음 절차로 전이한다.
+8. 브레인스토밍 결과가 구현 가능한 수준이면 메인 Codex가 Domain/Adapter/Test/Critic 등
+   필요한 역할을 먼저 고르고, 사용자에게 "다음 단계로 가도 되냐"고 반복 확인하지 않는다.
+
+---
+
+## 자연 전이 규칙
+
+하네스는 단일 문서 작성으로 끝나지 않는다. 메인 Codex는 각 단계의 산출물을 다음 단계의
+입력으로 사용한다.
+
+| 완료된 단계 | 다음 기본 단계 |
+|-------------|----------------|
+| brainstorming | writing-plan 또는 parallel-agent-dispatch |
+| writing-plan | track-start 또는 구현 브랜치 준비 |
+| parallel-agent-dispatch | 메인 Codex 통합 계획 작성 |
+| track-start | Step 1 구현 |
+| 구현 | 테스트 + Critic Gate |
+| Critic Gate | 수정 또는 PR preflight |
+
+전이를 멈추는 조건은 다음뿐이다.
+
+- 사용자가 명시적으로 멈춤, 보류, 검토만 요청한다.
+- 다음 단계에 필요한 정보가 없고 합리적 가정이 위험하다.
+- 외부 권한, 이슈 번호, 브랜치 정책처럼 사용자의 명시적 결정이 필요하다.
+- 작업 트리 충돌이나 다른 활성 트랙 때문에 진행하면 손상이 생길 수 있다.
 
 ---
 

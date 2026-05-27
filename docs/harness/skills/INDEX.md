@@ -27,6 +27,12 @@ version: 1.0.0
 | Context Health Check | `context-health-check.md` | `.claude/agents/context-health-agent.md` 절차화 |
 | Wiki Lint | `wiki-lint.md` | `.claude/skills/wiki-lint/SKILL.md` |
 | Branch Cleanup | `branch-cleanup.md` | `.claude/skills/브랜치정리/SKILL.md` |
+| Brainstorming | `brainstorming.md` | Superpowers `brainstorming` |
+| Writing Plan | `writing-plan.md` | Superpowers `writing-plans` |
+| Worktree Start | `worktree-start.md` | Superpowers `using-git-worktrees` |
+| Development Finish | `development-finish.md` | Superpowers `finishing-a-development-branch` |
+| TDD Cycle | `tdd-cycle.md` | Superpowers `test-driven-development` |
+| Parallel Agent Dispatch | `parallel-agent-dispatch.md` | Superpowers `dispatching-parallel-agents` |
 
 ---
 
@@ -38,5 +44,6 @@ version: 1.0.0
 | PR Agent의 preflight 부분 | PR 생성 자체보다 "PR 전 체크리스트"는 절차다. |
 | Context Health Agent | 주기 점검표 성격이 강하다. 독립 판단자는 아니다. |
 | Docs Agent 일부 | 문서 정합성 확인은 체크리스트로 표준화할 수 있다. |
+| Superpowers workflow | 플러그인에 종속하지 않고 반복 가능한 절차만 모델 중립 스킬로 승격한다. |
 
 남긴 에이전트는 도메인 설계, 기술 선택 비판, 보안/동시성 비판처럼 독립 판단이 필요한 역할이다.

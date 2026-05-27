@@ -41,7 +41,8 @@ version: 2.0.0
 2. `docs/harness/agent-orchestration.md` — 메인 AI + 서브 에이전트 운영 구조
 3. `docs/harness/context-window.md` — 슬라이딩 윈도우 컨텍스트 규칙
 4. `docs/harness/critic-gates.md` — Codex/Claude 교차 검증 게이트
-5. `docs/knowledge/INDEX.md` — AI Native 지식 베이스
+5. `docs/harness/superpowers-adoption.md` — Superpowers식 스킬 트리거 도입 기준
+6. `docs/knowledge/INDEX.md` — AI Native 지식 베이스
 
 ---
 
@@ -97,6 +98,10 @@ Codex는 이 프로젝트의 기본 실행 주체다.
 4. 구현한다.
 5. 가능한 검증을 실행한다.
 6. 변경 파일, 검증 결과, 남은 리스크를 보고한다.
+
+요구가 모호하거나 설계 선택지가 큰 경우에는 바로 구현하지 않고
+`docs/harness/superpowers-adoption.md`의 brainstorming / writing-plans 트리거를 적용한다.
+동시에 여러 작업이 진행되거나 충돌 위험이 크면 git worktree 격리를 먼저 검토한다.
 
 ### 4.2 리뷰 모드
 

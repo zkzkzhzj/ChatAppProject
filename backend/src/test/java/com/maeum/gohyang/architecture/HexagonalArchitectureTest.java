@@ -72,6 +72,9 @@ class HexagonalArchitectureTest {
                     .that().resideInAnyPackage("..identity..")
                     .should().dependOnClassesThat()
                     .resideInAnyPackage(
+                            "..confession.domain..",
+                            "..confession.adapter..",
+                            "..confession.application..",
                             "..communication.domain..",
                             "..communication.adapter..",
                             "..communication.application..",
@@ -90,6 +93,9 @@ class HexagonalArchitectureTest {
                     .that().resideInAnyPackage("..village..")
                     .should().dependOnClassesThat()
                     .resideInAnyPackage(
+                            "..confession.domain..",
+                            "..confession.adapter..",
+                            "..confession.application..",
                             "..identity.domain..",
                             "..identity.adapter..",
                             "..identity.application..",
@@ -108,9 +114,33 @@ class HexagonalArchitectureTest {
                     .that().resideInAnyPackage("..communication..")
                     .should().dependOnClassesThat()
                     .resideInAnyPackage(
+                            "..confession.domain..",
+                            "..confession.adapter..",
+                            "..confession.application..",
                             "..identity.domain..",
                             "..identity.adapter..",
                             "..identity.application..",
+                            "..village.domain..",
+                            "..village.adapter..",
+                            "..village.application.."
+                    )
+                    .because("Critical Rule #2: 도메인 간 직접 참조 금지")
+                    .check(classes);
+        }
+
+        @Test
+        @DisplayName("confession 도메인은 다른 도메인의 내부를 직접 참조하지 않는다")
+        void confessionShouldNotAccessOtherDomains() {
+            noClasses()
+                    .that().resideInAnyPackage("..confession..")
+                    .should().dependOnClassesThat()
+                    .resideInAnyPackage(
+                            "..identity.domain..",
+                            "..identity.adapter..",
+                            "..identity.application..",
+                            "..communication.domain..",
+                            "..communication.adapter..",
+                            "..communication.application..",
                             "..village.domain..",
                             "..village.adapter..",
                             "..village.application.."

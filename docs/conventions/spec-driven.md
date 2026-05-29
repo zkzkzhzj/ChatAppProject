@@ -15,7 +15,7 @@
 | **Issue** | GitHub | — | "이걸 왜 시작하나?" (외부 트리거) | 트랙 시작 직전. 라벨 `track:{id}`로 묶음 |
 | **Spec** | `docs/specs/features/{feature}.md` | 미래형 | "이 트랙으로 무엇을 달성하나?" | 작업 시작 시 요구사항 진실 |
 | **Track** | `docs/handover/track-{id}.md` | 진행형 | "지금 어디까지 했나?" | 다음 step 시작 / 다음 세션 인수인계 |
-| **Step** | track §3 + PR | — | "이 작업 단위로 무엇을 만드나?" | 1 step = 1 PR (엄격) |
+| **Step** | track §3 + commit | — | "이 작업 단위로 무엇을 만드나?" | 1 작업 = 1 커밋 |
 
 ### 1.1 핵심 원칙
 
@@ -29,7 +29,7 @@
 - Issue 만 쓰면 → 닫힌 후 컨텍스트 휘발. 미래 세션이 "왜 이 결정?"을 git log 로만 추적
 - Spec 만 쓰면 → 진행 상태 모름. 매번 git log 로 "어디까지 했지?" 재추적
 - Track 만 쓰면 → 요구사항이 진행 상태에 섞여 변형됨. 6개월 후 "원래 뭘 만들려 했는지" 모름
-- Step 만 쓰면 → 트랙 단위 일관성 없음. 각 PR 이 고립
+- Step 만 쓰면 → 트랙 단위 일관성 없음. 각 커밋이 고립
 
 → 4개를 분리하면 각 층이 자기 시제로만 갱신되어 깨끗함.
 
@@ -47,12 +47,14 @@
 
 > 단발 핫픽스도 **mini-spec / mini-track** 작성. 과거 흐름 (이슈만 + PR description) 금지. 사유: PR #41 처럼 단발 핫픽스도 결정 이력이 휘발됨.
 
-### 2.2 1 step = 1 PR (엄격)
+### 2.2 1 ticket = 1 PR, 1 작업 = 1 커밋
 
-- 한 step 작업이 여러 PR 로 쪼개지지 않는다.
-- 한 PR 에 여러 step 이 섞이지 않는다.
-- 예외: **트랙 자체가 메타/도구 트랙** (예: `harness-spec-driven`) → 1 PR · N 커밋 (phase별). 서비스 트랙은 엄격 적용.
-- 사유: 1step=1PR 이면 step 단위 롤백/리뷰가 가능. 작은 변경 단위가 자동 fix-loop (트랙 `harness-spec-driven` C3) 의 입력으로도 적합.
+- GitHub Issue/티켓 하나는 하나의 PR로 닫는다.
+- 한 PR 안에는 여러 step이 들어갈 수 있다.
+- step은 커밋 가능한 작업 단위다. 작업 하나가 끝나면 하나의 커밋으로 남긴다.
+- PR이 너무 커질 것 같으면 시작 전에 티켓을 쪼갠다.
+- 이미 진행 중인 티켓을 PR 여러 개로 쪼개는 것은 피한다. 리뷰와 머지 흐름이 끊기고 제품 단위 검증이 늦어진다.
+- 사유: 티켓 단위 PR은 사용자 가치와 리뷰 맥락을 보존하고, 작업 단위 커밋은 롤백/리뷰 포인트를 유지한다.
 
 ---
 
@@ -97,7 +99,7 @@
 | `scope.in` / `scope.out` | 명시적 in / 명시적 out (out 이 spec 가치의 절반) |
 | `constraints` | 비기능 제약 (성능·비용·시간·인프라 의존) |
 | `decisions` | 핵심 결정들 — **각 항목마다 왜·대안·빈틈·재검토 트리거 4축** (Comprehension Gate 와 1:1 매핑) |
-| `tasks` (= steps) | step 분해. **step ↔ PR 1:1 강제, step ↔ 이슈 매핑은 선택** (트랙 1개에 이슈 1개도 OK, step 별 별도 이슈도 OK — §1.1 / §3.3) |
+| `tasks` (= steps) | 작업 단위 분해. **step ↔ commit 1:1 권장, ticket ↔ PR 1:1 강제** |
 | `verification` | 수용 기준 (이게 통과하면 spec 종료) |
 | `references` | 관련 wiki / learning / ADR / 외부 자료 |
 
@@ -120,7 +122,7 @@
 ## 5. Track 파일 (진행 상태)
 
 위치: `docs/handover/track-{id}.md`
-템플릿: `docs/handover/INDEX.md` 의 "트랙 파일 템플릿" (P2 에서 v2 로 갱신 — Acceptance Criteria + spec 링크 + 1step=1PR 명시)
+템플릿: `docs/handover/INDEX.md` 의 "트랙 파일 템플릿"을 따른다.
 
 매 세션 갱신. spec 과 분리되는 이유: spec 은 변하지 않아야 하고, track 은 매일 변한다.
 
@@ -131,7 +133,7 @@
 | 컨벤션 | 본 spec-driven 과의 관계 |
 |--------|-----------------------|
 | [parallel-work.md](./parallel-work.md) | 트랙 시작/종료 절차의 상위 정책. P2 에서 spec-driven 반영해 §2 트랙 시작 절차에 "Spec 작성" 단계 추가 |
-| [git.md](./git.md) | 1 step = 1 PR 정책 추가 (P2). 브랜치명 컨벤션은 그대로 |
+| [git.md](./git.md) | 1 ticket = 1 PR, 1 작업 = 1 커밋 정책의 기준 |
 | [coding.md](./coding.md) | 무관. 코드 스타일 영역 |
 | [testing.md](./testing.md) | spec 의 `verification` 섹션이 테스트 시나리오의 출처 |
 | `comprehension-gate.md` (P3 산출물) | spec 의 `decisions` 4축 (왜·대안·빈틈·재검토) 과 1:1 매핑 |
@@ -150,3 +152,4 @@
 | 날짜 | 변경 | 트랙 |
 |------|------|------|
 | 2026-04-30 | 본 문서 신설 (4층 분리 도입) | `harness-spec-driven` C1 |
+| 2026-05-30 | PR 정책을 1 step = 1 PR에서 1 ticket = 1 PR / 1 작업 = 1 커밋으로 교정 | `library-confession-mvp` |

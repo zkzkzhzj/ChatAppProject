@@ -11,11 +11,20 @@ type InteractionListener = (state: LibraryInteractionState) => void;
 const sceneListeners = new Set<SceneListener>();
 const interactionListeners = new Set<InteractionListener>();
 
-let currentScene: SceneName = 'village';
-let currentInteraction: LibraryInteractionState = {
+const initialInteraction: LibraryInteractionState = {
   nearLibrarian: false,
   nearBookshelf: false,
 };
+
+let currentScene: SceneName = 'village';
+let currentInteraction: LibraryInteractionState = cloneInteractionState(initialInteraction);
+
+function cloneInteractionState(state: LibraryInteractionState): LibraryInteractionState {
+  return {
+    nearLibrarian: state.nearLibrarian,
+    nearBookshelf: state.nearBookshelf,
+  };
+}
 
 export function emitSceneChange(scene: SceneName): void {
   currentScene = scene;
@@ -40,14 +49,14 @@ export function emitLibraryInteractionChange(state: LibraryInteractionState): vo
     return;
   }
 
-  currentInteraction = state;
+  currentInteraction = cloneInteractionState(state);
   interactionListeners.forEach((listener) => {
-    listener(state);
+    listener(cloneInteractionState(currentInteraction));
   });
 }
 
 export function onLibraryInteractionChange(listener: InteractionListener): () => void {
-  listener(currentInteraction);
+  listener(cloneInteractionState(currentInteraction));
   interactionListeners.add(listener);
   return () => {
     interactionListeners.delete(listener);
@@ -60,6 +69,13 @@ export function getSceneSnapshot(): {
 } {
   return {
     scene: currentScene,
-    interaction: currentInteraction,
+    interaction: cloneInteractionState(currentInteraction),
   };
+}
+
+export function resetSceneBridgeForTest(): void {
+  currentScene = 'village';
+  currentInteraction = cloneInteractionState(initialInteraction);
+  sceneListeners.clear();
+  interactionListeners.clear();
 }

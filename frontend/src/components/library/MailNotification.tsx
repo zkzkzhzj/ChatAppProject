@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 import { LIBRARY_LABELS } from './libraryLabels';
 
@@ -10,14 +10,21 @@ interface MailNotificationProps {
 }
 
 export default function MailNotification({ receivedCount, replyCount }: MailNotificationProps) {
+  const popoverId = useId();
   const [open, setOpen] = useState(false);
   const total = receivedCount + replyCount;
+  const mailAriaLabel =
+    total > 0
+      ? `${LIBRARY_LABELS.mailAriaLabel}, 새 알림 ${String(total)}개`
+      : LIBRARY_LABELS.mailAriaLabel;
 
   return (
     <div className="fixed right-4 bottom-24 z-20">
       <button
         type="button"
-        aria-label={LIBRARY_LABELS.mailAriaLabel}
+        aria-label={mailAriaLabel}
+        aria-controls={popoverId}
+        aria-expanded={open}
         onClick={() => {
           setOpen((value) => !value);
         }}
@@ -34,7 +41,11 @@ export default function MailNotification({ receivedCount, replyCount }: MailNoti
       </button>
 
       {open && (
-        <div className="mt-2 w-48 rounded border border-sand bg-cream/95 p-3 text-sm text-bark shadow-xl">
+        <div
+          id={popoverId}
+          role="status"
+          className="mt-2 w-48 rounded border border-sand bg-cream/95 p-3 text-sm text-bark shadow-xl"
+        >
           <p>
             {LIBRARY_LABELS.receivedHeart} {receivedCount}
           </p>

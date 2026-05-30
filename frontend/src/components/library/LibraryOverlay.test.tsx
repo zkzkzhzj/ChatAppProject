@@ -125,11 +125,19 @@ describe('MailNotification', () => {
   it('renders compact counts without letter body content', () => {
     render(<MailNotification receivedCount={2} replyCount={1} />);
 
-    const mailButton = screen.getByRole('button', { name: '우편 알림 확인' });
+    const mailButton = screen.getByRole('button', { name: /우편 알림 확인/ });
+    const popoverId = mailButton.getAttribute('aria-controls');
 
     expect(mailButton).toBeInTheDocument();
+    expect(mailButton).toHaveAccessibleName('우편 알림 확인, 새 알림 3개');
+    expect(mailButton).toHaveAttribute('aria-expanded', 'false');
+    expect(popoverId).toBeTruthy();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
     fireEvent.click(mailButton);
 
+    expect(mailButton).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('status')).toHaveAttribute('id', popoverId);
     expect(screen.getByText('도착한 마음 2')).toBeInTheDocument();
     expect(screen.getByText('답장 1')).toBeInTheDocument();
     expect(screen.queryByText('편지 전문')).not.toBeInTheDocument();

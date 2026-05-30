@@ -14,6 +14,9 @@ import { applyWarmLighting } from '../lighting';
 export class LibraryScene {
   readonly scene = new THREE.Scene();
   readonly character: Character;
+  private readonly librarianAnchor = new THREE.Vector3(0, 0, -2.6);
+  private readonly bookshelfAnchor = new THREE.Vector3(0, 0, -5.1);
+  private readonly interactionRadius = 1.8;
   private readonly exitZ = 5; // 입구쪽 (남)
 
   constructor() {
@@ -22,7 +25,7 @@ export class LibraryScene {
     this.buildFloor();
     this.buildWalls();
     this.buildBookshelves();
-    this.buildDeskPlaceholder();
+    this.buildLibrarianDesk();
 
     // 캐릭터 입구 (남) 결로 spawn
     this.character = new Character(new THREE.Vector3(0, 0, this.exitZ - 0.5));
@@ -82,7 +85,7 @@ export class LibraryScene {
     }
   }
 
-  private buildDeskPlaceholder(): void {
+  private buildLibrarianDesk(): void {
     // 책상 + 펼친 노트 (Step 4 에서 글 작성 결로 박음)
     const desk = new THREE.Mesh(
       new THREE.BoxGeometry(2.4, 0.1, 1.2),
@@ -110,6 +113,22 @@ export class LibraryScene {
     );
     note.position.set(0, 0.91, -2);
     this.scene.add(note);
+
+    const body = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.28, 0.55, 4, 8),
+      new THREE.MeshLambertMaterial({ color: 0x5b6f8f }),
+    );
+    body.position.set(0.65, 1.28, -2.15);
+    body.castShadow = true;
+    this.scene.add(body);
+
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.23, 16, 12),
+      new THREE.MeshLambertMaterial({ color: 0xf1c6a8 }),
+    );
+    head.position.set(0.65, 1.82, -2.15);
+    head.castShadow = true;
+    this.scene.add(head);
   }
 
   updateCamera(camera: THREE.PerspectiveCamera): void {
@@ -121,6 +140,14 @@ export class LibraryScene {
     );
     camera.position.lerp(desired, CAMERA.FOLLOW_LERP);
     camera.lookAt(target.x, target.y + 1, target.z);
+  }
+
+  isNearLibrarian(): boolean {
+    return this.character.position.distanceTo(this.librarianAnchor) < this.interactionRadius;
+  }
+
+  isNearBookshelf(): boolean {
+    return this.character.position.distanceTo(this.bookshelfAnchor) < this.interactionRadius;
   }
 
   isAtExit(): boolean {

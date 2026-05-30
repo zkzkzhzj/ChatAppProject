@@ -65,3 +65,9 @@ canvas {
 .library-bookshelf-zoom {
   animation: bookshelfZoom 220ms ease-out;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .library-bookshelf-zoom {
+    animation: none;
+  }
+}

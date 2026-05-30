@@ -501,4 +501,196 @@ describe('BookshelfInteraction', () => {
     expect(screen.getByRole('button', { name: '책 9' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '책 1' })).not.toBeInTheDocument();
   });
+
+  it('shows feedback when selecting a book fails', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(4)]}
+        onSelectBook={vi.fn().mockRejectedValue(new Error('failed'))}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(screen.getByRole('button', { name: '책 4' }));
+
+    expect(await screen.findByText('Could not open book. Please try again.')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '책 4' })).not.toBeInTheDocument();
+  });
+
+  it('shows feedback when sending a heart fails', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(5)]}
+        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(5))}
+        onSendHeart={vi.fn().mockRejectedValue(new Error('failed'))}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(screen.getByRole('button', { name: '책 5' }));
+    await screen.findByRole('heading', { name: '책 5' });
+    await user.type(screen.getByLabelText('마음 내용'), '고마웠어요');
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.sendHeart }));
+
+    expect(await screen.findByText('Could not send heart. Please try again.')).toBeInTheDocument();
+  });
+
+  it('disables empty heart submit and shows feedback if an empty body is submitted', async () => {
+    const user = userEvent.setup();
+    const onSendHeart = vi.fn();
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(6)]}
+        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(6))}
+        onSendHeart={onSendHeart}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(screen.getByRole('button', { name: '책 6' }));
+    await screen.findByRole('heading', { name: '책 6' });
+    await user.type(screen.getByLabelText('마음 내용'), '   ');
+
+    const submitButton = screen.getByRole('button', { name: LIBRARY_LABELS.sendHeart });
+    expect(submitButton).toBeDisabled();
+
+    const form = submitButton.closest('form');
+    if (!form) {
+      throw new Error('Expected submit button to be inside a form');
+    }
+    fireEvent.submit(form);
+
+    expect(onSendHeart).not.toHaveBeenCalled();
+    expect(screen.getByText('Heart message is required.')).toBeInTheDocument();
+  });
+
+  it('prevents repeated book selection while the first selection is pending', async () => {
+    const user = userEvent.setup();
+    let resolveSelect: ((detail: ConfessionDetail) => void) | undefined;
+    const onSelectBook = vi.fn(
+      () =>
+        new Promise<ConfessionDetail>((resolve) => {
+          resolveSelect = resolve;
+        }),
+    );
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(7), makeBook(8)]}
+        onSelectBook={onSelectBook}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+
+    const firstBook = screen.getByRole('button', { name: '책 7' });
+    await user.click(firstBook);
+    await user.click(screen.getByRole('button', { name: '책 8' }));
+
+    expect(onSelectBook).toHaveBeenCalledTimes(1);
+    expect(firstBook).toBeDisabled();
+
+    resolveSelect?.(makeBookDetail(7));
+  });
+
+  it('prevents repeated heart sends while the first send is pending', async () => {
+    const user = userEvent.setup();
+    let resolveSend: (() => void) | undefined;
+    const onSendHeart = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSend = resolve;
+        }),
+    );
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(9)]}
+        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(9))}
+        onSendHeart={onSendHeart}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(screen.getByRole('button', { name: '책 9' }));
+    await screen.findByRole('heading', { name: '책 9' });
+    await user.type(screen.getByLabelText('마음 내용'), '고마웠어요');
+
+    const submitButton = screen.getByRole('button', { name: LIBRARY_LABELS.sendHeart });
+    await user.click(submitButton);
+    await user.click(submitButton);
+
+    expect(onSendHeart).toHaveBeenCalledTimes(1);
+    expect(submitButton).toBeDisabled();
+
+    resolveSend?.();
+  });
+
+  it('clamps the current page when the books prop shrinks', async () => {
+    const user = userEvent.setup();
+    const initialBooks = Array.from({ length: 9 }, (_, index) => makeBook(index + 1));
+    const { rerender } = render(
+      <BookshelfInteraction
+        near={true}
+        books={initialBooks}
+        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(1))}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(screen.getByRole('button', { name: '다음' }));
+
+    expect(screen.getByText('2 / 2')).toBeInTheDocument();
+
+    rerender(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(1)]}
+        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(1))}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('1 / 1')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '책 1' })).toBeInTheDocument();
+  });
+
+  it('moves focus into the dialog, closes with Escape, and restores focus to the trigger', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(10)]}
+        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(10))}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    const trigger = screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction });
+    trigger.focus();
+    await user.click(trigger);
+
+    const dialog = screen.getByRole('dialog', { name: LIBRARY_LABELS.bookshelfTitle });
+    expect(dialog).toHaveFocus();
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
 });

@@ -3,6 +3,7 @@ package com.maeum.gohyang.confession.adapter.in.web;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,9 +18,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.maeum.gohyang.confession.application.port.in.CreateConfessionUseCase;
 import com.maeum.gohyang.confession.application.port.in.DeleteConfessionUseCase;
 import com.maeum.gohyang.confession.application.port.in.GetConfessionDetailUseCase;
+import com.maeum.gohyang.confession.application.port.in.GetThankReplyUseCase;
 import com.maeum.gohyang.confession.application.port.in.ListConfessionsUseCase;
+import com.maeum.gohyang.confession.application.port.in.ListReceivedLettersUseCase;
+import com.maeum.gohyang.confession.application.port.in.ListSentLettersUseCase;
+import com.maeum.gohyang.confession.application.port.in.SendConfessionLetterUseCase;
+import com.maeum.gohyang.confession.application.port.in.SendThankReplyUseCase;
 import com.maeum.gohyang.confession.domain.ConfessionBookshelf;
+import com.maeum.gohyang.confession.domain.ConfessionLetter;
 import com.maeum.gohyang.confession.domain.ConfessionRecord;
+import com.maeum.gohyang.confession.domain.ConfessionThankReply;
 import com.maeum.gohyang.confession.error.ConfessionAccessDeniedException;
 import com.maeum.gohyang.global.security.AuthenticatedUser;
 
@@ -35,6 +43,11 @@ public class ConfessionController {
     private final ListConfessionsUseCase listConfessionsUseCase;
     private final GetConfessionDetailUseCase getConfessionDetailUseCase;
     private final DeleteConfessionUseCase deleteConfessionUseCase;
+    private final SendConfessionLetterUseCase sendConfessionLetterUseCase;
+    private final ListReceivedLettersUseCase listReceivedLettersUseCase;
+    private final ListSentLettersUseCase listSentLettersUseCase;
+    private final SendThankReplyUseCase sendThankReplyUseCase;
+    private final GetThankReplyUseCase getThankReplyUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -68,6 +81,61 @@ public class ConfessionController {
             @AuthenticationPrincipal AuthenticatedUser user) {
         requireMember(user);
         deleteConfessionUseCase.execute(new DeleteConfessionUseCase.Command(user.userId(), confessionId));
+    }
+
+    @PostMapping("/{confessionId}/letters")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ConfessionLetterResponse sendLetter(
+            @PathVariable long confessionId,
+            @Valid @RequestBody SendConfessionLetterRequest request,
+            @AuthenticationPrincipal AuthenticatedUser user) {
+        requireMember(user);
+        ConfessionLetter letter = sendConfessionLetterUseCase.execute(request.toCommand(user.userId(), confessionId));
+        return ConfessionLetterResponse.from(letter);
+    }
+
+    @GetMapping("/me/letters")
+    public List<ConfessionLetterResponse> listSentLetters(@AuthenticationPrincipal AuthenticatedUser user) {
+        requireMember(user);
+        return listSentLettersUseCase.execute(user.userId())
+                .stream()
+                .map(ConfessionLetterResponse::from)
+                .toList();
+    }
+
+    @GetMapping("/me/{confessionId}/letters")
+    public List<ConfessionLetterResponse> listReceivedLetters(
+            @PathVariable long confessionId,
+            @AuthenticationPrincipal AuthenticatedUser user) {
+        requireMember(user);
+        return listReceivedLettersUseCase.execute(
+                        new ListReceivedLettersUseCase.Query(user.userId(), confessionId)
+                )
+                .stream()
+                .map(ConfessionLetterResponse::from)
+                .toList();
+    }
+
+    @PostMapping("/me/letters/{letterId}/thank-reply")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ThankReplyResponse sendThankReply(
+            @PathVariable long letterId,
+            @Valid @RequestBody SendThankReplyRequest request,
+            @AuthenticationPrincipal AuthenticatedUser user) {
+        requireMember(user);
+        ConfessionThankReply reply = sendThankReplyUseCase.execute(request.toCommand(user.userId(), letterId));
+        return ThankReplyResponse.from(reply);
+    }
+
+    @GetMapping("/me/letters/{letterId}/thank-reply")
+    public ResponseEntity<ThankReplyResponse> getThankReply(
+            @PathVariable long letterId,
+            @AuthenticationPrincipal AuthenticatedUser user) {
+        requireMember(user);
+        return getThankReplyUseCase.execute(new GetThankReplyUseCase.Query(user.userId(), letterId))
+                .map(ThankReplyResponse::from)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     private void requireMember(AuthenticatedUser user) {

@@ -104,6 +104,10 @@ describe('sceneBridge', () => {
     });
 
     expect(listenerState).toBeDefined();
+    if (!listenerState) {
+      throw new Error('Expected listener state to be captured');
+    }
+
     listenerState.nearLibrarian = false;
 
     expect(getSceneSnapshot().interaction).toEqual({

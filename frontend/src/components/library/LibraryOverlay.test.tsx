@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import BookshelfInteraction from '@/components/library/BookshelfInteraction';
 import LibrarianInteraction from '@/components/library/LibrarianInteraction';
 import { LIBRARY_LABELS } from '@/components/library/libraryLabels';
 import MailNotification from '@/components/library/MailNotification';
@@ -14,6 +15,7 @@ import {
   onSceneChange,
   resetSceneBridgeForTest,
 } from '@/lib/scene/sceneBridge';
+import type { ConfessionDetail, ConfessionSummary } from '@/types/confession';
 
 describe('sceneBridge', () => {
   beforeEach(() => {
@@ -368,5 +370,135 @@ describe('LibrarianInteraction quality hardening', () => {
       expect(trigger).toHaveAttribute('aria-expanded', 'true');
     });
     expect(screen.getByRole('dialog')).toHaveAttribute('id', panelId);
+  });
+});
+
+const makeBook = (id: number): ConfessionSummary => ({
+  id,
+  title: `책 ${String(id)}`,
+  preview: `미리보기 ${String(id)}`,
+  bookshelf: 'GENERAL',
+  createdAt: '2026-05-30T00:00:00Z',
+});
+
+const makeBookDetail = (id: number): ConfessionDetail => ({
+  id,
+  title: `책 ${String(id)}`,
+  body: `본문 ${String(id)}`,
+  bookshelf: 'GENERAL',
+  status: 'VISIBLE',
+  riskLevel: 'LOW',
+  createdAt: '2026-05-30T00:00:00Z',
+});
+
+describe('BookshelfInteraction', () => {
+  it('renders no bookshelf trigger when the player is away from the bookshelf', () => {
+    render(
+      <BookshelfInteraction
+        near={false}
+        books={[makeBook(1)]}
+        onSelectBook={vi.fn()}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByRole('button', { name: LIBRARY_LABELS.bookshelfAction }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('opens the shelf zoom panel and then an open book detail', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(1)]}
+        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(1))}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+
+    expect(screen.getByRole('dialog', { name: LIBRARY_LABELS.bookshelfTitle })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '책 1' }));
+
+    expect(await screen.findByRole('heading', { name: '책 1' })).toBeInTheDocument();
+    expect(screen.getByText('본문 1')).toBeInTheDocument();
+  });
+
+  it('selecting a book calls onSelectBook with the book id', async () => {
+    const user = userEvent.setup();
+    const onSelectBook = vi.fn().mockResolvedValue(makeBookDetail(2));
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(2)]}
+        onSelectBook={onSelectBook}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(screen.getByRole('button', { name: '책 2' }));
+
+    await waitFor(() => {
+      expect(onSelectBook).toHaveBeenCalledWith(2);
+    });
+  });
+
+  it('heart submit trims body, sends it, clears the field, and shows success', async () => {
+    const user = userEvent.setup();
+    const onSendHeart = vi.fn();
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(3)]}
+        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(3))}
+        onSendHeart={onSendHeart}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(screen.getByRole('button', { name: '책 3' }));
+    await screen.findByRole('heading', { name: '책 3' });
+
+    const heartBody = screen.getByLabelText('마음 내용');
+    await user.type(heartBody, '  고마워요  ');
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.sendHeart }));
+
+    await waitFor(() => {
+      expect(onSendHeart).toHaveBeenCalledWith(3, '고마워요');
+    });
+    expect(heartBody).toHaveValue('');
+    expect(screen.getByRole('status')).toHaveTextContent('마음이 조용히 전해졌어요.');
+  });
+
+  it('moves to the next page when more than eight books are available', async () => {
+    const user = userEvent.setup();
+    const books = Array.from({ length: 9 }, (_, index) => makeBook(index + 1));
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={books}
+        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(9))}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+
+    expect(screen.getByRole('button', { name: '책 1' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '책 9' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '다음' }));
+
+    expect(screen.getByRole('button', { name: '책 9' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '책 1' })).not.toBeInTheDocument();
   });
 });

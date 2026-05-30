@@ -50,3 +50,18 @@ canvas {
 ::-webkit-scrollbar-thumb:hover {
   background: #7d6b5a;
 }
+
+@keyframes bookshelfZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.library-bookshelf-zoom {
+  animation: bookshelfZoom 220ms ease-out;
+}

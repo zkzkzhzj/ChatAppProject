@@ -176,6 +176,36 @@ describe('LibrarianInteraction', () => {
   });
 });
 describe('LibrarianInteraction quality hardening', () => {
+  it('prevents repeated counseling requests while the first request is pending', async () => {
+    const user = userEvent.setup();
+    let resolveCounseling: (() => void) | undefined;
+    const onRequestCounseling = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveCounseling = resolve;
+        }),
+    );
+
+    render(
+      <LibrarianInteraction
+        near={true}
+        onSubmitBook={vi.fn()}
+        onRequestCounseling={onRequestCounseling}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+
+    const counselingButton = screen.getByRole('button', { name: LIBRARY_LABELS.counseling });
+    await user.click(counselingButton);
+    await user.click(counselingButton);
+
+    expect(onRequestCounseling).toHaveBeenCalledTimes(1);
+    expect(counselingButton).toBeDisabled();
+
+    resolveCounseling?.();
+  });
+
   it('submits a trimmed general book payload', async () => {
     const user = userEvent.setup();
     const onSubmitBook = vi.fn();
@@ -245,6 +275,39 @@ describe('LibrarianInteraction quality hardening', () => {
 
     expect(onSubmitBook).not.toHaveBeenCalled();
     expect(screen.getByText('Title and body are required.')).toBeInTheDocument();
+  });
+
+  it('prevents repeated book submits while the first submit is pending', async () => {
+    const user = userEvent.setup();
+    let resolveSubmit: (() => void) | undefined;
+    const onSubmitBook = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSubmit = resolve;
+        }),
+    );
+
+    render(
+      <LibrarianInteraction
+        near={true}
+        onSubmitBook={onSubmitBook}
+        onRequestCounseling={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
+    await user.type(screen.getByLabelText('Book title'), 'title');
+    await user.type(screen.getByLabelText('Book body'), 'body');
+
+    const submitButton = screen.getByRole('button', { name: '사서에게 맡기기' });
+    await user.click(submitButton);
+    await user.click(submitButton);
+
+    expect(onSubmitBook).toHaveBeenCalledTimes(1);
+    expect(submitButton).toBeDisabled();
+
+    resolveSubmit?.();
   });
 
   it('shows feedback when an async book submit fails', async () => {

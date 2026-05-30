@@ -15,17 +15,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.maeum.gohyang.confession.application.port.in.AddConfessionReactionUseCase;
 import com.maeum.gohyang.confession.application.port.in.CreateConfessionUseCase;
 import com.maeum.gohyang.confession.application.port.in.DeleteConfessionUseCase;
 import com.maeum.gohyang.confession.application.port.in.GetConfessionDetailUseCase;
 import com.maeum.gohyang.confession.application.port.in.GetThankReplyUseCase;
+import com.maeum.gohyang.confession.application.port.in.ListConfessionReactionSummaryUseCase;
 import com.maeum.gohyang.confession.application.port.in.ListConfessionsUseCase;
 import com.maeum.gohyang.confession.application.port.in.ListReceivedLettersUseCase;
 import com.maeum.gohyang.confession.application.port.in.ListSentLettersUseCase;
+import com.maeum.gohyang.confession.application.port.in.RemoveConfessionReactionUseCase;
+import com.maeum.gohyang.confession.application.port.in.ReportConfessionUseCase;
 import com.maeum.gohyang.confession.application.port.in.SendConfessionLetterUseCase;
 import com.maeum.gohyang.confession.application.port.in.SendThankReplyUseCase;
 import com.maeum.gohyang.confession.domain.ConfessionBookshelf;
 import com.maeum.gohyang.confession.domain.ConfessionLetter;
+import com.maeum.gohyang.confession.domain.ConfessionReactionType;
 import com.maeum.gohyang.confession.domain.ConfessionRecord;
 import com.maeum.gohyang.confession.domain.ConfessionThankReply;
 import com.maeum.gohyang.confession.error.ConfessionAccessDeniedException;
@@ -48,6 +53,10 @@ public class ConfessionController {
     private final ListSentLettersUseCase listSentLettersUseCase;
     private final SendThankReplyUseCase sendThankReplyUseCase;
     private final GetThankReplyUseCase getThankReplyUseCase;
+    private final AddConfessionReactionUseCase addConfessionReactionUseCase;
+    private final RemoveConfessionReactionUseCase removeConfessionReactionUseCase;
+    private final ListConfessionReactionSummaryUseCase listConfessionReactionSummaryUseCase;
+    private final ReportConfessionUseCase reportConfessionUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -81,6 +90,49 @@ public class ConfessionController {
             @AuthenticationPrincipal AuthenticatedUser user) {
         requireMember(user);
         deleteConfessionUseCase.execute(new DeleteConfessionUseCase.Command(user.userId(), confessionId));
+    }
+
+    @PostMapping("/{confessionId}/reactions")
+    public ConfessionReactionResponse addReaction(
+            @PathVariable long confessionId,
+            @Valid @RequestBody ConfessionReactionRequest request,
+            @AuthenticationPrincipal AuthenticatedUser user) {
+        requireMember(user);
+        AddConfessionReactionUseCase.Result result = addConfessionReactionUseCase.execute(
+                request.toCommand(user.userId(), confessionId)
+        );
+        return ConfessionReactionResponse.from(result);
+    }
+
+    @DeleteMapping("/{confessionId}/reactions/{reactionType}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeReaction(
+            @PathVariable long confessionId,
+            @PathVariable ConfessionReactionType reactionType,
+            @AuthenticationPrincipal AuthenticatedUser user) {
+        requireMember(user);
+        removeConfessionReactionUseCase.execute(
+                new RemoveConfessionReactionUseCase.Command(user.userId(), confessionId, reactionType)
+        );
+    }
+
+    @GetMapping("/{confessionId}/reactions")
+    public List<ConfessionReactionSummaryResponse> listReactions(@PathVariable long confessionId) {
+        return listConfessionReactionSummaryUseCase.execute(confessionId)
+                .stream()
+                .map(ConfessionReactionSummaryResponse::from)
+                .toList();
+    }
+
+    @PostMapping("/{confessionId}/reports")
+    public ReportConfessionResponse report(
+            @PathVariable long confessionId,
+            @Valid @RequestBody ReportConfessionRequest request,
+            @AuthenticationPrincipal AuthenticatedUser user) {
+        requireMember(user);
+        return ReportConfessionResponse.from(
+                reportConfessionUseCase.execute(request.toCommand(user.userId(), confessionId))
+        );
     }
 
     @PostMapping("/{confessionId}/letters")

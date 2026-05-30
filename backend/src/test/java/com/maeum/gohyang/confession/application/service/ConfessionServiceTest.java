@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.maeum.gohyang.confession.application.port.in.CreateConfessionUseCase;
 import com.maeum.gohyang.confession.application.port.in.DeleteConfessionUseCase;
+import com.maeum.gohyang.confession.application.port.out.AssessConfessionRiskPort;
 import com.maeum.gohyang.confession.application.port.out.LoadConfessionRecordPort;
 import com.maeum.gohyang.confession.application.port.out.SaveConfessionRecordPort;
 import com.maeum.gohyang.confession.domain.ConfessionBookshelf;
@@ -39,6 +40,7 @@ class ConfessionServiceTest {
 
     @Mock SaveConfessionRecordPort saveConfessionRecordPort;
     @Mock LoadConfessionRecordPort loadConfessionRecordPort;
+    @Mock AssessConfessionRiskPort assessConfessionRiskPort;
 
     @InjectMocks CreateConfessionService createConfessionService;
     @InjectMocks GetConfessionDetailService getConfessionDetailService;
@@ -65,6 +67,7 @@ class ConfessionServiceTest {
         @Test
         @DisplayName("고백 기록을 생성한다")
         void 고백_기록을_생성한다() {
+            given(assessConfessionRiskPort.assess("제목", "본문")).willReturn(ConfessionRiskLevel.LOW);
             given(saveConfessionRecordPort.save(any(ConfessionRecord.class))).willReturn(savedRecord());
 
             ConfessionRecord result = createConfessionService.execute(

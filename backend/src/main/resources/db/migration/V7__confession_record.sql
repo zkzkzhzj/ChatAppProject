@@ -40,3 +40,29 @@ CREATE TABLE confession_thank_reply (
     body           VARCHAR(500) NOT NULL,
     created_at     TIMESTAMP    NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE confession_reaction (
+    id             BIGSERIAL PRIMARY KEY,
+    confession_id  BIGINT      NOT NULL REFERENCES confession_record(id),
+    user_id        BIGINT      NOT NULL, -- ID 참조 (FK 아님)
+    reaction_type  VARCHAR(50) NOT NULL,
+    created_at     TIMESTAMP   NOT NULL DEFAULT NOW(),
+    CONSTRAINT uk_confession_reaction_user_type
+        UNIQUE (confession_id, user_id, reaction_type)
+);
+
+CREATE INDEX idx_confession_reaction_confession_id
+    ON confession_reaction(confession_id);
+
+CREATE TABLE confession_report (
+    id               BIGSERIAL PRIMARY KEY,
+    confession_id    BIGINT      NOT NULL REFERENCES confession_record(id),
+    reporter_user_id BIGINT      NOT NULL, -- ID 참조 (FK 아님)
+    reason           VARCHAR(50) NOT NULL,
+    created_at       TIMESTAMP   NOT NULL DEFAULT NOW(),
+    CONSTRAINT uk_confession_report_reporter
+        UNIQUE (confession_id, reporter_user_id)
+);
+
+CREATE INDEX idx_confession_report_confession_id
+    ON confession_report(confession_id);

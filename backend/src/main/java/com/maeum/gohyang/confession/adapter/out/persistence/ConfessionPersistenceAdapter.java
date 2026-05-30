@@ -7,7 +7,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import com.maeum.gohyang.confession.application.port.out.AddConfessionReactionPort;
+import com.maeum.gohyang.confession.application.port.out.AddConfessionReportPort;
+import com.maeum.gohyang.confession.application.port.out.DeleteConfessionReactionPort;
 import com.maeum.gohyang.confession.application.port.out.LoadConfessionLetterPort;
+import com.maeum.gohyang.confession.application.port.out.LoadConfessionReactionPort;
 import com.maeum.gohyang.confession.application.port.out.LoadConfessionRecordPort;
 import com.maeum.gohyang.confession.application.port.out.LoadThankReplyPort;
 import com.maeum.gohyang.confession.application.port.out.SaveConfessionLetterPort;
@@ -16,7 +20,11 @@ import com.maeum.gohyang.confession.application.port.out.SaveThankReplyPort;
 import com.maeum.gohyang.confession.domain.ConfessionBookshelf;
 import com.maeum.gohyang.confession.domain.ConfessionLetter;
 import com.maeum.gohyang.confession.domain.ConfessionLetterStatus;
+import com.maeum.gohyang.confession.domain.ConfessionReaction;
+import com.maeum.gohyang.confession.domain.ConfessionReactionCount;
+import com.maeum.gohyang.confession.domain.ConfessionReactionType;
 import com.maeum.gohyang.confession.domain.ConfessionRecord;
+import com.maeum.gohyang.confession.domain.ConfessionReport;
 import com.maeum.gohyang.confession.domain.ConfessionStatus;
 import com.maeum.gohyang.confession.domain.ConfessionThankReply;
 import com.maeum.gohyang.confession.error.DuplicateThankReplyException;
@@ -26,7 +34,9 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class ConfessionPersistenceAdapter implements SaveConfessionRecordPort, LoadConfessionRecordPort,
-        SaveConfessionLetterPort, LoadConfessionLetterPort, SaveThankReplyPort, LoadThankReplyPort {
+        SaveConfessionLetterPort, LoadConfessionLetterPort, SaveThankReplyPort, LoadThankReplyPort,
+        AddConfessionReactionPort, DeleteConfessionReactionPort, LoadConfessionReactionPort,
+        AddConfessionReportPort {
 
     private static final int DEFAULT_LIMIT = 20;
     private static final int MAX_LIMIT = 50;
@@ -34,6 +44,8 @@ public class ConfessionPersistenceAdapter implements SaveConfessionRecordPort, L
     private final ConfessionRecordJpaRepository confessionRecordJpaRepository;
     private final ConfessionLetterJpaRepository confessionLetterJpaRepository;
     private final ConfessionThankReplyJpaRepository confessionThankReplyJpaRepository;
+    private final ConfessionReactionJpaRepository confessionReactionJpaRepository;
+    private final ConfessionReportJpaRepository confessionReportJpaRepository;
 
     @Override
     public ConfessionRecord save(ConfessionRecord confessionRecord) {
@@ -114,6 +126,40 @@ public class ConfessionPersistenceAdapter implements SaveConfessionRecordPort, L
     public Optional<ConfessionThankReply> loadForLetter(long letterId) {
         return confessionThankReplyJpaRepository.findByLetterId(letterId)
                 .map(ConfessionThankReplyJpaEntity::toDomain);
+    }
+
+    @Override
+    public boolean addIfAbsent(ConfessionReaction reaction) {
+        return confessionReactionJpaRepository.insertIfAbsent(
+                reaction.getConfessionId(),
+                reaction.getUserId(),
+                reaction.getReactionType().name()
+        ) > 0;
+    }
+
+    @Override
+    public void delete(long userId, long confessionId, ConfessionReactionType reactionType) {
+        confessionReactionJpaRepository.delete(userId, confessionId, reactionType);
+    }
+
+    @Override
+    public List<ConfessionReactionCount> countByConfession(long confessionId) {
+        return confessionReactionJpaRepository.countByConfessionId(confessionId)
+                .stream()
+                .map(row -> new ConfessionReactionCount(
+                        ConfessionReactionType.valueOf(row.getReactionType()),
+                        row.getReactionCount()
+                ))
+                .toList();
+    }
+
+    @Override
+    public boolean addIfAbsent(ConfessionReport report) {
+        return confessionReportJpaRepository.insertIfAbsent(
+                report.getConfessionId(),
+                report.getReporterUserId(),
+                report.getReason().name()
+        ) > 0;
     }
 
     private int normalizeLimit(int limit) {

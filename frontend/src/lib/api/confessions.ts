@@ -53,11 +53,7 @@ export async function listSentLetters(): Promise<ConfessionLetter[]> {
   return data;
 }
 
-export async function listReceivedLetters(confessionId?: number): Promise<ConfessionLetter[]> {
-  if (confessionId === undefined) {
-    return [];
-  }
-
+export async function listReceivedLetters(confessionId: number): Promise<ConfessionLetter[]> {
   const { data } = await apiClient.get<ConfessionLetter[]>(
     `/api/v1/confessions/me/${String(confessionId)}/letters`,
   );

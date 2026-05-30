@@ -8,7 +8,6 @@ import {
   getThankReply,
   listConfessions,
   listNpcSimilarConfessions,
-  listReceivedLetters,
   listSentLetters,
   sendConfessionLetter,
 } from '@/lib/api/confessions';
@@ -27,6 +26,7 @@ import LibrarianInteraction from './LibrarianInteraction';
 import MailNotification from './MailNotification';
 
 const LIBRARY_BOOKSHELF: ConfessionBookshelf = 'GENERAL';
+const MAIL_REPLY_REFRESH_LIMIT = 20;
 
 interface MailCounts {
   receivedCount: number;
@@ -74,8 +74,12 @@ export default function LibraryOverlay() {
   const setLoginRequired = useChatStore((state) => state.setLoginRequired);
 
   const refreshBooks = useCallback(async () => {
-    const items = await listConfessions(LIBRARY_BOOKSHELF);
-    setBooks(items);
+    try {
+      const items = await listConfessions(LIBRARY_BOOKSHELF);
+      setBooks(items);
+    } catch {
+      setBooks([]);
+    }
   }, []);
 
   const refreshMailCounts = useCallback(async () => {
@@ -84,16 +88,21 @@ export default function LibraryOverlay() {
       return;
     }
 
-    const [receivedLetters, sentLetters] = await Promise.all([
-      listReceivedLetters(),
-      listSentLetters(),
-    ]);
-    const replies = await Promise.all(sentLetters.map((letter) => getThankReply(letter.id)));
+    try {
+      const sentLetters = await listSentLetters();
+      // Bound prototype fan-out until the backend provides an aggregate reply count endpoint.
+      const replies = await Promise.all(
+        sentLetters.slice(0, MAIL_REPLY_REFRESH_LIMIT).map((letter) => getThankReply(letter.id)),
+      );
 
-    setMailCounts({
-      receivedCount: receivedLetters.length,
-      replyCount: replies.filter((reply) => reply !== null).length,
-    });
+      setMailCounts({
+        // Backend has no global received-letter aggregate endpoint in the prototype.
+        receivedCount: 0,
+        replyCount: replies.filter((reply) => reply !== null).length,
+      });
+    } catch {
+      setMailCounts({ receivedCount: 0, replyCount: 0 });
+    }
   }, []);
 
   useEffect(() => {

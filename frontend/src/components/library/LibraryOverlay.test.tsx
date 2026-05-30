@@ -424,6 +424,14 @@ const makeBookDetail = (id: number): ConfessionDetail => ({
   createdAt: '2026-05-30T00:00:00Z',
 });
 
+const makeSentLetter = (id: number) => ({
+  id,
+  confessionId: 1,
+  body: `sent heart ${String(id)}`,
+  status: 'SENT' as const,
+  createdAt: '2026-05-30T00:00:00Z',
+});
+
 const mockedCreateConfession = vi.mocked(createConfession);
 const mockedGetConfession = vi.mocked(getConfession);
 const mockedGetThankReply = vi.mocked(getThankReply);
@@ -592,15 +600,7 @@ describe('LibraryOverlay composition', () => {
   it('sends member hearts through the API and refreshes mail counts', async () => {
     const user = userEvent.setup();
     setMemberToken();
-    mockedListSentLetters.mockResolvedValueOnce([]).mockResolvedValueOnce([
-      {
-        id: 20,
-        confessionId: 1,
-        body: 'sent heart',
-        status: 'SENT',
-        createdAt: '2026-05-30T00:00:00Z',
-      },
-    ]);
+    mockedListSentLetters.mockResolvedValueOnce([]).mockResolvedValueOnce([makeSentLetter(20)]);
     mockedGetThankReply.mockResolvedValueOnce({
       id: 21,
       letterId: 20,
@@ -627,6 +627,80 @@ describe('LibraryOverlay composition', () => {
       expect(mockedListSentLetters).toHaveBeenCalledTimes(2);
     });
     expect(mockedGetThankReply).toHaveBeenCalledWith(20);
+  });
+
+  it('renders API-derived reply count while keeping prototype received count at zero', async () => {
+    const user = userEvent.setup();
+    setMemberToken();
+    mockedListSentLetters.mockResolvedValue([makeSentLetter(20), makeSentLetter(21)]);
+    mockedGetThankReply
+      .mockResolvedValueOnce({
+        id: 30,
+        letterId: 20,
+        body: 'thanks',
+        createdAt: '2026-05-30T00:00:00Z',
+      })
+      .mockResolvedValueOnce({
+        id: 31,
+        letterId: 21,
+        body: 'thanks again',
+        createdAt: '2026-05-30T00:00:00Z',
+      });
+
+    render(<LibraryOverlay />);
+
+    enterLibrary({ nearLibrarian: false, nearBookshelf: false });
+    await waitFor(() => {
+      expect(mockedGetThankReply).toHaveBeenCalledTimes(2);
+    });
+
+    await user.click(
+      screen.getByRole('button', { name: new RegExp(LIBRARY_LABELS.mailAriaLabel) }),
+    );
+
+    expect(mockedListReceivedLetters).not.toHaveBeenCalled();
+    expect(screen.getByText(`${LIBRARY_LABELS.receivedHeart} 0`)).toBeInTheDocument();
+    expect(screen.getByText(`${LIBRARY_LABELS.reply} 2`)).toBeInTheDocument();
+  });
+
+  it('bounds reply count refresh to the first sent letters', async () => {
+    setMemberToken();
+    mockedListSentLetters.mockResolvedValue(
+      Array.from({ length: 25 }, (_, index) => makeSentLetter(index + 1)),
+    );
+
+    render(<LibraryOverlay />);
+
+    enterLibrary({ nearLibrarian: false, nearBookshelf: false });
+
+    await waitFor(() => {
+      expect(mockedGetThankReply).toHaveBeenCalledTimes(20);
+    });
+    expect(mockedGetThankReply).toHaveBeenCalledWith(1);
+    expect(mockedGetThankReply).toHaveBeenCalledWith(20);
+    expect(mockedGetThankReply).not.toHaveBeenCalledWith(21);
+  });
+
+  it('keeps safe empty overlay state when initial library loads fail', async () => {
+    const user = userEvent.setup();
+    setMemberToken();
+    mockedListConfessions.mockRejectedValue(new Error('books failed'));
+    mockedListSentLetters.mockRejectedValue(new Error('mail failed'));
+
+    render(<LibraryOverlay />);
+
+    enterLibrary({ nearLibrarian: false, nearBookshelf: true });
+    await waitFor(() => {
+      expect(mockedListConfessions).toHaveBeenCalledWith('GENERAL');
+      expect(mockedListSentLetters).toHaveBeenCalled();
+    });
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    expect(screen.queryByRole('button', { name: /book panel/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.mailAriaLabel }));
+    expect(screen.getByText(`${LIBRARY_LABELS.receivedHeart} 0`)).toBeInTheDocument();
+    expect(screen.getByText(`${LIBRARY_LABELS.reply} 0`)).toBeInTheDocument();
   });
 });
 

@@ -15,7 +15,10 @@ export class LibraryScene {
   readonly scene = new THREE.Scene();
   readonly character: Character;
   private readonly librarianAnchor = new THREE.Vector3(0, 0, -2.6);
-  private readonly bookshelfAnchor = new THREE.Vector3(0, 0, -5.1);
+  private readonly bookshelfAnchors = [
+    new THREE.Vector3(-5, 0, -5.1),
+    new THREE.Vector3(5, 0, -5.1),
+  ];
   private readonly interactionRadius = 1.8;
   private readonly exitZ = 5; // 입구쪽 (남)
 
@@ -147,7 +150,9 @@ export class LibraryScene {
   }
 
   isNearBookshelf(): boolean {
-    return this.character.position.distanceTo(this.bookshelfAnchor) < this.interactionRadius;
+    return this.bookshelfAnchors.some(
+      (anchor) => this.character.position.distanceTo(anchor) < this.interactionRadius,
+    );
   }
 
   isAtExit(): boolean {

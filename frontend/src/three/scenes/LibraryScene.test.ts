@@ -12,12 +12,29 @@ describe('LibraryScene', () => {
     expect(scene.isNearBookshelf()).toBe(false);
   });
 
-  it('detects bookshelf proximity near the back wall', () => {
+  it('detects bookshelf proximity near the left shelf', () => {
+    const scene = new LibraryScene();
+
+    scene.character.position.set(-5, 0, -5.1);
+
+    expect(scene.isNearLibrarian()).toBe(false);
+    expect(scene.isNearBookshelf()).toBe(true);
+  });
+
+  it('detects bookshelf proximity near the right shelf', () => {
+    const scene = new LibraryScene();
+
+    scene.character.position.set(5, 0, -5.1);
+
+    expect(scene.isNearLibrarian()).toBe(false);
+    expect(scene.isNearBookshelf()).toBe(true);
+  });
+
+  it('does not detect bookshelf proximity from the center aisle', () => {
     const scene = new LibraryScene();
 
     scene.character.position.set(0, 0, -5.1);
 
-    expect(scene.isNearLibrarian()).toBe(false);
-    expect(scene.isNearBookshelf()).toBe(true);
+    expect(scene.isNearBookshelf()).toBe(false);
   });
 });

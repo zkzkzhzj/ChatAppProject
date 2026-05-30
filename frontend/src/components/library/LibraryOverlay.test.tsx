@@ -1,11 +1,22 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import BookshelfInteraction from '@/components/library/BookshelfInteraction';
 import LibrarianInteraction from '@/components/library/LibrarianInteraction';
 import { LIBRARY_LABELS } from '@/components/library/libraryLabels';
+import LibraryOverlay from '@/components/library/LibraryOverlay';
 import MailNotification from '@/components/library/MailNotification';
+import {
+  createConfession,
+  getConfession,
+  getThankReply,
+  listConfessions,
+  listNpcSimilarConfessions,
+  listReceivedLetters,
+  listSentLetters,
+  sendConfessionLetter,
+} from '@/lib/api/confessions';
 import {
   emitLibraryInteractionChange,
   emitSceneChange,
@@ -16,6 +27,26 @@ import {
   resetSceneBridgeForTest,
 } from '@/lib/scene/sceneBridge';
 import type { ConfessionDetail, ConfessionSummary } from '@/types/confession';
+
+const { setLoginRequired } = vi.hoisted(() => ({
+  setLoginRequired: vi.fn(),
+}));
+
+vi.mock('@/store/useChatStore', () => ({
+  useChatStore: (selector: (state: { setLoginRequired: typeof setLoginRequired }) => unknown) =>
+    selector({ setLoginRequired }),
+}));
+
+vi.mock('@/lib/api/confessions', () => ({
+  createConfession: vi.fn(),
+  getConfession: vi.fn(),
+  getThankReply: vi.fn(),
+  listConfessions: vi.fn(),
+  listNpcSimilarConfessions: vi.fn(),
+  listReceivedLetters: vi.fn(),
+  listSentLetters: vi.fn(),
+  sendConfessionLetter: vi.fn(),
+}));
 
 describe('sceneBridge', () => {
   beforeEach(() => {
@@ -391,6 +422,212 @@ const makeBookDetail = (id: number): ConfessionDetail => ({
   status: 'VISIBLE',
   riskLevel: 'LOW',
   createdAt: '2026-05-30T00:00:00Z',
+});
+
+const mockedCreateConfession = vi.mocked(createConfession);
+const mockedGetConfession = vi.mocked(getConfession);
+const mockedGetThankReply = vi.mocked(getThankReply);
+const mockedListConfessions = vi.mocked(listConfessions);
+const mockedListNpcSimilarConfessions = vi.mocked(listNpcSimilarConfessions);
+const mockedListReceivedLetters = vi.mocked(listReceivedLetters);
+const mockedListSentLetters = vi.mocked(listSentLetters);
+const mockedSendConfessionLetter = vi.mocked(sendConfessionLetter);
+
+function setMemberToken() {
+  localStorage.setItem('accessToken', `header.${btoa(JSON.stringify({ role: 'MEMBER' }))}.sig`);
+}
+
+function resetLibraryOverlayMocks() {
+  setLoginRequired.mockReset();
+  mockedCreateConfession.mockReset();
+  mockedGetConfession.mockReset();
+  mockedGetThankReply.mockReset();
+  mockedListConfessions.mockReset();
+  mockedListNpcSimilarConfessions.mockReset();
+  mockedListReceivedLetters.mockReset();
+  mockedListSentLetters.mockReset();
+  mockedSendConfessionLetter.mockReset();
+  mockedListConfessions.mockResolvedValue([makeBook(1)]);
+  mockedGetConfession.mockResolvedValue(makeBookDetail(1));
+  mockedListNpcSimilarConfessions.mockResolvedValue([makeBook(2)]);
+  mockedListReceivedLetters.mockResolvedValue([]);
+  mockedListSentLetters.mockResolvedValue([]);
+  mockedGetThankReply.mockResolvedValue(null);
+  mockedCreateConfession.mockResolvedValue(makeBookDetail(3));
+  mockedSendConfessionLetter.mockResolvedValue({
+    id: 10,
+    confessionId: 1,
+    body: 'heart',
+    status: 'SENT',
+    createdAt: '2026-05-30T00:00:00Z',
+  });
+  localStorage.clear();
+}
+
+function enterLibrary(interaction: LibraryInteractionState) {
+  act(() => {
+    emitSceneChange('library');
+    emitLibraryInteractionChange(interaction);
+  });
+}
+
+describe('LibraryOverlay composition', () => {
+  beforeEach(() => {
+    resetSceneBridgeForTest();
+    resetLibraryOverlayMocks();
+  });
+
+  afterEach(() => {
+    resetSceneBridgeForTest();
+    localStorage.clear();
+  });
+
+  it('renders no object interactions outside the library scene', () => {
+    render(<LibraryOverlay />);
+
+    expect(
+      screen.queryByRole('button', { name: LIBRARY_LABELS.librarianAction }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: LIBRARY_LABELS.bookshelfAction }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /book panel/i })).not.toBeInTheDocument();
+  });
+
+  it('renders only the librarian trigger when near the librarian in the library scene', async () => {
+    render(<LibraryOverlay />);
+
+    enterLibrary({ nearLibrarian: true, nearBookshelf: false });
+
+    expect(
+      await screen.findByRole('button', { name: LIBRARY_LABELS.librarianAction }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: LIBRARY_LABELS.bookshelfAction }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /book panel/i })).not.toBeInTheDocument();
+  });
+
+  it('renders the bookshelf trigger and opens loaded book data near the bookshelf', async () => {
+    const user = userEvent.setup();
+
+    render(<LibraryOverlay />);
+
+    enterLibrary({ nearLibrarian: false, nearBookshelf: true });
+
+    await waitFor(() => {
+      expect(mockedListConfessions).toHaveBeenCalledWith('GENERAL');
+    });
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(await screen.findByRole('button', { name: '책 1' }));
+
+    expect(await screen.findByRole('heading', { name: '책 1' })).toBeInTheDocument();
+    expect(screen.getByText('본문 1')).toBeInTheDocument();
+    expect(mockedGetConfession).toHaveBeenCalledWith(1);
+  });
+
+  it('requires login and skips API writes when an anonymous user submits a book', async () => {
+    const user = userEvent.setup();
+
+    render(<LibraryOverlay />);
+
+    enterLibrary({ nearLibrarian: true, nearBookshelf: false });
+    await user.click(await screen.findByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
+    await user.type(screen.getByLabelText('Book title'), 'title');
+    await user.type(screen.getByLabelText('Book body'), 'body');
+    await user.click(screen.getByRole('button', { name: '사서에게 맡기기' }));
+
+    await waitFor(() => {
+      expect(setLoginRequired).toHaveBeenCalledWith(true);
+    });
+    expect(mockedCreateConfession).not.toHaveBeenCalled();
+  });
+
+  it('requires login and skips API writes when an anonymous user sends a heart', async () => {
+    const user = userEvent.setup();
+
+    render(<LibraryOverlay />);
+
+    enterLibrary({ nearLibrarian: false, nearBookshelf: true });
+    await waitFor(() => {
+      expect(mockedListConfessions).toHaveBeenCalledWith('GENERAL');
+    });
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(await screen.findByRole('button', { name: '책 1' }));
+    await screen.findByRole('heading', { name: '책 1' });
+    await user.type(screen.getByLabelText('마음 내용'), 'heart');
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.sendHeart }));
+
+    await waitFor(() => {
+      expect(setLoginRequired).toHaveBeenCalledWith(true);
+    });
+    expect(mockedSendConfessionLetter).not.toHaveBeenCalled();
+  });
+
+  it('submits member books through the API and refreshes the shelf', async () => {
+    const user = userEvent.setup();
+    setMemberToken();
+
+    render(<LibraryOverlay />);
+
+    enterLibrary({ nearLibrarian: true, nearBookshelf: false });
+    await user.click(await screen.findByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
+    await user.type(screen.getByLabelText('Book title'), 'title');
+    await user.type(screen.getByLabelText('Book body'), 'body');
+    await user.click(screen.getByRole('button', { name: '사서에게 맡기기' }));
+
+    await waitFor(() => {
+      expect(mockedCreateConfession).toHaveBeenCalledWith({
+        title: 'title',
+        body: 'body',
+        bookshelf: 'GENERAL',
+      });
+    });
+    expect(mockedListConfessions).toHaveBeenCalledTimes(2);
+  });
+
+  it('sends member hearts through the API and refreshes mail counts', async () => {
+    const user = userEvent.setup();
+    setMemberToken();
+    mockedListSentLetters.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      {
+        id: 20,
+        confessionId: 1,
+        body: 'sent heart',
+        status: 'SENT',
+        createdAt: '2026-05-30T00:00:00Z',
+      },
+    ]);
+    mockedGetThankReply.mockResolvedValueOnce({
+      id: 21,
+      letterId: 20,
+      body: 'thanks',
+      createdAt: '2026-05-30T00:00:00Z',
+    });
+
+    render(<LibraryOverlay />);
+
+    enterLibrary({ nearLibrarian: false, nearBookshelf: true });
+    await waitFor(() => {
+      expect(mockedListConfessions).toHaveBeenCalledWith('GENERAL');
+    });
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(await screen.findByRole('button', { name: '책 1' }));
+    await screen.findByRole('heading', { name: '책 1' });
+    await user.type(screen.getByLabelText('마음 내용'), 'heart');
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.sendHeart }));
+
+    await waitFor(() => {
+      expect(mockedSendConfessionLetter).toHaveBeenCalledWith(1, 'heart');
+    });
+    await waitFor(() => {
+      expect(mockedListSentLetters).toHaveBeenCalledTimes(2);
+    });
+    expect(mockedGetThankReply).toHaveBeenCalledWith(20);
+  });
 });
 
 describe('BookshelfInteraction', () => {

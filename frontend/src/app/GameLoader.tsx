@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 import ChatDrawer from '@/components/chat/ChatDrawer';
+import LibraryOverlay from '@/components/library/LibraryOverlay';
 import AudioControls from '@/components/ui/AudioControls';
 import WelcomeOverlay from '@/components/ui/WelcomeOverlay';
 import { useStomp } from '@/lib/websocket/useStomp';
@@ -49,6 +50,7 @@ export default function GameLoader() {
         }}
       />
       <ChatDrawer />
+      <LibraryOverlay />
       {/* 모바일 결 조이스틱 상시 노출 — tap-to-move 결 거부, 조이스틱 only (사용자 결정 2026-05-13). */}
       {isMobile && <VirtualJoystick sceneManager={manager} />}
     </>

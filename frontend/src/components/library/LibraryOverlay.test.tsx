@@ -206,6 +206,7 @@ describe('LibrarianInteraction quality hardening', () => {
     expect(counselingButton).toBeDisabled();
 
     resolveCounseling?.();
+    await screen.findByText('비슷한 마음이 남겨져 있었어요.');
   });
 
   it('submits a trimmed general book payload', async () => {
@@ -310,6 +311,7 @@ describe('LibrarianInteraction quality hardening', () => {
     expect(submitButton).toBeDisabled();
 
     resolveSubmit?.();
+    await screen.findByText('사서가 조용히 도서를 받아 책장에 꽂아 두었어요.');
   });
 
   it('shows feedback when an async book submit fails', async () => {
@@ -542,7 +544,7 @@ describe('BookshelfInteraction', () => {
     expect(await screen.findByText('Could not send heart. Please try again.')).toBeInTheDocument();
   });
 
-  it('disables empty heart submit and shows feedback if an empty body is submitted', async () => {
+  it('shows feedback from a normal click when an empty heart body is submitted', async () => {
     const user = userEvent.setup();
     const onSendHeart = vi.fn();
 
@@ -561,13 +563,8 @@ describe('BookshelfInteraction', () => {
     await user.type(screen.getByLabelText('마음 내용'), '   ');
 
     const submitButton = screen.getByRole('button', { name: LIBRARY_LABELS.sendHeart });
-    expect(submitButton).toBeDisabled();
-
-    const form = submitButton.closest('form');
-    if (!form) {
-      throw new Error('Expected submit button to be inside a form');
-    }
-    fireEvent.submit(form);
+    expect(submitButton).not.toBeDisabled();
+    await user.click(submitButton);
 
     expect(onSendHeart).not.toHaveBeenCalled();
     expect(screen.getByText('Heart message is required.')).toBeInTheDocument();
@@ -602,6 +599,7 @@ describe('BookshelfInteraction', () => {
     expect(firstBook).toBeDisabled();
 
     resolveSelect?.(makeBookDetail(7));
+    expect(await screen.findByRole('heading', { name: '책 7' })).toBeInTheDocument();
   });
 
   it('prevents repeated heart sends while the first send is pending', async () => {
@@ -636,6 +634,7 @@ describe('BookshelfInteraction', () => {
     expect(submitButton).toBeDisabled();
 
     resolveSend?.();
+    await screen.findByText('마음이 조용히 전해졌어요.');
   });
 
   it('clamps the current page when the books prop shrinks', async () => {
@@ -692,5 +691,32 @@ describe('BookshelfInteraction', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
+  });
+
+  it('wraps keyboard focus inside the open bookshelf dialog', async () => {
+    const user = userEvent.setup();
+    const books = Array.from({ length: 9 }, (_, index) => makeBook(index + 1));
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={books}
+        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(1))}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+
+    const closeButton = screen.getByRole('button', { name: LIBRARY_LABELS.close });
+    const nextButton = screen.getByRole('button', { name: '다음' });
+
+    nextButton.focus();
+    await user.tab();
+    expect(closeButton).toHaveFocus();
+
+    closeButton.focus();
+    await user.tab({ shift: true });
+    expect(nextButton).toHaveFocus();
   });
 });

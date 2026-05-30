@@ -1,6 +1,15 @@
 'use client';
 
-import { SyntheticEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  SyntheticEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import type { ConfessionDetail, ConfessionSummary } from '@/types/confession';
 
@@ -11,12 +20,26 @@ const HEART_SUCCESS_MESSAGE = '마음이 조용히 전해졌어요.';
 const SELECT_ERROR_MESSAGE = 'Could not open book. Please try again.';
 const HEART_ERROR_MESSAGE = 'Could not send heart. Please try again.';
 const EMPTY_HEART_MESSAGE = 'Heart message is required.';
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 interface BookshelfInteractionProps {
   near: boolean;
   books: ConfessionSummary[];
   onSelectBook: (id: number) => Promise<ConfessionDetail>;
   onSendHeart: (id: number, body: string) => Promise<void> | void;
+}
+
+function getFocusableElements(container: HTMLElement) {
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+    (element) => element.getAttribute('aria-hidden') !== 'true',
+  );
 }
 
 export default function BookshelfInteraction({
@@ -39,7 +62,6 @@ export default function BookshelfInteraction({
 
   const pageCount = Math.max(1, Math.ceil(books.length / BOOKS_PER_PAGE));
   const effectivePage = Math.min(page, pageCount - 1);
-  const isHeartBodyEmpty = heartBody.trim().length === 0;
   const currentBooks = useMemo(
     () =>
       books.slice(effectivePage * BOOKS_PER_PAGE, effectivePage * BOOKS_PER_PAGE + BOOKS_PER_PAGE),
@@ -62,6 +84,48 @@ export default function BookshelfInteraction({
     setMessage('');
     triggerRef.current?.focus();
   }, []);
+
+  const handlePanelKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLElement>) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        closePanel();
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+
+      const panel = panelRef.current;
+      if (!panel) return;
+
+      const focusableElements = getFocusableElements(panel);
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        panel.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+      const focusIsOutsidePanel =
+        !(activeElement instanceof HTMLElement) || !panel.contains(activeElement);
+
+      if (event.shiftKey) {
+        if (focusIsOutsidePanel || activeElement === panel || activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        }
+        return;
+      }
+
+      if (focusIsOutsidePanel || activeElement === panel || activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    },
+    [closePanel],
+  );
 
   if (!near) return null;
 
@@ -129,12 +193,7 @@ export default function BookshelfInteraction({
           aria-modal="true"
           aria-labelledby={panelTitleId}
           tabIndex={-1}
-          onKeyDown={(event) => {
-            if (event.key === 'Escape') {
-              event.stopPropagation();
-              closePanel();
-            }
-          }}
+          onKeyDown={handlePanelKeyDown}
           className="library-bookshelf-zoom mt-3 w-[min(92vw,520px)] rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl"
         >
           <header className="mb-4 flex items-center justify-between gap-4">
@@ -186,7 +245,7 @@ export default function BookshelfInteraction({
                   </button>
                   <button
                     type="submit"
-                    disabled={sendingHeart || isHeartBodyEmpty}
+                    disabled={sendingHeart}
                     className="rounded bg-bark px-3 py-2 text-sm font-semibold text-cream disabled:opacity-60"
                   >
                     {LIBRARY_LABELS.sendHeart}

@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import LibrarianInteraction from '@/components/library/LibrarianInteraction';
 import MailNotification from '@/components/library/MailNotification';
 import {
   emitLibraryInteractionChange,
@@ -141,5 +143,34 @@ describe('MailNotification', () => {
     expect(screen.getByText('도착한 마음 2')).toBeInTheDocument();
     expect(screen.getByText('답장 1')).toBeInTheDocument();
     expect(screen.queryByText('편지 전문')).not.toBeInTheDocument();
+  });
+});
+
+describe('LibrarianInteraction', () => {
+  it('renders no ring when the player is away from the librarian', () => {
+    render(
+      <LibrarianInteraction near={false} onSubmitBook={vi.fn()} onRequestCounseling={vi.fn()} />,
+    );
+
+    expect(screen.queryByRole('button', { name: '사서와 이야기하기' })).not.toBeInTheDocument();
+  });
+
+  it('opens counseling and book submission choices near the librarian', async () => {
+    const user = userEvent.setup();
+    const onRequestCounseling = vi.fn();
+
+    render(
+      <LibrarianInteraction
+        near={true}
+        onSubmitBook={vi.fn()}
+        onRequestCounseling={onRequestCounseling}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: '사서와 이야기하기' }));
+    await user.click(screen.getByRole('button', { name: '고민 상담하기' }));
+
+    expect(onRequestCounseling).toHaveBeenCalled();
+    expect(screen.getByText('비슷한 마음이 남겨져 있었어요.')).toBeInTheDocument();
   });
 });

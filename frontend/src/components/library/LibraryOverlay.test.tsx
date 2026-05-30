@@ -1,5 +1,7 @@
+import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import MailNotification from '@/components/library/MailNotification';
 import {
   emitLibraryInteractionChange,
   emitSceneChange,
@@ -116,5 +118,20 @@ describe('sceneBridge', () => {
     });
 
     unsubscribe();
+  });
+});
+
+describe('MailNotification', () => {
+  it('renders compact counts without letter body content', () => {
+    render(<MailNotification receivedCount={2} replyCount={1} />);
+
+    const mailButton = screen.getByRole('button', { name: '우편 알림 확인' });
+
+    expect(mailButton).toBeInTheDocument();
+    fireEvent.click(mailButton);
+
+    expect(screen.getByText('도착한 마음 2')).toBeInTheDocument();
+    expect(screen.getByText('답장 1')).toBeInTheDocument();
+    expect(screen.queryByText('편지 전문')).not.toBeInTheDocument();
   });
 });

@@ -12,7 +12,7 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
-| `library-confession-mvp` | [track-library-confession-mvp.md](./track-library-confession-mvp.md) | 도서관 익명 고백 기록 + 비공개 편지 + 감사 답장 + 이모지 공감 + 태그 기반 NPC 안내 | 🔧 Step 1 진행 (구조 조사 + 도메인/API 상세 설계) | #116 | 2026-05-28 |
+| `library-confession-mvp` | [track-library-confession-mvp.md](./track-library-confession-mvp.md) | 도서관 익명 고백 기록 + 비공개 편지 + 감사 답장 + 이모지 공감 + 태그 기반 NPC 안내 | 🔧 티켓 PR 진행 (1 작업 = 1 커밋) | #116 | 2026-05-28 |
 | `harden-village-ops` | [track-harden-village-ops.md](./track-harden-village-ops.md) | 백엔드 운영 P1 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test | 🔧 Step 1 진행 (release + 테스트 박힘, PR #95) | #92 | 2026-05-17 |
 | `village-3d-audio-improvements` | [track-village-3d-audio-improvements.md](./track-village-3d-audio-improvements.md) | 음량 조절(0=음소거 통합) + 모바일(iOS/Android) 위치 기반 환경음 fix | 🔧 Step 1 진행 (음량 UI + localStorage 영속) | #105 | 2026-05-20 |
 
@@ -64,7 +64,7 @@
 2. **Spec 파일 작성** (`docs/specs/features/{feature}.md` — `_template.md` 사용. 트랙 `harness-spec-driven` C2 의무화)
 3. `docs/handover/track-{id}.md` 신규 작성 (이 파일 마지막 "트랙 파일 템플릿 v2" 참조 — Issue·Spec 메타데이터 명시)
 4. `docs/learning/RESERVED.md`에 자기 트랙용 번호 대역 예약 (5번 단위 권장)
-5. 새 git 브랜치 분기 (`main`에서 분기, 이름 컨벤션 `feat/{id}-step{N}` 또는 `infra/{id}` 등)
+5. 새 git 브랜치 분기 (`main`에서 분기, 이름 컨벤션 `feat/{ticket-id}` 또는 `infra/{ticket-id}` 등)
 6. 시작 보고 — 메인 `docs/handover.md` 갱신은 **트랙 머지 시점에만**
 
 ---
@@ -78,9 +78,10 @@
 
 ---
 
-## 트랙 파일 템플릿 (v2 — 트랙 `harness-spec-driven` C2 도입, 2026-04-30)
+## 트랙 파일 템플릿 (v3 — 1 ticket = 1 PR, 2026-05-30)
 
-> v2 변경점: §0.5 Acceptance Criteria 추가 / Issue·Spec 메타데이터 명시 / step 표에 의존·이슈·PR 컬럼 추가 / 1 step = 1 PR 명시 / §6 보류 메모 추가.
+> v3 변경점: step을 PR 단위가 아니라 커밋 가능한 작업 단위로 교정.
+> PR은 티켓 단위로 하나만 만든다.
 
 새 트랙 파일을 만들 때 아래 구조 유지:
 
@@ -90,7 +91,7 @@
 > 작업 영역: ...
 > 시작일: YYYY-MM-DD
 > Issue: #{N}
-> 브랜치: {feat|fix|infra|chore|docs}/{...}
+> 브랜치: {feat|fix|infra|chore|docs}/{ticket-id}
 > Spec: [docs/specs/features/{feature}.md](../specs/features/{feature}.md)
 
 ## 0. 한 줄 요약
@@ -104,10 +105,10 @@
 ## 1. 배경 / 왜
 {이 트랙이 필요한 이유. 관련 learning/spec/incident 링크}
 
-## 2. 전체 로드맵 (1 step = 1 PR — git.md §4)
-| Step | 내용 | 의존 | 상태 | 이슈 | PR |
-|------|------|------|------|------|-----|
-| 1    | ...  | —   | ✅/🔧/대기 | #N | #M |
+## 2. 전체 로드맵 (1 ticket = 1 PR, 1 작업 = 1 커밋 — git.md §4)
+| Step | 내용 | 의존 | 상태 | 이슈 | Commit |
+|------|------|------|------|------|--------|
+| 1    | ...  | —   | ✅/🔧/대기 | #N | hash/TBD |
 
 ## 3. 현재 단계 상세
 {진행 중인 Step의 작업 항목, 결정 사항, 막힌 지점}

@@ -4,7 +4,7 @@ track: library-confession-mvp
 issue: "#116"
 status: draft
 created: 2026-05-28
-last-updated: 2026-05-28
+last-updated: 2026-05-30
 ---
 
 # 도서관 고백 기록 MVP
@@ -103,17 +103,22 @@ last-updated: 2026-05-28
 - **빈틈**: NPC 안내 품질이 초기에는 단순할 수 있다.
 - **재검토 트리거**: 사용자가 편지 활용에 명시 동의하는 정책과 데이터 삭제 정책이 생길 때.
 
-## 5. Tasks (= Steps)
+## 5. Tasks (= Commit-sized Steps)
 
-| Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | PR |
-|------|------|------|---------------|------|-----|
-| 1 | 백엔드 구조 조사 + 도메인/API 상세 설계 | — | docs, backend package inventory | #116 | TBD |
-| 2 | 고백 기록 도메인/영속성/API | step1 | `confession/domain`, `application`, `adapter` | #116 | TBD |
-| 3 | 비공개 편지/감사 답장 | step2 | letter usecase, persistence, web | #116 | TBD |
-| 4 | 이모지 공감 + 위험 감지/신고 진입점 | step2 | reaction, safety, report | #116 | TBD |
-| 5 | NPC 태그 기반 유사 고백 안내 | step2 | npc query usecase | #116 | TBD |
-| 6 | 프론트 도서관 MVP 화면 | step2-step5 | frontend library pages/components | #116 | TBD |
-| 7 | 통합 검증 + Critic Gate | step2-step6 | tests, docs | #116 | TBD |
+Issue #116은 하나의 PR로 닫는다. 아래 step은 PR 분할 단위가 아니라 커밋 가능한 작업 단위다.
+
+| Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | Commit |
+|------|------|------|---------------|------|--------|
+| 1 | 하네스/트랙 정책 교정 | — | docs conventions, track/spec | #116 | 5516855 |
+| 2 | 백엔드 구조 조사 + 도메인/API 상세 설계 | step1 | docs, backend package inventory | #116 | 완료 |
+| 3 | 고백 기록 도메인 골격 | step2 | `confession/domain`, `confession/error`, `application/port/in` | #116 | 44c8d83 |
+| 4 | 고백 기록 영속성/마이그레이션 | step3 | `adapter/out/persistence`, Flyway | #116 | fcf476a |
+| 5 | 고백 기록 API | step4 | `adapter/in/web`, DTO, service | #116 | f4f673a |
+| 6 | 비공개 편지/감사 답장 | step5 | letter usecase, persistence, web | #116 | d9591dd |
+| 7 | 이모지 공감 + 위험 감지/신고 진입점 | step5 | reaction, safety, report | #116 | 본 커밋 |
+| 8 | NPC 태그 기반 유사 고백 안내 | step5 | npc query usecase | #116 | 본 커밋 |
+| 9 | 프론트 도서관 MVP 화면 | step5-step8 | frontend library pages/components | #116 | TBD |
+| 10 | 통합 검증 + Critic Gate | step3-step9 | tests, docs | #116 | TBD |
 
 ## 6. Verification
 
@@ -141,3 +146,4 @@ last-updated: 2026-05-28
 | 날짜 | 변경 |
 |------|------|
 | 2026-05-28 | 초안 작성 |
+| 2026-05-30 | 작업 분할 기준을 1 ticket = 1 PR / 1 작업 = 1 커밋으로 교정 |

@@ -73,15 +73,16 @@ last-updated: YYYY-MM-DD
 
 > 카테고리 예시: 동시성 / 멱등성 / 트랜잭션 경계 / 외부 시스템 호출 / DB 스키마 / API 설계 / 이벤트 / 인증·인가 / 캐시 / 예외 처리 / 헥사고날 경계 / 새 기술·의존성
 
-## 5. Tasks (= Steps)
+## 5. Tasks (= Commit-sized Steps)
 
-> **1 step = 1 PR (엄격)** — `docs/conventions/git.md` §4, `docs/conventions/spec-driven.md` §2.2.
-> 메타·도구 트랙(예: `harness-spec-driven`) 만 1 PR · N 커밋 예외.
+> **1 티켓 = 1 PR, 1 작업 = 1 커밋** — `docs/conventions/git.md` §4,
+> `docs/conventions/spec-driven.md` §2.2.
+> 이 표의 step은 PR 단위가 아니라 커밋 가능한 작업 단위다.
 
-| Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | PR |
-|------|------|------|---------------|------|-----|
-| 1 | ... | — | (패키지/디렉토리) | #{N1} | (작업 시 채움) |
-| 2 | ... | step1 | ... | #{N2} | ... |
+| Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | Commit |
+|------|------|------|---------------|------|--------|
+| 1 | ... | — | (패키지/디렉토리) | #{N} | (작업 시 채움) |
+| 2 | ... | step1 | ... | #{N} | ... |
 
 ## 6. Verification (수용 기준)
 

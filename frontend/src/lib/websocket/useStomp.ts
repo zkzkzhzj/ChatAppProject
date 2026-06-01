@@ -6,6 +6,7 @@ import type { IFrame, StompSubscription } from '@stomp/stompjs';
 
 import apiClient from '@/lib/api/client';
 import { getDisplayIdFromToken, isTokenExpired } from '@/lib/auth';
+import { emitMailRefreshRequested } from '@/lib/scene/mailRefreshBridge';
 import { useChatStore } from '@/store/useChatStore';
 import type { ChatMessage, MessageResponse } from '@/types/chat';
 
@@ -15,6 +16,7 @@ import {
   connectWithAuth,
   disconnectStomp,
   subscribeToChatRoom,
+  subscribeToMailNotifications,
   subscribeToPositions,
   subscribeToTyping,
 } from './stompClient';
@@ -76,6 +78,7 @@ export function useStomp(): void {
   const setNpcTyping = useChatStore((s) => s.setNpcTyping);
   const setLoginRequired = useChatStore((s) => s.setLoginRequired);
   const chatSubRef = useRef<StompSubscription | null>(null);
+  const mailSubRef = useRef<StompSubscription | null>(null);
   const posSubRef = useRef<StompSubscription | null>(null);
   const typingSubRef = useRef<StompSubscription | null>(null);
 
@@ -170,6 +173,10 @@ export function useStomp(): void {
           emitChatMessage(chatMsg);
         });
 
+        mailSubRef.current = subscribeToMailNotifications(() => {
+          emitMailRefreshRequested();
+        });
+
         posSubRef.current = subscribeToPositions((pos) => {
           emitPositionUpdate(pos);
         });
@@ -236,6 +243,8 @@ export function useStomp(): void {
       window.removeEventListener('pagehide', handleUnload);
       chatSubRef.current?.unsubscribe();
       chatSubRef.current = null;
+      mailSubRef.current?.unsubscribe();
+      mailSubRef.current = null;
       posSubRef.current?.unsubscribe();
       posSubRef.current = null;
       typingSubRef.current?.unsubscribe();

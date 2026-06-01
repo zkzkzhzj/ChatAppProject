@@ -23,21 +23,9 @@ interface Props {
 export default function AudioControls({ sceneManager }: Props) {
   const [volume, setVolume] = useState<number>(() => Math.round(loadMasterVolume() * 100));
   const [open, setOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
   // 모바일 분기 (GameLoader 결로 동일 breakpoint 768)
-  useEffect(() => {
-    const update = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    update();
-    window.addEventListener('resize', update);
-    return () => {
-      window.removeEventListener('resize', update);
-    };
-  }, []);
-
   // sceneManager 마운트되면 현재 volume 값 동기화
   useEffect(() => {
     if (!sceneManager) return;
@@ -67,7 +55,7 @@ export default function AudioControls({ sceneManager }: Props) {
 
   const muted = volume === 0;
   // FAB 위치 — 모바일은 ✏️(80) 위, 데스크탑은 💬(16) 위
-  const fabBottom = isMobile ? 144 : 80;
+  const fabBottom = 144;
 
   return (
     <div

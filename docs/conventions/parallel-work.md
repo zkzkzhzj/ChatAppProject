@@ -8,7 +8,7 @@
 
 ## 1. 트랙(Track) 정의
 
-**하나의 트랙 = 하나의 목적 + 하나 이상의 PR + 자기 sub-handover**
+**하나의 트랙 = 하나의 목적 + 하나의 티켓 PR + 자기 sub-handover**
 
 예시:
 
@@ -33,7 +33,7 @@
 4. **`docs/handover/track-{id}.md` 신규 작성** — INDEX.md의 "트랙 파일 템플릿" v2 따름. 메타데이터에 `Issue: #N`, `Spec: docs/specs/features/{feature}.md` 명시
 5. **`docs/learning/RESERVED.md`에 번호 대역 예약** — 5번 단위 권장 (예: 49~53)
 6. **새 git 브랜치 분기** — `main`에서 분기. 컨벤션 (브랜치명에는 `#` 안 넣음 — 일부 쉘/도구 호환):
-   - 기능 구현: `feat/{track-id}-step{N}` (예: `feat/ws-redis-step2`)
+   - 기능 구현: `feat/{track-id}` (예: `feat/library-confession-mvp`)
    - 인프라/설정: `infra/{track-id}` (예: `infra/s3-bucket-setup`)
    - 버그 수정: `fix/{track-id}` (예: `fix/ghost-session`)
    - UI 수정: `fix/{track-id}-{specifics}` 또는 `feat/{track-id}-{feature}`
@@ -131,15 +131,15 @@
 | RESERVED.md 확인 없이 learning 번호 사용 | 동일 번호 두 트랙이 사용 → 머지 깨짐 |
 | Tier 1 파일을 협의 없이 동시 수정 | 머지 conflict 폭탄 |
 | 트랙 종료 안 하고 새 트랙 시작 | INDEX 가독성 깨짐, 인지 부하 증가 |
-| 같은 브랜치에서 여러 PR | 기존 git 컨벤션 위반 (`git.md` §1 참조) |
+| 같은 브랜치에서 여러 PR | git 컨벤션 위반. 하나의 티켓 브랜치는 하나의 PR만 가진다 (`git.md` §1 참조) |
 
 ---
 
 ## 7. 실전 시나리오: `ws-redis`와 `ui-mvp-feedback` 병행
 
 ```text
-세션 A (ws-redis Step 2 작업 중):
-  브랜치: feat/ws-redis-step2
+세션 A (ws-redis 작업 중):
+  브랜치: feat/ws-redis
   주 작업 영역:
     - communication/adapter/in/websocket/ (신규 핸들러)
     - global/config/ (JwtHandshakeInterceptor 신규)

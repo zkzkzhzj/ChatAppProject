@@ -1,5 +1,10 @@
 import * as THREE from 'three';
 
+import {
+  emitLibraryEntryBlocked,
+  emitLibraryInteractionChange,
+  emitSceneChange,
+} from '@/lib/scene/sceneBridge';
 import type { PositionBroadcast } from '@/lib/websocket/stompClient';
 import { sendLeaveVillage } from '@/lib/websocket/stompClient';
 import type { ChatMessage } from '@/types/chat';
@@ -13,6 +18,33 @@ import { LibraryScene } from './scenes/LibraryScene';
 import { VillageScene } from './scenes/VillageScene';
 
 type Active = 'village' | 'library' | 'transitioning';
+
+function decodeJwtPayload(token: string): unknown {
+  const payload = token.split('.')[1];
+  if (!payload) return null;
+
+  const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=');
+
+  return JSON.parse(window.atob(padded));
+}
+
+function hasLibraryAccess(): boolean {
+  try {
+    const token = window.localStorage.getItem('accessToken');
+    if (!token) return false;
+
+    const payload = decodeJwtPayload(token);
+    return (
+      typeof payload === 'object' &&
+      payload !== null &&
+      'role' in payload &&
+      (payload as { role?: unknown }).role === 'MEMBER'
+    );
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Scene 매니저 — VillageScene ↔ LibraryScene 전환.
@@ -98,6 +130,7 @@ export class SceneManager {
 
     window.addEventListener('resize', this.onResize);
     this.lastTime = performance.now();
+    emitSceneChange(this.active);
     this.tick(this.lastTime);
   }
 
@@ -143,7 +176,12 @@ export class SceneManager {
 
       // 진입·퇴장 트리거
       if (this.active === 'village' && (sceneObj as VillageScene).isAtLibraryDoor()) {
-        this.startTransition('library');
+        if (hasLibraryAccess()) {
+          this.startTransition('library');
+        } else {
+          emitLibraryEntryBlocked();
+          sceneObj.character.position.set(0, 0, VILLAGE.LIBRARY_Z + 5);
+        }
       } else if (this.active === 'library' && (sceneObj as LibraryScene).isAtExit()) {
         this.startTransition('village');
       }
@@ -152,6 +190,16 @@ export class SceneManager {
       if (this.active === 'village') {
         const p = sceneObj.character.position;
         this.positionSync.sendIfChanged(p.x, p.z);
+      }
+
+      if (this.active === 'library') {
+        const libraryScene = sceneObj as LibraryScene;
+        emitLibraryInteractionChange({
+          nearLibrarian: libraryScene.isNearLibrarian(),
+          nearBookshelf: libraryScene.isNearBookshelf(),
+        });
+      } else {
+        emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
       }
     }
 
@@ -182,6 +230,7 @@ export class SceneManager {
         // fade in 완료
         this.fadeDirection = 0;
         this.active = this.pendingTarget;
+        emitSceneChange(this.active);
       }
     }
 
@@ -198,6 +247,8 @@ export class SceneManager {
     this.sourceScene = target === 'library' ? 'village' : 'library';
     this.pendingTarget = target;
     this.active = 'transitioning';
+    emitSceneChange(this.active);
+    emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
     this.fadeDirection = 1; // fade out
 
     // 도서관 진입 즉시 LEAVE broadcast — 다른 클라이언트에서 본인 placeholder 제거 (Codex P1).
@@ -295,6 +346,7 @@ export class SceneManager {
     if (this.destroyed) return;
     this.destroyed = true;
     cancelAnimationFrame(this.rafId);
+    emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
     window.removeEventListener('resize', this.onResize);
     this.input.destroy();
     this.ambientSound.destroy();

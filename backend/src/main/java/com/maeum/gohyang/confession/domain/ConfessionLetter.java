@@ -1,6 +1,9 @@
 package com.maeum.gohyang.confession.domain;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+
+import org.jspecify.annotations.Nullable;
 
 import com.maeum.gohyang.confession.error.ConfessionAccessDeniedException;
 import com.maeum.gohyang.confession.error.InvalidConfessionLetterContentException;
@@ -13,20 +16,23 @@ public class ConfessionLetter {
 
     public static final int MAX_BODY_LENGTH = 1500;
 
-    private final Long id;
+    private final @Nullable Long id;
     private final long confessionId;
     private final long senderUserId;
     private final String body;
     private final ConfessionLetterStatus status;
+    private final @Nullable LocalDateTime authorReadAt;
     private final LocalDateTime createdAt;
 
-    private ConfessionLetter(Long id, long confessionId, long senderUserId, String body,
-                             ConfessionLetterStatus status, LocalDateTime createdAt) {
+    private ConfessionLetter(@Nullable Long id, long confessionId, long senderUserId, String body,
+                             ConfessionLetterStatus status, @Nullable LocalDateTime authorReadAt,
+                             LocalDateTime createdAt) {
         this.id = id;
         this.confessionId = confessionId;
         this.senderUserId = senderUserId;
         this.body = body;
         this.status = status;
+        this.authorReadAt = authorReadAt;
         this.createdAt = createdAt;
     }
 
@@ -38,16 +44,23 @@ public class ConfessionLetter {
                 senderUserId,
                 body.trim(),
                 ConfessionLetterStatus.SENT,
-                LocalDateTime.now()
+                null,
+                LocalDateTime.now(ZoneId.systemDefault())
         );
     }
 
-    public static ConfessionLetter restore(Long id, long confessionId, long senderUserId,
-                                           String body, ConfessionLetterStatus status,
+    public static ConfessionLetter restore(@Nullable Long id, long confessionId, long senderUserId,
+                                           String body, @Nullable ConfessionLetterStatus status,
                                            LocalDateTime createdAt) {
+        return restore(id, confessionId, senderUserId, body, status, null, createdAt);
+    }
+
+    public static ConfessionLetter restore(@Nullable Long id, long confessionId, long senderUserId,
+                                           String body, @Nullable ConfessionLetterStatus status,
+                                           @Nullable LocalDateTime authorReadAt, LocalDateTime createdAt) {
         validate(body);
         return new ConfessionLetter(id, confessionId, senderUserId, body.trim(),
-                statusOrDefault(status), createdAt);
+                statusOrDefault(status), authorReadAt, createdAt);
     }
 
     public void assertSender(long userId) {
@@ -60,17 +73,21 @@ public class ConfessionLetter {
         return status == ConfessionLetterStatus.SENT;
     }
 
+    public boolean isUnreadByAuthor() {
+        return authorReadAt == null;
+    }
+
     private static void validate(String body) {
         if (body == null || body.trim().isEmpty() || body.trim().length() > MAX_BODY_LENGTH) {
             throw new InvalidConfessionLetterContentException();
         }
     }
 
-    private static ConfessionLetterStatus statusOrDefault(ConfessionLetterStatus status) {
+    private static ConfessionLetterStatus statusOrDefault(@Nullable ConfessionLetterStatus status) {
         return status == null ? ConfessionLetterStatus.SENT : status;
     }
 
-    public Long getId() {
+    public @Nullable Long getId() {
         return id;
     }
 
@@ -88,6 +105,10 @@ public class ConfessionLetter {
 
     public ConfessionLetterStatus getStatus() {
         return status;
+    }
+
+    public @Nullable LocalDateTime getAuthorReadAt() {
+        return authorReadAt;
     }
 
     public LocalDateTime getCreatedAt() {

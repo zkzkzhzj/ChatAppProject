@@ -132,6 +132,33 @@ public class ConfessionPersistenceAdapter implements SaveConfessionRecordPort, L
     }
 
     @Override
+    public List<ConfessionLetter> loadReceivedForAuthor(long authorUserId) {
+        return confessionLetterJpaRepository.findReceivedForAuthor(
+                        authorUserId,
+                        ConfessionLetterStatus.SENT
+                )
+                .stream()
+                .map(ConfessionLetterJpaEntity::toDomain)
+                .toList();
+    }
+
+    @Override
+    public long countUnreadReceivedForAuthor(long authorUserId) {
+        return confessionLetterJpaRepository.countUnreadReceivedForAuthor(
+                authorUserId,
+                ConfessionLetterStatus.SENT
+        );
+    }
+
+    @Override
+    public void markReceivedAsRead(long authorUserId) {
+        confessionLetterJpaRepository.markReceivedAsRead(
+                authorUserId,
+                ConfessionLetterStatus.SENT
+        );
+    }
+
+    @Override
     public List<ConfessionLetter> loadSent(long senderUserId) {
         return confessionLetterJpaRepository.findBySenderUserIdAndStatusOrderByCreatedAtDesc(
                         senderUserId,

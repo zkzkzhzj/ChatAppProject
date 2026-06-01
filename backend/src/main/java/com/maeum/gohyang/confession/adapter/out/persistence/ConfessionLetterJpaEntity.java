@@ -2,6 +2,8 @@ package com.maeum.gohyang.confession.adapter.out.persistence;
 
 import java.time.LocalDateTime;
 
+import org.jspecify.annotations.Nullable;
+
 import com.maeum.gohyang.confession.domain.ConfessionLetter;
 import com.maeum.gohyang.confession.domain.ConfessionLetterStatus;
 
@@ -25,23 +27,25 @@ public class ConfessionLetterJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private @Nullable Long id;
 
     @Column(nullable = false)
-    private Long confessionId;
+    private @Nullable Long confessionId;
 
     @Column(nullable = false)
-    private Long senderUserId;
+    private @Nullable Long senderUserId;
 
     @Column(nullable = false, length = ConfessionLetter.MAX_BODY_LENGTH)
-    private String body;
+    private @Nullable String body;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private ConfessionLetterStatus status;
+    private @Nullable ConfessionLetterStatus status;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private @Nullable LocalDateTime createdAt;
+
+    private @Nullable LocalDateTime authorReadAt;
 
     public static ConfessionLetterJpaEntity from(ConfessionLetter letter) {
         ConfessionLetterJpaEntity e = new ConfessionLetterJpaEntity();
@@ -50,11 +54,15 @@ public class ConfessionLetterJpaEntity {
         e.senderUserId = letter.getSenderUserId();
         e.body = letter.getBody();
         e.status = letter.getStatus();
+        e.authorReadAt = letter.getAuthorReadAt();
         e.createdAt = letter.getCreatedAt();
         return e;
     }
 
     public ConfessionLetter toDomain() {
-        return ConfessionLetter.restore(id, confessionId, senderUserId, body, status, createdAt);
+        if (confessionId == null || senderUserId == null || body == null || createdAt == null) {
+            throw new IllegalStateException("ConfessionLetterJpaEntity has null required fields");
+        }
+        return ConfessionLetter.restore(id, confessionId, senderUserId, body, status, authorReadAt, createdAt);
     }
 }

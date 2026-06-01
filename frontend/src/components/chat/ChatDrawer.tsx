@@ -18,11 +18,19 @@ const DRAWER_WIDTH = 360;
  *
  * loginRequired 플래그는 옛 ChatOverlay 결과 동일하게 LoginPrompt 자동 표시.
  */
-export default function ChatDrawer() {
+interface ChatDrawerProps {
+  onOpenChange?: (open: boolean) => void;
+}
+
+export default function ChatDrawer({ onOpenChange }: ChatDrawerProps) {
   const [open, setOpen] = useState(false);
   const [drawerHeight, setDrawerHeight] = useState(600);
   const loginRequired = useChatStore((s) => s.loginRequired);
   const setLoginRequired = useChatStore((s) => s.setLoginRequired);
+
+  useEffect(() => {
+    onOpenChange?.(open);
+  }, [onOpenChange, open]);
 
   useEffect(() => {
     const handler = () => {

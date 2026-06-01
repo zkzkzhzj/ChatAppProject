@@ -10,23 +10,27 @@ import MailNotification from '@/components/library/MailNotification';
 import {
   createConfession,
   getConfession,
-  getThankReply,
   listConfessions,
   listNpcSimilarConfessions,
   listReceivedLetters,
-  listSentLetters,
   sendConfessionLetter,
 } from '@/lib/api/confessions';
 import {
+  onMailRefreshRequested,
+  resetMailRefreshBridgeForTest,
+} from '@/lib/scene/mailRefreshBridge';
+import {
+  emitLibraryEntryBlocked,
   emitLibraryInteractionChange,
   emitSceneChange,
   getSceneSnapshot,
   type LibraryInteractionState,
+  onLibraryEntryBlocked,
   onLibraryInteractionChange,
   onSceneChange,
   resetSceneBridgeForTest,
 } from '@/lib/scene/sceneBridge';
-import type { ConfessionDetail, ConfessionSummary } from '@/types/confession';
+import type { ConfessionDetail, ConfessionLetter, ConfessionSummary } from '@/types/confession';
 
 const { setLoginRequired } = vi.hoisted(() => ({
   setLoginRequired: vi.fn(),
@@ -40,11 +44,9 @@ vi.mock('@/store/useChatStore', () => ({
 vi.mock('@/lib/api/confessions', () => ({
   createConfession: vi.fn(),
   getConfession: vi.fn(),
-  getThankReply: vi.fn(),
   listConfessions: vi.fn(),
   listNpcSimilarConfessions: vi.fn(),
   listReceivedLetters: vi.fn(),
-  listSentLetters: vi.fn(),
   sendConfessionLetter: vi.fn(),
 }));
 
@@ -120,6 +122,17 @@ describe('sceneBridge', () => {
     unsubscribe();
   });
 
+  it('notifies library entry blocked listeners', () => {
+    const listener = vi.fn();
+    const unsubscribe = onLibraryEntryBlocked(listener);
+
+    emitLibraryEntryBlocked();
+
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+  });
+
   it('protects interaction state from caller mutation', () => {
     let listenerState: LibraryInteractionState | undefined;
     const listener = vi.fn((state: LibraryInteractionState) => {
@@ -165,6 +178,7 @@ describe('MailNotification', () => {
     const popoverId = mailButton.getAttribute('aria-controls');
 
     expect(mailButton).toBeInTheDocument();
+    expect(mailButton.parentElement).toHaveClass('bottom-20');
     expect(mailButton).toHaveAccessibleName('우편 알림 확인, 새 알림 3개');
     expect(mailButton).toHaveAttribute('aria-expanded', 'false');
     expect(popoverId).toBeTruthy();
@@ -172,11 +186,14 @@ describe('MailNotification', () => {
 
     fireEvent.click(mailButton);
 
-    expect(mailButton).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('status')).toHaveAttribute('id', popoverId);
     expect(screen.getByText('도착한 마음 2')).toBeInTheDocument();
     expect(screen.getByText('답장 1')).toBeInTheDocument();
     expect(screen.queryByText('편지 전문')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '우편 알림 닫기' }));
+
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 });
 
@@ -186,7 +203,7 @@ describe('LibrarianInteraction', () => {
       <LibrarianInteraction near={false} onSubmitBook={vi.fn()} onRequestCounseling={vi.fn()} />,
     );
 
-    expect(screen.queryByRole('button', { name: '사서와 이야기하기' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /고민이 있으신가요/ })).not.toBeInTheDocument();
   });
 
   it('opens counseling and book submission choices near the librarian', async () => {
@@ -201,11 +218,44 @@ describe('LibrarianInteraction', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: '사서와 이야기하기' }));
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: '고민 상담하기' }));
 
     expect(onRequestCounseling).toHaveBeenCalled();
     expect(screen.getByText('비슷한 마음이 남겨져 있었어요.')).toBeInTheDocument();
+  });
+
+  it('hides the speech bubble while the librarian panel is open and restores it after close', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <LibrarianInteraction near={true} onSubmitBook={vi.fn()} onRequestCounseling={vi.fn()} />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
+
+    expect(screen.queryByRole('button', { name: /고민이 있으신가요/ })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.close }));
+
+    expect(screen.getByRole('button', { name: /고민이 있으신가요/ })).toBeInTheDocument();
+  });
+
+  it('clears previous counseling feedback when the panel is reopened', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <LibrarianInteraction near={true} onSubmitBook={vi.fn()} onRequestCounseling={vi.fn()} />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.counseling }));
+    expect(await screen.findByText('비슷한 마음이 남겨져 있었어요.')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.close }));
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
+
+    expect(screen.queryByText('비슷한 마음이 남겨져 있었어요.')).not.toBeInTheDocument();
   });
 });
 describe('LibrarianInteraction quality hardening', () => {
@@ -227,7 +277,7 @@ describe('LibrarianInteraction quality hardening', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
 
     const counselingButton = screen.getByRole('button', { name: LIBRARY_LABELS.counseling });
     await user.click(counselingButton);
@@ -252,7 +302,7 @@ describe('LibrarianInteraction quality hardening', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
     await user.type(screen.getByLabelText('Book title'), '  title  ');
     await user.type(screen.getByLabelText('Book body'), '  body  ');
@@ -274,7 +324,7 @@ describe('LibrarianInteraction quality hardening', () => {
       <LibrarianInteraction near={true} onSubmitBook={vi.fn()} onRequestCounseling={vi.fn()} />,
     );
 
-    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
     await user.type(screen.getByLabelText('Book title'), 'title');
     await user.type(screen.getByLabelText('Book body'), 'body');
@@ -301,14 +351,14 @@ describe('LibrarianInteraction quality hardening', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
     await user.type(screen.getByLabelText('Book title'), '   ');
     await user.type(screen.getByLabelText('Book body'), '   ');
     await user.click(screen.getByRole('button', { name: '사서에게 맡기기' }));
 
     expect(onSubmitBook).not.toHaveBeenCalled();
-    expect(screen.getByText('Title and body are required.')).toBeInTheDocument();
+    expect(screen.getByText('제목과 내용을 모두 입력해 주세요.')).toBeInTheDocument();
   });
 
   it('prevents repeated book submits while the first submit is pending', async () => {
@@ -329,7 +379,7 @@ describe('LibrarianInteraction quality hardening', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
     await user.type(screen.getByLabelText('Book title'), 'title');
     await user.type(screen.getByLabelText('Book body'), 'body');
@@ -356,13 +406,15 @@ describe('LibrarianInteraction quality hardening', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
     await user.type(screen.getByLabelText('Book title'), 'title');
     await user.type(screen.getByLabelText('Book body'), 'body');
     await user.click(screen.getByRole('button', { name: '사서에게 맡기기' }));
 
-    expect(await screen.findByText('Could not submit book. Please try again.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('도서를 남기지 못했어요. 잠시 후 다시 시도해 주세요.'),
+    ).toBeInTheDocument();
   });
 
   it('shows feedback when async counseling request fails', async () => {
@@ -376,11 +428,11 @@ describe('LibrarianInteraction quality hardening', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.counseling }));
 
     expect(
-      await screen.findByText('Could not request counseling. Please try again.'),
+      await screen.findByText('상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'),
     ).toBeInTheDocument();
   });
 
@@ -391,7 +443,7 @@ describe('LibrarianInteraction quality hardening', () => {
       <LibrarianInteraction near={true} onSubmitBook={vi.fn()} onRequestCounseling={vi.fn()} />,
     );
 
-    const trigger = screen.getByRole('button', { name: LIBRARY_LABELS.librarianAction });
+    const trigger = screen.getByRole('button', { name: /고민이 있으신가요/ });
 
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(trigger).toHaveAttribute('aria-controls');
@@ -424,21 +476,25 @@ const makeBookDetail = (id: number): ConfessionDetail => ({
   createdAt: '2026-05-30T00:00:00Z',
 });
 
-const makeSentLetter = (id: number) => ({
+const makeReceivedLetter = (id: number, body = `도착한 마음 ${String(id)}`): ConfessionLetter => ({
   id,
   confessionId: 1,
-  body: `sent heart ${String(id)}`,
+  body,
   status: 'SENT' as const,
+  authorReadAt: null,
   createdAt: '2026-05-30T00:00:00Z',
+});
+
+const makeSelectedBook = (id: number, receivedLetters: ConfessionLetter[] | null = null) => ({
+  detail: makeBookDetail(id),
+  receivedLetters,
 });
 
 const mockedCreateConfession = vi.mocked(createConfession);
 const mockedGetConfession = vi.mocked(getConfession);
-const mockedGetThankReply = vi.mocked(getThankReply);
 const mockedListConfessions = vi.mocked(listConfessions);
 const mockedListNpcSimilarConfessions = vi.mocked(listNpcSimilarConfessions);
 const mockedListReceivedLetters = vi.mocked(listReceivedLetters);
-const mockedListSentLetters = vi.mocked(listSentLetters);
 const mockedSendConfessionLetter = vi.mocked(sendConfessionLetter);
 
 function setMemberToken() {
@@ -449,24 +505,21 @@ function resetLibraryOverlayMocks() {
   setLoginRequired.mockReset();
   mockedCreateConfession.mockReset();
   mockedGetConfession.mockReset();
-  mockedGetThankReply.mockReset();
   mockedListConfessions.mockReset();
   mockedListNpcSimilarConfessions.mockReset();
   mockedListReceivedLetters.mockReset();
-  mockedListSentLetters.mockReset();
   mockedSendConfessionLetter.mockReset();
   mockedListConfessions.mockResolvedValue([makeBook(1)]);
   mockedGetConfession.mockResolvedValue(makeBookDetail(1));
   mockedListNpcSimilarConfessions.mockResolvedValue([makeBook(2)]);
-  mockedListReceivedLetters.mockResolvedValue([]);
-  mockedListSentLetters.mockResolvedValue([]);
-  mockedGetThankReply.mockResolvedValue(null);
+  mockedListReceivedLetters.mockRejectedValue({ response: { status: 403 } });
   mockedCreateConfession.mockResolvedValue(makeBookDetail(3));
   mockedSendConfessionLetter.mockResolvedValue({
     id: 10,
     confessionId: 1,
     body: 'heart',
     status: 'SENT',
+    authorReadAt: null,
     createdAt: '2026-05-30T00:00:00Z',
   });
   localStorage.clear();
@@ -482,20 +535,20 @@ function enterLibrary(interaction: LibraryInteractionState) {
 describe('LibraryOverlay composition', () => {
   beforeEach(() => {
     resetSceneBridgeForTest();
+    resetMailRefreshBridgeForTest();
     resetLibraryOverlayMocks();
   });
 
   afterEach(() => {
     resetSceneBridgeForTest();
+    resetMailRefreshBridgeForTest();
     localStorage.clear();
   });
 
   it('renders no object interactions outside the library scene', () => {
     render(<LibraryOverlay />);
 
-    expect(
-      screen.queryByRole('button', { name: LIBRARY_LABELS.librarianAction }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /고민이 있으신가요/ })).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: LIBRARY_LABELS.bookshelfAction }),
     ).not.toBeInTheDocument();
@@ -507,13 +560,27 @@ describe('LibraryOverlay composition', () => {
 
     enterLibrary({ nearLibrarian: true, nearBookshelf: false });
 
-    expect(
-      await screen.findByRole('button', { name: LIBRARY_LABELS.librarianAction }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /고민이 있으신가요/ })).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: LIBRARY_LABELS.bookshelfAction }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /book panel/i })).not.toBeInTheDocument();
+  });
+
+  it('shows a login-required entry message when library entry is blocked', async () => {
+    const user = userEvent.setup();
+
+    render(<LibraryOverlay />);
+
+    act(() => {
+      emitLibraryEntryBlocked();
+    });
+
+    expect(await screen.findByText(/사서방은 로그인 후 이용할 수 있어요/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '로그인하기' }));
+
+    expect(setLoginRequired).toHaveBeenCalledWith(true);
   });
 
   it('renders the bookshelf trigger and opens loaded book data near the bookshelf', async () => {
@@ -535,13 +602,36 @@ describe('LibraryOverlay composition', () => {
     expect(mockedGetConfession).toHaveBeenCalledWith(1);
   });
 
+  it('loads received letters for my own book and shows them in the shelf detail', async () => {
+    const user = userEvent.setup();
+    setMemberToken();
+    mockedListReceivedLetters.mockResolvedValue([makeReceivedLetter(20, '누군가 남긴 마음')]);
+
+    render(<LibraryOverlay />);
+
+    enterLibrary({ nearLibrarian: false, nearBookshelf: true });
+    await waitFor(() => {
+      expect(mockedListConfessions).toHaveBeenCalledWith('GENERAL');
+    });
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(await screen.findByRole('button', { name: '책 1' }));
+
+    expect(await screen.findByText('받은 편지')).toBeInTheDocument();
+    expect(screen.getByText('누군가 남긴 마음')).toBeInTheDocument();
+    expect(mockedListReceivedLetters).toHaveBeenCalledWith(1);
+    expect(
+      screen.queryByRole('button', { name: LIBRARY_LABELS.sendHeart }),
+    ).not.toBeInTheDocument();
+  });
+
   it('requires login and skips API writes when an anonymous user submits a book', async () => {
     const user = userEvent.setup();
 
     render(<LibraryOverlay />);
 
     enterLibrary({ nearLibrarian: true, nearBookshelf: false });
-    await user.click(await screen.findByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(await screen.findByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
     await user.type(screen.getByLabelText('Book title'), 'title');
     await user.type(screen.getByLabelText('Book body'), 'body');
@@ -581,7 +671,7 @@ describe('LibraryOverlay composition', () => {
     render(<LibraryOverlay />);
 
     enterLibrary({ nearLibrarian: true, nearBookshelf: false });
-    await user.click(await screen.findByRole('button', { name: LIBRARY_LABELS.librarianAction }));
+    await user.click(await screen.findByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
     await user.type(screen.getByLabelText('Book title'), 'title');
     await user.type(screen.getByLabelText('Book body'), 'body');
@@ -597,16 +687,11 @@ describe('LibraryOverlay composition', () => {
     expect(mockedListConfessions).toHaveBeenCalledTimes(2);
   });
 
-  it('sends member hearts through the API and refreshes mail counts', async () => {
+  it('sends member hearts through the API and requests global mail refresh', async () => {
     const user = userEvent.setup();
     setMemberToken();
-    mockedListSentLetters.mockResolvedValueOnce([]).mockResolvedValueOnce([makeSentLetter(20)]);
-    mockedGetThankReply.mockResolvedValueOnce({
-      id: 21,
-      letterId: 20,
-      body: 'thanks',
-      createdAt: '2026-05-30T00:00:00Z',
-    });
+    const mailRefreshListener = vi.fn();
+    const unsubscribe = onMailRefreshRequested(mailRefreshListener);
 
     render(<LibraryOverlay />);
 
@@ -624,83 +709,26 @@ describe('LibraryOverlay composition', () => {
       expect(mockedSendConfessionLetter).toHaveBeenCalledWith(1, 'heart');
     });
     await waitFor(() => {
-      expect(mockedListSentLetters).toHaveBeenCalledTimes(2);
-    });
-    expect(mockedGetThankReply).toHaveBeenCalledWith(20);
-  });
-
-  it('renders API-derived reply count while keeping prototype received count at zero', async () => {
-    const user = userEvent.setup();
-    setMemberToken();
-    mockedListSentLetters.mockResolvedValue([makeSentLetter(20), makeSentLetter(21)]);
-    mockedGetThankReply
-      .mockResolvedValueOnce({
-        id: 30,
-        letterId: 20,
-        body: 'thanks',
-        createdAt: '2026-05-30T00:00:00Z',
-      })
-      .mockResolvedValueOnce({
-        id: 31,
-        letterId: 21,
-        body: 'thanks again',
-        createdAt: '2026-05-30T00:00:00Z',
-      });
-
-    render(<LibraryOverlay />);
-
-    enterLibrary({ nearLibrarian: false, nearBookshelf: false });
-    await waitFor(() => {
-      expect(mockedGetThankReply).toHaveBeenCalledTimes(2);
+      expect(mailRefreshListener).toHaveBeenCalledTimes(1);
     });
 
-    await user.click(
-      screen.getByRole('button', { name: new RegExp(LIBRARY_LABELS.mailAriaLabel) }),
-    );
-
-    expect(mockedListReceivedLetters).not.toHaveBeenCalled();
-    expect(screen.getByText(`${LIBRARY_LABELS.receivedHeart} 0`)).toBeInTheDocument();
-    expect(screen.getByText(`${LIBRARY_LABELS.reply} 2`)).toBeInTheDocument();
-  });
-
-  it('bounds reply count refresh to the first sent letters', async () => {
-    setMemberToken();
-    mockedListSentLetters.mockResolvedValue(
-      Array.from({ length: 25 }, (_, index) => makeSentLetter(index + 1)),
-    );
-
-    render(<LibraryOverlay />);
-
-    enterLibrary({ nearLibrarian: false, nearBookshelf: false });
-
-    await waitFor(() => {
-      expect(mockedGetThankReply).toHaveBeenCalledTimes(20);
-    });
-    expect(mockedGetThankReply).toHaveBeenCalledWith(1);
-    expect(mockedGetThankReply).toHaveBeenCalledWith(20);
-    expect(mockedGetThankReply).not.toHaveBeenCalledWith(21);
+    unsubscribe();
   });
 
   it('keeps safe empty overlay state when initial library loads fail', async () => {
     const user = userEvent.setup();
     setMemberToken();
     mockedListConfessions.mockRejectedValue(new Error('books failed'));
-    mockedListSentLetters.mockRejectedValue(new Error('mail failed'));
 
     render(<LibraryOverlay />);
 
     enterLibrary({ nearLibrarian: false, nearBookshelf: true });
     await waitFor(() => {
       expect(mockedListConfessions).toHaveBeenCalledWith('GENERAL');
-      expect(mockedListSentLetters).toHaveBeenCalled();
     });
 
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
     expect(screen.queryByRole('button', { name: /book panel/i })).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.mailAriaLabel }));
-    expect(screen.getByText(`${LIBRARY_LABELS.receivedHeart} 0`)).toBeInTheDocument();
-    expect(screen.getByText(`${LIBRARY_LABELS.reply} 0`)).toBeInTheDocument();
   });
 });
 
@@ -727,7 +755,7 @@ describe('BookshelfInteraction', () => {
       <BookshelfInteraction
         near={true}
         books={[makeBook(1)]}
-        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(1))}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(1))}
         onSendHeart={vi.fn()}
       />,
     );
@@ -742,9 +770,34 @@ describe('BookshelfInteraction', () => {
     expect(screen.getByText('본문 1')).toBeInTheDocument();
   });
 
+  it('hides the temporary bookshelf trigger while the panel is open and restores it after close', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(1)]}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(1))}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+
+    expect(
+      screen.queryByRole('button', { name: LIBRARY_LABELS.bookshelfAction }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.close }));
+
+    expect(
+      screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }),
+    ).toBeInTheDocument();
+  });
+
   it('selecting a book calls onSelectBook with the book id', async () => {
     const user = userEvent.setup();
-    const onSelectBook = vi.fn().mockResolvedValue(makeBookDetail(2));
+    const onSelectBook = vi.fn().mockResolvedValue(makeSelectedBook(2));
 
     render(
       <BookshelfInteraction
@@ -771,7 +824,7 @@ describe('BookshelfInteraction', () => {
       <BookshelfInteraction
         near={true}
         books={[makeBook(3)]}
-        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(3))}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(3))}
         onSendHeart={onSendHeart}
       />,
     );
@@ -791,6 +844,36 @@ describe('BookshelfInteraction', () => {
     expect(screen.getByRole('status')).toHaveTextContent('마음이 조용히 전해졌어요.');
   });
 
+  it('shows received letters instead of the heart form for my own book', async () => {
+    const user = userEvent.setup();
+    const letters = Array.from({ length: 6 }, (_, index) =>
+      makeReceivedLetter(index + 1, `받은 마음 ${String(index + 1)}`),
+    );
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={[makeBook(11)]}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(11, letters))}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+    await user.click(screen.getByRole('button', { name: '책 11' }));
+
+    expect(await screen.findByText('받은 편지')).toBeInTheDocument();
+    expect(screen.getByText('받은 마음 1')).toBeInTheDocument();
+    expect(screen.queryByText('받은 마음 6')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: LIBRARY_LABELS.sendHeart }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '다음' }));
+
+    expect(screen.getByText('받은 마음 6')).toBeInTheDocument();
+  });
+
   it('moves to the next page when more than eight books are available', async () => {
     const user = userEvent.setup();
     const books = Array.from({ length: 9 }, (_, index) => makeBook(index + 1));
@@ -799,7 +882,7 @@ describe('BookshelfInteraction', () => {
       <BookshelfInteraction
         near={true}
         books={books}
-        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(9))}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(9))}
         onSendHeart={vi.fn()}
       />,
     );
@@ -830,19 +913,21 @@ describe('BookshelfInteraction', () => {
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
     await user.click(screen.getByRole('button', { name: '책 4' }));
 
-    expect(await screen.findByText('Could not open book. Please try again.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('도서를 열지 못했어요. 잠시 후 다시 시도해 주세요.'),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: '책 4' })).not.toBeInTheDocument();
   });
 
-  it('shows feedback when sending a heart fails', async () => {
+  it('explains when sending a heart to my own book is denied', async () => {
     const user = userEvent.setup();
 
     render(
       <BookshelfInteraction
         near={true}
         books={[makeBook(5)]}
-        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(5))}
-        onSendHeart={vi.fn().mockRejectedValue(new Error('failed'))}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(5))}
+        onSendHeart={vi.fn().mockRejectedValue({ response: { status: 403 } })}
       />,
     );
 
@@ -852,7 +937,9 @@ describe('BookshelfInteraction', () => {
     await user.type(screen.getByLabelText('마음 내용'), '고마웠어요');
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.sendHeart }));
 
-    expect(await screen.findByText('Could not send heart. Please try again.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('내가 남긴 도서에는 마음을 보낼 수 없어요.'),
+    ).toBeInTheDocument();
   });
 
   it('shows feedback from a normal click when an empty heart body is submitted', async () => {
@@ -863,7 +950,7 @@ describe('BookshelfInteraction', () => {
       <BookshelfInteraction
         near={true}
         books={[makeBook(6)]}
-        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(6))}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(6))}
         onSendHeart={onSendHeart}
       />,
     );
@@ -878,15 +965,15 @@ describe('BookshelfInteraction', () => {
     await user.click(submitButton);
 
     expect(onSendHeart).not.toHaveBeenCalled();
-    expect(screen.getByText('Heart message is required.')).toBeInTheDocument();
+    expect(screen.getByText('마음 내용을 입력해 주세요.')).toBeInTheDocument();
   });
 
   it('prevents repeated book selection while the first selection is pending', async () => {
     const user = userEvent.setup();
-    let resolveSelect: ((detail: ConfessionDetail) => void) | undefined;
+    let resolveSelect: ((detail: ReturnType<typeof makeSelectedBook>) => void) | undefined;
     const onSelectBook = vi.fn(
       () =>
-        new Promise<ConfessionDetail>((resolve) => {
+        new Promise<ReturnType<typeof makeSelectedBook>>((resolve) => {
           resolveSelect = resolve;
         }),
     );
@@ -909,7 +996,7 @@ describe('BookshelfInteraction', () => {
     expect(onSelectBook).toHaveBeenCalledTimes(1);
     expect(firstBook).toBeDisabled();
 
-    resolveSelect?.(makeBookDetail(7));
+    resolveSelect?.(makeSelectedBook(7));
     expect(await screen.findByRole('heading', { name: '책 7' })).toBeInTheDocument();
   });
 
@@ -927,7 +1014,7 @@ describe('BookshelfInteraction', () => {
       <BookshelfInteraction
         near={true}
         books={[makeBook(9)]}
-        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(9))}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(9))}
         onSendHeart={onSendHeart}
       />,
     );
@@ -955,7 +1042,7 @@ describe('BookshelfInteraction', () => {
       <BookshelfInteraction
         near={true}
         books={initialBooks}
-        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(1))}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(1))}
         onSendHeart={vi.fn()}
       />,
     );
@@ -969,7 +1056,7 @@ describe('BookshelfInteraction', () => {
       <BookshelfInteraction
         near={true}
         books={[makeBook(1)]}
-        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(1))}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(1))}
         onSendHeart={vi.fn()}
       />,
     );
@@ -985,7 +1072,7 @@ describe('BookshelfInteraction', () => {
       <BookshelfInteraction
         near={true}
         books={[makeBook(10)]}
-        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(10))}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(10))}
         onSendHeart={vi.fn()}
       />,
     );
@@ -1012,7 +1099,7 @@ describe('BookshelfInteraction', () => {
       <BookshelfInteraction
         near={true}
         books={books}
-        onSelectBook={vi.fn().mockResolvedValue(makeBookDetail(1))}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(1))}
         onSendHeart={vi.fn()}
       />,
     );

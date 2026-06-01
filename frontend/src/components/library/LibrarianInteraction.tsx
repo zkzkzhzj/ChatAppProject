@@ -6,9 +6,9 @@ import type { ConfessionBookshelf } from '@/types/confession';
 
 import { LIBRARY_LABELS } from './libraryLabels';
 
-const BOOK_REQUIRED_MESSAGE = 'Title and body are required.';
-const BOOK_SUBMIT_ERROR_MESSAGE = 'Could not submit book. Please try again.';
-const COUNSELING_ERROR_MESSAGE = 'Could not request counseling. Please try again.';
+const BOOK_REQUIRED_MESSAGE = '제목과 내용을 모두 입력해 주세요.';
+const BOOK_SUBMIT_ERROR_MESSAGE = '도서를 남기지 못했어요. 잠시 후 다시 시도해 주세요.';
+const COUNSELING_ERROR_MESSAGE = '상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
 
 interface LibrarianInteractionProps {
   near: boolean;
@@ -85,16 +85,22 @@ export default function LibrarianInteraction({
     <div className="fixed left-1/2 bottom-8 z-30 -translate-x-1/2">
       <button
         type="button"
-        aria-label={LIBRARY_LABELS.librarianAction}
+        hidden={open}
         aria-controls={panelId}
         aria-expanded={open}
         onClick={() => {
           setOpen(true);
           setMode('choices');
+          setMessage('');
         }}
-        className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-cream bg-leaf text-cream shadow-xl"
+        className="relative max-w-[min(86vw,360px)] rounded border-2 border-cream bg-warm-white px-4 py-3 text-left text-sm font-semibold leading-5 text-bark shadow-xl"
       >
-        <span aria-hidden="true">◎</span>
+        <span className="block">고민이 있으신가요?</span>
+        <span className="block text-bark-muted">괜찮다면 사서에게 남겨보시겠어요?</span>
+        <span
+          aria-hidden="true"
+          className="absolute left-1/2 top-full h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b-2 border-r-2 border-cream bg-warm-white"
+        />
       </button>
 
       {open && (
@@ -112,6 +118,7 @@ export default function LibrarianInteraction({
               type="button"
               onClick={() => {
                 setOpen(false);
+                setMessage('');
               }}
               className="text-sm text-bark-muted"
             >

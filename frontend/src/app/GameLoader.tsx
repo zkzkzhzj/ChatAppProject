@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 import ChatDrawer from '@/components/chat/ChatDrawer';
+import GlobalMailNotification from '@/components/library/GlobalMailNotification';
 import LibraryOverlay from '@/components/library/LibraryOverlay';
 import AudioControls from '@/components/ui/AudioControls';
 import WelcomeOverlay from '@/components/ui/WelcomeOverlay';
@@ -24,6 +25,7 @@ export default function GameLoader() {
 
   const [manager, setManager] = useState<SceneManager | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
   const setLoginRequired = useChatStore((s) => s.setLoginRequired);
 
   // 모바일 분기 — resize 결로 반응형
@@ -42,14 +44,15 @@ export default function GameLoader() {
     <>
       <ThreeGame onReady={setManager} />
       <WelcomeOverlay />
-      <AudioControls sceneManager={manager} />
+      {!chatDrawerOpen && <AudioControls sceneManager={manager} />}
       <ChatInputAnchor
         sceneManager={manager}
         onLoginRequired={() => {
           setLoginRequired(true);
         }}
       />
-      <ChatDrawer />
+      <ChatDrawer onOpenChange={setChatDrawerOpen} />
+      {!chatDrawerOpen && <GlobalMailNotification />}
       <LibraryOverlay />
       {/* 모바일 결 조이스틱 상시 노출 — tap-to-move 결 거부, 조이스틱 only (사용자 결정 2026-05-13). */}
       {isMobile && <VirtualJoystick sceneManager={manager} />}

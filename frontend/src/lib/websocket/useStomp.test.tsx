@@ -25,6 +25,7 @@ vi.mock('./stompClient', () => ({
   connectWithAuth: mockConnectWithAuth,
   disconnectStomp: mockDisconnectStomp,
   subscribeToChatRoom: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
+  subscribeToMailNotifications: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
   subscribeToPositions: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
   subscribeToTyping: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
 }));

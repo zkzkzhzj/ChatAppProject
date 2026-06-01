@@ -155,6 +155,28 @@ public class ConfessionController {
                 .toList();
     }
 
+    @GetMapping("/me/received-letters")
+    public List<ConfessionLetterResponse> listAllReceivedLetters(@AuthenticationPrincipal AuthenticatedUser user) {
+        requireMember(user);
+        return listReceivedLettersUseCase.execute(user.userId())
+                .stream()
+                .map(ConfessionLetterResponse::from)
+                .toList();
+    }
+
+    @GetMapping("/me/received-letters/unread-count")
+    public UnreadLetterCountResponse countUnreadReceivedLetters(@AuthenticationPrincipal AuthenticatedUser user) {
+        requireMember(user);
+        return new UnreadLetterCountResponse(listReceivedLettersUseCase.countUnread(user.userId()));
+    }
+
+    @PostMapping("/me/received-letters/read")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void markAllReceivedLettersRead(@AuthenticationPrincipal AuthenticatedUser user) {
+        requireMember(user);
+        listReceivedLettersUseCase.markAllRead(user.userId());
+    }
+
     @GetMapping("/me/{confessionId}/letters")
     public List<ConfessionLetterResponse> listReceivedLetters(
             @PathVariable long confessionId,

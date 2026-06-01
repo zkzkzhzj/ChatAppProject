@@ -53,6 +53,24 @@ export async function listSentLetters(): Promise<ConfessionLetter[]> {
   return data;
 }
 
+export async function listAllReceivedLetters(): Promise<ConfessionLetter[]> {
+  const { data } = await apiClient.get<ConfessionLetter[]>(
+    '/api/v1/confessions/me/received-letters',
+  );
+  return data;
+}
+
+export async function getUnreadReceivedLetterCount(): Promise<number> {
+  const { data } = await apiClient.get<{ count: number }>(
+    '/api/v1/confessions/me/received-letters/unread-count',
+  );
+  return data.count;
+}
+
+export async function markAllReceivedLettersRead(): Promise<void> {
+  await apiClient.post('/api/v1/confessions/me/received-letters/read');
+}
+
 export async function listReceivedLetters(confessionId: number): Promise<ConfessionLetter[]> {
   const { data } = await apiClient.get<ConfessionLetter[]>(
     `/api/v1/confessions/me/${String(confessionId)}/letters`,

@@ -36,6 +36,7 @@ export interface ConfessionLetter {
   confessionId: number;
   body: string;
   status: 'SENT' | 'HIDDEN' | 'DELETED';
+  authorReadAt: string | null;
   createdAt: string;
 }
 

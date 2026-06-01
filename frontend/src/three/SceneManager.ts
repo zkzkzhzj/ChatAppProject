@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 
-import { emitLibraryInteractionChange, emitSceneChange } from '@/lib/scene/sceneBridge';
+import {
+  emitLibraryEntryBlocked,
+  emitLibraryInteractionChange,
+  emitSceneChange,
+} from '@/lib/scene/sceneBridge';
 import type { PositionBroadcast } from '@/lib/websocket/stompClient';
 import { sendLeaveVillage } from '@/lib/websocket/stompClient';
 import type { ChatMessage } from '@/types/chat';
@@ -14,6 +18,33 @@ import { LibraryScene } from './scenes/LibraryScene';
 import { VillageScene } from './scenes/VillageScene';
 
 type Active = 'village' | 'library' | 'transitioning';
+
+function decodeJwtPayload(token: string): unknown {
+  const payload = token.split('.')[1];
+  if (!payload) return null;
+
+  const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=');
+
+  return JSON.parse(window.atob(padded));
+}
+
+function hasLibraryAccess(): boolean {
+  try {
+    const token = window.localStorage.getItem('accessToken');
+    if (!token) return false;
+
+    const payload = decodeJwtPayload(token);
+    return (
+      typeof payload === 'object' &&
+      payload !== null &&
+      'role' in payload &&
+      (payload as { role?: unknown }).role === 'MEMBER'
+    );
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Scene 매니저 — VillageScene ↔ LibraryScene 전환.
@@ -145,7 +176,12 @@ export class SceneManager {
 
       // 진입·퇴장 트리거
       if (this.active === 'village' && (sceneObj as VillageScene).isAtLibraryDoor()) {
-        this.startTransition('library');
+        if (hasLibraryAccess()) {
+          this.startTransition('library');
+        } else {
+          emitLibraryEntryBlocked();
+          sceneObj.character.position.set(0, 0, VILLAGE.LIBRARY_Z + 5);
+        }
       } else if (this.active === 'library' && (sceneObj as LibraryScene).isAtExit()) {
         this.startTransition('village');
       }

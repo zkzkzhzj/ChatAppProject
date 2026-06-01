@@ -11,5 +11,11 @@ public interface LoadConfessionLetterPort {
 
     List<ConfessionLetter> loadReceived(long confessionId);
 
+    List<ConfessionLetter> loadReceivedForAuthor(long authorUserId);
+
+    long countUnreadReceivedForAuthor(long authorUserId);
+
+    void markReceivedAsRead(long authorUserId);
+
     List<ConfessionLetter> loadSent(long senderUserId);
 }

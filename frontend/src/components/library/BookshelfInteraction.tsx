@@ -11,15 +11,17 @@ import {
   useState,
 } from 'react';
 
-import type { ConfessionDetail, ConfessionSummary } from '@/types/confession';
+import type { ConfessionDetail, ConfessionLetter, ConfessionSummary } from '@/types/confession';
 
 import { LIBRARY_LABELS } from './libraryLabels';
 
 const BOOKS_PER_PAGE = 8;
+const LETTERS_PER_PAGE = 5;
 const HEART_SUCCESS_MESSAGE = '마음이 조용히 전해졌어요.';
-const SELECT_ERROR_MESSAGE = 'Could not open book. Please try again.';
-const HEART_ERROR_MESSAGE = 'Could not send heart. Please try again.';
-const EMPTY_HEART_MESSAGE = 'Heart message is required.';
+const SELECT_ERROR_MESSAGE = '도서를 열지 못했어요. 잠시 후 다시 시도해 주세요.';
+const HEART_ERROR_MESSAGE = '마음을 보내지 못했어요. 잠시 후 다시 시도해 주세요.';
+const HEART_ACCESS_DENIED_MESSAGE = '내가 남긴 도서에는 마음을 보낼 수 없어요.';
+const EMPTY_HEART_MESSAGE = '마음 내용을 입력해 주세요.';
 const FOCUSABLE_SELECTOR = [
   'a[href]',
   'button:not([disabled])',
@@ -32,14 +34,37 @@ const FOCUSABLE_SELECTOR = [
 interface BookshelfInteractionProps {
   near: boolean;
   books: ConfessionSummary[];
-  onSelectBook: (id: number) => Promise<ConfessionDetail>;
+  onSelectBook: (id: number) => Promise<SelectedBookResult>;
   onSendHeart: (id: number, body: string) => Promise<void> | void;
+}
+
+interface SelectedBookResult {
+  detail: ConfessionDetail;
+  receivedLetters: ConfessionLetter[] | null;
 }
 
 function getFocusableElements(container: HTMLElement) {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
     (element) => element.getAttribute('aria-hidden') !== 'true',
   );
+}
+
+function getHttpStatus(error: unknown): number | undefined {
+  if (typeof error !== 'object' || error === null || !('response' in error)) {
+    return undefined;
+  }
+
+  const response = (error as { response?: unknown }).response;
+  if (typeof response !== 'object' || response === null || !('status' in response)) {
+    return undefined;
+  }
+
+  const status = (response as { status?: unknown }).status;
+  return typeof status === 'number' ? status : undefined;
+}
+
+function getHeartErrorMessage(error: unknown): string {
+  return getHttpStatus(error) === 403 ? HEART_ACCESS_DENIED_MESSAGE : HEART_ERROR_MESSAGE;
 }
 
 export default function BookshelfInteraction({
@@ -55,6 +80,8 @@ export default function BookshelfInteraction({
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<ConfessionDetail | null>(null);
+  const [receivedLetters, setReceivedLetters] = useState<ConfessionLetter[] | null>(null);
+  const [letterPage, setLetterPage] = useState(0);
   const [heartBody, setHeartBody] = useState('');
   const [message, setMessage] = useState('');
   const [selectingId, setSelectingId] = useState<number | null>(null);
@@ -67,10 +94,25 @@ export default function BookshelfInteraction({
       books.slice(effectivePage * BOOKS_PER_PAGE, effectivePage * BOOKS_PER_PAGE + BOOKS_PER_PAGE),
     [books, effectivePage],
   );
+  const receivedLetterCount = receivedLetters?.length ?? 0;
+  const letterPageCount = Math.max(1, Math.ceil(receivedLetterCount / LETTERS_PER_PAGE));
+  const effectiveLetterPage = Math.min(letterPage, letterPageCount - 1);
+  const currentLetters = useMemo(
+    () =>
+      (receivedLetters ?? []).slice(
+        effectiveLetterPage * LETTERS_PER_PAGE,
+        effectiveLetterPage * LETTERS_PER_PAGE + LETTERS_PER_PAGE,
+      ),
+    [receivedLetters, effectiveLetterPage],
+  );
 
   useEffect(() => {
     setPage((current) => Math.min(current, pageCount - 1));
   }, [pageCount]);
+
+  useEffect(() => {
+    setLetterPage((current) => Math.min(current, letterPageCount - 1));
+  }, [letterPageCount]);
 
   useEffect(() => {
     if (open) {
@@ -81,6 +123,8 @@ export default function BookshelfInteraction({
   const closePanel = useCallback(() => {
     setOpen(false);
     setSelected(null);
+    setReceivedLetters(null);
+    setLetterPage(0);
     setMessage('');
     triggerRef.current?.focus();
   }, []);
@@ -136,8 +180,10 @@ export default function BookshelfInteraction({
     setMessage('');
 
     try {
-      const detail = await onSelectBook(id);
-      setSelected(detail);
+      const result = await onSelectBook(id);
+      setSelected(result.detail);
+      setReceivedLetters(result.receivedLetters);
+      setLetterPage(0);
       setHeartBody('');
     } catch {
       setMessage(SELECT_ERROR_MESSAGE);
@@ -163,24 +209,25 @@ export default function BookshelfInteraction({
       await onSendHeart(selected.id, trimmedBody);
       setHeartBody('');
       setMessage(HEART_SUCCESS_MESSAGE);
-    } catch {
-      setMessage(HEART_ERROR_MESSAGE);
+    } catch (error) {
+      setMessage(getHeartErrorMessage(error));
     } finally {
       setSendingHeart(false);
     }
   }
 
   return (
-    <div className="fixed right-6 bottom-8 z-30">
+    <div className="fixed right-20 bottom-4 z-30">
       <button
         ref={triggerRef}
         type="button"
+        hidden={open}
         aria-controls={panelId}
         aria-expanded={open}
         onClick={() => {
           setOpen(true);
         }}
-        className="rounded border-2 border-cream bg-bark px-4 py-3 text-sm font-semibold text-cream shadow-xl"
+        className="h-12 rounded border-2 border-cream bg-bark px-4 text-sm font-semibold text-cream shadow-xl"
       >
         {LIBRARY_LABELS.bookshelfAction}
       </button>
@@ -218,40 +265,103 @@ export default function BookshelfInteraction({
                 <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{selected.body}</p>
               </div>
 
-              <form onSubmit={(event) => void handleSendHeart(event)} className="grid gap-2">
-                <label className="text-sm font-semibold" htmlFor={`${panelId}-heart-body`}>
-                  마음 내용
-                </label>
-                <textarea
-                  id={`${panelId}-heart-body`}
-                  value={heartBody}
-                  onChange={(event) => {
-                    setHeartBody(event.target.value);
-                  }}
-                  className="h-24 resize-none rounded border border-sand bg-warm-white p-3"
-                  maxLength={1000}
-                />
-                <div className="flex items-center justify-between gap-3">
+              {receivedLetters ? (
+                <div className="grid gap-3">
+                  <h4 className="text-sm font-semibold">받은 편지</h4>
+                  {currentLetters.length > 0 ? (
+                    <div className="grid gap-2">
+                      {currentLetters.map((letter) => (
+                        <article
+                          key={letter.id}
+                          className="rounded border border-sand bg-warm-white p-3"
+                        >
+                          <p className="whitespace-pre-wrap text-sm leading-6">{letter.body}</p>
+                          <time className="mt-2 block text-xs text-bark-muted">
+                            {new Date(letter.createdAt).toLocaleString()}
+                          </time>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="rounded border border-sand bg-warm-white p-3 text-sm text-bark-muted">
+                      아직 도착한 편지가 없어요.
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      disabled={effectiveLetterPage === 0}
+                      onClick={() => {
+                        setLetterPage((current) => Math.max(0, current - 1));
+                      }}
+                      className="rounded border border-sand px-3 py-2 text-sm disabled:opacity-40"
+                    >
+                      이전
+                    </button>
+                    <span className="text-sm text-bark">
+                      {effectiveLetterPage + 1} / {letterPageCount}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={effectiveLetterPage >= letterPageCount - 1}
+                      onClick={() => {
+                        setLetterPage((current) => Math.min(letterPageCount - 1, current + 1));
+                      }}
+                      className="rounded border border-sand px-3 py-2 text-sm disabled:opacity-40"
+                    >
+                      다음
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
                       setSelected(null);
+                      setReceivedLetters(null);
                       setHeartBody('');
                       setMessage('');
                     }}
-                    className="rounded border border-sand px-3 py-2 text-sm text-bark"
+                    className="justify-self-start rounded border border-sand px-3 py-2 text-sm text-bark"
                   >
                     {LIBRARY_LABELS.close}
                   </button>
-                  <button
-                    type="submit"
-                    disabled={sendingHeart}
-                    className="rounded bg-bark px-3 py-2 text-sm font-semibold text-cream disabled:opacity-60"
-                  >
-                    {LIBRARY_LABELS.sendHeart}
-                  </button>
                 </div>
-              </form>
+              ) : (
+                <form onSubmit={(event) => void handleSendHeart(event)} className="grid gap-2">
+                  <label className="text-sm font-semibold" htmlFor={`${panelId}-heart-body`}>
+                    마음 내용
+                  </label>
+                  <textarea
+                    id={`${panelId}-heart-body`}
+                    value={heartBody}
+                    onChange={(event) => {
+                      setHeartBody(event.target.value);
+                    }}
+                    className="h-24 resize-none rounded border border-sand bg-warm-white p-3"
+                    maxLength={1000}
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelected(null);
+                        setReceivedLetters(null);
+                        setHeartBody('');
+                        setMessage('');
+                      }}
+                      className="rounded border border-sand px-3 py-2 text-sm text-bark"
+                    >
+                      {LIBRARY_LABELS.close}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={sendingHeart}
+                      className="rounded bg-bark px-3 py-2 text-sm font-semibold text-cream disabled:opacity-60"
+                    >
+                      {LIBRARY_LABELS.sendHeart}
+                    </button>
+                  </div>
+                </form>
+              )}
             </article>
           ) : (
             <div className="grid gap-4">

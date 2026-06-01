@@ -25,6 +25,7 @@ import com.maeum.gohyang.confession.application.port.in.SendThankReplyUseCase;
 import com.maeum.gohyang.confession.application.port.out.LoadConfessionLetterPort;
 import com.maeum.gohyang.confession.application.port.out.LoadConfessionRecordPort;
 import com.maeum.gohyang.confession.application.port.out.LoadThankReplyPort;
+import com.maeum.gohyang.confession.application.port.out.PublishConfessionLetterEventPort;
 import com.maeum.gohyang.confession.application.port.out.SaveConfessionLetterPort;
 import com.maeum.gohyang.confession.application.port.out.SaveThankReplyPort;
 import com.maeum.gohyang.confession.domain.ConfessionBookshelf;
@@ -52,6 +53,7 @@ class ConfessionLetterServiceTest {
     @Mock LoadConfessionRecordPort loadConfessionRecordPort;
     @Mock SaveConfessionLetterPort saveConfessionLetterPort;
     @Mock LoadConfessionLetterPort loadConfessionLetterPort;
+    @Mock PublishConfessionLetterEventPort publishConfessionLetterEventPort;
     @Mock SaveThankReplyPort saveThankReplyPort;
     @Mock LoadThankReplyPort loadThankReplyPort;
 
@@ -121,6 +123,7 @@ class ConfessionLetterServiceTest {
             assertThat(result.getId()).isEqualTo(LETTER_ID);
             assertThat(result.getSenderUserId()).isEqualTo(SENDER_USER_ID);
             verify(saveConfessionLetterPort).save(any(ConfessionLetter.class));
+            verify(publishConfessionLetterEventPort).publishLetterSent(AUTHOR_USER_ID, CONFESSION_ID, LETTER_ID);
         }
 
         @Test
@@ -135,6 +138,35 @@ class ConfessionLetterServiceTest {
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getSenderUserId()).isEqualTo(SENDER_USER_ID);
+        }
+
+        @Test
+        @DisplayName("작성자는 자신에게 도착한 모든 편지를 조회한다")
+        void 작성자는_자신에게_도착한_모든_편지를_조회한다() {
+            given(loadConfessionLetterPort.loadReceivedForAuthor(AUTHOR_USER_ID)).willReturn(List.of(savedLetter()));
+
+            List<ConfessionLetter> result = listReceivedLettersService.execute(AUTHOR_USER_ID);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getSenderUserId()).isEqualTo(SENDER_USER_ID);
+        }
+
+        @Test
+        @DisplayName("작성자는 읽지 않은 도착 편지 수를 조회한다")
+        void 작성자는_읽지_않은_도착_편지_수를_조회한다() {
+            given(loadConfessionLetterPort.countUnreadReceivedForAuthor(AUTHOR_USER_ID)).willReturn(2L);
+
+            long result = listReceivedLettersService.countUnread(AUTHOR_USER_ID);
+
+            assertThat(result).isEqualTo(2L);
+        }
+
+        @Test
+        @DisplayName("작성자는 도착 편지를 모두 읽음 처리한다")
+        void 작성자는_도착_편지를_모두_읽음_처리한다() {
+            listReceivedLettersService.markAllRead(AUTHOR_USER_ID);
+
+            verify(loadConfessionLetterPort).markReceivedAsRead(AUTHOR_USER_ID);
         }
 
         @Test

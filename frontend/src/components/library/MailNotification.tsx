@@ -19,33 +19,48 @@ export default function MailNotification({ receivedCount, replyCount }: MailNoti
       : LIBRARY_LABELS.mailAriaLabel;
 
   return (
-    <div className="fixed right-4 bottom-24 z-20">
-      <button
-        type="button"
-        aria-label={mailAriaLabel}
-        aria-controls={popoverId}
-        aria-expanded={open}
-        onClick={() => {
-          setOpen((value) => !value);
-        }}
-        className="relative flex h-11 w-11 items-center justify-center rounded-full bg-warm-white text-bark shadow-lg ring-1 ring-sand/80 transition-transform hover:scale-105"
-      >
-        <span aria-hidden="true" className="text-lg">
-          ✉
-        </span>
-        {total > 0 && (
-          <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-leaf px-1.5 text-xs font-semibold text-cream">
-            {total}
+    <div className="fixed right-4 bottom-20 z-30">
+      {!open && (
+        <button
+          type="button"
+          aria-label={mailAriaLabel}
+          aria-controls={popoverId}
+          aria-expanded={open}
+          onClick={() => {
+            setOpen(true);
+          }}
+          className="relative flex h-12 w-12 items-center justify-center rounded-full bg-warm-white text-bark shadow-lg ring-1 ring-sand/80 transition-transform hover:scale-105"
+        >
+          <span aria-hidden="true" className="text-lg">
+            ✉
           </span>
-        )}
-      </button>
+          {total > 0 && (
+            <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-leaf px-1.5 text-xs font-semibold text-cream">
+              {total}
+            </span>
+          )}
+        </button>
+      )}
 
       {open && (
         <div
           id={popoverId}
           role="status"
-          className="mt-2 w-48 rounded border border-sand bg-cream/95 p-3 text-sm text-bark shadow-xl"
+          className="w-56 rounded border border-sand bg-cream/95 p-3 text-sm text-bark shadow-xl"
         >
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <strong className="text-sm">우편함</strong>
+            <button
+              type="button"
+              aria-label="우편 알림 닫기"
+              onClick={() => {
+                setOpen(false);
+              }}
+              className="text-sm font-semibold text-bark-muted hover:text-bark"
+            >
+              ×
+            </button>
+          </div>
           <p>
             {LIBRARY_LABELS.receivedHeart} {receivedCount}
           </p>

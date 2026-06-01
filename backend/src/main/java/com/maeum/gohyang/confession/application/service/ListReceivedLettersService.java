@@ -32,4 +32,22 @@ public class ListReceivedLettersService implements ListReceivedLettersUseCase {
         }
         return loadConfessionLetterPort.loadReceived(query.confessionId());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ConfessionLetter> execute(long requesterUserId) {
+        return loadConfessionLetterPort.loadReceivedForAuthor(requesterUserId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countUnread(long requesterUserId) {
+        return loadConfessionLetterPort.countUnreadReceivedForAuthor(requesterUserId);
+    }
+
+    @Override
+    @Transactional
+    public void markAllRead(long requesterUserId) {
+        loadConfessionLetterPort.markReceivedAsRead(requesterUserId);
+    }
 }

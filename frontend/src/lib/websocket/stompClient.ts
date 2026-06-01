@@ -107,6 +107,20 @@ export function subscribeToPositions(
   });
 }
 
+export interface MailNotificationBroadcast {
+  confessionId: number;
+  letterId: number;
+}
+
+export function subscribeToMailNotifications(
+  onNotification: (notification: MailNotificationBroadcast) => void,
+): StompSubscription {
+  const client = getStompClient();
+  return client.subscribe('/user/queue/mail', (frame) => {
+    onNotification(JSON.parse(frame.body) as MailNotificationBroadcast);
+  });
+}
+
 export function sendPosition(x: number, y: number): void {
   const client = getStompClient();
   if (!client.connected) return;

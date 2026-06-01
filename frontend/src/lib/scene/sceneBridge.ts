@@ -7,9 +7,11 @@ export interface LibraryInteractionState {
 
 type SceneListener = (scene: SceneName) => void;
 type InteractionListener = (state: LibraryInteractionState) => void;
+type LibraryEntryBlockedListener = () => void;
 
 const sceneListeners = new Set<SceneListener>();
 const interactionListeners = new Set<InteractionListener>();
+const libraryEntryBlockedListeners = new Set<LibraryEntryBlockedListener>();
 
 const initialInteraction: LibraryInteractionState = {
   nearLibrarian: false,
@@ -63,6 +65,19 @@ export function onLibraryInteractionChange(listener: InteractionListener): () =>
   };
 }
 
+export function emitLibraryEntryBlocked(): void {
+  libraryEntryBlockedListeners.forEach((listener) => {
+    listener();
+  });
+}
+
+export function onLibraryEntryBlocked(listener: LibraryEntryBlockedListener): () => void {
+  libraryEntryBlockedListeners.add(listener);
+  return () => {
+    libraryEntryBlockedListeners.delete(listener);
+  };
+}
+
 export function getSceneSnapshot(): {
   scene: SceneName;
   interaction: LibraryInteractionState;
@@ -78,4 +93,5 @@ export function resetSceneBridgeForTest(): void {
   currentInteraction = cloneInteractionState(initialInteraction);
   sceneListeners.clear();
   interactionListeners.clear();
+  libraryEntryBlockedListeners.clear();
 }

@@ -15,10 +15,8 @@ export class LibraryScene {
   readonly scene = new THREE.Scene();
   readonly character: Character;
   private readonly librarianAnchor = new THREE.Vector3(0, 0, -2.6);
-  private readonly bookshelfAnchors = [
-    new THREE.Vector3(-5, 0, -5.1),
-    new THREE.Vector3(5, 0, -5.1),
-  ];
+  private readonly bookshelfXs = [-5.5, -3.3, -1.1, 1.1, 3.3, 5.5];
+  private readonly bookshelfAnchors = this.bookshelfXs.map((x) => new THREE.Vector3(x, 0, -5.1));
   private readonly interactionRadius = 1.8;
   private readonly exitZ = 5; // 입구쪽 (남)
 
@@ -66,22 +64,22 @@ export class LibraryScene {
   private buildBookshelves(): void {
     // 책장 placeholder (Step 4 에서 책 list 결로 박음)
     const shelfMaterial = new THREE.MeshLambertMaterial({ color: 0x6b4226 });
-    for (const x of [-5, 5]) {
-      const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.5, 3.5, 0.6), shelfMaterial);
-      shelf.position.set(x, 1.75, -5);
+    for (const x of this.bookshelfXs) {
+      const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.9, 3.8, 0.6), shelfMaterial);
+      shelf.position.set(x, 1.9, -5);
       shelf.castShadow = true;
       this.scene.add(shelf);
 
       // 책 색깔 layer (Step 4 에서 글 list 결로 박음)
-      for (let row = 0; row < 4; row += 1) {
-        for (let col = 0; col < 5; col += 1) {
+      for (let row = 0; row < 5; row += 1) {
+        for (let col = 0; col < 7; col += 1) {
           const book = new THREE.Mesh(
-            new THREE.BoxGeometry(0.2, 0.45, 0.35),
+            new THREE.BoxGeometry(0.18, 0.45, 0.35),
             new THREE.MeshLambertMaterial({
               color: new THREE.Color().setHSL(Math.random(), 0.5, 0.5),
             }),
           );
-          book.position.set(x - 0.55 + col * 0.25, 0.4 + row * 0.7, -4.6);
+          book.position.set(x - 0.72 + col * 0.24, 0.35 + row * 0.68, -4.6);
           this.scene.add(book);
         }
       }

@@ -8,5 +8,11 @@ public interface ListReceivedLettersUseCase {
 
     List<ConfessionLetter> execute(Query query);
 
+    List<ConfessionLetter> execute(long requesterUserId);
+
+    long countUnread(long requesterUserId);
+
+    void markAllRead(long requesterUserId);
+
     record Query(long requesterUserId, long confessionId) { }
 }

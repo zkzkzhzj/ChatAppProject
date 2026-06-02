@@ -6,9 +6,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.maeum.gohyang.confession.adapter.out.persistence.ConfessionLetterOutboxAdapter;
+import com.maeum.gohyang.confession.error.InvalidConfessionLetterEventException;
 import com.maeum.gohyang.global.alert.AlertContext;
 import com.maeum.gohyang.global.alert.AlertPort;
 import com.maeum.gohyang.global.infra.idempotency.IdempotencyGuard;
@@ -32,7 +32,6 @@ public class ConfessionLetterSentEventConsumer {
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = ConfessionLetterOutboxAdapter.LETTER_SENT_EVENT_TYPE)
-    @Transactional
     public void handle(ConsumerRecord<String, String> record) {
         UUID idempotencyKey = null;
         boolean acquired = false;
@@ -55,7 +54,7 @@ public class ConfessionLetterSentEventConsumer {
                     new MailNotificationMessage(confessionId, letterId)
             );
         } catch (Exception e) {
-            if (acquired) {
+            if (acquired && idempotencyKey != null) {
                 idempotencyGuard.release(idempotencyKey);
             }
             alertPort.warning(
@@ -70,7 +69,7 @@ public class ConfessionLetterSentEventConsumer {
     private long requireLong(JsonNode root, String fieldName) {
         JsonNode node = root.get(fieldName);
         if (node == null || node.isNull()) {
-            throw new IllegalArgumentException(fieldName + " is required");
+            throw new InvalidConfessionLetterEventException(fieldName);
         }
         return node.asLong();
     }

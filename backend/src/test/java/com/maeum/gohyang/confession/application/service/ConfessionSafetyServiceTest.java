@@ -1,6 +1,7 @@
 package com.maeum.gohyang.confession.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 import java.time.LocalDateTime;
@@ -47,7 +48,7 @@ class ConfessionSafetyServiceTest {
     @DisplayName("고백 생성 시 위험도를 산정해서 저장한다")
     void 고백_생성_시_위험도를_산정해서_저장한다() {
         given(assessConfessionRiskPort.assess("제목", "위험한 본문")).willReturn(ConfessionRiskLevel.HIGH);
-        given(saveConfessionRecordPort.save(org.mockito.ArgumentMatchers.any(ConfessionRecord.class)))
+        given(saveConfessionRecordPort.save(any(ConfessionRecord.class)))
                 .willAnswer(inv -> inv.getArgument(0));
 
         ConfessionRecord result = createConfessionService.execute(
@@ -67,7 +68,7 @@ class ConfessionSafetyServiceTest {
     @DisplayName("고백 신고는 중복 여부를 결과로 반환한다")
     void 고백_신고는_중복_여부를_결과로_반환한다() {
         given(loadConfessionRecordPort.load(CONFESSION_ID)).willReturn(Optional.of(visibleRecord()));
-        given(addConfessionReportPort.addIfAbsent(org.mockito.ArgumentMatchers.any(ConfessionReport.class)))
+        given(addConfessionReportPort.addIfAbsent(any(ConfessionReport.class)))
                 .willReturn(true);
 
         ReportConfessionUseCase.Result result = reportConfessionService.execute(

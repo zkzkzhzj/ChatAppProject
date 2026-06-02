@@ -5,6 +5,7 @@ import com.maeum.gohyang.confession.domain.ConfessionBookshelf;
 import com.maeum.gohyang.confession.domain.ConfessionRecord;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record CreateConfessionRequest(
@@ -16,6 +17,7 @@ public record CreateConfessionRequest(
         @Size(max = ConfessionRecord.MAX_BODY_LENGTH)
         String body,
 
+        @NotNull
         ConfessionBookshelf bookshelf
 ) {
 

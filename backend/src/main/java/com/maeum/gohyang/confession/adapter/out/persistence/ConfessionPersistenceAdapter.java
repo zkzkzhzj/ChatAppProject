@@ -199,7 +199,7 @@ public class ConfessionPersistenceAdapter implements SaveConfessionRecordPort, L
     }
 
     @Override
-    public List<ConfessionReactionCount> countByConfession(long confessionId) {
+    public List<ConfessionReactionCount> count(long confessionId) {
         return confessionReactionJpaRepository.countByConfessionId(confessionId)
                 .stream()
                 .map(row -> new ConfessionReactionCount(

@@ -6,5 +6,5 @@ import com.maeum.gohyang.confession.domain.ConfessionReactionCount;
 
 public interface LoadConfessionReactionPort {
 
-    List<ConfessionReactionCount> countByConfession(long confessionId);
+    List<ConfessionReactionCount> count(long confessionId);
 }

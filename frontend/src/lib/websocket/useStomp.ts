@@ -143,6 +143,7 @@ export function useStomp(): void {
         console.log('[useStomp] STOMP connected, subscribing to village chat');
         setConnectionStatus('connected');
         consecutiveAuthErrors = 0;
+        emitMailRefreshRequested();
 
         // 이전 대화 10개 로드 (멤버만 — 게스트는 403)
         const tokenPayload = parseTokenRole(token);

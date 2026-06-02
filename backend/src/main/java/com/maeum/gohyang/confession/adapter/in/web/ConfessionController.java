@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,12 +38,18 @@ import com.maeum.gohyang.confession.error.ConfessionAccessDeniedException;
 import com.maeum.gohyang.global.security.AuthenticatedUser;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/confessions")
 @RequiredArgsConstructor
+@Validated
 public class ConfessionController {
+
+    private static final String DEFAULT_LIMIT_VALUE = "20";
+    private static final int MAX_LIMIT = 100;
 
     private final CreateConfessionUseCase createConfessionUseCase;
     private final ListConfessionsUseCase listConfessionsUseCase;
@@ -71,7 +78,10 @@ public class ConfessionController {
     @GetMapping
     public List<ConfessionSummaryResponse> list(
             @RequestParam(required = false) ConfessionBookshelf bookshelf,
-            @RequestParam(defaultValue = "20") int limit) {
+            @RequestParam(defaultValue = DEFAULT_LIMIT_VALUE)
+            @Min(1)
+            @Max(MAX_LIMIT)
+            int limit) {
         return listConfessionsUseCase.execute(new ListConfessionsUseCase.Query(bookshelf, limit))
                 .stream()
                 .map(ConfessionSummaryResponse::from)

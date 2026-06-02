@@ -10,6 +10,7 @@ import {
   listReceivedLetters,
   sendConfessionLetter,
 } from '@/lib/api/confessions';
+import { hasMemberToken } from '@/lib/auth/member-token';
 import { emitMailRefreshRequested } from '@/lib/scene/mailRefreshBridge';
 import {
   getSceneSnapshot,
@@ -32,35 +33,6 @@ import LibrarianInteraction from './LibrarianInteraction';
 import { LIBRARY_LABELS } from './libraryLabels';
 
 const LIBRARY_BOOKSHELF: ConfessionBookshelf = 'GENERAL';
-
-function decodeJwtPayload(token: string): unknown {
-  const payload = token.split('.')[1];
-  if (!payload) return null;
-
-  const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
-  const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=');
-
-  return JSON.parse(atob(padded));
-}
-
-function hasMemberToken(): boolean {
-  if (typeof window === 'undefined') return false;
-
-  try {
-    const token = window.localStorage.getItem('accessToken');
-    if (!token) return false;
-
-    const payload = decodeJwtPayload(token);
-    return (
-      typeof payload === 'object' &&
-      payload !== null &&
-      'role' in payload &&
-      (payload as { role?: unknown }).role === 'MEMBER'
-    );
-  } catch {
-    return false;
-  }
-}
 
 function getHttpStatus(error: unknown): number | undefined {
   if (typeof error !== 'object' || error === null || !('response' in error)) {
@@ -125,7 +97,7 @@ export default function LibraryOverlay() {
   }) {
     if (!hasMemberToken()) {
       setLoginRequired(true);
-      return;
+      throw new Error('LOGIN_REQUIRED');
     }
 
     await createConfession(input);
@@ -154,7 +126,7 @@ export default function LibraryOverlay() {
   async function handleSendHeart(id: number, body: string) {
     if (!hasMemberToken()) {
       setLoginRequired(true);
-      return;
+      throw new Error('LOGIN_REQUIRED');
     }
 
     await sendConfessionLetter(id, body);

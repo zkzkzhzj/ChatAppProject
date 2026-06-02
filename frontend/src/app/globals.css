@@ -51,7 +51,7 @@ canvas {
   background: #7d6b5a;
 }
 
-@keyframes bookshelfZoom {
+@keyframes bookshelf-zoom {
   from {
     opacity: 0;
     transform: scale(0.92) translateY(18px);
@@ -63,7 +63,7 @@ canvas {
 }
 
 .library-bookshelf-zoom {
-  animation: bookshelfZoom 220ms ease-out;
+  animation: bookshelf-zoom 220ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {

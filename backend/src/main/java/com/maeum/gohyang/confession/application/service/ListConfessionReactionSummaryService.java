@@ -20,6 +20,6 @@ public class ListConfessionReactionSummaryService implements ListConfessionReact
     @Override
     @Transactional(readOnly = true)
     public List<ConfessionReactionCount> execute(long confessionId) {
-        return loadConfessionReactionPort.countByConfession(confessionId);
+        return loadConfessionReactionPort.count(confessionId);
     }
 }

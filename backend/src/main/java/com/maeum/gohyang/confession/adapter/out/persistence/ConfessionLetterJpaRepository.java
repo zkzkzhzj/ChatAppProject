@@ -53,10 +53,11 @@ public interface ConfessionLetterJpaRepository extends JpaRepository<ConfessionL
             set letter.authorReadAt = CURRENT_TIMESTAMP
             where letter.status = :status
               and letter.authorReadAt is null
-              and letter.confessionId in (
-                  select record.id
+              and exists (
+                  select 1
                   from ConfessionRecordJpaEntity record
-                  where record.authorUserId = :authorUserId
+                  where record.id = letter.confessionId
+                    and record.authorUserId = :authorUserId
               )
             """)
     int markReceivedAsRead(

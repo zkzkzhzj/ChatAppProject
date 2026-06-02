@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { hasMemberToken } from '@/lib/auth/member-token';
 import {
   emitLibraryEntryBlocked,
   emitLibraryInteractionChange,
@@ -19,31 +20,8 @@ import { VillageScene } from './scenes/VillageScene';
 
 type Active = 'village' | 'library' | 'transitioning';
 
-function decodeJwtPayload(token: string): unknown {
-  const payload = token.split('.')[1];
-  if (!payload) return null;
-
-  const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
-  const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=');
-
-  return JSON.parse(window.atob(padded));
-}
-
 function hasLibraryAccess(): boolean {
-  try {
-    const token = window.localStorage.getItem('accessToken');
-    if (!token) return false;
-
-    const payload = decodeJwtPayload(token);
-    return (
-      typeof payload === 'object' &&
-      payload !== null &&
-      'role' in payload &&
-      (payload as { role?: unknown }).role === 'MEMBER'
-    );
-  } catch {
-    return false;
-  }
+  return hasMemberToken();
 }
 
 /**

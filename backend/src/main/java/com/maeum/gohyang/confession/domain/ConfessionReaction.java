@@ -1,7 +1,7 @@
 package com.maeum.gohyang.confession.domain;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
@@ -34,7 +34,7 @@ public class ConfessionReaction {
                 confessionId,
                 userId,
                 checkedReactionType,
-                LocalDateTime.now(ZoneId.systemDefault())
+                LocalDateTime.now(ZoneOffset.UTC)
         );
     }
 

@@ -2,6 +2,7 @@ package com.maeum.gohyang.confession.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -71,7 +72,7 @@ class ConfessionReactionServiceTest {
         @DisplayName("보이는 고백에 공감을 추가한다")
         void 보이는_고백에_공감을_추가한다() {
             given(loadConfessionRecordPort.load(CONFESSION_ID)).willReturn(Optional.of(visibleRecord()));
-            given(addConfessionReactionPort.addIfAbsent(org.mockito.ArgumentMatchers.any(ConfessionReaction.class)))
+            given(addConfessionReactionPort.addIfAbsent(any(ConfessionReaction.class)))
                     .willReturn(true);
 
             AddConfessionReactionUseCase.Result result = addConfessionReactionService.execute(
@@ -86,7 +87,7 @@ class ConfessionReactionServiceTest {
         @DisplayName("중복 공감은 추가되지 않은 결과를 반환한다")
         void 중복_공감은_추가되지_않은_결과를_반환한다() {
             given(loadConfessionRecordPort.load(CONFESSION_ID)).willReturn(Optional.of(visibleRecord()));
-            given(addConfessionReactionPort.addIfAbsent(org.mockito.ArgumentMatchers.any(ConfessionReaction.class)))
+            given(addConfessionReactionPort.addIfAbsent(any(ConfessionReaction.class)))
                     .willReturn(false);
 
             AddConfessionReactionUseCase.Result result = addConfessionReactionService.execute(
@@ -99,7 +100,7 @@ class ConfessionReactionServiceTest {
         @Test
         @DisplayName("공감 집계를 조회한다")
         void 공감_집계를_조회한다() {
-            given(loadConfessionReactionPort.countByConfession(CONFESSION_ID))
+            given(loadConfessionReactionPort.count(CONFESSION_ID))
                     .willReturn(List.of(new ConfessionReactionCount(ConfessionReactionType.CANDLE, 3L)));
 
             List<ConfessionReactionCount> result = listConfessionReactionSummaryService.execute(CONFESSION_ID);

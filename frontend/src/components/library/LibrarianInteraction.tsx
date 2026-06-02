@@ -9,6 +9,7 @@ import { LIBRARY_LABELS } from './libraryLabels';
 const BOOK_REQUIRED_MESSAGE = '제목과 내용을 모두 입력해 주세요.';
 const BOOK_SUBMIT_ERROR_MESSAGE = '도서를 남기지 못했어요. 잠시 후 다시 시도해 주세요.';
 const COUNSELING_ERROR_MESSAGE = '상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
+const DEFAULT_BOOKSHELF: ConfessionBookshelf = 'GENERAL';
 
 interface LibrarianInteractionProps {
   near: boolean;
@@ -69,7 +70,7 @@ export default function LibrarianInteraction({
     setMessage('');
 
     try {
-      await onSubmitBook({ title: trimmedTitle, body: trimmedBody, bookshelf: 'GENERAL' });
+      await onSubmitBook({ title: trimmedTitle, body: trimmedBody, bookshelf: DEFAULT_BOOKSHELF });
       setTitle('');
       setBody('');
       setMessage('사서가 조용히 도서를 받아 책장에 꽂아 두었어요.');

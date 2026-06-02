@@ -6,6 +6,7 @@ import org.jspecify.annotations.Nullable;
 
 import com.maeum.gohyang.confession.domain.ConfessionLetter;
 import com.maeum.gohyang.confession.domain.ConfessionLetterStatus;
+import com.maeum.gohyang.confession.error.InvalidConfessionLetterStateException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -61,7 +62,7 @@ public class ConfessionLetterJpaEntity {
 
     public ConfessionLetter toDomain() {
         if (confessionId == null || senderUserId == null || body == null || createdAt == null) {
-            throw new IllegalStateException("ConfessionLetterJpaEntity has null required fields");
+            throw new InvalidConfessionLetterStateException();
         }
         return ConfessionLetter.restore(id, confessionId, senderUserId, body, status, authorReadAt, createdAt);
     }

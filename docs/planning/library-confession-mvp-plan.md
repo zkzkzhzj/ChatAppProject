@@ -129,18 +129,22 @@ MVP에서는 태그 기반 유사 고백 기록 안내만 제공한다.
 
 ## 5. 구현 단계
 
-| 단계 | 범위 | 파일 후보 | 검증 | 필요한 역할 |
-|------|------|-----------|------|-------------|
-| 1 | 백엔드 기존 구조 조사 | backend source, 기존 domain packages | 패키지/테스트 패턴 확인 | Main Codex |
-| 2 | 고백 도메인 골격 | `confession/domain`, `confession/error`, `application/port/in` | 도메인 단위 테스트 | Domain Engineer |
-| 3 | 영속성 모델/마이그레이션 | `adapter/out/persistence`, migration | JPA/DB 제약 테스트 | Adapter Engineer, Concurrency Critic |
-| 4 | 고백 기록 API | `adapter/in/web`, DTO, service | 작성/목록/상세/삭제 테스트 | Adapter Engineer, Test Engineer |
-| 5 | 비공개 편지/감사 답장 API | letter usecase, controller, persistence | 권한 실패/중복 답장 테스트 | Security Critic, Test Engineer |
-| 6 | 이모지 공감 | reaction usecase, unique insert | 중복 공감 멱등성 테스트 | Concurrency Critic |
-| 7 | 위험 감지/신고 진입점 | safety policy, report model | 위험도 분류/신고 중복 테스트 | Security Critic |
-| 8 | NPC 태그 기반 안내 | npc query usecase | 편지 미포함 검증 | Technical Strategy Critic |
-| 9 | 프론트 MVP 화면 | library pages/components | 주요 흐름 수동/자동 검증 | Main Codex |
-| 10 | 최종 검증 | tests, lint, review | Critic Gate + PR preflight | Critic |
+이 티켓은 Issue #116 하나의 PR로 끝낸다. 아래 단계는 PR 분할 단위가 아니라
+커밋 가능한 작업 단위다.
+
+| 단계 | 범위 | 파일 후보 | 검증 | 필요한 역할 | 커밋 |
+|------|------|-----------|------|-------------|------|
+| 1 | 하네스/트랙 정책 교정 | docs conventions, track/spec | markdownlint | Main Codex | TBD |
+| 2 | 백엔드 기존 구조 조사 | backend source, 기존 domain packages | 패키지/테스트 패턴 확인 | Main Codex | 완료 |
+| 3 | 고백 도메인 골격 | `confession/domain`, `confession/error`, `application/port/in` | 도메인 단위 테스트 | Domain Engineer | TBD |
+| 4 | 영속성 모델/마이그레이션 | `adapter/out/persistence`, migration | JPA/DB 제약 테스트 | Adapter Engineer, Concurrency Critic | TBD |
+| 5 | 고백 기록 API | `adapter/in/web`, DTO, service | 작성/목록/상세/삭제 테스트 | Adapter Engineer, Test Engineer | TBD |
+| 6 | 비공개 편지/감사 답장 API | letter usecase, controller, persistence | 권한 실패/중복 답장 테스트 | Security Critic, Test Engineer | TBD |
+| 7 | 이모지 공감 | reaction usecase, unique insert | 중복 공감 멱등성 테스트 | Concurrency Critic | TBD |
+| 8 | 위험 감지/신고 진입점 | safety policy, report model | 위험도 분류/신고 중복 테스트 | Security Critic | TBD |
+| 9 | NPC 태그 기반 안내 | npc query usecase | 편지 미포함 검증 | Technical Strategy Critic | TBD |
+| 10 | 프론트 MVP 화면 | library pages/components | 주요 흐름 수동/자동 검증 | Main Codex | TBD |
+| 11 | 최종 검증 | tests, lint, review | Critic Gate + PR preflight | Critic | TBD |
 
 ---
 

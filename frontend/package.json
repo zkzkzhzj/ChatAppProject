@@ -28,7 +28,7 @@
     "react-dom": "19.2.6",
     "sockjs-client": "^1.6.1",
     "three": "^0.184.0",
-    "zustand": "^5.0.13"
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

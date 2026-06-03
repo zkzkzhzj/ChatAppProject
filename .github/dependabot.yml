@@ -20,7 +20,7 @@ updates:
       day: monday
       time: "09:00"
       timezone: Asia/Seoul
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     labels:
       - deps
       - java
@@ -36,7 +36,7 @@ updates:
       day: monday
       time: "09:00"
       timezone: Asia/Seoul
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     labels:
       - deps
       - frontend
@@ -52,7 +52,7 @@ updates:
       day: monday
       time: "09:00"
       timezone: Asia/Seoul
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 0
     labels:
       - deps
       - docker
@@ -64,7 +64,7 @@ updates:
     directory: /
     schedule:
       interval: monthly
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 0
     labels:
       - deps
       - ci

@@ -44,7 +44,7 @@
 | Step | 내용 | 상태 | 이슈 | Commit |
 |------|------|------|------|--------|
 | 0 | Audit: STOMP/raw WS/Redis/프론트/CD/명세 현재 상태 고정 | 완료 | #127 | 3b30100 |
-| 1 | Stabilize Redis/V2: Redis 설정과 V2 실패 케이스 테스트 보강 | 대기 | 미정 | 미정 |
+| 1 | Stabilize Redis/V2: Redis 설정과 V2 실패 케이스 테스트 보강 | 완료 | #127 | ff63113 |
 | 2 | Frontend Client Split: STOMP 유지 상태에서 실시간 클라이언트 책임 분리 | 완료 | #127 | 60baca9 |
 | 3 | Raw WS Parity: 채팅/위치/타이핑/게스트 정책 parity 확보 | 대기 | 미정 | 미정 |
 | 4 | Controlled Cutover: env/client adapter로 raw WS 선택 가능 | 대기 | 미정 | 미정 |
@@ -73,6 +73,14 @@ Frontend Client Split 완료:
 - 운영 경로는 여전히 STOMP `/ws`이며 raw WS 전환은 하지 않았다.
 - 검증: `pnpm.cmd test:run src/lib/websocket/realtimeAuth.test.ts src/lib/websocket/stompRealtimeSubscriptions.test.ts src/lib/websocket/useStomp.test.tsx` 통과, 3 files / 17 tests.
 - 제한: `pnpm.cmd build`와 `npx tsc --noEmit`은 현재 `frontend/node_modules/three`, `frontend/node_modules/howler` 미설치 상태로 실패했다. 이번 변경 파일의 테스트는 통과했고, 의존성 설치 후 전체 빌드를 다시 확인해야 한다.
+
+Redis/V2 Stabilize 완료:
+
+- `/ws/v2` handler의 위치/타이핑 실패 정책을 테스트로 고정했다.
+- 실제 `/ws/v2` + Redis Pub/Sub 경로에서 게스트 토큰 위치 broadcast, 토큰 없는 위치 silent ignore, 타이핑 broadcast를 검증했다.
+- Redis 설정은 Spring Boot 4 `spring.data.redis.*`, Redis 7.2 테스트 컨테이너, exact room channel `SUBSCRIBE` 기준을 유지한다.
+- 검증: `.\gradlew.bat --no-daemon test --tests "com.maeum.gohyang.communication.adapter.out.messaging.redis.RedisChatRelayTest" --tests "com.maeum.gohyang.communication.adapter.in.websocket.v2.ChatWebSocketHandlerTest" --tests "com.maeum.gohyang.communication.adapter.in.websocket.v2.ChatWebSocketV2IntegrationTest"` 통과.
+- 남은 리스크: URL query `access_token`, NPC 응답 V2 미전달, 메일 알림 미지원, raw WS client adapter 미구현.
 
 ---
 

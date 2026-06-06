@@ -51,8 +51,6 @@ class ChatWebSocketHandlerTest {
     private static final String SESSION_ID = "session-1";
     /** application.yml 의 village.public-chat-room-id 와 일치해야 핸들러 가드를 통과한다. */
     private static final long PUBLIC_ROOM_ID = 1L;
-    /** publicChatRoomId 와 다른 임의 방 — 가드 거부 케이스에 사용. */
-    private static final long OTHER_ROOM_ID = 42L;
     private static final double MAX_X = 2400.0;
     private static final double MAX_Y = 1600.0;
 
@@ -396,6 +394,21 @@ class ChatWebSocketHandlerTest {
     }
 
     @Test
+    void POSITION은_유한하지_않은_좌표면_조용히_무시된다() throws Exception {
+        // Given — JSON 숫자 1.0e309 는 double 역직렬화 시 Infinity 로 들어온다.
+        AuthenticatedUser user = new AuthenticatedUser(101L, UserType.MEMBER);
+        sessionAttributes.put(JwtHandshakeInterceptor.AUTHENTICATED_USER_KEY, user);
+        TextMessage frame = new TextMessage("{\"type\":\"POSITION\",\"roomId\":1,\"x\":1.0e309,\"y\":200.0}");
+
+        // When
+        handler.handleTextMessage(session, frame);
+
+        // Then
+        verify(bus, never()).publish(anyLong(), any(OutboundFrame.class));
+        verify(session, never()).sendMessage(any(TextMessage.class));
+    }
+
+    @Test
     void TYPING은_TypingUpdateEvent로_publish된다() throws Exception {
         // Given
         AuthenticatedUser user = new AuthenticatedUser(101L, UserType.MEMBER);
@@ -412,6 +425,38 @@ class ChatWebSocketHandlerTest {
         TypingUpdateEvent event = (TypingUpdateEvent) captor.getValue();
         assertThat(event.typing()).isTrue();
         assertThat(event.displayId()).isEqualTo("user-101");
+    }
+
+    @Test
+    void TYPING은_게스트도_publish된다() throws Exception {
+        // Given
+        AuthenticatedUser guest = new AuthenticatedUser(null, UserType.GUEST, "guest-abc");
+        sessionAttributes.put(JwtHandshakeInterceptor.AUTHENTICATED_USER_KEY, guest);
+        TextMessage frame = new TextMessage("{\"type\":\"TYPING\",\"roomId\":1,\"typing\":true}");
+
+        // When
+        handler.handleTextMessage(session, frame);
+
+        // Then
+        ArgumentCaptor<OutboundFrame> captor = ArgumentCaptor.forClass(OutboundFrame.class);
+        verify(bus).publish(eq(1L), captor.capture());
+        assertThat(captor.getValue()).isInstanceOf(TypingUpdateEvent.class);
+        TypingUpdateEvent event = (TypingUpdateEvent) captor.getValue();
+        assertThat(event.displayId()).isEqualTo("guest-abc");
+        assertThat(event.typing()).isTrue();
+    }
+
+    @Test
+    void Principal이_없는_TYPING은_조용히_무시된다() throws Exception {
+        // Given
+        TextMessage frame = new TextMessage("{\"type\":\"TYPING\",\"roomId\":1,\"typing\":true}");
+
+        // When
+        handler.handleTextMessage(session, frame);
+
+        // Then
+        verify(bus, never()).publish(anyLong(), any(OutboundFrame.class));
+        verify(session, never()).sendMessage(any(TextMessage.class));
     }
 
     @Test

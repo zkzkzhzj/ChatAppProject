@@ -43,9 +43,9 @@
 
 | Step | 내용 | 상태 | 이슈 | Commit |
 |------|------|------|------|--------|
-| 0 | Audit: STOMP/raw WS/Redis/프론트/CD/명세 현재 상태 고정 | 진행 | #127 | 미정 |
+| 0 | Audit: STOMP/raw WS/Redis/프론트/CD/명세 현재 상태 고정 | 완료 | #127 | 3b30100 |
 | 1 | Stabilize Redis/V2: Redis 설정과 V2 실패 케이스 테스트 보강 | 대기 | 미정 | 미정 |
-| 2 | Frontend Client Split: STOMP 유지 상태에서 실시간 클라이언트 책임 분리 | 대기 | 미정 | 미정 |
+| 2 | Frontend Client Split: STOMP 유지 상태에서 실시간 클라이언트 책임 분리 | 완료 | #127 | 60baca9 |
 | 3 | Raw WS Parity: 채팅/위치/타이핑/게스트 정책 parity 확보 | 대기 | 미정 | 미정 |
 | 4 | Controlled Cutover: env/client adapter로 raw WS 선택 가능 | 대기 | 미정 | 미정 |
 | 5 | STOMP Decision: 제거 또는 fallback 유지 결정 | 대기 | 미정 | 미정 |
@@ -55,7 +55,7 @@
 
 ## 3. 현재 단계 상세
 
-Step 0은 구현 변경을 하지 않는다.
+Step 0은 구현 변경 없이 현재 상태를 감사하고 문서 기준선을 다시 세웠다.
 
 작업:
 
@@ -64,6 +64,15 @@ Step 0은 구현 변경을 하지 않는다.
 - `docs/handover/INDEX.md` stale 활성 트랙 정리
 - STOMP 운영 명세와 raw WS 후보 명세 분리
 - 다음 구현 Step 후보를 판단 가능한 상태로 만든다.
+
+Frontend Client Split 완료:
+
+- `useStomp`는 React lifecycle orchestration, 연결 상태, 히스토리 로드, 인증 에러 분기만 담당한다.
+- 토큰 결정은 `frontend/src/lib/websocket/realtimeAuth.ts`로 분리했다.
+- STOMP 채널 구독과 bridge fan-out은 `frontend/src/lib/websocket/stompRealtimeSubscriptions.ts`로 분리했다.
+- 운영 경로는 여전히 STOMP `/ws`이며 raw WS 전환은 하지 않았다.
+- 검증: `pnpm.cmd test:run src/lib/websocket/realtimeAuth.test.ts src/lib/websocket/stompRealtimeSubscriptions.test.ts src/lib/websocket/useStomp.test.tsx` 통과, 3 files / 17 tests.
+- 제한: `pnpm.cmd build`와 `npx tsc --noEmit`은 현재 `frontend/node_modules/three`, `frontend/node_modules/howler` 미설치 상태로 실패했다. 이번 변경 파일의 테스트는 통과했고, 의존성 설치 후 전체 빌드를 다시 확인해야 한다.
 
 ---
 

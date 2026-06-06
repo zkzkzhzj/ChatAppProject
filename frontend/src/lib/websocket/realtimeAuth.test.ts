@@ -37,7 +37,7 @@ describe('realtimeAuth', () => {
     const guest = tokenWithRole('GUEST');
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
-      json: async () => ({ accessToken: guest }),
+      json: () => Promise.resolve({ accessToken: guest }),
     } as Response);
 
     const result = await ensureValidRealtimeToken();
@@ -67,7 +67,7 @@ describe('realtimeAuth', () => {
     mockIsTokenExpired.mockReturnValue(true);
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
-      json: async () => ({ accessToken: newGuest }),
+      json: () => Promise.resolve({ accessToken: newGuest }),
     } as Response);
 
     const result = await ensureValidRealtimeToken();

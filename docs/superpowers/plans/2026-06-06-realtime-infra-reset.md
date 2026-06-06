@@ -467,6 +467,7 @@ BUILD SUCCESSFUL
 1. `docs/specs/websocket.md`를 운영 STOMP 명세로 고정한다.
 2. `docs/specs/websocket-raw-v2-draft.md`를 후보 명세로 작성한다.
 3. 그 다음 구현은 `Frontend Client Split`으로 시작한다.
+
 ```
 
 - [ ] **Step 2: Verify audit references exact files**
@@ -622,6 +623,7 @@ ws://localhost:8080/ws/v2?access_token=<token>
 - 메일 알림(`/user/queue/mail`) 대응이 없다.
 - STOMP V1과 인증 없음 정책이 다르다.
 - 명시적 leave와 disconnect 퇴장 broadcast parity가 필요하다.
+
 ```
 
 - [ ] **Step 3: Verify specs are separated**

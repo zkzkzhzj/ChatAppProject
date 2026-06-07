@@ -111,7 +111,7 @@ ws://localhost:8080/ws/v2?access_token=<token>
 {
   "type": "POSITION_UPDATE",
   "roomId": 1,
-  "id": "user-42",
+  "displayId": "user-42",
   "userType": "MEMBER",
   "x": 120.5,
   "y": 340.0
@@ -124,7 +124,7 @@ ws://localhost:8080/ws/v2?access_token=<token>
 {
   "type": "TYPING_UPDATE",
   "roomId": 1,
-  "id": "user-42",
+  "displayId": "user-42",
   "typing": true
 }
 ```
@@ -149,10 +149,17 @@ ws://localhost:8080/ws/v2?access_token=<token>
 
 ---
 
+## Step 3 Parity 상태
+
+- `POSITION`은 STOMP V1 `PositionHandler`와 같이 인증된 principal과 유한한 좌표만 요구하고, 좌표를 서버에서 clamp하지 않는다.
+- 구독 세션 disconnect 시 해당 세션이 구독하던 각 room에 `POSITION_UPDATE`를 `userType: "LEAVE"`, `x: 0.0`, `y: 0.0`으로 broadcast한다.
+- `POSITION_UPDATE`, `TYPING_UPDATE`의 사용자 식별 필드는 현재 구현 기준 `displayId`다.
+- guest token은 `POSITION`, `TYPING` broadcast가 가능하지만 `PUBLISH`는 `COMM_003`으로 거절한다.
+
+---
+
 ## 현재 미해결
 
 - envelope `version` 필드가 없다.
 - NPC 응답은 아직 V2로 broadcast되지 않는다.
 - 메일 알림(`/user/queue/mail`) 대응이 없다.
-- STOMP V1과 인증 없음 정책이 다르다.
-- 명시적 leave와 disconnect 퇴장 broadcast parity가 필요하다.

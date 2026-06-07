@@ -235,6 +235,37 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
                 .contains("\"typing\":true");
     }
 
+    @Test
+    void 구독_세션이_disconnect되면_같은_방_다른_세션은_LEAVE_POSITION_UPDATE를_받는다() throws Exception {
+        // Given
+        long roomId = 1L;
+        String tokenA = issueTokenPort.issueMemberToken(1001L);
+        String tokenB = issueTokenPort.issueMemberToken(2002L);
+
+        BlockingQueue<String> queueA = new LinkedBlockingQueue<>();
+        BlockingQueue<String> queueB = new LinkedBlockingQueue<>();
+        WebSocketSession sessionA = connect(tokenA, queueA);
+        WebSocketSession sessionB = connect(tokenB, queueB);
+
+        sessionA.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
+        sessionB.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
+        awaitSessionCount(roomId, 2);
+        drain(queueB);
+
+        // When
+        sessionA.close();
+
+        // Then
+        String received = queueB.poll(RECEIVE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(received)
+                .contains("\"POSITION_UPDATE\"")
+                .contains("\"displayId\":\"user-1001\"")
+                .contains("\"userType\":\"LEAVE\"")
+                .contains("\"x\":0.0")
+                .contains("\"y\":0.0");
+        awaitSessionCount(roomId, 1);
+    }
+
     private void givenSendMessageEchoesBackInput() {
         given(sendMessageUseCase.execute(any(SendMessageUseCase.Command.class)))
                 .willAnswer(inv -> {

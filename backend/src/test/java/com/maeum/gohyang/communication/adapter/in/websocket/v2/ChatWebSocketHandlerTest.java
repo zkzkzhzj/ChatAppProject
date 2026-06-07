@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -51,9 +52,6 @@ class ChatWebSocketHandlerTest {
     private static final String SESSION_ID = "session-1";
     /** application.yml 의 village.public-chat-room-id 와 일치해야 핸들러 가드를 통과한다. */
     private static final long PUBLIC_ROOM_ID = 1L;
-    private static final double MAX_X = 2400.0;
-    private static final double MAX_Y = 1600.0;
-
     @Mock WebSocketSession session;
     @Mock WebSocketSessionRegistry sessionRegistry;
     @Mock RoomSubscriptionRegistry subscriptionRegistry;
@@ -69,8 +67,6 @@ class ChatWebSocketHandlerTest {
                 JsonMapper.builder().build(), bus, sendMessageUseCase);
         // @Value 주입은 단위 테스트에선 ReflectionTestUtils 로 세팅
         ReflectionTestUtils.setField(handler, "publicChatRoomId", PUBLIC_ROOM_ID);
-        ReflectionTestUtils.setField(handler, "maxX", MAX_X);
-        ReflectionTestUtils.setField(handler, "maxY", MAX_Y);
         sessionAttributes = new HashMap<>();
         given(session.getId()).willReturn(SESSION_ID);
         given(session.getAttributes()).willReturn(sessionAttributes);
@@ -342,8 +338,35 @@ class ChatWebSocketHandlerTest {
     }
 
     @Test
-    void POSITION은_좌표가_clamping된_PositionUpdateEvent로_publish된다() throws Exception {
-        // Given — 회원 + maxX 초과 + 음수 y
+    void 연결이_종료되면_구독했던_방마다_LEAVE_POSITION_UPDATE를_publish한다() {
+        // Given
+        AuthenticatedUser user = new AuthenticatedUser(101L, UserType.MEMBER);
+        sessionAttributes.put(JwtHandshakeInterceptor.AUTHENTICATED_USER_KEY, user);
+        given(subscriptionRegistry.roomsOf(SESSION_ID)).willReturn(List.of(1L, 2L));
+
+        // When
+        handler.afterConnectionClosed(session, CloseStatus.NORMAL);
+
+        // Then
+        ArgumentCaptor<OutboundFrame> captor = ArgumentCaptor.forClass(OutboundFrame.class);
+        verify(bus).publish(eq(1L), captor.capture());
+        verify(bus).publish(eq(2L), captor.capture());
+        assertThat(captor.getAllValues())
+                .allSatisfy(frame -> {
+                    assertThat(frame).isInstanceOf(PositionUpdateEvent.class);
+                    PositionUpdateEvent event = (PositionUpdateEvent) frame;
+                    assertThat(event.displayId()).isEqualTo("user-101");
+                    assertThat(event.userType()).isEqualTo("LEAVE");
+                    assertThat(event.x()).isZero();
+                    assertThat(event.y()).isZero();
+                });
+        verify(subscriptionRegistry).unsubscribeAll(SESSION_ID);
+        verify(sessionRegistry).remove(SESSION_ID);
+    }
+
+    @Test
+    void POSITION은_V1처럼_유한한_좌표를_clamping_없이_publish한다() throws Exception {
+        // Given
         AuthenticatedUser user = new AuthenticatedUser(101L, UserType.MEMBER);
         sessionAttributes.put(JwtHandshakeInterceptor.AUTHENTICATED_USER_KEY, user);
         TextMessage frame = new TextMessage("{\"type\":\"POSITION\",\"roomId\":1,\"x\":3000.0,\"y\":-50.0}");
@@ -356,8 +379,8 @@ class ChatWebSocketHandlerTest {
         verify(bus).publish(eq(1L), captor.capture());
         assertThat(captor.getValue()).isInstanceOf(PositionUpdateEvent.class);
         PositionUpdateEvent event = (PositionUpdateEvent) captor.getValue();
-        assertThat(event.x()).isEqualTo(2400.0);   // clamped to maxX
-        assertThat(event.y()).isEqualTo(0.0);      // clamped to 0
+        assertThat(event.x()).isEqualTo(3000.0);
+        assertThat(event.y()).isEqualTo(-50.0);
         assertThat(event.displayId()).isEqualTo("user-101");
         assertThat(event.userType()).isEqualTo("MEMBER");
     }

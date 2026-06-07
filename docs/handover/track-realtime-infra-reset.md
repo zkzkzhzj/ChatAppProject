@@ -46,7 +46,7 @@
 | 0 | Audit: STOMP/raw WS/Redis/프론트/CD/명세 현재 상태 고정 | 완료 | #127 | 3b30100 |
 | 1 | Stabilize Redis/V2: Redis 설정과 V2 실패 케이스 테스트 보강 | 완료 | #127 | ff63113 |
 | 2 | Frontend Client Split: STOMP 유지 상태에서 실시간 클라이언트 책임 분리 | 완료 | #127 | 60baca9 |
-| 3 | Raw WS Parity: 채팅/위치/타이핑/게스트 정책 parity 확보 | 대기 | 미정 | 미정 |
+| 3 | Raw WS Parity: 채팅/위치/타이핑/게스트 정책 parity 확보 | 완료 | #127 | 77bb913 |
 | 4 | Controlled Cutover: env/client adapter로 raw WS 선택 가능 | 대기 | 미정 | 미정 |
 | 5 | STOMP Decision: 제거 또는 fallback 유지 결정 | 대기 | 미정 | 미정 |
 | 6 | Load Test + ADR: 병목 재측정과 ADR 업데이트 | 대기 | 미정 | 미정 |
@@ -81,6 +81,18 @@ Redis/V2 Stabilize 완료:
 - Redis 설정은 Spring Boot 4 `spring.data.redis.*`, Redis 7.2 테스트 컨테이너, exact room channel `SUBSCRIBE` 기준을 유지한다.
 - 검증: `.\gradlew.bat --no-daemon test --tests "com.maeum.gohyang.communication.adapter.out.messaging.redis.RedisChatRelayTest" --tests "com.maeum.gohyang.communication.adapter.in.websocket.v2.ChatWebSocketHandlerTest" --tests "com.maeum.gohyang.communication.adapter.in.websocket.v2.ChatWebSocketV2IntegrationTest"` 통과.
 - 남은 리스크: URL query `access_token`, NPC 응답 V2 미전달, 메일 알림 미지원, raw WS client adapter 미구현.
+
+---
+
+Raw WS Parity 완료:
+
+- `RoomSubscriptionRegistry.roomsOf(sessionId)`로 disconnect 직전 구독 방 snapshot을 읽을 수 있게 했다.
+- `/ws/v2` disconnect 시 구독했던 각 room에 `POSITION_UPDATE` `userType: "LEAVE"`를 broadcast한 뒤 구독과 session registry를 정리한다.
+- `/ws/v2` `POSITION`은 STOMP V1과 맞춰 좌표 clamp를 제거하고 finite 좌표만 그대로 broadcast한다.
+- Raw V2 draft spec의 `POSITION_UPDATE`, `TYPING_UPDATE` 사용자 식별 필드를 구현 기준 `displayId`로 정정했다.
+- 검증: `.\gradlew.bat --no-daemon test --tests "com.maeum.gohyang.communication.adapter.in.websocket.v2.RoomSubscriptionRegistryTest" --tests "com.maeum.gohyang.communication.adapter.in.websocket.v2.ChatWebSocketHandlerTest" --tests "com.maeum.gohyang.communication.adapter.in.websocket.v2.ChatWebSocketV2IntegrationTest"` 통과.
+- 검증: `npm.cmd run lint:md` 통과.
+- 잔여 리스크: NPC 응답 V2 broadcast, 메일 알림(`/user/queue/mail`), URL query `access_token` 정책, raw WS frontend adapter는 다음 단계에서 별도 결정한다.
 
 ---
 

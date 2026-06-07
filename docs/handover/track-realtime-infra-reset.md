@@ -47,7 +47,7 @@
 | 1 | Stabilize Redis/V2: Redis 설정과 V2 실패 케이스 테스트 보강 | 완료 | #127 | ff63113 |
 | 2 | Frontend Client Split: STOMP 유지 상태에서 실시간 클라이언트 책임 분리 | 완료 | #127 | 60baca9 |
 | 3 | Raw WS Parity: 채팅/위치/타이핑/게스트 정책 parity 확보 | 완료 | #127 | 77bb913 |
-| 4 | Controlled Cutover: env/client adapter로 raw WS 선택 가능 | 대기 | 미정 | 미정 |
+| 4 | Controlled Cutover: env/client adapter로 raw WS 선택 가능 | 완료 | #127 | 771afb2 |
 | 5 | STOMP Decision: 제거 또는 fallback 유지 결정 | 대기 | 미정 | 미정 |
 | 6 | Load Test + ADR: 병목 재측정과 ADR 업데이트 | 대기 | 미정 | 미정 |
 
@@ -93,6 +93,17 @@ Raw WS Parity 완료:
 - 검증: `.\gradlew.bat --no-daemon test --tests "com.maeum.gohyang.communication.adapter.in.websocket.v2.RoomSubscriptionRegistryTest" --tests "com.maeum.gohyang.communication.adapter.in.websocket.v2.ChatWebSocketHandlerTest" --tests "com.maeum.gohyang.communication.adapter.in.websocket.v2.ChatWebSocketV2IntegrationTest"` 통과.
 - 검증: `npm.cmd run lint:md` 통과.
 - 잔여 리스크: NPC 응답 V2 broadcast, 메일 알림(`/user/queue/mail`), URL query `access_token` 정책, raw WS frontend adapter는 다음 단계에서 별도 결정한다.
+
+Controlled Cutover 완료:
+
+- `realtimeClient.ts` facade를 추가해 `NEXT_PUBLIC_REALTIME_TRANSPORT=raw`일 때만 raw WebSocket client를 선택한다.
+- 기본값은 STOMP로 유지한다. env를 지정하지 않은 운영/로컬 경로는 기존 `/ws` STOMP 경로를 계속 사용한다.
+- `rawWebSocketClient.ts`는 `/ws/v2` JSON envelope로 `SUBSCRIBE`, `PUBLISH`, `POSITION`, `TYPING`, `UNSUBSCRIBE`를 처리한다.
+- raw inbound `displayId`는 기존 Three bridge 호환을 위해 `id`로 매핑한다.
+- `ChatInput`, `PositionSync`, `SceneManager`, `useStomp`는 직접 STOMP send/connect를 호출하지 않고 realtime facade를 거친다.
+- 검증: `pnpm.cmd test:run src/lib/websocket/realtimeClient.test.ts src/lib/websocket/rawWebSocketClient.test.ts src/lib/websocket/stompRealtimeSubscriptions.test.ts src/lib/websocket/useStomp.test.tsx src/components/chat/ChatInput.test.tsx` 통과.
+- 검증: `pnpm.cmd lint`, `pnpm.cmd build`, `npm.cmd run lint:md` 통과.
+- 잔여 리스크: raw WS 선택 시 메일 알림은 아직 STOMP `/user/queue/mail` 대응이 없으므로 별도 결정이 필요하다.
 
 ---
 

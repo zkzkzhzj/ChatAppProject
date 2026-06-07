@@ -11,8 +11,7 @@ import { useChatStore } from '@/store/useChatStore';
 import type { ChatMessage, MessageResponse } from '@/types/chat';
 
 import { ensureValidRealtimeToken, parseTokenRole } from './realtimeAuth';
-import { connectWithAuth, disconnectStomp } from './stompClient';
-import { subscribeToStompRealtimeChannels } from './stompRealtimeSubscriptions';
+import { connectRealtime, disconnectRealtime, subscribeToRealtimeChannels } from './realtimeClient';
 import { emitDisplayIdChange } from './tokenBridge';
 
 const RECONNECT_DELAY_MS = 3_000;
@@ -92,7 +91,7 @@ export function useStomp(): void {
         }
 
         unsubscribeRealtimeRef.current?.();
-        unsubscribeRealtimeRef.current = subscribeToStompRealtimeChannels({
+        unsubscribeRealtimeRef.current = subscribeToRealtimeChannels({
           addMessage,
           setNpcTyping,
         });
@@ -122,7 +121,7 @@ export function useStomp(): void {
               console.warn('[useStomp] 멤버 인증 실패 — 토큰 제거 + 재로그인 진입점 노출');
               localStorage.removeItem('accessToken');
               setLoginRequired(true);
-              disconnectStomp();
+              disconnectRealtime();
               return;
             }
             // 게스트 또는 토큰 없음 → 새 게스트 발급
@@ -136,12 +135,12 @@ export function useStomp(): void {
         }, RECONNECT_DELAY_MS);
       };
 
-      connectWithAuth(token, onConnected, onError);
+      connectRealtime(token, onConnected, onError);
     };
 
     // 탭 종료 시 graceful disconnect — SockJS heartbeat timeout 까지 기다리지 않고 즉시 LEAVE 발송 (3-D)
     const handleUnload = () => {
-      disconnectStomp();
+      disconnectRealtime();
     };
     window.addEventListener('beforeunload', handleUnload);
     window.addEventListener('pagehide', handleUnload);
@@ -155,7 +154,7 @@ export function useStomp(): void {
       window.removeEventListener('pagehide', handleUnload);
       unsubscribeRealtimeRef.current?.();
       unsubscribeRealtimeRef.current = null;
-      disconnectStomp();
+      disconnectRealtime();
       setConnectionStatus('disconnected');
       emitDisplayIdChange(null);
     };

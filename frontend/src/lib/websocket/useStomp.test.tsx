@@ -20,18 +20,15 @@ const {
   mockSubscribeToStompRealtimeChannels: vi.fn(),
 }));
 
-vi.mock('./stompClient', () => ({
-  connectWithAuth: mockConnectWithAuth,
-  disconnectStomp: mockDisconnectStomp,
+vi.mock('./realtimeClient', () => ({
+  connectRealtime: mockConnectWithAuth,
+  disconnectRealtime: mockDisconnectStomp,
+  subscribeToRealtimeChannels: mockSubscribeToStompRealtimeChannels,
 }));
 
 vi.mock('./realtimeAuth', () => ({
   ensureValidRealtimeToken: mockEnsureValidRealtimeToken,
   parseTokenRole: mockParseTokenRole,
-}));
-
-vi.mock('./stompRealtimeSubscriptions', () => ({
-  subscribeToStompRealtimeChannels: mockSubscribeToStompRealtimeChannels,
 }));
 
 vi.mock('@/lib/api/client', () => ({

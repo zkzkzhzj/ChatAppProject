@@ -6,8 +6,8 @@ import {
   emitLibraryInteractionChange,
   emitSceneChange,
 } from '@/lib/scene/sceneBridge';
-import type { PositionBroadcast } from '@/lib/websocket/stompClient';
-import { sendLeaveVillage } from '@/lib/websocket/stompClient';
+import { sendLeaveVillage } from '@/lib/websocket/realtimeClient';
+import type { PositionBroadcast } from '@/lib/websocket/realtimeTypes';
 import type { ChatMessage } from '@/types/chat';
 
 import { AmbientSoundManager } from './audio/AmbientSoundManager';

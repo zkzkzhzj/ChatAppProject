@@ -17,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.maeum.gohyang.communication.adapter.out.messaging.redis.RoomMessageBus;
 import com.maeum.gohyang.communication.adapter.out.messaging.redis.RoomMessageHandler;
 
-
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RoomSubscriptionRegistry — 0↔1 전환 시점에만 Redis 채널 생명주기 관리")
 class RoomSubscriptionRegistryTest {
@@ -91,5 +90,18 @@ class RoomSubscriptionRegistryTest {
         verify(bus, never()).removeRoomSubscription(11L);    // 방 11 은 sessionB 가 남아있음
         assertThat(registry.sessionCount(10L)).isZero();
         assertThat(registry.sessionCount(11L)).isEqualTo(1);
+    }
+
+    @Test
+    void roomsOf는_세션이_구독한_방_id_snapshot을_반환한다() {
+        // Given
+        registry.subscribe(10L, "session-A");
+        registry.subscribe(11L, "session-A");
+        registry.subscribe(11L, "session-B");
+
+        // When & Then
+        assertThat(registry.roomsOf("session-A")).containsExactlyInAnyOrder(10L, 11L);
+        assertThat(registry.roomsOf("session-B")).containsExactly(11L);
+        assertThat(registry.roomsOf("session-X")).isEmpty();
     }
 }

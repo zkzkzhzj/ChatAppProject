@@ -2,55 +2,23 @@
 
 import { useEffect, useRef } from 'react';
 
-import type { IFrame, StompSubscription } from '@stomp/stompjs';
+import type { IFrame } from '@stomp/stompjs';
 
 import apiClient from '@/lib/api/client';
-import { getDisplayIdFromToken, isTokenExpired } from '@/lib/auth';
+import { getDisplayIdFromToken } from '@/lib/auth';
 import { emitMailRefreshRequested } from '@/lib/scene/mailRefreshBridge';
 import { useChatStore } from '@/store/useChatStore';
 import type { ChatMessage, MessageResponse } from '@/types/chat';
 
-import { emitChatMessage } from './chatBridge';
-import { emitNpcTypingUpdate, emitPositionUpdate, emitTypingUpdate } from './positionBridge';
-import {
-  connectWithAuth,
-  disconnectStomp,
-  subscribeToChatRoom,
-  subscribeToMailNotifications,
-  subscribeToPositions,
-  subscribeToTyping,
-} from './stompClient';
+import { ensureValidRealtimeToken, parseTokenRole } from './realtimeAuth';
+import { connectRealtime, disconnectRealtime, subscribeToRealtimeChannels } from './realtimeClient';
 import { emitDisplayIdChange } from './tokenBridge';
 
-const VILLAGE_CHAT_TOPIC = 'village';
 const RECONNECT_DELAY_MS = 3_000;
 /** STOMP 인증 실패 메시지 — 서버 StompAuthChannelInterceptor 와 정확히 일치해야 함 */
 const TOKEN_INVALID_MESSAGE = 'Invalid or expired token';
 /** 같은 인증 에러가 연속 N회 발생하면 진짜 만료로 간주하고 토큰 갱신 (무한 루프 방어) */
 const AUTH_ERROR_THRESHOLD = 1;
-
-function parseTokenRole(token: string | null): string | null {
-  if (!token) return null;
-  try {
-    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    return (JSON.parse(atob(base64)) as { role?: string }).role ?? null;
-  } catch {
-    return null;
-  }
-}
-
-async function issueGuestToken(): Promise<string | null> {
-  try {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
-    const res = await fetch(`${apiBase}/api/v1/auth/guest`, { method: 'POST' });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { accessToken: string };
-    return data.accessToken;
-  } catch (err) {
-    console.warn('[useStomp] 게스트 토큰 발급 실패', err);
-    return null;
-  }
-}
 
 function toMessage(msg: MessageResponse): ChatMessage {
   return {
@@ -77,53 +45,14 @@ export function useStomp(): void {
   const setConnectionStatus = useChatStore((s) => s.setConnectionStatus);
   const setNpcTyping = useChatStore((s) => s.setNpcTyping);
   const setLoginRequired = useChatStore((s) => s.setLoginRequired);
-  const chatSubRef = useRef<StompSubscription | null>(null);
-  const mailSubRef = useRef<StompSubscription | null>(null);
-  const posSubRef = useRef<StompSubscription | null>(null);
-  const typingSubRef = useRef<StompSubscription | null>(null);
+  const unsubscribeRealtimeRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     let consecutiveAuthErrors = 0;
 
-    /**
-     * 토큰을 결정한다 — localStorage 에 유효한 토큰이 있으면 재사용, 없거나 만료 임박이면 새로 발급.
-     * 만료된 토큰을 STOMP CONNECT 로 보내면 서버 거부 → 새 sessionId → 자기인식 깨짐 (#28).
-     * 사전 체크로 그 트리거 자체를 차단한다.
-     *
-     * 게스트만 자동 재발급한다. 멤버 토큰은 만료되어도 토큰을 그대로 두고 서버가 명시적으로
-     * 거부하게 둔다 — 자동 게스트 다운그레이드는 멤버 신원 상실로 이어진다 (Codex P1, #36 review).
-     * 멤버 토큰 자동 갱신은 별도 트랙(refresh token / sliding session) 에서 다룬다.
-     */
-    const ensureValidToken = async (): Promise<string | null> => {
-      const stored = localStorage.getItem('accessToken');
-
-      if (!stored) {
-        const fresh = await issueGuestToken();
-        if (fresh) localStorage.setItem('accessToken', fresh);
-        return fresh;
-      }
-
-      if (!isTokenExpired(stored)) return stored;
-
-      const role = parseTokenRole(stored);
-      if (role === 'GUEST') {
-        console.log('[useStomp] 게스트 토큰 만료 임박/만료 — 사전 갱신');
-        localStorage.removeItem('accessToken');
-        const fresh = await issueGuestToken();
-        if (fresh) localStorage.setItem('accessToken', fresh);
-        return fresh;
-      }
-
-      // 멤버 토큰 만료 — 자동 게스트 다운그레이드 차단. 토큰 그대로 두고 서버 거부 시 onError 에서 처리.
-      console.warn(
-        '[useStomp] 멤버 토큰 만료 임박/만료 — 자동 갱신 미지원, 서버 거부 시 재로그인 필요',
-      );
-      return stored;
-    };
-
     const connect = async () => {
-      const token = await ensureValidToken();
+      const token = await ensureValidRealtimeToken();
       if (cancelled) return;
 
       if (!token) {
@@ -161,29 +90,10 @@ export function useStomp(): void {
             });
         }
 
-        chatSubRef.current = subscribeToChatRoom(VILLAGE_CHAT_TOPIC, (msg) => {
-          console.log('[useStomp] Received message:', msg);
-          const chatMsg = toMessage(msg);
-          // NPC 응답이 오면 타이핑 표시 해제
-          if (chatMsg.senderType === 'NPC') {
-            setNpcTyping(false);
-            emitNpcTypingUpdate(false);
-          }
-          addMessage(chatMsg);
-          // Step 1.7 — 머리 위 말풍선 결로 broadcast (Three.js Scene 구독)
-          emitChatMessage(chatMsg);
-        });
-
-        mailSubRef.current = subscribeToMailNotifications(() => {
-          emitMailRefreshRequested();
-        });
-
-        posSubRef.current = subscribeToPositions((pos) => {
-          emitPositionUpdate(pos);
-        });
-
-        typingSubRef.current = subscribeToTyping((data) => {
-          emitTypingUpdate(data);
+        unsubscribeRealtimeRef.current?.();
+        unsubscribeRealtimeRef.current = subscribeToRealtimeChannels({
+          addMessage,
+          setNpcTyping,
         });
       };
 
@@ -211,7 +121,7 @@ export function useStomp(): void {
               console.warn('[useStomp] 멤버 인증 실패 — 토큰 제거 + 재로그인 진입점 노출');
               localStorage.removeItem('accessToken');
               setLoginRequired(true);
-              disconnectStomp();
+              disconnectRealtime();
               return;
             }
             // 게스트 또는 토큰 없음 → 새 게스트 발급
@@ -225,12 +135,12 @@ export function useStomp(): void {
         }, RECONNECT_DELAY_MS);
       };
 
-      connectWithAuth(token, onConnected, onError);
+      connectRealtime(token, onConnected, onError);
     };
 
     // 탭 종료 시 graceful disconnect — SockJS heartbeat timeout 까지 기다리지 않고 즉시 LEAVE 발송 (3-D)
     const handleUnload = () => {
-      disconnectStomp();
+      disconnectRealtime();
     };
     window.addEventListener('beforeunload', handleUnload);
     window.addEventListener('pagehide', handleUnload);
@@ -242,15 +152,9 @@ export function useStomp(): void {
       console.log('[useStomp] Cleanup: disconnecting');
       window.removeEventListener('beforeunload', handleUnload);
       window.removeEventListener('pagehide', handleUnload);
-      chatSubRef.current?.unsubscribe();
-      chatSubRef.current = null;
-      mailSubRef.current?.unsubscribe();
-      mailSubRef.current = null;
-      posSubRef.current?.unsubscribe();
-      posSubRef.current = null;
-      typingSubRef.current?.unsubscribe();
-      typingSubRef.current = null;
-      disconnectStomp();
+      unsubscribeRealtimeRef.current?.();
+      unsubscribeRealtimeRef.current = null;
+      disconnectRealtime();
       setConnectionStatus('disconnected');
       emitDisplayIdChange(null);
     };

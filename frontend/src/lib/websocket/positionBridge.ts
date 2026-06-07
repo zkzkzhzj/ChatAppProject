@@ -1,4 +1,4 @@
-import type { PositionBroadcast, TypingBroadcast } from './stompClient';
+import type { PositionBroadcast, TypingBroadcast } from './realtimeTypes';
 
 type PositionListener = (pos: PositionBroadcast) => void;
 type TypingListener = (data: TypingBroadcast) => void;

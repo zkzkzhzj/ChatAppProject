@@ -67,12 +67,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Value("${village.public-chat-room-id}")
     private long publicChatRoomId;
 
-    @Value("${village.map.max-x:2400.0}")
-    private double maxX;
-
-    @Value("${village.map.max-y:1600.0}")
-    private double maxY;
-
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         sessionRegistry.register(session);
@@ -127,6 +121,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+        AuthenticatedUser user = JwtHandshakeInterceptor.principalOf(session.getAttributes());
+        if (user != null) {
+            for (long roomId : subscriptionRegistry.roomsOf(session.getId())) {
+                bus.publish(roomId, PositionUpdateEvent.of(roomId, user.displayId(), "LEAVE", 0, 0));
+            }
+        }
         subscriptionRegistry.unsubscribeAll(session.getId());
         sessionRegistry.remove(session.getId());
     }
@@ -178,10 +178,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         if (!Double.isFinite(frame.x()) || !Double.isFinite(frame.y())) {
             return;
         }
-        double clampedX = Math.max(0, Math.min(frame.x(), maxX));
-        double clampedY = Math.max(0, Math.min(frame.y(), maxY));
         bus.publish(frame.roomId(),
-                PositionUpdateEvent.of(frame.roomId(), user.displayId(), user.role().name(), clampedX, clampedY));
+                PositionUpdateEvent.of(frame.roomId(), user.displayId(), user.role().name(), frame.x(), frame.y()));
     }
 
     /** 타이핑 상태 broadcast — V1 TypingHandler 와 정책 동일. 게스트 포함 인증 유저만. */

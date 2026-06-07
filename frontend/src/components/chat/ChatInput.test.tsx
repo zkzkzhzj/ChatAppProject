@@ -22,7 +22,7 @@ vi.mock('@/lib/api/client', () => ({
   },
 }));
 
-vi.mock('@/lib/websocket/stompClient', () => ({
+vi.mock('@/lib/websocket/realtimeClient', () => ({
   sendTypingStatus: mockSendTypingStatus,
   sendVillageMessage: mockSendVillageMessage,
 }));

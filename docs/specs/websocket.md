@@ -1,5 +1,7 @@
 # WebSocket(STOMP) 명세 — 마음의 고향
 
+> 현재 운영 명세다. 프론트/CD/운영 배포는 아직 STOMP `/ws` 기준이다.
+> raw WebSocket `/ws/v2`는 전환 후보이며 [websocket-raw-v2-draft.md](./websocket-raw-v2-draft.md)에 별도로 기록한다.
 > Phase 3 구현 기준. 현재는 인메모리 Simple Broker 사용.
 > 스케일아웃 시 Redis Pub/Sub 기반 외부 브로커로 교체 예정 (ADR-007 참조).
 

@@ -72,6 +72,13 @@ public class RoomSubscriptionRegistry {
         }
     }
 
+    public List<Long> roomsOf(String sessionId) {
+        return roomToSessions.entrySet().stream()
+                .filter(entry -> entry.getValue().contains(sessionId))
+                .map(Map.Entry::getKey)
+                .toList();
+    }
+
     int roomCount() {
         return roomToSessions.size();
     }

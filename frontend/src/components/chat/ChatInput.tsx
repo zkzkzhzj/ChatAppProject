@@ -6,7 +6,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState, useSyncExternalSt
 import apiClient from '@/lib/api/client';
 import { isTokenExpired } from '@/lib/auth';
 import { emitMyTypingUpdate, emitNpcTypingUpdate } from '@/lib/websocket/positionBridge';
-import { sendTypingStatus, sendVillageMessage } from '@/lib/websocket/stompClient';
+import { sendTypingStatus, sendVillageMessage } from '@/lib/websocket/realtimeClient';
 import { useChatStore } from '@/store/useChatStore';
 
 function subscribeToStorage(callback: () => void) {

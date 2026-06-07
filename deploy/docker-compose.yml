@@ -225,6 +225,8 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8080}
         NEXT_PUBLIC_WS_URL: ${PUBLIC_WS_URL:-http://localhost:8080/ws}
+        NEXT_PUBLIC_REALTIME_TRANSPORT: ${PUBLIC_REALTIME_TRANSPORT:-stomp}
+        NEXT_PUBLIC_RAW_WS_URL: ${PUBLIC_RAW_WS_URL:-ws://localhost:8080/ws/v2}
         # CloudFront 정적 자산 base URL (Step 5 — OAC). ADR 009.
         NEXT_PUBLIC_ASSETS_BASE_URL: ${PUBLIC_ASSETS_BASE_URL:-https://d9btdaowoaya0.cloudfront.net}
     container_name: gohyang-frontend

@@ -1,0 +1,1220 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Realtime Source Flow Map — STOMP에서 raw WebSocket + Redis까지</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fa;
+      --paper: #ffffff;
+      --ink: #17202a;
+      --muted: #617085;
+      --line: #d8dee8;
+      --soft: #eef3f8;
+      --blue: #205b9f;
+      --green: #23705a;
+      --red: #a33a3a;
+      --amber: #8a640e;
+      --code: #101827;
+      --code-bg: #eef1f5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 44px 28px 72px;
+    }
+
+    header {
+      padding: 36px 0 28px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: 34px;
+      letter-spacing: 0;
+      line-height: 1.2;
+    }
+
+    h2 {
+      margin: 52px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 32px 0 10px;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    h4 {
+      margin: 22px 0 8px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 10px 0;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .subtitle {
+      max-width: 920px;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 10px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .paper {
+      margin-top: 24px;
+      padding: 22px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .note {
+      padding: 14px 16px;
+      border-left: 4px solid var(--blue);
+      background: #edf5ff;
+      border-radius: 6px;
+    }
+
+    .warning {
+      padding: 14px 16px;
+      border-left: 4px solid var(--amber);
+      background: #fff7df;
+      border-radius: 6px;
+    }
+
+    .danger {
+      padding: 14px 16px;
+      border-left: 4px solid var(--red);
+      background: #fff0f0;
+      border-radius: 6px;
+    }
+
+    .ok {
+      padding: 14px 16px;
+      border-left: 4px solid var(--green);
+      background: #eefaf6;
+      border-radius: 6px;
+    }
+
+    code {
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--code-bg);
+      color: var(--code);
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 0.93em;
+    }
+
+    pre {
+      overflow-x: auto;
+      padding: 15px 16px;
+      border-radius: 8px;
+      background: #111827;
+      color: #e5e7eb;
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    pre code {
+      padding: 0;
+      background: transparent;
+      color: inherit;
+    }
+
+    table {
+      width: 100%;
+      margin: 16px 0 22px;
+      border-collapse: collapse;
+      background: var(--paper);
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--soft);
+      text-align: left;
+    }
+
+    ul,
+    ol {
+      margin: 10px 0 18px 22px;
+      padding: 0;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .flow {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      padding: 16px;
+    }
+
+    .flow-title {
+      margin: 0 0 10px;
+      color: var(--blue);
+      font-weight: 700;
+    }
+
+    .step {
+      margin: 8px 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfe;
+    }
+
+    .arrow {
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 24px;
+      margin-top: 14px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 7px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 860px) {
+      main {
+        padding: 28px 16px 56px;
+      }
+
+      .grid,
+      .toc {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Realtime Source Flow Map</h1>
+    <p class="subtitle">
+      마음의 고향 실시간 통신 코드를 위에서 아래로 읽기 위한 지도다.
+      화면에서 체감되는 기능은 같아도 내부 경로가 STOMP/SimpleBroker 중심에서 raw WebSocket + Redis Pub/Sub 후보 경로로 어떻게 확장됐는지,
+      그리고 이 변화가 왜 바로 MSA 전환이 아니라 “MSA 대응 가능성을 열어 둔 모놀리식 내부 구조 개선”인지 설명한다.
+    </p>
+    <div class="meta">
+      <span class="pill">작성일: 2026-06-08</span>
+      <span class="pill">트랙: realtime-infra-reset</span>
+      <span class="pill">현재 기본값: STOMP</span>
+      <span class="pill">raw 선택: NEXT_PUBLIC_REALTIME_TRANSPORT=raw</span>
+    </div>
+  </header>
+
+  <section class="paper">
+    <h2 id="toc">읽는 순서</h2>
+    <div class="toc">
+      <a href="#thesis">1. 이 작업은 왜 화면에서 티가 안 나는가</a>
+      <a href="#current-map">2. 현재 소스 지도</a>
+      <a href="#stomp-flow">3. STOMP 모놀리식 소켓 흐름</a>
+      <a href="#raw-flow">4. raw WebSocket V2 흐름</a>
+      <a href="#redis-flow">5. Redis Pub/Sub이 들어온 위치</a>
+      <a href="#frontend-flow">6. 프론트 선택 스위치와 확인법</a>
+      <a href="#msa-meaning">7. MSA 대응이 됐다는 말의 정확한 의미</a>
+      <a href="#limits">8. 아직 바뀌지 않은 것과 남은 리스크</a>
+      <a href="#cs">9. 필요한 CS 지식</a>
+      <a href="#topdown">10. 탑다운 학습 로드맵</a>
+      <a href="#debug">11. 직접 확인 체크리스트</a>
+      <a href="#source-index">12. 소스 인덱스</a>
+    </div>
+  </section>
+
+  <section id="thesis">
+    <h2>1. 이 작업은 왜 화면에서 티가 안 나는가</h2>
+    <p>
+      네가 느낀 “동작은 같은데 소스만 바뀐 것 아닌가”라는 감각은 맞다.
+      이번 단계의 목표는 유저가 보는 채팅 UI, 캐릭터 이동, 타이핑 표시를 바꾸는 것이 아니다.
+      목표는 <strong>같은 기능을 다른 실시간 통신 배관으로 흘릴 수 있는지</strong>를 검증 가능한 상태로 만드는 것이다.
+    </p>
+    <div class="note">
+      <p>
+        화면에서 성공 조건은 “달라 보인다”가 아니다.
+        성공 조건은 “같아 보이는데 Network 탭의 WebSocket 경로와 Frames가 달라졌다”이다.
+      </p>
+    </div>
+    <p>
+      기존에는 Spring STOMP와 SimpleBroker가 라우팅과 broadcast를 대신 처리했다.
+      새 후보 경로는 브라우저가 JSON envelope를 직접 보내고, 백엔드 raw handler가 해석한 뒤, Redis Pub/Sub을 통해 방 단위 fan-out을 수행한다.
+      즉 사용자는 같은 채팅을 보지만 서버 내부에서는 “STOMP broker에게 맡긴 일”을 “우리 코드와 Redis relay가 명시적으로 수행”하게 된다.
+    </p>
+    <table>
+      <thead>
+      <tr>
+        <th>관점</th>
+        <th>STOMP 기존 경로</th>
+        <th>raw V2 후보 경로</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>브라우저에서 보이는 기능</td>
+        <td>채팅, 위치, 타이핑</td>
+        <td>채팅, 위치, 타이핑</td>
+      </tr>
+      <tr>
+        <td>WebSocket URL</td>
+        <td><code>/ws</code>, SockJS 내부 <code>/websocket</code></td>
+        <td><code>/ws/v2?access_token=...</code></td>
+      </tr>
+      <tr>
+        <td>프레임 형식</td>
+        <td>STOMP command + destination + body</td>
+        <td>JSON <code>{ "type": "...", "roomId": ... }</code></td>
+      </tr>
+      <tr>
+        <td>서버 라우팅</td>
+        <td><code>@MessageMapping</code> + SimpleBroker</td>
+        <td><code>TextWebSocketHandler</code> + switch + Redis Pub/Sub</td>
+      </tr>
+      <tr>
+        <td>확장 방향</td>
+        <td>STOMP broker relay 또는 구조 재설계 필요</td>
+        <td>방 단위 Redis 채널 기반 다중 인스턴스 fan-out 검증 가능</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="current-map">
+    <h2>2. 현재 소스 지도</h2>
+    <p>
+      현재 프로젝트는 모놀리식 Spring Boot 애플리케이션 안에 STOMP 경로와 raw V2 경로가 같이 있다.
+      프론트도 하나의 Next.js 앱 안에서 transport facade가 STOMP/raw를 선택한다.
+      즉 “MSA가 됐다”가 아니라 <strong>모놀리식 안에 두 번째 실시간 transport 후보가 들어왔다</strong>가 정확한 표현이다.
+    </p>
+    <div class="grid">
+      <div class="flow">
+        <p class="flow-title">운영 기본 STOMP 경로</p>
+        <div class="step">frontend <code>stompClient.ts</code></div>
+        <div class="arrow">↓ SockJS/STOMP</div>
+        <div class="step">backend <code>WebSocketConfig</code> endpoint <code>/ws</code></div>
+        <div class="arrow">↓ <code>@MessageMapping</code></div>
+        <div class="step"><code>ChatMessageHandler</code>, <code>PositionHandler</code>, <code>TypingHandler</code></div>
+        <div class="arrow">↓ <code>SimpMessagingTemplate</code></div>
+        <div class="step">Spring SimpleBroker <code>/topic</code>, <code>/queue</code></div>
+      </div>
+      <div class="flow">
+        <p class="flow-title">선택 가능한 raw V2 경로</p>
+        <div class="step">frontend <code>rawWebSocketClient.ts</code></div>
+        <div class="arrow">↓ native WebSocket JSON</div>
+        <div class="step">backend <code>WebSocketV2Config</code> endpoint <code>/ws/v2</code></div>
+        <div class="arrow">↓ <code>ChatWebSocketHandler</code></div>
+        <div class="step"><code>RoomSubscriptionRegistry</code> + <code>RoomMessageBus</code></div>
+        <div class="arrow">↓ Redis Pub/Sub</div>
+        <div class="step"><code>RedisChatRelay</code> → local sessions fan-out</div>
+      </div>
+    </div>
+    <h3>핵심 파일 묶음</h3>
+    <table>
+      <thead>
+      <tr>
+        <th>영역</th>
+        <th>파일</th>
+        <th>읽을 포인트</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>프론트 선택</td>
+        <td><code>frontend/src/lib/websocket/realtimeClient.ts</code></td>
+        <td><code>NEXT_PUBLIC_REALTIME_TRANSPORT === "raw"</code>이면 raw, 아니면 STOMP</td>
+      </tr>
+      <tr>
+        <td>프론트 STOMP</td>
+        <td><code>frontend/src/lib/websocket/stompClient.ts</code></td>
+        <td>SockJS 생성, STOMP publish/subscribe destination</td>
+      </tr>
+      <tr>
+        <td>프론트 raw</td>
+        <td><code>frontend/src/lib/websocket/rawWebSocketClient.ts</code></td>
+        <td><code>SUBSCRIBE</code>, <code>PUBLISH</code>, <code>POSITION</code>, <code>TYPING</code> JSON 전송</td>
+      </tr>
+      <tr>
+        <td>백엔드 STOMP 설정</td>
+        <td><code>backend/.../global/config/WebSocketConfig.java</code></td>
+        <td><code>/ws</code>, <code>/app</code>, <code>/topic</code>, <code>/queue</code>, SimpleBroker</td>
+      </tr>
+      <tr>
+        <td>백엔드 raw 설정</td>
+        <td><code>backend/.../global/config/WebSocketV2Config.java</code></td>
+        <td><code>/ws/v2</code>를 STOMP와 별도 handler mapping으로 직접 등록</td>
+      </tr>
+      <tr>
+        <td>raw 메시지 처리</td>
+        <td><code>backend/.../communication/adapter/in/websocket/v2/ChatWebSocketHandler.java</code></td>
+        <td>JSON frame 파싱, publish/position/typing 처리, disconnect leave broadcast</td>
+      </tr>
+      <tr>
+        <td>Redis relay</td>
+        <td><code>backend/.../communication/adapter/out/messaging/redis/RedisChatRelay.java</code></td>
+        <td>방 단위 channel publish/subscribe, exact subscribe</td>
+      </tr>
+      <tr>
+        <td>로컬 세션 fan-out</td>
+        <td><code>backend/.../communication/adapter/in/websocket/v2/RoomSubscriptionRegistry.java</code></td>
+        <td>roomId → local sessionId 집합, 첫 구독/마지막 해제 시 Redis lifecycle 관리</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="stomp-flow">
+    <h2>3. STOMP 모놀리식 소켓 흐름</h2>
+    <p>
+      기존 운영 경로는 STOMP over WebSocket이다.
+      STOMP는 WebSocket 위에서 동작하는 메시징 프로토콜이다.
+      클라이언트가 <code>SEND</code>, <code>SUBSCRIBE</code> 같은 STOMP command를 보내면 Spring이 destination을 보고 <code>@MessageMapping</code> 또는 broker topic으로 라우팅한다.
+    </p>
+    <pre><code>Browser
+  -> SockJS / STOMP Client
+  -> /ws
+  -> STOMP CONNECT Authorization header
+  -> /app/chat/village        -> ChatMessageHandler
+  -> /app/village/position    -> PositionHandler
+  -> /app/village/typing      -> TypingHandler
+  -> SimpMessagingTemplate
+  -> /topic/chat/village
+  -> /topic/village/positions
+  -> /topic/village/typing
+  -> Browser subscribers</code></pre>
+
+    <h3>3.1 설정: WebSocketConfig</h3>
+    <p>
+      <code>WebSocketConfig.java</code>는 STOMP 경로의 출발점이다.
+      <code>@EnableWebSocketMessageBroker</code>를 켜고, <code>/ws</code> endpoint를 등록한다.
+      클라이언트가 서버로 보내는 메시지는 <code>/app</code> prefix를 사용하고,
+      서버가 클라이언트에게 broadcast하는 destination은 <code>/topic</code>과 <code>/queue</code>다.
+    </p>
+    <pre><code>config.enableSimpleBroker("/topic", "/queue");
+config.setApplicationDestinationPrefixes("/app");
+registry.addEndpoint("/ws").withSockJS();</code></pre>
+    <p>
+      여기서 중요한 단어는 <strong>SimpleBroker</strong>다.
+      이 broker는 애플리케이션 JVM 안에서 동작한다.
+      그래서 단일 서버에서는 편하지만 여러 서버로 늘릴 때 같은 topic 구독자를 서버 전체에서 공유하지 않는다.
+    </p>
+
+    <h3>3.2 채팅: ChatMessageHandler</h3>
+    <p>
+      STOMP 채팅은 <code>/app/chat/village</code>로 들어온다.
+      서버는 principal이 회원인지 확인하고, <code>SendMessageUseCase</code>로 메시지를 저장한 뒤,
+      <code>SimpMessagingTemplate.convertAndSend</code>로 <code>ChatTopics.VILLAGE_CHAT</code>에 broadcast한다.
+    </p>
+    <pre><code>@MessageMapping("/chat/village")
+public void handleMessage(StompSendMessageRequest request, Principal principal) {
+  // 회원만 채팅 가능
+  // SendMessageUseCase.execute(...)
+  // messagingTemplate.convertAndSend(ChatTopics.VILLAGE_CHAT, ...)
+}</code></pre>
+    <p>
+      비즈니스 저장 흐름은 application service에 있다.
+      transport가 STOMP든 raw든 “유저 메시지를 저장한다”는 핵심 유스케이스는 <code>SendMessageUseCase</code>가 담당한다.
+      이것이 헥사고날 구조에서 중요한 분리다.
+    </p>
+
+    <h3>3.3 위치와 타이핑</h3>
+    <p>
+      위치는 <code>/app/village/position</code>으로 들어와 <code>/topic/village/positions</code>로 나간다.
+      타이핑은 <code>/app/village/typing</code>으로 들어와 <code>/topic/village/typing</code>으로 나간다.
+      둘 다 DB 저장 없이 실시간 broadcast에 가깝다.
+    </p>
+    <table>
+      <thead>
+      <tr>
+        <th>기능</th>
+        <th>Inbound</th>
+        <th>Outbound</th>
+        <th>핸들러</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>채팅</td>
+        <td><code>/app/chat/village</code></td>
+        <td><code>/topic/chat/village</code></td>
+        <td><code>ChatMessageHandler</code></td>
+      </tr>
+      <tr>
+        <td>위치</td>
+        <td><code>/app/village/position</code></td>
+        <td><code>/topic/village/positions</code></td>
+        <td><code>PositionHandler</code></td>
+      </tr>
+      <tr>
+        <td>타이핑</td>
+        <td><code>/app/village/typing</code></td>
+        <td><code>/topic/village/typing</code></td>
+        <td><code>TypingHandler</code></td>
+      </tr>
+      <tr>
+        <td>메일 알림</td>
+        <td>서버 내부 이벤트</td>
+        <td><code>/user/queue/mail</code></td>
+        <td>STOMP user destination</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <h3>3.4 STOMP 경로의 장점과 한계</h3>
+    <div class="grid">
+      <div class="ok">
+        <h4>장점</h4>
+        <ul>
+          <li>Spring이 destination routing을 제공한다.</li>
+          <li>구독, 메시지 publish, user queue 개념이 이미 있다.</li>
+          <li>빠르게 기능을 만들기에 좋다.</li>
+          <li>메일 알림처럼 사용자별 queue를 쓰기 쉽다.</li>
+        </ul>
+      </div>
+      <div class="warning">
+        <h4>한계</h4>
+        <ul>
+          <li>SimpleBroker는 JVM 내부 broker라 스케일아웃 때 서버 간 구독 상태 공유가 어렵다.</li>
+          <li>fan-out 병목이 Spring messaging 계층에 숨어 보일 수 있다.</li>
+          <li>STOMP/SockJS 프레임과 reconnect 정책이 클라이언트 디버깅을 복잡하게 만든다.</li>
+          <li>raw WebSocket보다 프로토콜 오버헤드와 추상화가 크다.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="raw-flow">
+    <h2>4. raw WebSocket V2 흐름</h2>
+    <p>
+      raw V2는 STOMP 프로토콜을 제거한 후보 경로다.
+      브라우저가 native <code>WebSocket</code>으로 <code>/ws/v2</code>에 연결하고,
+      JSON envelope를 직접 주고받는다.
+    </p>
+    <pre><code>Browser
+  -> new WebSocket("ws://localhost:8080/ws/v2?access_token=...")
+  -> { "type": "SUBSCRIBE", "roomId": 1 }
+  -> { "type": "POSITION", "roomId": 1, "x": 123, "y": 456 }
+  -> { "type": "TYPING", "roomId": 1, "typing": true }
+  -> { "type": "PUBLISH", "roomId": 1, "body": "hello" }
+  -> ChatWebSocketHandler
+  -> RoomMessageBus.publish(...)
+  -> Redis channel chat:room:1
+  -> RoomSubscriptionRegistry fanOut(...)
+  -> Browser</code></pre>
+
+    <h3>4.1 endpoint 등록: WebSocketV2Config</h3>
+    <p>
+      raw V2는 <code>@EnableWebSocket</code>를 추가로 쓰지 않는다.
+      Spring에서 <code>@EnableWebSocket</code>과 <code>@EnableWebSocketMessageBroker</code>를 동시에 켜면 handler mapping 충돌 가능성이 있기 때문이다.
+      그래서 현재 코드는 <code>WebSocketHttpRequestHandler</code>와 <code>SimpleUrlHandlerMapping</code>으로 <code>/ws/v2</code>를 직접 등록한다.
+    </p>
+    <pre><code>WebSocketHttpRequestHandler requestHandler =
+    new WebSocketHttpRequestHandler(chatV2HandlerProvider.getObject());
+
+mapping.setUrlMap(Map.of("/ws/v2", requestHandler));
+mapping.setOrder(0);</code></pre>
+    <p>
+      이 설계는 STOMP 시스템을 그대로 유지하면서 raw endpoint만 별도로 끼워 넣기 위한 선택이다.
+      운영 기본값을 깨지 않고 후보 경로를 테스트할 수 있다.
+    </p>
+
+    <h3>4.2 인증: access_token query</h3>
+    <p>
+      STOMP는 CONNECT frame header에 Authorization을 실었다.
+      raw WebSocket은 브라우저 WebSocket API에서 임의 header를 넣기 어렵기 때문에 <code>access_token</code> query parameter를 사용한다.
+      <code>JwtHandshakeInterceptor</code>가 handshake 단계에서 token을 파싱해 WebSocket session attributes에 <code>AuthenticatedUser</code>를 저장한다.
+    </p>
+    <table>
+      <thead>
+      <tr>
+        <th>상황</th>
+        <th>정책</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>토큰 없음</td>
+        <td>handshake는 허용. principal 없음. <code>PUBLISH</code>는 거부되고 위치/타이핑은 silent ignore.</td>
+      </tr>
+      <tr>
+        <td>토큰 파싱 실패</td>
+        <td>handshake 자체를 401로 거부.</td>
+      </tr>
+      <tr>
+        <td>회원 토큰</td>
+        <td>채팅, 위치, 타이핑 가능.</td>
+      </tr>
+      <tr>
+        <td>게스트 토큰</td>
+        <td>위치, 타이핑 가능. 채팅 <code>PUBLISH</code>는 <code>GUEST_CHAT_NOT_ALLOWED</code>.</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <h3>4.3 메시지 분기: ChatWebSocketHandler</h3>
+    <p>
+      <code>ChatWebSocketHandler</code>는 raw V2의 중심이다.
+      들어온 text payload를 <code>InboundFrame</code>으로 파싱하고, Java switch pattern으로 frame type을 분기한다.
+    </p>
+    <pre><code>switch (frame) {
+  case SubscribeFrame s -> handleSubscribe(session, s);
+  case UnsubscribeFrame u -> handleUnsubscribe(session, u);
+  case PublishFrame p -> handlePublish(session, p);
+  case PositionFrame p -> handlePosition(session, p);
+  case TypingFrame t -> handleTyping(session, t);
+  case PingFrame ignored -> sendOutbound(session, PongEvent.instance());
+}</code></pre>
+    <p>
+      여기서 중요한 점은 raw V2가 STOMP destination routing을 쓰지 않는다는 것이다.
+      STOMP라면 <code>/app/chat/village</code> destination을 Spring이 보고 handler method를 찾는다.
+      raw V2에서는 우리가 JSON의 <code>type</code>을 보고 직접 method를 호출한다.
+    </p>
+
+    <h3>4.4 publish 흐름</h3>
+    <p>
+      채팅 <code>PUBLISH</code>는 단순히 WebSocket에 뿌리는 것이 아니다.
+      기존 채팅과 동일하게 <code>SendMessageUseCase</code>를 호출해 메시지를 저장하고,
+      그 결과를 <code>MessageEvent</code>로 감싸 Redis bus에 publish한다.
+    </p>
+    <pre><code>handlePublish
+  -> principal 확인
+  -> guest 거부
+  -> roomId 가 publicChatRoomId 인지 확인
+  -> SendMessageUseCase.execute(...)
+  -> MessageEvent.of(...)
+  -> bus.publish(roomId, event)</code></pre>
+    <p>
+      이 때문에 raw V2는 화면상 채팅 기능이 같아 보인다.
+      application use case는 공유하고, transport/broadcast 경로만 달라졌기 때문이다.
+    </p>
+
+    <h3>4.5 position, typing, disconnect leave</h3>
+    <p>
+      위치와 타이핑은 저장하지 않고 Redis bus에 event를 publish한다.
+      disconnect 시에는 session이 구독했던 room들을 snapshot으로 얻고,
+      각 room에 <code>POSITION_UPDATE</code> <code>userType: "LEAVE"</code>를 publish한다.
+    </p>
+    <pre><code>afterConnectionClosed
+  -> roomsOf(sessionId)
+  -> bus.publish(roomId, PositionUpdateEvent(... "LEAVE" ...))
+  -> unsubscribeAll(sessionId)
+  -> sessionRegistry.remove(sessionId)</code></pre>
+    <p>
+      이 부분은 ghost character 문제와 관련된다.
+      사용자가 탭을 닫거나 연결이 끊겼을 때 다른 클라이언트가 마지막 좌표에 캐릭터를 계속 두지 않도록 leave event를 보낸다.
+    </p>
+  </section>
+
+  <section id="redis-flow">
+    <h2>5. Redis Pub/Sub이 들어온 위치</h2>
+    <p>
+      Redis는 “채팅 메시지를 저장하는 DB”가 아니다.
+      여기서 Redis Pub/Sub은 <strong>서버 인스턴스 간 실시간 event relay</strong> 역할이다.
+      같은 Spring Boot 서버 안에서만 볼 때는 굳이 Redis가 없어도 fan-out할 수 있다.
+      하지만 여러 서버 인스턴스를 띄우면 A 서버에 붙은 사용자와 B 서버에 붙은 사용자가 같은 방에 있을 수 있다.
+      이때 A 서버에서 발생한 메시지를 B 서버에도 알려야 한다.
+    </p>
+    <h3>5.1 단일 서버에서는 왜 체감이 없는가</h3>
+    <p>
+      로컬에서 서버 한 대만 띄우면 Redis relay를 거쳐도 결국 같은 JVM에 다시 돌아온다.
+      그래서 사용자가 보는 화면은 STOMP와 거의 같다.
+      체감이 없는 것은 실패가 아니라 당연한 결과다.
+    </p>
+    <h3>5.2 다중 서버에서는 무엇이 달라지는가</h3>
+    <pre><code>Client A -> App Server 1 -> Redis channel chat:room:1
+                                  ↓
+Client B <- App Server 2 <- Redis channel chat:room:1</code></pre>
+    <p>
+      핵심은 각 서버가 “내 JVM에 이 방 구독자가 있으면 해당 Redis 채널을 구독한다”는 것이다.
+      그러면 어떤 서버에서 publish하든 Redis가 해당 채널을 구독 중인 서버들에게 payload를 전달한다.
+      각 서버는 자기에게 붙어 있는 local WebSocket session들에게만 fan-out한다.
+    </p>
+
+    <h3>5.3 RoomSubscriptionRegistry의 역할</h3>
+    <p>
+      <code>RoomSubscriptionRegistry</code>는 <code>roomId → local sessionId set</code>을 관리한다.
+      첫 세션이 방에 들어오면 Redis 채널을 구독하고, 마지막 세션이 나가면 Redis 채널 구독을 해제한다.
+    </p>
+    <pre><code>subscribe(roomId, sessionId)
+  -> roomToSessions.compute(...)
+  -> wasEmpty이면 bus.ensureRoomSubscribed(roomId, this::fanOut)
+
+unsubscribe(roomId, sessionId)
+  -> 세션 제거
+  -> empty가 되면 bus.removeRoomSubscription(roomId)</code></pre>
+    <div class="note">
+      <p>
+        이 구조는 “모든 서버가 모든 방 메시지를 받는 구조”를 피한다.
+        자기 JVM에 구독자가 있는 방만 Redis SUBSCRIBE한다.
+        이것이 문서에서 말한 O(M×N) 함정 회피의 핵심이다.
+      </p>
+    </div>
+
+    <h3>5.4 RedisChatRelay의 역할</h3>
+    <p>
+      <code>RedisChatRelay</code>는 <code>RoomMessageBus</code> 구현체다.
+      outbound frame을 JSON으로 직렬화해 Redis channel에 publish하고,
+      방 구독이 필요하면 <code>RedisMessageListenerContainer</code>에 listener를 등록한다.
+    </p>
+    <pre><code>publish(roomId, event)
+  -> channel = RoomChannelNaming.chatRoomChannel(roomId)
+  -> payload = objectMapper.writeValueAsString(event)
+  -> redisTemplate.convertAndSend(channel, payload)
+
+ensureRoomSubscribed(roomId, handler)
+  -> roomListeners.computeIfAbsent(...)
+  -> listenerContainer.addMessageListener(...)</code></pre>
+    <p>
+      여기서 설계 원칙은 “방당 1채널 + exact SUBSCRIBE”다.
+      pattern subscribe나 글로벌 채널 하나로 모든 메시지를 받아 앱에서 필터링하는 구조는 부하가 커질 때 위험하다.
+    </p>
+  </section>
+
+  <section id="frontend-flow">
+    <h2>6. 프론트 선택 스위치와 확인법</h2>
+    <p>
+      프론트는 화면 컴포넌트가 STOMP/raw를 직접 알지 않도록 <code>realtimeClient.ts</code> facade를 둔다.
+      화면은 <code>sendVillageMessage</code>, <code>sendPosition</code>, <code>sendTypingStatus</code> 같은 공통 함수를 부른다.
+      facade가 내부에서 STOMP 또는 raw client로 위임한다.
+    </p>
+    <pre><code>export function resolveRealtimeTransport(): RealtimeTransport {
+  return process.env.NEXT_PUBLIC_REALTIME_TRANSPORT === 'raw' ? 'raw' : 'stomp';
+}</code></pre>
+    <h3>6.1 STOMP일 때</h3>
+    <pre><code>sendVillageMessage("hello")
+  -> realtimeClient.sendVillageMessage
+  -> stompClient.sendVillageMessage
+  -> client.publish({
+       destination: "/app/chat/village",
+       body: JSON.stringify({ body: "hello" })
+     })</code></pre>
+    <h3>6.2 raw일 때</h3>
+    <pre><code>sendVillageMessage("hello")
+  -> realtimeClient.sendVillageMessage
+  -> rawWebSocketClient.sendRawVillageMessage
+  -> socket.send(JSON.stringify({
+       type: "PUBLISH",
+       roomId: 1,
+       body: "hello"
+     }))</code></pre>
+    <h3>6.3 브라우저에서 확인하는 법</h3>
+    <ol>
+      <li><code>localhost:3000</code> 접속</li>
+      <li>Chrome DevTools 열기</li>
+      <li>Network 탭 선택</li>
+      <li>필터를 <code>WS</code>로 설정</li>
+      <li>연결 URL과 Frames 확인</li>
+    </ol>
+    <table>
+      <thead>
+      <tr>
+        <th>보이는 것</th>
+        <th>의미</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td><code>ws://localhost:8080/ws/v2?access_token=...</code></td>
+        <td>raw V2 경로로 연결됨</td>
+      </tr>
+      <tr>
+        <td><code>/ws/.../websocket</code></td>
+        <td>SockJS/STOMP 경로로 연결됨</td>
+      </tr>
+      <tr>
+        <td><code>{"type":"POSITION",...}</code></td>
+        <td>raw JSON envelope 송신</td>
+      </tr>
+      <tr>
+        <td><code>SEND destination:/app/...</code></td>
+        <td>STOMP frame 송신</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <h3>6.4 deploy compose에서 raw로 빌드하는 법</h3>
+    <p>
+      Next.js의 <code>NEXT_PUBLIC_*</code> 값은 브라우저 번들에 들어가므로 build time 값이다.
+      값만 바꾸고 이미 빌드된 컨테이너를 재사용하면 바뀌지 않는다.
+    </p>
+    <pre><code>$env:PUBLIC_REALTIME_TRANSPORT="raw"
+$env:PUBLIC_RAW_WS_URL="ws://localhost:8080/ws/v2"
+$env:PUBLIC_API_URL="http://localhost:8080"
+$env:PUBLIC_WS_URL="http://localhost:8080/ws"
+docker compose up --build</code></pre>
+  </section>
+
+  <section id="msa-meaning">
+    <h2>7. MSA 대응이 됐다는 말의 정확한 의미</h2>
+    <p>
+      여기서 가장 중요한 오해를 정리해야 한다.
+      현재 프로젝트가 MSA가 된 것은 아니다.
+      WebSocket 서버가 별도 서비스로 분리된 것도 아니다.
+      REST 서버와 WS 서버가 별도 deploy unit이 된 것도 아니다.
+      현재는 여전히 하나의 Spring Boot 모놀리식 애플리케이션이다.
+    </p>
+    <div class="danger">
+      <p>
+        “raw V2 + Redis가 들어왔다”는 말은 “MSA 완성”이 아니다.
+        정확히는 “모놀리식 안에서 서버 간 실시간 relay를 실험할 수 있는 구조가 생겼다”이다.
+      </p>
+    </div>
+    <h3>7.1 이전 구조가 다중 서버에서 막히는 지점</h3>
+    <pre><code>Server 1 SimpleBroker: Server 1에 붙은 sessions만 안다.
+Server 2 SimpleBroker: Server 2에 붙은 sessions만 안다.
+
+Server 1에서 /topic/chat/village로 broadcast
+  -> Server 1 clients receive
+  -> Server 2 clients do not receive unless external broker/relay exists</code></pre>
+    <p>
+      SimpleBroker는 JVM 내부 broker다.
+      서버 2대가 있으면 각각 자기 broker와 자기 session registry를 갖는다.
+      그래서 서버 간 메시지 전달 레이어가 별도로 필요하다.
+    </p>
+    <h3>7.2 raw V2 + Redis가 여는 가능성</h3>
+    <pre><code>Server 1 receives PUBLISH
+  -> Redis PUBLISH chat:room:1
+
+Server 1 subscribed to chat:room:1 because it has local clients
+  -> fan-out to local clients
+
+Server 2 subscribed to chat:room:1 because it has local clients
+  -> fan-out to local clients</code></pre>
+    <p>
+      이 구조가 되면 WebSocket connection을 어느 서버가 들고 있든 Redis channel을 통해 event를 전달할 수 있다.
+      이것이 MSA 대응의 기초다.
+      다만 실제 MSA로 가려면 아직 더 많은 것이 필요하다.
+    </p>
+    <table>
+      <thead>
+      <tr>
+        <th>단계</th>
+        <th>현재 여부</th>
+        <th>설명</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>transport 선택 가능</td>
+        <td>가능</td>
+        <td>프론트 facade로 STOMP/raw 선택 가능</td>
+      </tr>
+      <tr>
+        <td>raw endpoint 존재</td>
+        <td>가능</td>
+        <td><code>/ws/v2</code> endpoint 등록</td>
+      </tr>
+      <tr>
+        <td>Redis fan-out 후보</td>
+        <td>가능</td>
+        <td>방 단위 Redis Pub/Sub relay 구현</td>
+      </tr>
+      <tr>
+        <td>다중 서버 실측</td>
+        <td>아직</td>
+        <td>로컬/CI 테스트는 있지만 실제 2개 앱 인스턴스 검증 필요</td>
+      </tr>
+      <tr>
+        <td>WS 전용 서버 분리</td>
+        <td>아직</td>
+        <td>별도 module, jar, container, deploy workflow 없음</td>
+      </tr>
+      <tr>
+        <td>REST/WS 서비스 계약 분리</td>
+        <td>아직</td>
+        <td>인증, 유저 정보, 채팅 저장 use case 호출 경계 재설계 필요</td>
+      </tr>
+      </tbody>
+    </table>
+    <h3>7.3 그래서 지금의 올바른 사고</h3>
+    <p>
+      지금 단계에서 해야 할 사고는 “MSA로 쪼개자”가 아니다.
+      “실시간 계층이 병목이 될 때 쪼갤 수 있는 관측 지점과 교체 가능한 경계가 생겼는가”를 보는 것이다.
+    </p>
+    <ol>
+      <li>STOMP 기본 경로를 유지해 운영 안정성을 보존한다.</li>
+      <li>raw V2를 선택 가능하게 만들어 같은 기능이 나오는지 확인한다.</li>
+      <li>Redis fan-out으로 다중 인스턴스 가능성을 검증한다.</li>
+      <li>부하 테스트로 병목이 실제로 어디인지 측정한다.</li>
+      <li>WS 연결 수, 배포 주기, 리소스 격리 요구가 실제로 생기면 분리를 결정한다.</li>
+    </ol>
+  </section>
+
+  <section id="limits">
+    <h2>8. 아직 바뀌지 않은 것과 남은 리스크</h2>
+    <p>
+      현재 raw V2 경로는 “STOMP 제거 가능”의 전 단계다.
+      아직 STOMP를 제거하면 안 되는 이유가 명확히 남아 있다.
+    </p>
+    <table>
+      <thead>
+      <tr>
+        <th>항목</th>
+        <th>현재 상태</th>
+        <th>왜 중요한가</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>메일 알림</td>
+        <td>STOMP <code>/user/queue/mail</code>에 남아 있음</td>
+        <td>raw V2에는 사용자별 mail notification envelope가 없다.</td>
+      </tr>
+      <tr>
+        <td>NPC 응답 broadcast</td>
+        <td>raw V2에 의도적으로 붙이지 않음</td>
+        <td>현재 <code>BroadcastChatMessagePort</code>는 STOMP adapter가 담당한다.</td>
+      </tr>
+      <tr>
+        <td>서버 분리</td>
+        <td>아직 하지 않음</td>
+        <td>별도 배포 단위, health check, scaling policy, service contract가 없다.</td>
+      </tr>
+      <tr>
+        <td>실제 부하 실측</td>
+        <td>k6 하네스 준비, 대상 실행 필요</td>
+        <td>체감이 아니라 latency, error, fan-out 성공률로 판단해야 한다.</td>
+      </tr>
+      <tr>
+        <td>reverse proxy</td>
+        <td>로컬은 보이나 운영 proxy 검증 필요</td>
+        <td>WebSocket upgrade, timeout, buffering, header 정책이 실제 운영에서 깨질 수 있다.</td>
+      </tr>
+      </tbody>
+    </table>
+    <div class="warning">
+      <p>
+        따라서 현재 결론은 “STOMP 제거”가 아니다.
+        현재 결론은 “STOMP를 기본값으로 유지하면서 raw V2를 검증 가능한 후보 경로로 둔다”이다.
+      </p>
+    </div>
+  </section>
+
+  <section id="cs">
+    <h2>9. 필요한 CS 지식</h2>
+    <p>
+      이 작업을 제대로 이해하려면 단순히 Spring 코드만 보는 것으로 부족하다.
+      아래 개념들이 연결되어야 “왜 이 코드가 이런 모양인지”가 보인다.
+    </p>
+    <h3>9.1 WebSocket</h3>
+    <ul>
+      <li>HTTP handshake 후 TCP connection을 유지한다.</li>
+      <li>서버가 클라이언트에게 push할 수 있다.</li>
+      <li>브라우저 WebSocket API는 임의 Authorization header를 넣기 어렵다.</li>
+      <li>그래서 raw V2는 query token 또는 cookie 같은 다른 인증 전달 방식을 고민해야 한다.</li>
+    </ul>
+    <h3>9.2 STOMP</h3>
+    <ul>
+      <li>WebSocket 위에서 동작하는 messaging protocol이다.</li>
+      <li><code>CONNECT</code>, <code>SUBSCRIBE</code>, <code>SEND</code>, <code>MESSAGE</code>, <code>ERROR</code> 같은 frame이 있다.</li>
+      <li>destination 기반 routing을 제공한다.</li>
+      <li>Spring과 잘 붙지만, 내부 SimpleBroker를 쓰면 scale-out 한계가 있다.</li>
+    </ul>
+    <h3>9.3 Pub/Sub</h3>
+    <ul>
+      <li>publisher는 channel에 메시지를 보낸다.</li>
+      <li>subscriber는 channel을 구독하고 메시지를 받는다.</li>
+      <li>Redis Pub/Sub은 메시지를 저장하지 않는다. subscriber가 그 순간 없으면 메시지는 사라진다.</li>
+      <li>따라서 채팅 영속 저장은 Cassandra/PostgreSQL 쪽 use case가 담당하고, Redis는 실시간 relay만 담당한다.</li>
+    </ul>
+    <h3>9.4 Fan-out</h3>
+    <ul>
+      <li>하나의 메시지를 여러 수신자에게 복제해서 보내는 작업이다.</li>
+      <li>채팅방 인원이 늘면 fan-out 비용이 커진다.</li>
+      <li>서버 N대, 방 M개, 유저 K명이 있을 때 어떤 서버가 어떤 방을 구독할지 설계가 중요하다.</li>
+      <li>모든 서버가 모든 메시지를 받으면 불필요한 CPU/네트워크 비용이 커진다.</li>
+    </ul>
+    <h3>9.5 Backpressure와 느린 클라이언트</h3>
+    <ul>
+      <li>WebSocket은 연결이 유지되므로 느린 클라이언트에게 메시지가 쌓일 수 있다.</li>
+      <li>위치 frame은 고빈도라 오류 응답을 매번 보내면 클라이언트 큐가 폭발할 수 있다.</li>
+      <li>그래서 raw V2는 principal 없음, NaN/Infinity 좌표 같은 고빈도 오류를 silent ignore한다.</li>
+    </ul>
+    <h3>9.6 상태와 세션</h3>
+    <ul>
+      <li>WebSocket session은 특정 서버 인스턴스 메모리에 있다.</li>
+      <li>서버가 여러 대면 session registry는 전역이 아니라 local이다.</li>
+      <li>Redis는 event를 전달할 수 있지만 실제 socket write는 해당 session을 가진 서버가 해야 한다.</li>
+    </ul>
+    <h3>9.7 모놀리식과 MSA</h3>
+    <ul>
+      <li>모놀리식은 하나의 배포 단위 안에 여러 기능이 있는 구조다.</li>
+      <li>MSA는 배포 단위와 데이터/운영 책임을 분리한다.</li>
+      <li>코드 패키지를 나눈다고 MSA가 되는 것이 아니다.</li>
+      <li>Redis를 넣었다고 MSA가 되는 것도 아니다.</li>
+      <li>서비스 간 계약, 배포, 장애 격리, 관측, 데이터 소유권이 분리되어야 한다.</li>
+    </ul>
+  </section>
+
+  <section id="topdown">
+    <h2>10. 탑다운 학습 로드맵</h2>
+    <p>
+      아래 순서로 보면 현재 프로젝트를 “화면 → 프론트 선택 → 백엔드 endpoint → application use case → broadcast → scale-out” 순서로 이해할 수 있다.
+    </p>
+    <h3>Level 1. 화면에서 시작</h3>
+    <ol>
+      <li>브라우저에서 채팅을 보낸다.</li>
+      <li>Network → WS에서 연결 URL을 확인한다.</li>
+      <li>Frames에서 STOMP frame인지 raw JSON인지 본다.</li>
+    </ol>
+    <p>목표: “같은 화면인데 내부 frame이 다르다”를 체감한다.</p>
+
+    <h3>Level 2. 프론트 facade 읽기</h3>
+    <ol>
+      <li><code>useStomp.ts</code>에서 connect lifecycle을 본다.</li>
+      <li><code>realtimeClient.ts</code>에서 transport 선택을 본다.</li>
+      <li><code>stompClient.ts</code>와 <code>rawWebSocketClient.ts</code>의 send 함수를 나란히 비교한다.</li>
+    </ol>
+    <p>목표: UI 컴포넌트가 STOMP/raw를 직접 알지 않도록 분리된 구조를 이해한다.</p>
+
+    <h3>Level 3. STOMP 백엔드 읽기</h3>
+    <ol>
+      <li><code>WebSocketConfig.java</code>에서 endpoint, broker, prefix를 본다.</li>
+      <li><code>ChatMessageHandler.java</code>에서 <code>@MessageMapping</code>을 본다.</li>
+      <li><code>PositionHandler.java</code>, <code>TypingHandler.java</code>에서 broadcast destination을 본다.</li>
+    </ol>
+    <p>목표: Spring STOMP가 routing과 broker 역할을 얼마나 대신하는지 이해한다.</p>
+
+    <h3>Level 4. raw V2 백엔드 읽기</h3>
+    <ol>
+      <li><code>WebSocketV2Config.java</code>에서 handler mapping을 본다.</li>
+      <li><code>JwtHandshakeInterceptor.java</code>에서 query token 인증을 본다.</li>
+      <li><code>ChatWebSocketHandler.java</code>에서 frame switch를 본다.</li>
+      <li><code>InboundFrame.java</code>와 frame records에서 JSON protocol을 본다.</li>
+    </ol>
+    <p>목표: STOMP가 해주던 protocol routing을 우리 코드가 직접 처리한다는 것을 이해한다.</p>
+
+    <h3>Level 5. Redis relay 읽기</h3>
+    <ol>
+      <li><code>RoomSubscriptionRegistry.java</code>에서 room → local session set을 본다.</li>
+      <li><code>RedisChatRelay.java</code>에서 publish/subscribe를 본다.</li>
+      <li><code>RedisChatRelayTest</code>와 <code>ChatWebSocketV2IntegrationTest</code>에서 검증 의도를 본다.</li>
+    </ol>
+    <p>목표: 여러 서버가 있을 때 메시지가 어떻게 이동할 수 있는지 이해한다.</p>
+
+    <h3>Level 6. MSA 판단 기준 세우기</h3>
+    <ol>
+      <li>현재 병목이 WebSocket connection 수인지, DB인지, NPC 응답인지, frontend 렌더링인지 구분한다.</li>
+      <li>부하 테스트에서 p95/p99 latency, error count, Redis CPU, JVM thread, GC, socket count를 본다.</li>
+      <li>운영에서 WS와 HTTP 배포 주기가 충돌하는지 본다.</li>
+      <li>그때 WS 서버 분리, broker 교체, sticky session, autoscaling 정책을 결정한다.</li>
+    </ol>
+    <p>목표: “MSA가 멋져서 분리”가 아니라 “측정된 병목과 운영 요구 때문에 분리”라는 사고를 갖는다.</p>
+  </section>
+
+  <section id="debug">
+    <h2>11. 직접 확인 체크리스트</h2>
+    <h3>11.1 raw 모드 확인</h3>
+    <ol>
+      <li><code>PUBLIC_REALTIME_TRANSPORT=raw</code>로 프론트를 다시 빌드한다.</li>
+      <li>브라우저 Network → WS에서 <code>/ws/v2</code> 연결을 확인한다.</li>
+      <li>Frames에서 <code>SUBSCRIBE</code>, <code>POSITION</code>, <code>TYPING</code>, <code>PUBLISH</code> JSON을 확인한다.</li>
+      <li>채팅 메시지를 보내고 <code>MESSAGE</code> 수신을 확인한다.</li>
+      <li>다른 브라우저 또는 시크릿 창을 열어 위치와 채팅이 서로 보이는지 확인한다.</li>
+    </ol>
+    <h3>11.2 STOMP 모드와 비교</h3>
+    <ol>
+      <li><code>PUBLIC_REALTIME_TRANSPORT</code>를 비우거나 <code>stomp</code>로 둔다.</li>
+      <li>프론트를 다시 빌드한다.</li>
+      <li>Network → WS에서 <code>/ws/.../websocket</code> 경로를 확인한다.</li>
+      <li>Frames에서 STOMP <code>SEND</code>, <code>SUBSCRIBE</code> frame을 확인한다.</li>
+    </ol>
+    <h3>11.3 k6 raw smoke</h3>
+    <pre><code>BASE_URL=http://localhost:8080 COUNT=10 node loadtest/prepare-tokens.js
+
+BASE_URL=http://localhost:8080 RAW_WS_URL=ws://localhost:8080/ws/v2 \
+  k6 run --vus 1 --duration 30s loadtest/raw-v2-mixed.js</code></pre>
+    <p>
+      이 테스트는 화면 검증이 아니다.
+      handshake, position, typing, chat 송수신이 실제 raw protocol로 되는지 보는 하네스다.
+    </p>
+    <h3>11.4 “개선됐는지”를 판단하는 지표</h3>
+    <table>
+      <thead>
+      <tr>
+        <th>지표</th>
+        <th>왜 보는가</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>WebSocket handshake 성공률</td>
+        <td>proxy, CORS, 인증 query가 정상인지 확인</td>
+      </tr>
+      <tr>
+        <td>p95/p99 connect latency</td>
+        <td>연결 생성 병목 확인</td>
+      </tr>
+      <tr>
+        <td>position sent/received 비율</td>
+        <td>고빈도 fan-out 누락 확인</td>
+      </tr>
+      <tr>
+        <td>chat sent/received 비율</td>
+        <td>저장 후 broadcast 경로 확인</td>
+      </tr>
+      <tr>
+        <td>Redis CPU/network</td>
+        <td>relay 계층 병목 확인</td>
+      </tr>
+      <tr>
+        <td>JVM thread/GC/socket count</td>
+        <td>애플리케이션 인스턴스 병목 확인</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="source-index">
+    <h2>12. 소스 인덱스</h2>
+    <p>
+      아래 파일들을 순서대로 열어보면 현재 실시간 구조를 따라갈 수 있다.
+    </p>
+    <h3>프론트</h3>
+    <ul>
+      <li><code>frontend/src/lib/websocket/useStomp.ts</code> — 실제 React lifecycle hook. 이름은 STOMP지만 내부는 realtime facade를 호출한다.</li>
+      <li><code>frontend/src/lib/websocket/realtimeClient.ts</code> — STOMP/raw 선택 스위치.</li>
+      <li><code>frontend/src/lib/websocket/stompClient.ts</code> — STOMP client, SockJS, publish/subscribe destination.</li>
+      <li><code>frontend/src/lib/websocket/stompRealtimeSubscriptions.ts</code> — STOMP topic 구독을 bridge로 fan-out.</li>
+      <li><code>frontend/src/lib/websocket/rawWebSocketClient.ts</code> — raw JSON envelope client.</li>
+      <li><code>frontend/src/lib/websocket/realtimeTypes.ts</code> — 위치/타이핑/메일 broadcast 타입.</li>
+      <li><code>frontend/Dockerfile</code> — <code>NEXT_PUBLIC_*</code> build arg가 번들에 들어가는 위치.</li>
+      <li><code>deploy/docker-compose.yml</code> — local compose build args 주입 위치.</li>
+    </ul>
+    <h3>백엔드 STOMP</h3>
+    <ul>
+      <li><code>backend/src/main/java/com/maeum/gohyang/global/config/WebSocketConfig.java</code> — STOMP endpoint와 broker 설정.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/global/config/StompAuthChannelInterceptor.java</code> — STOMP CONNECT 인증.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/communication/adapter/in/websocket/ChatMessageHandler.java</code> — STOMP 채팅 inbound.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/village/adapter/in/websocket/PositionHandler.java</code> — STOMP 위치 inbound.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/village/adapter/in/websocket/TypingHandler.java</code> — STOMP 타이핑 inbound.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/village/adapter/in/websocket/PositionDisconnectListener.java</code> — STOMP disconnect leave broadcast.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/communication/adapter/out/messaging/WebSocketBroadcastAdapter.java</code> — NPC 응답 등 STOMP broadcast port 구현.</li>
+    </ul>
+    <h3>백엔드 raw V2 + Redis</h3>
+    <ul>
+      <li><code>backend/src/main/java/com/maeum/gohyang/global/config/WebSocketV2Config.java</code> — raw endpoint 등록.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/global/config/JwtHandshakeInterceptor.java</code> — raw handshake 인증.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/communication/adapter/in/websocket/v2/ChatWebSocketHandler.java</code> — raw frame 처리 중심.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/communication/adapter/in/websocket/v2/protocol/InboundFrame.java</code> — inbound JSON polymorphic parsing.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/communication/adapter/in/websocket/v2/protocol/OutboundFrame.java</code> — outbound event marker.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/communication/adapter/in/websocket/v2/RoomSubscriptionRegistry.java</code> — room local sessions와 Redis subscription lifecycle.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/communication/adapter/in/websocket/v2/WebSocketSessionRegistry.java</code> — local WebSocket session registry.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/communication/adapter/out/messaging/redis/RoomMessageBus.java</code> — raw V2 relay port.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/communication/adapter/out/messaging/redis/RedisChatRelay.java</code> — Redis Pub/Sub adapter.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/communication/adapter/out/messaging/redis/RoomChannelNaming.java</code> — Redis channel naming SSoT.</li>
+      <li><code>backend/src/main/java/com/maeum/gohyang/global/config/RedisConfig.java</code> — Redis listener container 설정.</li>
+    </ul>
+    <h3>문서</h3>
+    <ul>
+      <li><code>docs/specs/websocket.md</code> — 현재 운영 STOMP 명세.</li>
+      <li><code>docs/specs/websocket-raw-v2-draft.md</code> — raw V2 후보 명세.</li>
+      <li><code>docs/architecture/decisions/010-realtime-stomp-retention-and-raw-ws-cutover.md</code> — STOMP 유지 결정.</li>
+      <li><code>docs/reports/raw-ws-v2-smoke-load-plan-2026-06-07.md</code> — raw V2 k6 smoke/load 계획.</li>
+      <li><code>loadtest/raw-v2-mixed.js</code> — raw V2 k6 하네스.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>마지막 정리</h2>
+    <p>
+      이 작업은 사용자에게 즉시 보이는 기능 개선 작업이 아니다.
+      대신 실시간 통신 경로를 운영 기본 STOMP에서 raw WebSocket + Redis 후보 경로로 교체 가능한 상태로 만들고,
+      그 교체가 실제로 안전한지 검증할 수 있는 발판을 만든 작업이다.
+    </p>
+    <p>
+      지금 이 프로젝트는 여전히 모놀리식이다.
+      그러나 이전보다 더 좋은 상태다.
+      이유는 “쪼갰기 때문”이 아니라 “쪼갤지 말지를 판단할 수 있는 경계와 검증 도구가 생겼기 때문”이다.
+    </p>
+    <div class="ok">
+      <p>
+        다음에 해야 할 일은 감으로 MSA를 선택하는 것이 아니다.
+        raw V2 경로로 smoke/load를 실행하고,
+        브라우저 수동 검증과 부하 지표를 보고,
+        메일 알림과 NPC 응답까지 raw 쪽으로 옮길지 결정하는 것이다.
+      </p>
+    </div>
+  </section>
+</main>
+</body>
+</html>

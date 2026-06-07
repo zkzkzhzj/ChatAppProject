@@ -48,7 +48,7 @@
 | 2 | Frontend Client Split: STOMP 유지 상태에서 실시간 클라이언트 책임 분리 | 완료 | #127 | 60baca9 |
 | 3 | Raw WS Parity: 채팅/위치/타이핑/게스트 정책 parity 확보 | 완료 | #127 | 77bb913 |
 | 4 | Controlled Cutover: env/client adapter로 raw WS 선택 가능 | 완료 | #127 | 771afb2 |
-| 5 | STOMP Decision: 제거 또는 fallback 유지 결정 | 대기 | 미정 | 미정 |
+| 5 | STOMP Decision: 제거 또는 fallback 유지 결정 | 완료 | #127 | a5231c5 |
 | 6 | Load Test + ADR: 병목 재측정과 ADR 업데이트 | 대기 | 미정 | 미정 |
 
 ---
@@ -104,6 +104,15 @@ Controlled Cutover 완료:
 - 검증: `pnpm.cmd test:run src/lib/websocket/realtimeClient.test.ts src/lib/websocket/rawWebSocketClient.test.ts src/lib/websocket/stompRealtimeSubscriptions.test.ts src/lib/websocket/useStomp.test.tsx src/components/chat/ChatInput.test.tsx` 통과.
 - 검증: `pnpm.cmd lint`, `pnpm.cmd build`, `npm.cmd run lint:md` 통과.
 - 잔여 리스크: raw WS 선택 시 메일 알림은 아직 STOMP `/user/queue/mail` 대응이 없으므로 별도 결정이 필요하다.
+
+STOMP Decision 완료:
+
+- ADR: [ADR-010: STOMP 유지와 raw WebSocket 전환 조건](../architecture/decisions/010-realtime-stomp-retention-and-raw-ws-cutover.md)
+- 결정: STOMP를 즉시 제거하지 않는다.
+- 현재 기본값은 STOMP `/ws`이고, raw WS는 `NEXT_PUBLIC_REALTIME_TRANSPORT=raw`로만 선택한다.
+- STOMP 제거 전 필수 조건은 메일 알림 대체, NPC 응답 broadcast 대체, `/ws/v2` reverse proxy 검증, dev/staging 수동 검증, 최소 smoke/load test다.
+- 서버 분리는 지금 하지 않는다. raw WS가 운영 후보로 검증되고 WS 연결 수, 배포 주기, resource 격리, proxy/autoscaling 정책 중 하나가 실제 병목으로 관측될 때 별도 트랙으로 분리한다.
+- 검증: `npm.cmd run lint:md` 통과.
 
 ---
 

@@ -119,6 +119,7 @@ Load Test + ADR 완료:
 - raw WebSocket V2용 k6 시나리오 `loadtest/raw-v2-mixed.js`를 추가했다.
 - 시나리오는 `/ws/v2?access_token=<JWT>` handshake, `SUBSCRIBE`, `POSITION`, `TYPING`, `PUBLISH`, `UNSUBSCRIBE` 흐름을 검증한다.
 - 실행 계획과 통과 기준은 [Raw WebSocket V2 Smoke/Load Plan](../reports/raw-ws-v2-smoke-load-plan-2026-06-07.md)에 기록했다.
+- 현재 STOMP/raw V2 소스 흐름과 MSA 대응 관점을 [Realtime Source Flow Map](../reports/realtime-source-flow-map-2026-06-08.html)에 정리했다.
 - `loadtest/README.md`에 STOMP와 raw V2 실행 명령을 분리했다.
 - ADR-010의 load test 상태를 "하네스 준비, 대상 실행 필요"로 갱신했다.
 - 현재 로컬에는 `loadtest/tokens.json`이 없어 실제 k6 대상 실행은 하지 않았다.

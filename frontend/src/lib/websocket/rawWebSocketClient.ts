@@ -59,7 +59,9 @@ function subscribePublicRoom(): void {
   sendRawFrame({ type: 'SUBSCRIBE', roomId: PUBLIC_ROOM_ID });
 }
 
-function mapPosition(frame: Extract<RawInboundFrame, { type: 'POSITION_UPDATE' }>): PositionBroadcast {
+function mapPosition(
+  frame: Extract<RawInboundFrame, { type: 'POSITION_UPDATE' }>,
+): PositionBroadcast {
   return {
     id: frame.displayId,
     userType: frame.userType,
@@ -120,7 +122,10 @@ export function connectRawWebSocket(
     }
   };
   socket.onerror = () => {
-    onError?.({ command: 'ERROR', headers: { message: 'Raw WebSocket error' } } as unknown as IFrame);
+    onError?.({
+      command: 'ERROR',
+      headers: { message: 'Raw WebSocket error' },
+    } as unknown as IFrame);
   };
   socket.onclose = () => {
     socket = null;

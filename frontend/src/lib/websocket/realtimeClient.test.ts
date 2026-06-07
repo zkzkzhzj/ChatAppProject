@@ -1,7 +1,12 @@
 import type { IFrame } from '@stomp/stompjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { connectRealtime, disconnectRealtime, resolveRealtimeTransport, sendPosition } from './realtimeClient';
+import {
+  connectRealtime,
+  disconnectRealtime,
+  resolveRealtimeTransport,
+  sendPosition,
+} from './realtimeClient';
 
 const {
   mockConnectRawWebSocket,

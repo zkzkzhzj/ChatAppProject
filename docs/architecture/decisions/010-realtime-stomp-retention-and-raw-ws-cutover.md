@@ -88,7 +88,7 @@ STOMP 제거는 아래 조건이 모두 만족될 때만 다시 검토한다.
 | NPC 응답 broadcast 대체 | 미구현 |
 | 운영 env/CD raw WS 설정 | 미정 |
 | `/ws/v2` reverse proxy upgrade 검증 | 미검증 |
-| load test 또는 최소 동시 접속 smoke | 미실행 |
+| load test 또는 최소 동시 접속 smoke | 하네스 준비, 대상 실행 필요 |
 | rollback 경로 | STOMP fallback 유지 중 |
 
 ---
@@ -167,8 +167,20 @@ STOMP 제거는 아래 조건이 모두 만족될 때만 다시 검토한다.
 
 ## 다음 단계
 
-1. dev 또는 staging에서 `NEXT_PUBLIC_REALTIME_TRANSPORT=raw` 수동 검증을 수행한다.
-2. 메일 알림 처리 방식을 결정한다.
-3. NPC 응답 broadcast를 raw WS로 옮길 application port 설계를 작성한다.
-4. raw WS 기준 최소 smoke/load test를 실행한다.
+1. `loadtest/raw-v2-mixed.js`로 dev 또는 staging `/ws/v2` smoke/load test를 실행한다.
+2. dev 또는 staging에서 `NEXT_PUBLIC_REALTIME_TRANSPORT=raw` 수동 검증을 수행한다.
+3. 메일 알림 처리 방식을 결정한다.
+4. NPC 응답 broadcast를 raw WS로 옮길 application port 설계를 작성한다.
 5. 위 조건을 만족하면 STOMP 제거 ADR을 새로 작성한다.
+
+---
+
+## 2026-06-07 Step 6 업데이트
+
+raw WebSocket V2용 k6 시나리오와 실행 계획을 추가했다.
+
+- Script: [loadtest/raw-v2-mixed.js](../../../loadtest/raw-v2-mixed.js)
+- Plan: [Raw WebSocket V2 Smoke/Load Plan](../../reports/raw-ws-v2-smoke-load-plan-2026-06-07.md)
+
+이는 실행 가능한 하네스 준비를 의미한다.
+아직 dev/staging 또는 운영 대상 실행 결과가 없으므로 STOMP 제거 조건은 충족되지 않았다.

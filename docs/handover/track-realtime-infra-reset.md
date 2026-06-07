@@ -49,7 +49,7 @@
 | 3 | Raw WS Parity: 채팅/위치/타이핑/게스트 정책 parity 확보 | 완료 | #127 | 77bb913 |
 | 4 | Controlled Cutover: env/client adapter로 raw WS 선택 가능 | 완료 | #127 | 771afb2 |
 | 5 | STOMP Decision: 제거 또는 fallback 유지 결정 | 완료 | #127 | a5231c5 |
-| 6 | Load Test + ADR: 병목 재측정과 ADR 업데이트 | 대기 | 미정 | 미정 |
+| 6 | Load Test + ADR: 병목 재측정과 ADR 업데이트 | 완료 | #127 | 2aa55d2 |
 
 ---
 
@@ -113,6 +113,16 @@ STOMP Decision 완료:
 - STOMP 제거 전 필수 조건은 메일 알림 대체, NPC 응답 broadcast 대체, `/ws/v2` reverse proxy 검증, dev/staging 수동 검증, 최소 smoke/load test다.
 - 서버 분리는 지금 하지 않는다. raw WS가 운영 후보로 검증되고 WS 연결 수, 배포 주기, resource 격리, proxy/autoscaling 정책 중 하나가 실제 병목으로 관측될 때 별도 트랙으로 분리한다.
 - 검증: `npm.cmd run lint:md` 통과.
+
+Load Test + ADR 완료:
+
+- raw WebSocket V2용 k6 시나리오 `loadtest/raw-v2-mixed.js`를 추가했다.
+- 시나리오는 `/ws/v2?access_token=<JWT>` handshake, `SUBSCRIBE`, `POSITION`, `TYPING`, `PUBLISH`, `UNSUBSCRIBE` 흐름을 검증한다.
+- 실행 계획과 통과 기준은 [Raw WebSocket V2 Smoke/Load Plan](../reports/raw-ws-v2-smoke-load-plan-2026-06-07.md)에 기록했다.
+- `loadtest/README.md`에 STOMP와 raw V2 실행 명령을 분리했다.
+- ADR-010의 load test 상태를 "하네스 준비, 대상 실행 필요"로 갱신했다.
+- 현재 로컬에는 `loadtest/tokens.json`이 없어 실제 k6 대상 실행은 하지 않았다.
+- 검증: `npm.cmd run lint:md`, `node --check loadtest/raw-v2-mixed.js`, `git diff --check` 통과.
 
 ---
 

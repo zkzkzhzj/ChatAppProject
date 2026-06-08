@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import type { PositionBroadcast } from '@/lib/websocket/stompClient';
+import type { PositionBroadcast } from '@/lib/websocket/realtimeTypes';
 
 import { Character } from '../character/Character';
 import { RemotePlayer } from '../character/RemotePlayer';

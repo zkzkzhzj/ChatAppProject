@@ -5,7 +5,7 @@ import { forwardRef, useCallback, useRef, useState, useSyncExternalStore } from 
 
 import { isTokenExpired } from '@/lib/auth';
 import { emitMyTypingUpdate } from '@/lib/websocket/positionBridge';
-import { sendTypingStatus, sendVillageMessage } from '@/lib/websocket/stompClient';
+import { sendTypingStatus, sendVillageMessage } from '@/lib/websocket/realtimeClient';
 import { useChatStore } from '@/store/useChatStore';
 
 function subscribeToStorage(callback: () => void) {
@@ -91,8 +91,8 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
   const placeholder =
     connectionStatus === 'error'
       ? hasToken
-        ? '연결이 끊겼어요. 잠시 후 다시 시도합니다...'
-        : '연결이 끊겼어요. 다시 로그인해 주세요'
+        ? '연결이 끊겼어요. 잠시 후 다시 시도합니다.'
+        : '연결이 끊겼어요. 다시 로그인해 주세요.'
       : connected
         ? hasToken
           ? 'Enter로 전송'

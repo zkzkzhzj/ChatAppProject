@@ -156,6 +156,116 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
         assertThat(shouldBeNull).as("게스트 publish가 broker 를 통과하면 안 된다").isNull();
     }
 
+    @Test
+    void 게스트_토큰_POSITION은_Redis_경로로_POSITION_UPDATE를_broadcast한다() throws Exception {
+        // Given
+        long roomId = 1L;
+        String memberToken = issueTokenPort.issueMemberToken(1001L);
+        String guestToken = issueTokenPort.issueGuestToken();
+
+        BlockingQueue<String> memberQueue = new LinkedBlockingQueue<>();
+        BlockingQueue<String> guestQueue = new LinkedBlockingQueue<>();
+        WebSocketSession memberSession = connect(memberToken, memberQueue);
+        WebSocketSession guestSession = connect(guestToken, guestQueue);
+
+        memberSession.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
+        guestSession.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
+        awaitSessionCount(roomId, 2);
+        drain(memberQueue);
+
+        // When
+        guestSession.sendMessage(new TextMessage(
+                "{\"type\":\"POSITION\",\"roomId\":" + roomId + ",\"x\":100.0,\"y\":200.0}"));
+
+        // Then
+        String received = memberQueue.poll(RECEIVE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(received)
+                .contains("\"POSITION_UPDATE\"")
+                .contains("\"userType\":\"GUEST\"")
+                .contains("\"x\":100.0")
+                .contains("\"y\":200.0");
+    }
+
+    @Test
+    void 토큰_없는_POSITION은_조용히_무시되어_broadcast되지_않는다() throws Exception {
+        // Given
+        long roomId = 1L;
+        BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+        WebSocketSession session = connectWithoutToken(queue);
+
+        session.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
+        awaitSessionCount(roomId, 1);
+        drain(queue);
+
+        // When
+        session.sendMessage(new TextMessage(
+                "{\"type\":\"POSITION\",\"roomId\":" + roomId + ",\"x\":100.0,\"y\":200.0}"));
+
+        // Then
+        String received = queue.poll(NEGATIVE_WAIT_SECONDS, TimeUnit.SECONDS);
+        assertThat(received).as("Principal 없는 POSITION은 ERROR 없이 silent ignore 되어야 한다").isNull();
+    }
+
+    @Test
+    void 회원_TYPING은_Redis_경로로_TYPING_UPDATE를_broadcast한다() throws Exception {
+        // Given
+        long roomId = 1L;
+        String tokenA = issueTokenPort.issueMemberToken(1001L);
+        String tokenB = issueTokenPort.issueMemberToken(2002L);
+
+        BlockingQueue<String> queueA = new LinkedBlockingQueue<>();
+        BlockingQueue<String> queueB = new LinkedBlockingQueue<>();
+        WebSocketSession sessionA = connect(tokenA, queueA);
+        WebSocketSession sessionB = connect(tokenB, queueB);
+
+        sessionA.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
+        sessionB.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
+        awaitSessionCount(roomId, 2);
+        drain(queueB);
+
+        // When
+        sessionA.sendMessage(new TextMessage(
+                "{\"type\":\"TYPING\",\"roomId\":" + roomId + ",\"typing\":true}"));
+
+        // Then
+        String received = queueB.poll(RECEIVE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(received)
+                .contains("\"TYPING_UPDATE\"")
+                .contains("\"displayId\":\"user-1001\"")
+                .contains("\"typing\":true");
+    }
+
+    @Test
+    void 구독_세션이_disconnect되면_같은_방_다른_세션은_LEAVE_POSITION_UPDATE를_받는다() throws Exception {
+        // Given
+        long roomId = 1L;
+        String tokenA = issueTokenPort.issueMemberToken(1001L);
+        String tokenB = issueTokenPort.issueMemberToken(2002L);
+
+        BlockingQueue<String> queueA = new LinkedBlockingQueue<>();
+        BlockingQueue<String> queueB = new LinkedBlockingQueue<>();
+        WebSocketSession sessionA = connect(tokenA, queueA);
+        WebSocketSession sessionB = connect(tokenB, queueB);
+
+        sessionA.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
+        sessionB.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
+        awaitSessionCount(roomId, 2);
+        drain(queueB);
+
+        // When
+        sessionA.close();
+
+        // Then
+        String received = queueB.poll(RECEIVE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(received)
+                .contains("\"POSITION_UPDATE\"")
+                .contains("\"displayId\":\"user-1001\"")
+                .contains("\"userType\":\"LEAVE\"")
+                .contains("\"x\":0.0")
+                .contains("\"y\":0.0");
+        awaitSessionCount(roomId, 1);
+    }
+
     private void givenSendMessageEchoesBackInput() {
         given(sendMessageUseCase.execute(any(SendMessageUseCase.Command.class)))
                 .willAnswer(inv -> {
@@ -165,6 +275,18 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
                             MessageType.TEXT, Instant.now());
                     return new SendMessageUseCase.Result(saved);
                 });
+    }
+
+    private void awaitSessionCount(long roomId, int expected) {
+        Awaitility.await()
+                .atMost(PROPAGATION_AT_MOST)
+                .pollInterval(PROPAGATION_POLL_INTERVAL)
+                .untilAsserted(() -> assertThat(subscriptionRegistry.sessionCount(roomId))
+                        .isEqualTo(expected));
+    }
+
+    private void drain(BlockingQueue<String> queue) {
+        queue.clear();
     }
 
     private WebSocketSession connect(String token, BlockingQueue<String> sink) throws Exception {

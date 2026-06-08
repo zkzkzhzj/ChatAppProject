@@ -12,16 +12,13 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
-| `library-confession-mvp` | [track-library-confession-mvp.md](./track-library-confession-mvp.md) | 도서관 익명 고백 기록 + 비공개 편지 + 감사 답장 + 이모지 공감 + 태그 기반 NPC 안내 | 🔧 티켓 PR 진행 (1 작업 = 1 커밋) | #116 | 2026-05-28 |
-| `harden-village-ops` | [track-harden-village-ops.md](./track-harden-village-ops.md) | 백엔드 운영 P1 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거 + 동시성 unit test | 🔧 Step 1 진행 (release + 테스트 박힘, PR #95) | #92 | 2026-05-17 |
-| `village-3d-audio-improvements` | [track-village-3d-audio-improvements.md](./track-village-3d-audio-improvements.md) | 음량 조절(0=음소거 통합) + 모바일(iOS/Android) 위치 기반 환경음 fix | 🔧 Step 1 진행 (음량 UI + localStorage 영속) | #105 | 2026-05-20 |
+| `realtime-infra-reset` | [track-realtime-infra-reset.md](./track-realtime-infra-reset.md) | STOMP 운영 경로 + `/ws/v2` raw WebSocket + Redis Pub/Sub 현재 상태 감사와 전환 재설계 | 🔧 Step 0 Audit 진행 | #127 | 2026-06-06 |
 
-> PR #94 (트랙 ⓒ ai-native-2026-05-upgrade) 머지 직후 트랙 ⓑ `harden-village-ops` 활성. Step 1 (UserRegisteredEventConsumer release + 회귀 테스트 + Codex P1 acquired flag) 진행 중.
-> 트랙 `village-3d-audio-improvements` 병렬 활성 (2026-05-20) — 영역 분리 (백엔드 vs frontend audio). 충돌 위험 파일은 각 트랙 파일 §4 참조.
-> Planned: skills-progressive-disclosure (Step 4·5) / anthropic-outcomes-trial (Step 6) / npc-evaluator-lmops 보강 (sweep v2 §B·§E).
-> ws-redis Step 3 도 후보. `track-ws-redis.md` §9 인수인계 참조.
+> 기존 `ws-redis` Step 3~7 이슈는 하네스 정비 전 계획이라 폐기했다. 현재는 `realtime-infra-reset`에서 STOMP 운영 경로와 raw WS V2 실험 경로를 감사한 뒤 새 전환 계획을 세운다.
 
 ## 완료 트랙 (Recently Closed)
+
+> 2026-06-06 점검: 이전 Active 표에 남아 있던 `library-confession-mvp`, `harden-village-ops`, `village-3d-audio-improvements`는 현재 열린 PR 목록에 없고 이번 작업 범위와 충돌하지 않으므로 활성 트랙에서 제거했다. 필요 시 각 트랙 파일을 별도 재개한다.
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
@@ -36,9 +33,9 @@
 | `ghost-session` | [54 (presence cleanup 진단)](../learning/54-presence-cleanup-ghost-character-diagnosis.md) · [60 (STOMP reconnect 두 레이어)](../learning/60-stomp-reconnect-layered-conflict.md) | 2026-04-27 ~ 2026-04-28 | #36 · #37 · #41 |
 | `ui-mvp-feedback` | [49 (React IME)](../learning/49-react-input-ime-handling.md) · [50 (모바일 터치)](../learning/50-mobile-touch-movement.md) | 2026-04-26 | #27 |
 
-> 완료된 트랙의 `track-*.md`는 학습노트로 결정 이력이 충분히 옮겨졌고 후속 트랙이 더 이상 참조하지 않을 때 삭제한다. 후속 의제로 살아있는 트랙 (예: `ws-redis` Step 3, `token-auto-renewal` 재개) 은 종료 표시 후 보존한다. 메인 `handover.md` §2 "전체 완료 요약" 표에는 머지 시점 한 줄 등록 (보존 여부와 무관).
+> 완료된 트랙의 `track-*.md`는 학습노트로 결정 이력이 충분히 옮겨졌고 후속 트랙이 더 이상 참조하지 않을 때 삭제한다. 후속 의제로 살아있는 트랙 (예: `realtime-infra-reset`, `token-auto-renewal` 재개) 은 종료 표시 후 보존한다. 메인 `handover.md` §2 "전체 완료 요약" 표에는 머지 시점 한 줄 등록 (보존 여부와 무관).
 >
-> **현재 잔존 트랙 파일** (2026-05-16 시점): `track-ws-redis.md` (Step 3 대기) · `track-token-auto-renewal.md` (재개 대기) · `track-village-3d.md` · `track-village-design-mvp.md` · `track-harness-spec-driven.md` · `track-infra-tls-hardening.md` · `track-ghost-session.md` — 후속 트랙 의제 정리되면 일괄 삭제 (별도 트랙).
+> **현재 잔존 트랙 파일** (2026-06-06 시점): `track-realtime-infra-reset.md` (Step 0 Audit 진행) · `track-ws-redis.md` (Step 3~7 폐기 후 과거 결정 이력으로 보존) · `track-token-auto-renewal.md` (재개 대기) · `track-village-3d.md` · `track-village-design-mvp.md` · `track-harness-spec-driven.md` · `track-infra-tls-hardening.md` · `track-ghost-session.md` — 후속 트랙 의제 정리되면 일괄 삭제 (별도 트랙).
 
 ---
 

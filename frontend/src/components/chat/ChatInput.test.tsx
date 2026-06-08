@@ -14,7 +14,7 @@ vi.mock('@/lib/auth', () => ({
   isTokenExpired: mockIsTokenExpired,
 }));
 
-vi.mock('@/lib/websocket/stompClient', () => ({
+vi.mock('@/lib/websocket/realtimeClient', () => ({
   sendTypingStatus: mockSendTypingStatus,
   sendVillageMessage: mockSendVillageMessage,
 }));
@@ -95,7 +95,7 @@ describe('ChatInput', () => {
     const onLoginRequired = vi.fn();
 
     render(<ChatInput onLoginRequired={onLoginRequired} />);
-    const input = screen.getByPlaceholderText('연결이 끊겼어요. 잠시 후 다시 시도합니다...');
+    const input = screen.getByPlaceholderText('연결이 끊겼어요. 잠시 후 다시 시도합니다.');
     fireEvent.click(input);
     fireEvent.change(input, { target: { value: 'hello' } });
     fireEvent.keyDown(input, { key: 'Enter' });
@@ -110,7 +110,7 @@ describe('ChatInput', () => {
     const onLoginRequired = vi.fn();
 
     render(<ChatInput onLoginRequired={onLoginRequired} />);
-    const input = screen.getByPlaceholderText('연결이 끊겼어요. 다시 로그인해 주세요');
+    const input = screen.getByPlaceholderText('연결이 끊겼어요. 다시 로그인해 주세요.');
     fireEvent.click(input);
 
     expect(onLoginRequired).toHaveBeenCalled();

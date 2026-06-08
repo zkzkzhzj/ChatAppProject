@@ -1,4 +1,5 @@
-import { type PositionBroadcast, sendPosition } from '@/lib/websocket/stompClient';
+import { sendPosition } from '@/lib/websocket/realtimeClient';
+import type { PositionBroadcast } from '@/lib/websocket/realtimeTypes';
 
 /**
  * 멀티유저 위치 송신·필터 (Step 1.5).

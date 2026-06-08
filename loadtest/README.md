@@ -13,6 +13,7 @@ loadtest/
 │   └── stomp.js             # STOMP 프레임 조립/파싱 헬퍼 (재사용)
 ├── prepare-tokens.js        # 테스트 계정 사전 발급 (Node 실행, login-first 멱등)
 ├── village-mixed.js         # k6 시나리오 — position + chat 혼합 (ramping-vus)
+├── raw-v2-mixed.js          # k6 시나리오 — raw /ws/v2 position + typing + chat
 ├── tokens.json              # 발급 결과 (git ignored)
 ├── summary.json             # k6 실행 요약 (git ignored)
 └── README.md
@@ -44,7 +45,7 @@ BASE_URL=https://ghworld.co COUNT=1000 node loadtest/prepare-tokens.js
   운영/공유 인프라에서는 반드시 env로 주입, 주기적으로 로테이션.
 - 동시 요청 수: `CONCURRENCY=10` (환경변수로 조정 가능)
 
-### 2) 스모크 (VU 1, 30초)
+### 2) STOMP 스모크 (VU 1, 30초)
 
 ```bash
 BASE_URL=https://ghworld.co WS_URL=wss://ghworld.co/ws/websocket \
@@ -53,7 +54,7 @@ BASE_URL=https://ghworld.co WS_URL=wss://ghworld.co/ws/websocket \
 
 통과 기준: `checks` 100%, `ws_connecting` 성공, 서버 로그에 CONNECTED/POSITION broadcast 확인.
 
-### 3) 정식 ramping 테스트
+### 3) STOMP 정식 ramping 테스트
 
 **주의**: `village-mixed.js` 는 내부에 `scenarios` 블록이 없다. 따라서 CLI 플래그 없이 `k6 run script.js` 만 하면 k6 기본값(VU 1 · iterations 1)으로 iteration 1회만 돌고 끝난다. **램프 프로파일은 반드시 `--stage` 로 주입**해야 한다.
 
@@ -68,11 +69,47 @@ BASE_URL=https://ghworld.co WS_URL=wss://ghworld.co/ws/websocket \
 프로파일(예시): `0 → 50 (1m) → 500 (3m) → 1000 (5m) → 0 (2m)` — 총 ~11분.
 시나리오: position 500ms + chat 15~30s 랜덤. Grafana JVM/HTTP/DB와 **같은 시간축**으로 관찰.
 
-### 4) 수동 가시적 관찰
+### 4) raw WebSocket V2 스모크 (VU 1, 30초)
+
+`raw-v2-mixed.js`는 STOMP 프레임을 쓰지 않고 `/ws/v2` JSON envelope를 직접 보낸다.
+토큰 풀은 STOMP 테스트와 같은 `prepare-tokens.js` 결과를 재사용한다.
+
+```bash
+BASE_URL=https://ghworld.co RAW_WS_URL=wss://ghworld.co/ws/v2 \
+  k6 run --vus 1 --duration 30s loadtest/raw-v2-mixed.js
+```
+
+통과 기준:
+
+- `checks` 100%, WebSocket handshake 101
+- `raw_ws_errors` threshold 통과
+- `raw_ws_position_sent`와 `raw_ws_position_received` 증가
+- `raw_ws_typing_sent`와 `raw_ws_typing_received` 증가
+- 30초 이상 실행 시 `raw_ws_chat_sent`와 `raw_ws_chat_received` 증가
+
+현재 raw V2 경로에는 `SUBSCRIBE` ack가 없다. 따라서 `raw_ws_connected`는 protocol-level ack가 아니라 WebSocket open 기준이다.
+
+### 5) raw WebSocket V2 ramping 테스트
+
+```bash
+BASE_URL=https://ghworld.co RAW_WS_URL=wss://ghworld.co/ws/v2 \
+  k6 run \
+  --stage 30s:10 --stage 1m:50 --stage 1m:100 --stage 30s:0 \
+  --summary-export=loadtest/raw-v2-summary.json \
+  loadtest/raw-v2-mixed.js
+```
+
+raw V2 시나리오는 position 500ms, typing 5s, chat 15~30s 랜덤 전송을 포함한다.
+STOMP와 비교할 때 `WS_URL=wss://.../ws/websocket` 대신 `RAW_WS_URL=wss://.../ws/v2`를 사용한다.
+
+이 테스트는 채팅, 위치, 타이핑, disconnect leave fan-out을 관찰하기 위한 것이다.
+메일 알림(`/user/queue/mail`)과 NPC 응답 broadcast parity는 아직 검증 범위 밖이다.
+
+### 6) 수동 가시적 관찰
 
 테스트 실행 중 브라우저로 `https://ghworld.co` 접속 → Phaser 화면에서 유저 캐릭터 이동을 눈으로 확인. VU 100 / 500 / 1000 시점 스크린샷.
 
-### 5) k6 메트릭을 Grafana에 직송 (선택)
+### 7) k6 메트릭을 Grafana에 직송 (선택)
 
 k6의 `stomp_connect_latency` 등 클라이언트 관점 메트릭을 Prometheus에 PUSH → Grafana에서 시각화. 공식 대시보드 ID `19665` (k6 Prometheus) 와 매칭.
 

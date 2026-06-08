@@ -4,6 +4,12 @@ import SockJS from 'sockjs-client';
 
 import type { MessageResponse } from '@/types/chat';
 
+import type {
+  MailNotificationBroadcast,
+  PositionBroadcast,
+  TypingBroadcast,
+} from './realtimeTypes';
+
 let stompClient: Client | null = null;
 
 export function getStompClient(): Client {
@@ -68,11 +74,6 @@ export function sendVillageMessage(body: string, onSent?: () => void): void {
 
 // --- 타이핑 상태 ---
 
-export interface TypingBroadcast {
-  id: string;
-  typing: boolean;
-}
-
 export function subscribeToTyping(onTyping: (data: TypingBroadcast) => void): StompSubscription {
   const client = getStompClient();
   return client.subscribe('/topic/village/typing', (frame) => {
@@ -91,13 +92,6 @@ export function sendTypingStatus(typing: boolean): void {
 
 // --- 위치 공유 ---
 
-export interface PositionBroadcast {
-  id: string;
-  userType: 'MEMBER' | 'GUEST' | 'LEAVE';
-  x: number;
-  y: number;
-}
-
 export function subscribeToPositions(
   onPosition: (pos: PositionBroadcast) => void,
 ): StompSubscription {
@@ -105,11 +99,6 @@ export function subscribeToPositions(
   return client.subscribe('/topic/village/positions', (frame) => {
     onPosition(JSON.parse(frame.body) as PositionBroadcast);
   });
-}
-
-export interface MailNotificationBroadcast {
-  confessionId: number;
-  letterId: number;
 }
 
 export function subscribeToMailNotifications(

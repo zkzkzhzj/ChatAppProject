@@ -11,6 +11,7 @@ export interface MessageResponse {
   id: string;
   participantId: number;
   senderId: number | null;
+  senderType?: 'SYSTEM';
   body: string;
   createdAt: string;
 }

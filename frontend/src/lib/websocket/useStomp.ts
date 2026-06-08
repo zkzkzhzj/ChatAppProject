@@ -25,6 +25,7 @@ function toMessage(msg: MessageResponse): ChatMessage {
     id: msg.id,
     participantId: msg.participantId,
     senderId: msg.senderId,
+    senderType: msg.senderType,
     body: msg.body,
     createdAt: msg.createdAt,
   };

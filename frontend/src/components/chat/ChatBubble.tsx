@@ -13,7 +13,7 @@ function formatTime(iso: string): string {
 }
 
 function resolveSender(message: ChatMessage, myUserId: number | null) {
-  const isMine = message.senderId === myUserId;
+  const isMine = myUserId !== null && message.senderId === myUserId;
 
   if (isMine)
     return {

@@ -106,7 +106,7 @@ last-verified: YYYY-MM-DD       # 마지막으로 코드와 일치 확인한 날
 
 - 도메인: `identity`, `communication`, `village`, `infra`, `frontend`
 - 기술: `jwt`, `websocket`, `cassandra`, `kafka`, `phaser`, `stomp`
-- 개념: `guest`, `outbox`, `idempotency`, `pixel-art`
+- 개념: `guest`, `outbox`, `idempotency`, `pixel-art`, `ai`, `deprecated`
 
 ---
 

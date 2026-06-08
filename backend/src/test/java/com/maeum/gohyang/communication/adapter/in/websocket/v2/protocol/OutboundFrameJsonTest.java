@@ -22,7 +22,7 @@ class OutboundFrameJsonTest {
     private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
     @Test
-    void message_event_serializes_user_payload_without_sender_type() {
+    void 메시지_이벤트는_senderType_없이_사용자_페이로드를_직렬화한다() {
         UUID id = UUID.randomUUID();
         Instant createdAt = Instant.parse("2026-04-26T10:00:00Z");
         Message message = Message.restore(id, 42L, 99L, "hello", MessageType.TEXT, createdAt);
@@ -41,7 +41,7 @@ class OutboundFrameJsonTest {
     }
 
     @Test
-    void error_event_serializes_code_and_message() {
+    void 에러_이벤트는_코드와_메시지를_직렬화한다() {
         ErrorEvent event = ErrorEvent.of(CommunicationErrorCode.GUEST_CHAT_NOT_ALLOWED);
 
         JsonNode json = objectMapper.valueToTree(event);
@@ -53,7 +53,7 @@ class OutboundFrameJsonTest {
     }
 
     @Test
-    void position_update_event_serializes_position() {
+    void 위치_업데이트_이벤트는_좌표를_직렬화한다() {
         PositionUpdateEvent event = PositionUpdateEvent.of(1L, "user-101", "MEMBER", 100.5, 200.0);
 
         JsonNode json = objectMapper.valueToTree(event);
@@ -67,7 +67,7 @@ class OutboundFrameJsonTest {
     }
 
     @Test
-    void typing_update_event_serializes_typing_state() {
+    void 타이핑_업데이트_이벤트는_타이핑_상태를_직렬화한다() {
         TypingUpdateEvent event = TypingUpdateEvent.of(1L, "user-101", true);
 
         JsonNode json = objectMapper.valueToTree(event);
@@ -78,7 +78,7 @@ class OutboundFrameJsonTest {
     }
 
     @Test
-    void system_payload_has_null_sender_id() {
+    void 시스템_페이로드는_senderId가_null이다() {
         ChatMessagePayload payload = ChatMessagePayload.system("entered");
 
         assertThat(payload.senderId()).isNull();
@@ -87,7 +87,7 @@ class OutboundFrameJsonTest {
     }
 
     @Test
-    void pong_event_serializes_single_type_field() {
+    void PONG_이벤트는_type_필드만_직렬화한다() {
         PongEvent event = PongEvent.instance();
 
         JsonNode json = objectMapper.valueToTree(event);

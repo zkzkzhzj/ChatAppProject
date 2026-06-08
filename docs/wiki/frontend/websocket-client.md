@@ -2,7 +2,7 @@
 title: WebSocket 클라이언트
 tags: [frontend, websocket, stomp, sockjs, chat]
 related: [communication/chat-architecture.md, frontend/phaser-setup.md]
-last-verified: 2026-04-15
+last-verified: 2026-06-08
 ---
 
 # WebSocket 클라이언트

@@ -107,6 +107,8 @@ village:
     max-y: 1600.0
 
 app:
+  flyway:
+    repair-on-migrate: ${APP_FLYWAY_REPAIR_ON_MIGRATE:false}
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}
 

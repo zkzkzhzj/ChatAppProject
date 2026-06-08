@@ -68,12 +68,24 @@ get_current_tag() {
   fi
 }
 
+collect_compose_diagnostics() {
+  log "▶ compose 상태 수집"
+  docker compose ps || true
+  log "▶ app 최근 로그"
+  docker compose logs --no-color --tail=200 app || true
+  log "▶ frontend 최근 로그"
+  docker compose logs --no-color --tail=100 frontend || true
+  log "▶ dependency 최근 로그"
+  docker compose logs --no-color --tail=100 postgres redis kafka cassandra cassandra-init || true
+}
+
 rollback() {
   log "▶ 이전 태그로 롤백 시도: APP_TAG=$PREV_APP_TAG FRONTEND_TAG=$PREV_FRONTEND_TAG"
   export APP_TAG="$PREV_APP_TAG"
   export FRONTEND_TAG="$PREV_FRONTEND_TAG"
   if ! docker compose up -d --wait --wait-timeout "$ROLLBACK_WAIT_TIMEOUT"; then
     log "⚠ 롤백 compose up 실패. 수동 개입 필요."
+    collect_compose_diagnostics
     return 1
   fi
   log "✅ 롤백 성공. 이전 버전으로 복구됨."
@@ -106,6 +118,9 @@ git clean -fd || die "❌ git clean 실패"
 # 이후 docker compose 명령은 deploy/ 디렉토리에서 실행해야 함.
 cd "$DEPLOY_DIR" || die "❌ DEPLOY_DIR 없음: $DEPLOY_DIR"
 
+export APP_FLYWAY_REPAIR_ON_MIGRATE="${APP_FLYWAY_REPAIR_ON_MIGRATE:-true}"
+log "  Flyway repair-on-migrate=$APP_FLYWAY_REPAIR_ON_MIGRATE"
+
 log "▶ 새 이미지 pull"
 export APP_TAG FRONTEND_TAG
 if ! docker compose pull app frontend; then
@@ -120,6 +135,7 @@ fi
 log "▶ 전체 스택 수렴 (compose idempotent) + healthcheck 대기 (최대 $((WAIT_TIMEOUT))초)"
 if ! docker compose up -d --wait --wait-timeout "$WAIT_TIMEOUT"; then
   log "❌ docker compose up 실패 또는 healthcheck 타임아웃. 롤백 수행."
+  collect_compose_diagnostics
   rollback
   exit 1
 fi

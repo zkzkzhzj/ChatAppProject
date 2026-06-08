@@ -152,6 +152,7 @@ services:
       CASSANDRA_PORT: 9042
 
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_FLYWAY_REPAIR_ON_MIGRATE: ${APP_FLYWAY_REPAIR_ON_MIGRATE:-false}
 
       # ── 시크릿 (로컬은 기본값, 운영은 .env에서 덮어씀) ──
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-must-be-at-least-256-bits-long!!}

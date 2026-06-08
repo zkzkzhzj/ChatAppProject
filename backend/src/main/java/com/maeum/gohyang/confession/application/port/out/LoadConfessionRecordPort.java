@@ -12,5 +12,5 @@ public interface LoadConfessionRecordPort {
 
     List<ConfessionRecord> loadVisible(ConfessionBookshelf bookshelf, int limit);
 
-    List<ConfessionRecord> loadForNpc(ConfessionBookshelf bookshelf, int limit);
+    List<ConfessionRecord> loadForLibrarian(ConfessionBookshelf bookshelf, int limit);
 }

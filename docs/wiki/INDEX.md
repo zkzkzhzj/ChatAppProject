@@ -27,7 +27,7 @@
 | 페이지 | 한 줄 요약 | tags |
 |--------|-----------|------|
 | [채팅 아키텍처](communication/chat-architecture.md) | REST + WebSocket + Cassandra 전체 흐름 | `communication, websocket, cassandra, chat` |
-| [NPC 대화](communication/npc-conversation.md) | NPC 채팅 흐름, 하드코딩 → AI 교체 계획 | `communication, npc, ai` |
+| [폐기된 일반 채팅 AI 대화](communication/deprecated-general-chat-ai-conversation.md) | 일반 채팅 자동 응답/요약/임베딩 제거 기록 | `communication, deprecated, ai` |
 
 ### Village
 
@@ -106,7 +106,7 @@ last-verified: YYYY-MM-DD       # 마지막으로 코드와 일치 확인한 날
 
 - 도메인: `identity`, `communication`, `village`, `infra`, `frontend`
 - 기술: `jwt`, `websocket`, `cassandra`, `kafka`, `phaser`, `stomp`
-- 개념: `guest`, `npc`, `outbox`, `idempotency`, `pixel-art`
+- 개념: `guest`, `outbox`, `idempotency`, `pixel-art`
 
 ---
 

@@ -61,7 +61,7 @@ class ConfessionSafetyServiceTest {
         );
 
         assertThat(result.getRiskLevel()).isEqualTo(ConfessionRiskLevel.HIGH);
-        assertThat(result.canBeShownToNpc()).isFalse();
+        assertThat(result.canBeShownToLibrarian()).isFalse();
     }
 
     @Test

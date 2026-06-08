@@ -10,7 +10,6 @@ import com.maeum.gohyang.communication.application.port.out.SaveChatRoomPort;
 import com.maeum.gohyang.communication.application.port.out.SaveParticipantPort;
 import com.maeum.gohyang.communication.domain.ChatRoom;
 import com.maeum.gohyang.communication.domain.Participant;
-import com.maeum.gohyang.communication.domain.ParticipantRole;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,12 +34,6 @@ public class CommunicationPersistenceAdapter
     @Override
     public Optional<Participant> load(long userId, long chatRoomId) {
         return participantJpaRepository.findByUserIdAndChatRoomId(userId, chatRoomId)
-                .map(ParticipantJpaEntity::toDomain);
-    }
-
-    @Override
-    public Optional<Participant> loadNpc(long chatRoomId) {
-        return participantJpaRepository.findByParticipantRoleAndChatRoomId(ParticipantRole.NPC, chatRoomId)
                 .map(ParticipantJpaEntity::toDomain);
     }
 

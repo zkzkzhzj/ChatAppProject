@@ -13,7 +13,7 @@ import type {
 } from '@/types/confession';
 
 const DEFAULT_CONFESSION_LIMIT = 30;
-const NPC_SIMILAR_CONFESSION_LIMIT = 5;
+const LIBRARIAN_SIMILAR_CONFESSION_LIMIT = 5;
 
 export async function listConfessions(
   bookshelf?: ConfessionBookshelf,
@@ -126,13 +126,13 @@ export async function reportConfession(
   return data;
 }
 
-export async function listNpcSimilarConfessions(
+export async function listLibrarianSimilarConfessions(
   bookshelf?: ConfessionBookshelf,
 ): Promise<ConfessionSummary[]> {
   const { data } = await apiClient.get<ConfessionSummary[]>(
-    '/api/v1/library/npc/similar-confessions',
+    '/api/v1/library/librarian/similar-confessions',
     {
-      params: { bookshelf, limit: NPC_SIMILAR_CONFESSION_LIMIT },
+      params: { bookshelf, limit: LIBRARIAN_SIMILAR_CONFESSION_LIMIT },
     },
   );
   return data;

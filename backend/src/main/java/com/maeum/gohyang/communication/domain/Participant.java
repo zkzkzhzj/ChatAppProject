@@ -2,13 +2,7 @@ package com.maeum.gohyang.communication.domain;
 
 import java.time.LocalDateTime;
 
-/**
- * 채팅방 참여자 Domain Entity.
- * userId는 NPC 참여자의 경우 null이다.
- */
 public class Participant {
-
-    private static final String NPC_DISPLAY_NAME = "마을 주민";
 
     private final Long id;
     private final Long userId;
@@ -32,25 +26,11 @@ public class Participant {
         this.leftAt = leftAt;
     }
 
-    /** 채팅방 생성자(HOST) 참여자 신규 생성. */
-    public static Participant newHost(long userId, long chatRoomId, String displayName) {
-        return new Participant(null, userId, chatRoomId, displayName,
-                ParticipantRole.HOST, EntryType.SYSTEM, LocalDateTime.now(), null);
-    }
-
-    /** 공개 채팅방 일반 참여자 신규 생성. */
     public static Participant newMember(long userId, long chatRoomId) {
-        return new Participant(null, userId, chatRoomId, "주민",
+        return new Participant(null, userId, chatRoomId, "resident",
                 ParticipantRole.MEMBER, EntryType.PROXIMITY, LocalDateTime.now(), null);
     }
 
-    /** NPC 참여자 신규 생성. userId = null. */
-    public static Participant newNpc(long chatRoomId) {
-        return new Participant(null, null, chatRoomId, NPC_DISPLAY_NAME,
-                ParticipantRole.NPC, EntryType.SYSTEM, LocalDateTime.now(), null);
-    }
-
-    /** 영속화된 Participant 복원 (Persistence Adapter → Domain). */
     public static Participant restore(Long id, Long userId, Long chatRoomId, String displayName,
                                       ParticipantRole role, EntryType entryType,
                                       LocalDateTime joinedAt, LocalDateTime leftAt) {

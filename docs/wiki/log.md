@@ -4,6 +4,11 @@
 
 ---
 
+## [2026-06-08] update | 일반 채팅 AI 대화 폐기 반영
+
+- `communication/deprecated-general-chat-ai-conversation.md`로 폐기 문서를 정리.
+- 일반 채팅 자동 응답, 멘션 대상 조회, 대화 요약, 임베딩 저장은 현재 런타임에서 제거됨.
+
 ## [2026-04-15] lint | Wiki 정기 점검 (2차)
 
 - CRITICAL: 0개, WARNING: 4개, LGTM: 5개

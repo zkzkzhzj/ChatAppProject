@@ -11,7 +11,7 @@ import { useChatStore } from '@/store/useChatStore';
 import type { ChatMessage, MessageResponse } from '@/types/chat';
 
 import { emitChatMessage } from './chatBridge';
-import { emitNpcTypingUpdate, emitPositionUpdate, emitTypingUpdate } from './positionBridge';
+import { emitPositionUpdate, emitTypingUpdate } from './positionBridge';
 import {
   connectWithAuth,
   disconnectStomp,
@@ -57,7 +57,6 @@ function toMessage(msg: MessageResponse): ChatMessage {
     id: msg.id,
     participantId: msg.participantId,
     senderId: msg.senderId,
-    senderType: msg.senderType,
     body: msg.body,
     createdAt: msg.createdAt,
   };
@@ -75,7 +74,6 @@ export function useStomp(): void {
   const addMessage = useChatStore((s) => s.addMessage);
   const prependMessages = useChatStore((s) => s.prependMessages);
   const setConnectionStatus = useChatStore((s) => s.setConnectionStatus);
-  const setNpcTyping = useChatStore((s) => s.setNpcTyping);
   const setLoginRequired = useChatStore((s) => s.setLoginRequired);
   const chatSubRef = useRef<StompSubscription | null>(null);
   const mailSubRef = useRef<StompSubscription | null>(null);
@@ -164,11 +162,6 @@ export function useStomp(): void {
         chatSubRef.current = subscribeToChatRoom(VILLAGE_CHAT_TOPIC, (msg) => {
           console.log('[useStomp] Received message:', msg);
           const chatMsg = toMessage(msg);
-          // NPC 응답이 오면 타이핑 표시 해제
-          if (chatMsg.senderType === 'NPC') {
-            setNpcTyping(false);
-            emitNpcTypingUpdate(false);
-          }
           addMessage(chatMsg);
           // Step 1.7 — 머리 위 말풍선 결로 broadcast (Three.js Scene 구독)
           emitChatMessage(chatMsg);
@@ -254,5 +247,5 @@ export function useStomp(): void {
       setConnectionStatus('disconnected');
       emitDisplayIdChange(null);
     };
-  }, [addMessage, prependMessages, setConnectionStatus, setNpcTyping, setLoginRequired]);
+  }, [addMessage, prependMessages, setConnectionStatus, setLoginRequired]);
 }

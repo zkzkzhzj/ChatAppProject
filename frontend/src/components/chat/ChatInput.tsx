@@ -1,11 +1,10 @@
 'use client';
 
-import type { ChangeEvent, KeyboardEvent } from 'react';
-import { forwardRef, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import type { KeyboardEvent } from 'react';
+import { forwardRef, useCallback, useRef, useState, useSyncExternalStore } from 'react';
 
-import apiClient from '@/lib/api/client';
 import { isTokenExpired } from '@/lib/auth';
-import { emitMyTypingUpdate, emitNpcTypingUpdate } from '@/lib/websocket/positionBridge';
+import { emitMyTypingUpdate } from '@/lib/websocket/positionBridge';
 import { sendTypingStatus, sendVillageMessage } from '@/lib/websocket/stompClient';
 import { useChatStore } from '@/store/useChatStore';
 
@@ -19,9 +18,6 @@ function subscribeToStorage(callback: () => void) {
 function getTokenSnapshot() {
   const token = localStorage.getItem('accessToken');
   if (!token) return false;
-  // #42: 만료 토큰은 hasToken=false 로 취급 — 영원히 'error' 갇힘 방지.
-  // useStomp 가 401 onError 에서 토큰을 제거해도 storage 이벤트는 같은 탭에서 발생 안 함 →
-  // 여기 만료 검사가 없으면 hasToken=true 로 stale 유지 → LoginPrompt 자동 진입점 막힘.
   if (isTokenExpired(token)) return false;
   try {
     const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
@@ -36,15 +32,8 @@ function getServerSnapshot() {
   return false;
 }
 
-interface Mentionable {
-  id: number;
-  name: string;
-  type: string;
-}
-
 interface ChatInputProps {
   onLoginRequired: () => void;
-  /** 메시지 전송 직후 호출 — ChatInputAnchor 가 입력창 자동 닫는 결로 사용 (Step 1.7). */
   onSent?: () => void;
 }
 
@@ -53,126 +42,33 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
   ref,
 ) {
   const [draft, setDraft] = useState('');
-  const [mentionables, setMentionables] = useState<Mentionable[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [filteredItems, setFilteredItems] = useState<Mentionable[]>([]);
-  const [atIndex, setAtIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const connectionStatus = useChatStore((s) => s.connectionStatus);
   const setInputFocused = useChatStore((s) => s.setInputFocused);
-  const setNpcTyping = useChatStore((s) => s.setNpcTyping);
   const hasToken = useSyncExternalStore(subscribeToStorage, getTokenSnapshot, getServerSnapshot);
   const connected = connectionStatus === 'connected';
-
-  // 멘션 대상 로드
-  useEffect(() => {
-    if (!hasToken) return;
-    apiClient
-      .get<Mentionable[]>('/api/v1/chat/mentionables')
-      .then(({ data }) => {
-        console.log('[ChatInput] mentionables loaded:', data);
-        setMentionables(data);
-      })
-      .catch((err: unknown) => {
-        console.warn('[ChatInput] mentionables 로드 실패', err);
-      });
-  }, [hasToken]);
-
-  const insertMention = useCallback(
-    (item: Mentionable) => {
-      const before = draft.slice(0, atIndex);
-      const markup = `@[${item.name}](${item.type}:${String(item.id)}) `;
-      const newDraft = before + markup;
-      setDraft(newDraft);
-      setShowDropdown(false);
-      // 입력창에 포커스 유지
-      setTimeout(() => {
-        const input = inputRef.current;
-        if (input) {
-          input.focus();
-          input.setSelectionRange(newDraft.length, newDraft.length);
-        }
-      }, 0);
-    },
-    [draft, atIndex],
-  );
-
-  const handleChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setDraft(value);
-
-      // IME 조합 중에는 멘션 매칭을 스킵한다 — 미확정 음절로 매칭하면 부정확.
-      // 조합 종료 후 다음 onChange 에서 정상 매칭됨. 이미 열려있던 드롭다운은
-      // 조합 동안 stale 후보를 보여주지 않도록 함께 닫는다.
-      const native = e.nativeEvent as { isComposing?: boolean };
-      if (native.isComposing) {
-        setShowDropdown(false);
-        setAtIndex(-1);
-        return;
-      }
-
-      // @ 감지 — 커서 위치 기준으로 가장 가까운 @를 찾음
-      const cursorPos = e.target.selectionStart ?? value.length;
-      const textBeforeCursor = value.slice(0, cursorPos);
-      const lastAt = textBeforeCursor.lastIndexOf('@');
-
-      if (lastAt >= 0 && (lastAt === 0 || value[lastAt - 1] === ' ')) {
-        const query = textBeforeCursor.slice(lastAt + 1);
-        // 이미 완성된 멘션 마크업 안이면 스킵
-        if (query.includes('[') || query.includes(']') || query.includes('(')) {
-          setShowDropdown(false);
-          return;
-        }
-        // 공백 제거하여 유연하게 매칭
-        const normalized = query.replace(/\s/g, '');
-        const matches = mentionables.filter((m) => m.name.replace(/\s/g, '').includes(normalized));
-        setAtIndex(lastAt);
-        setFilteredItems(matches);
-        setShowDropdown(matches.length > 0);
-      } else {
-        setShowDropdown(false);
-      }
-    },
-    [mentionables],
-  );
-
-  const hasMentionMarkup = (text: string) => /@\[[^\]]+\]\([^)]+\)/.test(text);
 
   const handleSend = useCallback(() => {
     const text = draft.trim();
     if (!text) return;
 
-    // #42: hasToken=false 가 곧 "재로그인 필요" 신호 — useStomp 가 멤버 401 시 만료 토큰을 제거함.
-    // 'error' + hasToken=true (네트워크 일시 끊김) 는 placeholder "잠시 후 다시 시도..." 만 보여주고
-    // 모달은 띄우지 않는다 (자동 재연결 흐름 신뢰 — 거짓 재로그인 강요 차단).
     if (!hasToken) {
       onLoginRequired();
       return;
     }
     if (!connected) return;
 
-    const mentioning = hasMentionMarkup(text);
-
     sendTypingStatus(false);
     emitMyTypingUpdate(false);
-    sendVillageMessage(text, () => {
-      if (mentioning) {
-        setNpcTyping(true);
-        emitNpcTypingUpdate(true);
-      }
-    });
+    sendVillageMessage(text);
     setDraft('');
-    setShowDropdown(false);
     onSent?.();
-  }, [draft, connected, hasToken, onLoginRequired, onSent, setNpcTyping]);
+  }, [draft, connected, hasToken, onLoginRequired, onSent]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     e.stopPropagation();
 
-    // IME 조합 중인 키 입력은 무시한다 (F-3 macOS 한글 IME 마지막 음절 중복 입력 방지).
-    // 모던 브라우저는 `e.nativeEvent.isComposing` 으로 충분하다.
     const native = e.nativeEvent as { isComposing?: boolean };
     if (native.isComposing) {
       return;
@@ -180,14 +76,6 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
 
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-
-      // 드롭다운이 열려있으면 첫 번째 항목 선택
-      if (showDropdown && filteredItems.length > 0) {
-        insertMention(filteredItems[0]);
-        return;
-      }
-
-      // 일반 전송
       if (draft.trim()) {
         handleSend();
       } else {
@@ -196,23 +84,10 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
     }
 
     if (e.key === 'Escape') {
-      if (showDropdown) {
-        setShowDropdown(false);
-      } else {
-        (e.target as HTMLInputElement).blur();
-      }
-    }
-
-    // Tab으로도 멘션 선택
-    if (e.key === 'Tab' && showDropdown && filteredItems.length > 0) {
-      e.preventDefault();
-      insertMention(filteredItems[0]);
+      (e.target as HTMLInputElement).blur();
     }
   };
 
-  // #42: 'error' 상태(서버 401·연결 실패) 는 별도 안내 — 'connecting' 으로 묶이면 거짓 신호.
-  // hasToken 으로 한 번 더 분기 — 토큰 유효한 단순 네트워크 끊김에 "재로그인" 안내는 거짓.
-  // useStomp 가 멤버 401 시 토큰을 제거하므로 hasToken=false 가 곧 "재로그인 필요" 신호다.
   const placeholder =
     connectionStatus === 'error'
       ? hasToken
@@ -220,19 +95,16 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
         : '연결이 끊겼어요. 다시 로그인해 주세요'
       : connected
         ? hasToken
-          ? 'Enter로 전송 · @마을 주민 으로 NPC에게 말걸기'
-          : '로그인 후 대화할 수 있어요'
+          ? 'Enter로 전송'
+          : '로그인하면 대화할 수 있어요'
         : '마을에 연결 중...';
 
   const handleGuestClick = () => {
-    // hasToken=false 일 때만 LoginPrompt 노출. 만료 토큰은 useStomp 에서 제거되므로
-    // 이 시점엔 토큰 없음 → 자동으로 진입점 열림. 단순 네트워크 끊김 케이스는 통과.
     if (!hasToken) {
       onLoginRequired();
     }
   };
 
-  // ref 합성 (forwardRef + 내부 ref)
   const setRefs = useCallback(
     (el: HTMLInputElement | null) => {
       inputRef.current = el;
@@ -244,34 +116,13 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
 
   return (
     <div className="relative">
-      {/* 멘션 드롭다운 */}
-      {showDropdown && (
-        <div className="absolute bottom-full left-0 mb-1 w-52 rounded-xl border border-sand bg-cream p-1 shadow-lg">
-          {filteredItems.map((item) => (
-            <button
-              key={`${item.type}-${String(item.id)}`}
-              type="button"
-              onMouseDown={(e) => {
-                e.preventDefault(); // blur 방지
-                insertMention(item);
-              }}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-bark transition-colors hover:bg-sand/30"
-            >
-              <span className="inline-block h-2 w-2 rounded-full bg-leaf" />
-              <span className="font-medium">{item.name}</span>
-              <span className="ml-auto text-[10px] text-bark-muted">
-                {item.type === 'npc' ? 'NPC' : '유저'}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-
       <input
         ref={setRefs}
         type="text"
         value={draft}
-        onChange={handleChange}
+        onChange={(e) => {
+          setDraft(e.target.value);
+        }}
         onKeyDown={handleKeyDown}
         onClick={handleGuestClick}
         readOnly={!hasToken}

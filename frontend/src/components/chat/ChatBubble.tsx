@@ -13,16 +13,8 @@ function formatTime(iso: string): string {
 }
 
 function resolveSender(message: ChatMessage, myUserId: number | null) {
-  const isNpc = message.senderType === 'NPC';
-  const isMine = !isNpc && message.senderId === myUserId;
+  const isMine = message.senderId === myUserId;
 
-  if (isNpc)
-    return {
-      isMine: false,
-      name: '마을 주민',
-      nameClass: 'text-leaf',
-      bubbleClass: 'bg-bubble-npc',
-    };
   if (isMine)
     return {
       isMine: true,
@@ -38,24 +30,7 @@ function resolveSender(message: ChatMessage, myUserId: number | null) {
   };
 }
 
-/** 멘션 마크업을 하이라이트된 @이름으로 렌더링 */
-function renderBody(body: string) {
-  const parts = body.split(/(@\[[^\]]+\]\([^)]+\))/g);
-  return parts.map((part, i) => {
-    const match = /@\[([^\]]+)\]\([^)]+\)/.exec(part);
-    if (match) {
-      return (
-        <span key={i} className="font-semibold text-leaf">
-          @{match[1]}
-        </span>
-      );
-    }
-    return part;
-  });
-}
-
 export default function ChatBubble({ message }: ChatBubbleProps) {
-  // 시스템 메시지 (입장/퇴장)
   if (message.senderType === 'SYSTEM') {
     return (
       <div className="mb-2 flex justify-center">
@@ -77,7 +52,7 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
           isMine ? 'rounded-br-sm' : 'rounded-bl-sm'
         }`}
       >
-        {renderBody(message.body)}
+        {message.body}
       </div>
       <span className="mt-0.5 text-[10px] text-bark-muted">{formatTime(message.createdAt)}</span>
     </div>

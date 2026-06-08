@@ -6,7 +6,7 @@ import {
   createConfession,
   getConfession,
   listConfessions,
-  listNpcSimilarConfessions,
+  listLibrarianSimilarConfessions,
   listReceivedLetters,
   sendConfessionLetter,
 } from '@/lib/api/confessions';
@@ -87,7 +87,7 @@ export default function LibraryOverlay() {
   }, [refreshBooks]);
 
   async function handleRequestCounseling() {
-    await listNpcSimilarConfessions(LIBRARY_BOOKSHELF);
+    await listLibrarianSimilarConfessions(LIBRARY_BOOKSHELF);
   }
 
   async function handleSubmitBook(input: {

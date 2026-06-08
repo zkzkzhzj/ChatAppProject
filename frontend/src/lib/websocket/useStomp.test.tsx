@@ -35,7 +35,6 @@ vi.mock('@/lib/api/client', () => ({
 }));
 
 vi.mock('./positionBridge', () => ({
-  emitNpcTypingUpdate: vi.fn(),
   emitPositionUpdate: vi.fn(),
   emitTypingUpdate: vi.fn(),
 }));
@@ -56,7 +55,6 @@ vi.mock('@/store/useChatStore', () => ({
         addMessage: vi.fn(),
         prependMessages: vi.fn(),
         setConnectionStatus: vi.fn(),
-        setNpcTyping: vi.fn(),
         setLoginRequired: mockSetLoginRequired,
       }),
     { setState: vi.fn() },

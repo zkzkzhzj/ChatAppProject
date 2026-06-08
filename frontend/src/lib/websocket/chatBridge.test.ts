@@ -9,7 +9,6 @@ function makeMessage(body: string): ChatMessage {
     id: `m-${body}`,
     participantId: 1,
     senderId: 42,
-    senderType: 'USER',
     body,
     createdAt: new Date().toISOString(),
   };

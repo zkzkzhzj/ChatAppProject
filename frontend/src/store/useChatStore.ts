@@ -17,9 +17,6 @@ interface ChatState {
   isInputFocused: boolean;
   setInputFocused: (focused: boolean) => void;
 
-  npcTyping: boolean;
-  setNpcTyping: (typing: boolean) => void;
-
   /**
    * 멤버 토큰 만료/거부로 명시적 재로그인이 필요한 상태.
    * useStomp 가 401 감지 시 true 로 set → ChatOverlay 가 LoginPrompt 자동 표시.
@@ -69,11 +66,6 @@ export const useChatStore = create<ChatState>((set) => ({
   isInputFocused: false,
   setInputFocused: (focused) => {
     set({ isInputFocused: focused });
-  },
-
-  npcTyping: false,
-  setNpcTyping: (typing) => {
-    set({ npcTyping: typing });
   },
 
   loginRequired: false,

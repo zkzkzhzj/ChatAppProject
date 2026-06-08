@@ -302,13 +302,13 @@ export class SceneManager {
 
   /**
    * 채팅 메시지 수신 시 외부에서 호출 (chatBridge.onChatMessage).
-   * USER 메시지만 머리 위 말풍선 — NPC/SYSTEM 은 ChatDrawer 내역에만 표시.
+   * 일반 사용자 메시지만 머리 위 말풍선으로 표시한다.
    * senderId → `user-{id}` (백엔드 PositionUpdateEvent.displayId 정합).
    */
   applyChatMessage(msg: ChatMessage): void {
     if (this.destroyed) return;
     if (this.active !== 'village') return;
-    if (msg.senderType !== 'USER' || msg.senderId == null) return;
+    if (msg.senderType === 'SYSTEM' || msg.senderId == null) return;
 
     const displayId = `user-${String(msg.senderId)}`;
     if (displayId === this.selfDisplayId) {

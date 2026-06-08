@@ -41,7 +41,7 @@ public class ConfessionPersistenceAdapter implements SaveConfessionRecordPort, L
 
     private static final int DEFAULT_LIMIT = 20;
     private static final int MAX_LIMIT = 50;
-    private static final List<ConfessionRiskLevel> NPC_ALLOWED_RISK_LEVELS = List.of(
+    private static final List<ConfessionRiskLevel> LIBRARIAN_ALLOWED_RISK_LEVELS = List.of(
             ConfessionRiskLevel.LOW,
             ConfessionRiskLevel.MEDIUM
     );
@@ -86,12 +86,12 @@ public class ConfessionPersistenceAdapter implements SaveConfessionRecordPort, L
     }
 
     @Override
-    public List<ConfessionRecord> loadForNpc(ConfessionBookshelf bookshelf, int limit) {
+    public List<ConfessionRecord> loadForLibrarian(ConfessionBookshelf bookshelf, int limit) {
         PageRequest pageRequest = PageRequest.of(0, normalizeLimit(limit));
         if (bookshelf == null) {
             return confessionRecordJpaRepository.findByStatusAndRiskLevelInOrderByCreatedAtDesc(
                             ConfessionStatus.VISIBLE,
-                            NPC_ALLOWED_RISK_LEVELS,
+                            LIBRARIAN_ALLOWED_RISK_LEVELS,
                             pageRequest
                     )
                     .stream()
@@ -101,7 +101,7 @@ public class ConfessionPersistenceAdapter implements SaveConfessionRecordPort, L
         return confessionRecordJpaRepository.findByBookshelfAndStatusAndRiskLevelInOrderByCreatedAtDesc(
                         bookshelf,
                         ConfessionStatus.VISIBLE,
-                        NPC_ALLOWED_RISK_LEVELS,
+                        LIBRARIAN_ALLOWED_RISK_LEVELS,
                         pageRequest
                 )
                 .stream()

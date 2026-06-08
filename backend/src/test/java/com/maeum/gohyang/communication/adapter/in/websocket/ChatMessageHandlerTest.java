@@ -104,7 +104,7 @@ class ChatMessageHandlerTest {
         handler.handleMessage(request, member);
 
         // Then — 토픽과 payload 모양이 모두 회귀 보호 대상
-        MessageResponse expected = MessageResponse.fromUser(savedMessage, userId);
+        MessageResponse expected = MessageResponse.from(savedMessage, userId);
         verify(messagingTemplate).convertAndSend(eq(ChatTopics.VILLAGE_CHAT), eq(expected));
         assertThat(ChatTopics.VILLAGE_CHAT).isEqualTo("/topic/chat/village");
     }

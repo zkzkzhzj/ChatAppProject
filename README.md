@@ -15,12 +15,12 @@
 |------|------|------|
 | 회원가입/로그인 | 이메일 기반 인증 + 게스트 토큰 | ✅ 구현 완료 |
 | 마을 공간 | 인터랙티브 2D 마을 (Phaser.js). 카메라 팔로우, 대각선 이동 | ✅ 구현 완료 |
-| 마을 공개 채팅 | WebSocket(STOMP) 실시간 채팅. 유저/NPC/이웃 메시지 구분 | ✅ 구현 완료 |
-| @멘션 NPC | 채팅에서 `@마을 주민`으로 NPC에게 말 걸기 | ✅ 구현 완료 |
+| 마을 공개 채팅 | WebSocket(STOMP) 실시간 채팅. 유저/이웃 메시지 구분 | ✅ 구현 완료 |
+| @멘션 NPC | 일반 채팅에서 제거. 사서 RAG는 별도 트랙에서 설계 | 제거됨 |
 | 실시간 위치 공유 | STOMP 기반 캐릭터 위치 broadcast + 입퇴장 감지 | ✅ 구현 완료 |
 | 타이핑 인디케이터 | 상대방 입력 중 표시 | ✅ 구현 완료 |
-| AI NPC | OpenAI GPT-4o-mini + 시맨틱 검색 대화 맥락 유지 (개발: Ollama EXAONE 3.5) | ✅ 구현 완료 |
-| 대화 요약 | Kafka → LLM 요약 → pgvector 임베딩 저장. 3회 누적 시 자동 트리거 | ✅ 구현 완료 |
+| AI NPC | 일반 채팅에서 제거. 고민/고백/편지 기반 사서 RAG는 후속 트랙 | 후속 |
+| 대화 요약 | 일반 채팅 Kafka 요약/pgvector 저장 제거 | 제거됨 |
 | 공간 꾸미기 | 아이템으로 내 집을 꾸미는 경험 | 미착수 |
 | 포인트/아이템 | 포인트 획득 → 아이템 구매 → 인벤토리 | 미착수 |
 | 음성/화면 공유 | WebRTC 기반 | 미착수 |
@@ -38,13 +38,13 @@
 | Spring Boot | 4.0.3 |
 | Build | Gradle Kotlin DSL + Version Catalog |
 | Architecture | Hexagonal (Ports & Adapters) |
-| ORM | Hibernate 7.x + pgvector 네이티브 타입 |
+| ORM | Hibernate 7.x |
 
 ### Infra
 
 | 항목 | 용도 |
 |------|------|
-| PostgreSQL 16 + pgvector | 주 데이터베이스 + 벡터 시맨틱 검색 |
+| PostgreSQL 16 | 주 데이터베이스 |
 | Redis 7.2 | 세션/캐시 |
 | Cassandra 4.1 | 채팅 메시지 저장 (write-heavy) |
 | Kafka 3.7 (KRaft) | 도메인 간 비동기 이벤트 + Transactional Outbox |
@@ -94,7 +94,7 @@ Kafka Consumer  →     Domain Entity         →  Kafka Producer (Outbox)
 ```text
 identity/        # Generic — 인증/인가, 게스트 세션
 village/         # Core — 캐릭터, 공간, 위치 공유, 타이핑 인디케이터
-communication/   # Core — 채팅, 메시지, NPC 대화, @멘션, 대화 요약
+communication/   # Core — 채팅, 메시지
 global/          # Cross-cutting — 설정, 예외, Outbox, 멱등성
 ```
 
@@ -102,8 +102,8 @@ global/          # Cross-cutting — 설정, 예외, Outbox, 멱등성
 
 ```text
 회원가입 → Outbox → Kafka "user.registered" → 캐릭터/공간 자동 생성
-채팅 3회 → Outbox → Kafka "npc.conversation.summarize" → LLM 요약 → pgvector 저장
-NPC 응답 → 유저 메시지 임베딩 → pgvector 유사도 검색 → 맥락 주입 → LLM 호출
+채팅 메시지 → Cassandra 저장 → WebSocket broadcast
+사서 RAG/로컬 LLM은 communication 일반 채팅이 아닌 별도 후속 트랙에서 설계
 ```
 
 ---

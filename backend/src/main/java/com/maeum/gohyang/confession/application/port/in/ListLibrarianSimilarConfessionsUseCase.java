@@ -5,7 +5,7 @@ import java.util.List;
 import com.maeum.gohyang.confession.domain.ConfessionBookshelf;
 import com.maeum.gohyang.confession.domain.ConfessionRecord;
 
-public interface ListNpcSimilarConfessionsUseCase {
+public interface ListLibrarianSimilarConfessionsUseCase {
 
     List<ConfessionRecord> execute(Query query);
 

@@ -1,79 +1,48 @@
 ---
 title: 채팅 아키텍처
 tags: [communication, websocket, cassandra, chat, stomp]
-related: [communication/npc-conversation.md, infra/outbox-pattern.md, frontend/websocket-client.md]
-last-verified: 2026-04-15
+related: [infra/outbox-pattern.md, frontend/websocket-client.md]
+last-verified: 2026-06-08
 ---
 
 # 채팅 아키텍처
 
-## 전체 흐름
-
-마을 1개 = 공개 채팅방 1개. V3 마이그레이션으로 공개 채팅방(id=1, type=PUBLIC)이 고정 생성되며, `village.public-chat-room-id` 설정으로 관리한다. 채팅방을 per-request로 생성하지 않는다.
+마을 공개 채팅은 `chat_room.id = 1`, `type = PUBLIC` 방 하나를 기준으로 동작한다.
+일반 채팅은 사용자 메시지만 저장하고 broadcast한다. 자동 응답, 멘션 대상 조회, 대화 요약 저장은 현재 런타임에서 제거되었다.
 
 ```text
-[초기 데이터] V3 마이그레이션
-  → ChatRoom(PUBLIC, id=1, '마을 광장') 고정 생성
-  → Participant(NPC, '마을 주민') 자동 생성
+REST POST /api/v1/chat/messages
+  -> SendMessageService
+  -> getOrCreateParticipant()
+  -> Message 저장 (Cassandra + user_message)
+  -> MessageResponse 반환
 
-[REST] 메시지 전송 (fallback)
-POST /api/v1/chat/messages
-  → getOrCreateParticipant()로 첫 메시지 시 유저 참여자 자동 생성
-  → Message(유저) → Cassandra 저장 (message + user_message dual-write)
-  → /topic/chat/village broadcast: MessageResponse(user) — 즉시
-  → REST 응답: {userMessage} (유저 메시지만 동기 반환)
-  → [비동기] NpcReplyService.replyAsync() → NPC 응답 생성 → Cassandra 저장 → broadcast
-
-[WebSocket] 실시간 메시지 전송 (주 경로)
-/app/chat/village
-  → ChatMessageHandler (@MessageMapping)
-  → SendMessageService (REST와 동일 로직)
-  → /topic/chat/village broadcast: MessageResponse(user) — 즉시
-  → [비동기] NpcReplyService.replyAsync() → NPC 응답 별도 broadcast
+STOMP /app/chat/village
+  -> ChatMessageHandler
+  -> SendMessageService
+  -> /topic/chat/village broadcast
 ```
 
-## 저장소 전략
+## 저장소
 
 | 데이터 | 저장소 | 이유 |
 |--------|--------|------|
-| ChatRoom, Participant | PostgreSQL | 관계형 데이터, 트랜잭션 필요 |
-| Message | Cassandra | write-once, 시간순 조회 최적화, 대량 메시지 처리 |
-
-### Cassandra 메시지 테이블
-
-```sql
-PRIMARY KEY ((chat_room_id), created_at, id)
-CLUSTERING ORDER BY (created_at DESC, id DESC)
-```
-
-- Partition Key: `chat_room_id` — 채팅방별 데이터 분리
-- Clustering: `created_at DESC` — 최신 메시지 우선 조회
-
-## WebSocket 구조
-
-| 항목 | 값 |
-|------|-----|
-| 엔드포인트 | `/ws` (SockJS fallback) |
-| 프로토콜 | STOMP |
-| 브로커 | Simple Broker (인메모리) |
-| 클라이언트 → 서버 | `/app/chat/village` |
-| 서버 → 클라이언트 | `/topic/chat/village` |
-
-> 스케일아웃 시 Redis Pub/Sub 기반 외부 브로커로 교체 예정 (ADR-007)
+| ChatRoom, Participant | PostgreSQL | 관계형 데이터와 참여자 중복 방지 |
+| Message | Cassandra | 채팅방 단위 write-heavy 메시지 저장 |
 
 ## 도메인 모델
 
-| 모델 | 핵심 속성 |
-|------|----------|
-| ChatRoom | id, title, type(PUBLIC/DIRECT/GROUP/NPC), status(ACTIVE/CLOSED) |
-| Participant | userId, chatRoomId, displayName, role(HOST/MEMBER/NPC), entryType |
+| 모델 | 속성 |
+|------|------|
+| ChatRoom | id, title, type(PUBLIC/DIRECT/GROUP), status(ACTIVE/CLOSED) |
+| Participant | userId, chatRoomId, displayName, role(HOST/MEMBER), entryType |
 | Message | chatRoomId, participantId, body, messageType(TEXT/IMAGE/SYSTEM) |
 
-## 핵심 코드 위치
+## 주요 코드
 
 | 파일 | 역할 |
 |------|------|
-| `communication/application/service/SendMessageService.java` | 메시지 전송 + getOrCreateParticipant() 자동 참여 |
-| `communication/adapter/out/persistence/MessageCassandraPersistenceAdapter.java` | Cassandra 저장 |
-| `communication/adapter/in/websocket/ChatMessageHandler.java` | STOMP 메시지 핸들러 |
+| `communication/application/service/SendMessageService.java` | 메시지 전송과 참여자 자동 생성 |
+| `communication/adapter/out/persistence/MessageCassandraPersistenceAdapter.java` | Cassandra 메시지 저장 |
+| `communication/adapter/in/websocket/ChatMessageHandler.java` | STOMP 메시지 처리 |
 | `global/config/WebSocketConfig.java` | STOMP/SockJS 설정 |

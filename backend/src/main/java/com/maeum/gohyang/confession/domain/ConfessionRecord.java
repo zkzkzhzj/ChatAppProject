@@ -78,7 +78,7 @@ public class ConfessionRecord {
         return authorUserId == userId;
     }
 
-    public boolean canBeShownToNpc() {
+    public boolean canBeShownToLibrarian() {
         return status == ConfessionStatus.VISIBLE
                 && (riskLevel == ConfessionRiskLevel.LOW || riskLevel == ConfessionRiskLevel.MEDIUM);
     }

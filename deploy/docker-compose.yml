@@ -21,8 +21,7 @@ name: chatappproject
 services:
 
   postgres:
-    # pgvector 확장 포함 — 대화 맥락 요약 벡터 저장용
-    image: pgvector/pgvector:pg16
+    image: postgres:16-alpine
     container_name: gohyang-postgres
     environment:
       POSTGRES_DB: gohyang
@@ -76,6 +75,24 @@ services:
       start_period: 60s
     restart: unless-stopped
 
+  cassandra-init:
+    image: cassandra:4.1
+    container_name: gohyang-cassandra-init
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    command:
+      - /bin/bash
+      - -lc
+      - >
+        until /opt/cassandra/bin/cqlsh cassandra 9042 -e "CREATE KEYSPACE IF NOT EXISTS gohyang
+        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}
+        AND durable_writes = true;"; do
+        echo "waiting for cassandra keyspace creation";
+        sleep 5;
+        done
+    restart: "no"
+
   kafka:
     # KRaft 모드 (Zookeeper 없음) — apache/kafka 3.7+ 기본 지원 (ADR-001 참조)
     # 컨테이너 간 통신: kafka:9092, 호스트 접근: localhost:${KAFKA_PORT}
@@ -99,38 +116,6 @@ services:
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    restart: unless-stopped
-
-  ollama:
-    # 로컬 LLM 서빙. NPC_ADAPTER=ollama 일 때만 필요.
-    # 명시적으로 프로필을 지정해야 뜸: docker compose --profile ollama up
-    profiles:
-      - ollama
-    image: ollama/ollama:latest
-    container_name: gohyang-ollama
-    entrypoint: ["/bin/bash", "/ollama-entrypoint.sh"]
-    ports:
-      - "${OLLAMA_PORT:-11434}:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-      # compose 파일이 deploy/ 하위라 ollama-entrypoint.sh는 레포 루트(상위) 참조.
-      - ../ollama-entrypoint.sh:/ollama-entrypoint.sh:ro
-    environment:
-      OLLAMA_NUM_PARALLEL: 2
-      OLLAMA_PULL_MODELS: ${OLLAMA_PULL_MODELS:-exaone3.5:7.8b nomic-embed-text}
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -171,11 +156,6 @@ services:
       # ── 시크릿 (로컬은 기본값, 운영은 .env에서 덮어씀) ──
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-must-be-at-least-256-bits-long!!}
 
-      # ── NPC / OpenAI ──
-      NPC_ADAPTER: ${NPC_ADAPTER:-hardcoded}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OLLAMA_BASE_URL: http://ollama:11434
-
       # ── 네트워크 / CORS ──
       APP_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001}
 
@@ -203,8 +183,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
-      cassandra:
-        condition: service_healthy
+      cassandra-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health | grep UP || exit 1"]
       interval: 10s
@@ -245,6 +225,4 @@ volumes:
   postgres_data:
     driver: local
   cassandra_data:
-    driver: local
-  ollama_data:
     driver: local

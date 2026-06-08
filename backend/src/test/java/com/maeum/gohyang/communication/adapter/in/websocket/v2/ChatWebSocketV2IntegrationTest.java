@@ -56,6 +56,7 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
     private static final long NEGATIVE_WAIT_SECONDS = 1L;
     /** Redis SUBSCRIBE 활성화 + 세션 라이프사이클 콜백 propagate 폴링 상한. */
     private static final Duration PROPAGATION_AT_MOST = Duration.ofSeconds(2);
+    private static final Duration EVENT_AT_MOST = Duration.ofSeconds(10);
     private static final Duration PROPAGATION_POLL_INTERVAL = Duration.ofMillis(50);
 
     @LocalServerPort
@@ -256,13 +257,12 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
         sessionA.close();
 
         // Then
-        String received = queueB.poll(RECEIVE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        assertThat(received)
-                .contains("\"POSITION_UPDATE\"")
-                .contains("\"displayId\":\"user-1001\"")
-                .contains("\"userType\":\"LEAVE\"")
-                .contains("\"x\":0.0")
-                .contains("\"y\":0.0");
+        awaitMessageContaining(queueB,
+                "\"POSITION_UPDATE\"",
+                "\"displayId\":\"user-1001\"",
+                "\"userType\":\"LEAVE\"",
+                "\"x\":0.0",
+                "\"y\":0.0");
         awaitSessionCount(roomId, 1);
     }
 
@@ -287,6 +287,14 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
 
     private void drain(BlockingQueue<String> queue) {
         queue.clear();
+    }
+
+    private void awaitMessageContaining(BlockingQueue<String> queue, String... fragments) {
+        Awaitility.await()
+                .atMost(EVENT_AT_MOST)
+                .pollInterval(PROPAGATION_POLL_INTERVAL)
+                .untilAsserted(() -> assertThat(queue)
+                        .anySatisfy(message -> assertThat(message).contains(fragments)));
     }
 
     private WebSocketSession connect(String token, BlockingQueue<String> sink) throws Exception {

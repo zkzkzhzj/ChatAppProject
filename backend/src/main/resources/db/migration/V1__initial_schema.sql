@@ -131,7 +131,7 @@ CREATE TABLE category (
 CREATE TABLE chat_room (
     id          BIGSERIAL PRIMARY KEY,
     title       VARCHAR(200) NOT NULL,
-    type        VARCHAR(20)  NOT NULL,                          -- DIRECT / GROUP / NPC
+    type        VARCHAR(20)  NOT NULL,                          -- PUBLIC / DIRECT / GROUP
     status      VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',         -- ACTIVE / CLOSED
     created_at  TIMESTAMP    NOT NULL DEFAULT NOW(),
     closed_at   TIMESTAMP
@@ -145,10 +145,10 @@ CREATE TABLE chat_room_category (
 
 CREATE TABLE participant (
     id               BIGSERIAL PRIMARY KEY,
-    user_id          BIGINT       ,                             -- ID 참조 (FK 아님), NPC면 NULL 가능
+    user_id          BIGINT       ,                             -- ID 참조 (FK 아님), 시스템 참여자는 NULL 가능
     chat_room_id     BIGINT       NOT NULL REFERENCES chat_room(id),
     display_name     VARCHAR(100) NOT NULL,
-    participant_role VARCHAR(20)  NOT NULL,                     -- HOST / MEMBER / NPC
+    participant_role VARCHAR(20)  NOT NULL,                     -- HOST / MEMBER
     entry_type       VARCHAR(20)  NOT NULL,                     -- PROXIMITY / INVITE / SYSTEM
     joined_at        TIMESTAMP    NOT NULL DEFAULT NOW(),
     left_at          TIMESTAMP

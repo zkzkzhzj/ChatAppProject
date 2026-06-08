@@ -44,9 +44,7 @@ import tools.jackson.databind.ObjectMapper;
  *                  비즈니스 예외(빈 본문, 미참여 등)는 ErrorEvent 로 매핑되어 클라이언트에 통보.
  * - PING        → PongEvent 응답.
  *
- * NPC 응답은 의도적으로 V2 로 보내지 않는다. V1·V2 동시 운영 중에는 BroadcastChatMessagePort
- * 빈을 V1 STOMP 어댑터가 단독으로 차지하고 있어, V2 로 추가 broadcast 하면 빈 충돌 또는 V1
- * 클라이언트 이중 수신이 발생한다. Step 6 cutover 에서 V1 제거와 함께 통합한다 (learning/49).
+ * V2는 현재 클라이언트 메시지 수신과 위치 동기화 경로만 담당한다.
  */
 @Component
 @RequiredArgsConstructor

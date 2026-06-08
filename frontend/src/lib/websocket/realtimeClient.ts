@@ -25,7 +25,6 @@ export type RealtimeTransport = 'stomp' | 'raw';
 
 interface RealtimeSubscriptionHandlers {
   addMessage: (message: ChatMessage) => void;
-  setNpcTyping: (typing: boolean) => void;
 }
 
 export function resolveRealtimeTransport(): RealtimeTransport {

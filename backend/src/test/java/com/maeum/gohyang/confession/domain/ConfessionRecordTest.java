@@ -79,8 +79,8 @@ class ConfessionRecordTest {
         }
 
         @Test
-        @DisplayName("낮거나 중간 위험도인 공개 기록만 NPC에게 노출할 수 있다")
-        void 낮거나_중간_위험도인_공개_기록만_NPC에게_노출할_수_있다() {
+        @DisplayName("낮거나 중간 위험도인 공개 기록만 사서에게 노출할 수 있다")
+        void 낮거나_중간_위험도인_공개_기록만_사서에게_노출할_수_있다() {
             ConfessionRecord record = ConfessionRecord.newRecord(
                     AUTHOR_USER_ID,
                     "제목",
@@ -89,12 +89,12 @@ class ConfessionRecordTest {
                     ConfessionRiskLevel.MEDIUM
             );
 
-            assertThat(record.canBeShownToNpc()).isTrue();
+            assertThat(record.canBeShownToLibrarian()).isTrue();
         }
 
         @Test
-        @DisplayName("높은 위험도 기록은 NPC에게 노출하지 않는다")
-        void 높은_위험도_기록은_NPC에게_노출하지_않는다() {
+        @DisplayName("높은 위험도 기록은 사서에게 노출하지 않는다")
+        void 높은_위험도_기록은_사서에게_노출하지_않는다() {
             ConfessionRecord record = ConfessionRecord.newRecord(
                     AUTHOR_USER_ID,
                     "제목",
@@ -103,7 +103,7 @@ class ConfessionRecordTest {
                     ConfessionRiskLevel.HIGH
             );
 
-            assertThat(record.canBeShownToNpc()).isFalse();
+            assertThat(record.canBeShownToLibrarian()).isFalse();
         }
     }
 

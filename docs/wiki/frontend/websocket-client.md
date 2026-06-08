@@ -66,7 +66,7 @@ useStomp()
 | 방향 | 목적지 | 설명 |
 |------|--------|------|
 | 클라이언트 → 서버 | `/app/chat/village` | 마을 공개 채팅 메시지 전송 |
-| 서버 → 클라이언트 | `/topic/chat/village` | 유저 메시지 + NPC 응답 + SYSTEM 입/퇴장 알림 broadcast (단일 MessageResponse) |
+| 서버 → 클라이언트 | `/topic/chat/village` | 유저 메시지 + SYSTEM 입/퇴장 알림 broadcast |
 | 클라이언트 → 서버 | `/app/village/position` | 위치 좌표 전송 |
 | 서버 → 클라이언트 | `/topic/village/positions` | 유저 위치 + 퇴장 broadcast (PositionBroadcast) |
 

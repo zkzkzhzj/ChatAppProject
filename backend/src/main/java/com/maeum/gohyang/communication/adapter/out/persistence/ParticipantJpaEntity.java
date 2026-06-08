@@ -28,7 +28,7 @@ public class ParticipantJpaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long userId;  // NPC면 NULL
+    private Long userId;
 
     @Column(nullable = false)
     private Long chatRoomId;

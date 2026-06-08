@@ -3,14 +3,13 @@ import type { IFrame } from '@stomp/stompjs';
 import type { ChatMessage } from '@/types/chat';
 
 import { emitChatMessage } from './chatBridge';
-import { emitNpcTypingUpdate, emitPositionUpdate, emitTypingUpdate } from './positionBridge';
+import { emitPositionUpdate, emitTypingUpdate } from './positionBridge';
 import type { PositionBroadcast, TypingBroadcast } from './realtimeTypes';
 
 const PUBLIC_ROOM_ID = 1;
 
 interface RawRealtimeHandlers {
   addMessage: (message: ChatMessage) => void;
-  setNpcTyping: (typing: boolean) => void;
 }
 
 type RawInboundFrame =
@@ -86,10 +85,6 @@ function handleRawMessage(payload: string): void {
   }
 
   if (frame.type === 'MESSAGE') {
-    if (frame.message.senderType === 'NPC') {
-      handlers?.setNpcTyping(false);
-      emitNpcTypingUpdate(false);
-    }
     handlers?.addMessage(frame.message);
     emitChatMessage(frame.message);
     return;

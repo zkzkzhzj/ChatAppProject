@@ -20,7 +20,7 @@
 | Village | space, space_placement, character*, character_equipment* |
 | Economy - Wallet | point_wallet, point_transaction |
 | Economy - Inventory | item_definition, user_item_inventory |
-| Communication | chat_room, participant, category, chat_room_category, npc_conversation_memory |
+| Communication | chat_room, participant, category, chat_room_category |
 | Safety | report, sanction |
 | Infra | outbox_event, processed_event, idempotency_request |
 
@@ -166,7 +166,7 @@ ITEM_DEFINITION ||--|{ USER_ITEM_INVENTORY
 CHAT_ROOM {
     Long id PK
     String title
-    Enum type                -- PUBLIC / DIRECT / GROUP / NPC
+    Enum type                -- PUBLIC / DIRECT / GROUP
     Enum status              -- ACTIVE / CLOSED
     DateTime created_at
     DateTime closed_at
@@ -177,7 +177,7 @@ PARTICIPANT {
     Long user_id             -- ID 참조 (FK 아님)
     Long chat_room_id FK     -- Communication 내부 FK
     String display_name
-    Enum participant_role    -- HOST / MEMBER / NPC
+    Enum participant_role    -- HOST / MEMBER
     Enum entry_type          -- PROXIMITY / INVITE / SYSTEM
     DateTime joined_at
     DateTime left_at
@@ -199,25 +199,10 @@ CHAT_ROOM_CATEGORY {
 > **구현 상태:** `CATEGORY`와 `CHAT_ROOM_CATEGORY` 테이블은 V1 마이그레이션에서 생성되었으나, 채팅방 카테고리 기능은 아직 **미구현**이다. JPA Entity, Repository, UseCase가 존재하지 않는다. 채널/카테고리 개념 도입 시 구현 예정이다.
 
 ```text
-NPC_CONVERSATION_MEMORY {
-    Long id PK
-    Long user_id             -- ID 참조 (FK 아님)
-    Text summary             -- LLM이 생성한 대화 요약
-    vector(768) embedding    -- 요약 텍스트의 임베딩 벡터 (nomic-embed-text, nullable)
-    Int message_count        -- 요약에 포함된 메시지 수
-    DateTime created_at
-}
-
 CHAT_ROOM ||--|{ PARTICIPANT
 CHAT_ROOM ||--|{ CHAT_ROOM_CATEGORY
 CATEGORY ||--o{ CHAT_ROOM_CATEGORY
 ```
-
-> **NPC_CONVERSATION_MEMORY 설계 결정:** pgvector 확장을 사용하여 요약 텍스트의 임베딩 벡터(768차원, nomic-embed-text)를 저장한다.
-> NPC 응답 시 유저 메시지를 임베딩하여 cosine distance(`<=>`)로 가장 관련 있는 요약을 검색하고, 시스템 프롬프트에 주입한다.
-> 임베딩이 없는 환경(테스트 등)에서는 최신순 fallback으로 동작한다.
-> V6 마이그레이션으로 `embedding vector(768)` 컬럼 추가. Hibernate 7.x 네이티브 벡터 타입(`@JdbcTypeCode(SqlTypes.VECTOR)`)으로 `float[]` 자동 매핑.
-> Cassandra의 원본 메시지와 역할이 다르다: Cassandra = 원본 저장(write-heavy), pgvector = 요약 저장(read-heavy 맥락 검색).
 
 ---
 
@@ -347,7 +332,7 @@ IDEMPOTENCY_REQUEST {
 | REPORT, SANCTION | 없음 | 신규 | Safety Context |
 | OUTBOX 등 | 없음 | 신규 | 멱등성, Outbox 인프라 |
 | CHARACTER.user_id | 제약 없음 | UNIQUE 추가 | USER와 1:1 관계 확정 |
-| ChatRoomType enum | DIRECT/GROUP/NPC | PUBLIC/DIRECT/GROUP/NPC | 마을 공개 채팅(PUBLIC) 타입 추가. V3 마이그레이션으로 기존 데이터 정리 후 공개 채팅방 id=1 고정 생성. `village.public-chat-room-id` 설정으로 관리 |
+| ChatRoomType enum | DIRECT/GROUP | PUBLIC/DIRECT/GROUP | 마을 공개 채팅방 id=1은 `village.public-chat-room-id` 설정으로 관리 |
 
 ---
 
@@ -379,8 +364,7 @@ IDEMPOTENCY_REQUEST {
 | USER_ITEM_INVENTORY | user_id | USER.id | N:1 | |
 | CHARACTER_EQUIPMENT | item_definition_id | ITEM_DEFINITION.id | N:1 | 아이템 중복 장착 슬롯별 1개 |
 | SPACE_PLACEMENT | item_definition_id | ITEM_DEFINITION.id | N:1 | 동일 아이템 무제한 배치 가능 |
-| PARTICIPANT | user_id | USER.id | N:1 | NPC일 경우 null 가능 |
-| NPC_CONVERSATION_MEMORY | user_id | USER.id | N:1 | 유저별 대화 요약 |
+| PARTICIPANT | user_id | USER.id | N:1 | 일반 채팅 참여자 |
 
 ### 아이템 장착/배치 설계 결정 기록
 

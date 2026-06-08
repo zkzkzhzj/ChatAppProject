@@ -19,7 +19,7 @@ class MockWebSocket {
   onerror: (() => void) | null = null;
   onmessage: ((event: MessageEvent<string>) => void) | null = null;
   onopen: (() => void) | null = null;
-  readyState = WebSocket.CONNECTING;
+  readyState: number = WebSocket.CONNECTING;
   sent: string[] = [];
   url: string;
 
@@ -58,10 +58,7 @@ describe('rawWebSocketClient', () => {
     const onConnected = vi.fn();
 
     connectRawWebSocket('token-1', onConnected);
-    subscribeToRawRealtimeChannels({
-      addMessage: vi.fn(),
-      setNpcTyping: vi.fn(),
-    });
+    subscribeToRawRealtimeChannels({ addMessage: vi.fn() });
     const socket = MockWebSocket.instances[0];
     socket.open();
 
@@ -72,8 +69,7 @@ describe('rawWebSocketClient', () => {
 
   it('maps raw MESSAGE, POSITION_UPDATE, and TYPING_UPDATE frames to existing handlers', () => {
     const addMessage = vi.fn();
-    const setNpcTyping = vi.fn();
-    const cleanup = subscribeToRawRealtimeChannels({ addMessage, setNpcTyping });
+    const cleanup = subscribeToRawRealtimeChannels({ addMessage });
 
     connectRawWebSocket('token-1', vi.fn());
     const socket = MockWebSocket.instances[0];
@@ -84,7 +80,6 @@ describe('rawWebSocketClient', () => {
         id: 'message-1',
         participantId: 10,
         senderId: 42,
-        senderType: 'USER',
         body: 'hello',
         createdAt: '2026-04-08T12:00:00.000Z',
       },
@@ -106,7 +101,6 @@ describe('rawWebSocketClient', () => {
       id: 'message-1',
       participantId: 10,
       senderId: 42,
-      senderType: 'USER',
       body: 'hello',
       createdAt: '2026-04-08T12:00:00.000Z',
     });

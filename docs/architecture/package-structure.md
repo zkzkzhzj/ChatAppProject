@@ -7,7 +7,7 @@
 ```text
 com.maeum.gohyang
 ├── communication/       # Core — 채팅, 메시지, 참여자 ✅
-├── village/             # Core — 공간, 위치, 캐릭터, NPC ✅
+├── village/             # Core — 공간, 위치, 캐릭터 ✅
 ├── economy/             # Core — 포인트(Wallet) + 아이템(Inventory) (미구현, Phase 4 예정)
 │   ├── wallet/          # 서브 도메인 — 포인트 지갑, 거래
 │   └── inventory/       # 서브 도메인 — 아이템, 인벤토리
@@ -48,7 +48,6 @@ com.maeum.gohyang
     └── out/
         ├── persistence/ # JPA Entity, Repository 구현체, Mapper
         ├── messaging/   # Kafka Producer, WebSocket broadcast
-        ├── npc/         # 외부 LLM 연동 (Communication 도메인 전용)
         └── external/    # 기타 외부 API 연동
 ```
 

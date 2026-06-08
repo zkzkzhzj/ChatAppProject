@@ -29,10 +29,9 @@ import com.datastax.oss.driver.api.core.CqlSession;
  */
 public abstract class BaseTestContainers {
 
-    // pgvector 확장 포함 이미지 — npc_conversation_memory 테이블에서 사용
+    // PostgreSQL integration test database.
     protected static final PostgreSQLContainer postgres =
-            new PostgreSQLContainer(DockerImageName.parse("pgvector/pgvector:pg16")
-                    .asCompatibleSubstituteFor("postgres"))
+            new PostgreSQLContainer(DockerImageName.parse("postgres:16-alpine"))
                     .withDatabaseName("gohyang")
                     .withUsername("gohyang")
                     .withPassword("gohyang");

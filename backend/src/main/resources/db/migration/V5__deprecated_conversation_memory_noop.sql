@@ -1,0 +1,2 @@
+-- Deprecated no-op migration.
+-- General communication chat no longer stores generated conversation summaries.

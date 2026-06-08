@@ -58,10 +58,6 @@ village:
     max-x: 2400.0
     max-y: 1600.0
 
-npc:
-  adapter: hardcoded
-  system-prompt: 테스트용 시스템 프롬프트
-
 app:
   cors:
     allowed-origins: http://localhost:3000,http://localhost:3001

@@ -11,7 +11,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
 /**
- * npc_chat.feature 시나리오의 단계 정의.
+ * village_chat.feature 시나리오의 단계 정의.
  *
  * 설계 원칙:
  * - HTTP 호출은 ChatTestAdapter에 위임한다.
@@ -48,6 +48,6 @@ public class CommunicationSteps {
                 .as("응답에 userMessage가 포함되어야 한다")
                 .contains("userMessage")
                 .contains("body")
-                .contains("senderType");
+                .doesNotContain("senderType");
     }
 }

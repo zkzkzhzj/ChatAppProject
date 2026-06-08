@@ -58,20 +58,3 @@ export function emitMyTypingUpdate(typing: boolean): void {
     listener(typing);
   }
 }
-
-// --- NPC 타이핑 브릿지 (chat → phaser) ---
-
-const npcTypingListeners = new Set<(typing: boolean) => void>();
-
-export function onNpcTypingUpdate(callback: (typing: boolean) => void): () => void {
-  npcTypingListeners.add(callback);
-  return () => {
-    npcTypingListeners.delete(callback);
-  };
-}
-
-export function emitNpcTypingUpdate(typing: boolean): void {
-  for (const listener of npcTypingListeners) {
-    listener(typing);
-  }
-}

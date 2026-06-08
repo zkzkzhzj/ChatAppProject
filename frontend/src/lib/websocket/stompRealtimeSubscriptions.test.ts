@@ -7,7 +7,6 @@ import { subscribeToStompRealtimeChannels } from './stompRealtimeSubscriptions';
 const {
   mockEmitChatMessage,
   mockEmitMailRefreshRequested,
-  mockEmitNpcTypingUpdate,
   mockEmitPositionUpdate,
   mockEmitTypingUpdate,
   mockSubscribeToChatRoom,
@@ -17,7 +16,6 @@ const {
 } = vi.hoisted(() => ({
   mockEmitChatMessage: vi.fn(),
   mockEmitMailRefreshRequested: vi.fn(),
-  mockEmitNpcTypingUpdate: vi.fn(),
   mockEmitPositionUpdate: vi.fn(),
   mockEmitTypingUpdate: vi.fn(),
   mockSubscribeToChatRoom: vi.fn(),
@@ -35,7 +33,6 @@ vi.mock('@/lib/scene/mailRefreshBridge', () => ({
 }));
 
 vi.mock('./positionBridge', () => ({
-  emitNpcTypingUpdate: mockEmitNpcTypingUpdate,
   emitPositionUpdate: mockEmitPositionUpdate,
   emitTypingUpdate: mockEmitTypingUpdate,
 }));
@@ -56,19 +53,8 @@ function userMessage(): MessageResponse {
     id: 'message-1',
     participantId: 10,
     senderId: 42,
-    senderType: 'USER',
-    body: '안녕',
+    body: 'hello',
     createdAt: '2026-04-08T12:00:00.000Z',
-  };
-}
-
-function npcMessage(): MessageResponse {
-  return {
-    ...userMessage(),
-    id: 'message-2',
-    senderId: null,
-    senderType: 'NPC',
-    body: '어서 와',
   };
 }
 
@@ -81,10 +67,9 @@ describe('subscribeToStompRealtimeChannels', () => {
     mockSubscribeToTyping.mockReturnValue(subscription());
   });
 
-  it('마을 채팅, 메일, 위치, 타이핑 채널을 구독한다', () => {
+  it('subscribes to village chat, mail, position, and typing channels', () => {
     subscribeToStompRealtimeChannels({
       addMessage: vi.fn(),
-      setNpcTyping: vi.fn(),
     });
 
     expect(mockSubscribeToChatRoom).toHaveBeenCalledWith('village', expect.any(Function));
@@ -93,19 +78,17 @@ describe('subscribeToStompRealtimeChannels', () => {
     expect(mockSubscribeToTyping).toHaveBeenCalledWith(expect.any(Function));
   });
 
-  it('USER 채팅 메시지를 store와 Three bridge로 전달한다', () => {
+  it('passes user chat messages to the store and Three bridge', () => {
     const addMessage = vi.fn();
     const expectedMessage = {
       id: 'message-1',
       participantId: 10,
       senderId: 42,
-      senderType: 'USER',
-      body: '안녕',
+      body: 'hello',
       createdAt: '2026-04-08T12:00:00.000Z',
     };
     subscribeToStompRealtimeChannels({
       addMessage,
-      setNpcTyping: vi.fn(),
     });
     const onMessage = mockSubscribeToChatRoom.mock.calls[0][1] as (msg: MessageResponse) => void;
 
@@ -115,35 +98,9 @@ describe('subscribeToStompRealtimeChannels', () => {
     expect(mockEmitChatMessage).toHaveBeenCalledWith(expectedMessage);
   });
 
-  it('NPC 채팅 메시지는 NPC typing 상태를 해제하고 메시지도 전달한다', () => {
-    const addMessage = vi.fn();
-    const setNpcTyping = vi.fn();
-    const expectedMessage = {
-      id: 'message-2',
-      participantId: 10,
-      senderId: null,
-      senderType: 'NPC',
-      body: '어서 와',
-      createdAt: '2026-04-08T12:00:00.000Z',
-    };
-    subscribeToStompRealtimeChannels({
-      addMessage,
-      setNpcTyping,
-    });
-    const onMessage = mockSubscribeToChatRoom.mock.calls[0][1] as (msg: MessageResponse) => void;
-
-    onMessage(npcMessage());
-
-    expect(setNpcTyping).toHaveBeenCalledWith(false);
-    expect(mockEmitNpcTypingUpdate).toHaveBeenCalledWith(false);
-    expect(addMessage).toHaveBeenCalledWith(expectedMessage);
-    expect(mockEmitChatMessage).toHaveBeenCalledWith(expectedMessage);
-  });
-
-  it('메일, 위치, 타이핑 이벤트를 bridge로 전달한다', () => {
+  it('passes mail, position, and typing events to bridges', () => {
     subscribeToStompRealtimeChannels({
       addMessage: vi.fn(),
-      setNpcTyping: vi.fn(),
     });
     const onMail = mockSubscribeToMailNotifications.mock.calls[0][0] as () => void;
     const onPosition = mockSubscribeToPositions.mock.calls[0][0] as (pos: unknown) => void;
@@ -160,7 +117,7 @@ describe('subscribeToStompRealtimeChannels', () => {
     expect(mockEmitTypingUpdate).toHaveBeenCalledWith(typing);
   });
 
-  it('cleanup은 모든 구독을 해제한다', () => {
+  it('cleanup unsubscribes all subscriptions', () => {
     const subs = [subscription(), subscription(), subscription(), subscription()];
     mockSubscribeToChatRoom.mockReturnValue(subs[0]);
     mockSubscribeToMailNotifications.mockReturnValue(subs[1]);
@@ -169,7 +126,6 @@ describe('subscribeToStompRealtimeChannels', () => {
 
     const cleanup = subscribeToStompRealtimeChannels({
       addMessage: vi.fn(),
-      setNpcTyping: vi.fn(),
     });
     cleanup();
 

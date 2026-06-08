@@ -105,7 +105,7 @@ export class VillageScene {
     fire.position.set(0, 0.7, VILLAGE.CAMPFIRE_Z);
     this.scene.add(fire);
 
-    // NPC 자리 (의자 박스 2개, Step 5 에서 NPC 결로 박음)
+    // Campfire seats.
     const chairMaterial = new THREE.MeshLambertMaterial({ color: 0x8b6f4e });
     for (const offset of [-1.6, 1.6]) {
       const chair = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, 0.6), chairMaterial);

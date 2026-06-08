@@ -10,7 +10,7 @@ import com.maeum.gohyang.confession.error.InvalidConfessionLetterContentExceptio
 
 /**
  * 고백 작성자에게만 닿는 비공개 편지.
- * 공개 고백 상세, 목록, NPC 컨텍스트에는 포함하지 않는다.
+ * 공개 고백 상세, 목록, 사서 안내 컨텍스트에는 포함하지 않는다.
  */
 public class ConfessionLetter {
 

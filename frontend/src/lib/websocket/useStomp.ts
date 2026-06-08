@@ -25,7 +25,6 @@ function toMessage(msg: MessageResponse): ChatMessage {
     id: msg.id,
     participantId: msg.participantId,
     senderId: msg.senderId,
-    senderType: msg.senderType,
     body: msg.body,
     createdAt: msg.createdAt,
   };
@@ -43,7 +42,6 @@ export function useStomp(): void {
   const addMessage = useChatStore((s) => s.addMessage);
   const prependMessages = useChatStore((s) => s.prependMessages);
   const setConnectionStatus = useChatStore((s) => s.setConnectionStatus);
-  const setNpcTyping = useChatStore((s) => s.setNpcTyping);
   const setLoginRequired = useChatStore((s) => s.setLoginRequired);
   const unsubscribeRealtimeRef = useRef<(() => void) | null>(null);
 
@@ -93,7 +91,6 @@ export function useStomp(): void {
         unsubscribeRealtimeRef.current?.();
         unsubscribeRealtimeRef.current = subscribeToRealtimeChannels({
           addMessage,
-          setNpcTyping,
         });
       };
 
@@ -158,5 +155,5 @@ export function useStomp(): void {
       setConnectionStatus('disconnected');
       emitDisplayIdChange(null);
     };
-  }, [addMessage, prependMessages, setConnectionStatus, setNpcTyping, setLoginRequired]);
+  }, [addMessage, prependMessages, setConnectionStatus, setLoginRequired]);
 }

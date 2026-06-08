@@ -11,7 +11,7 @@ import {
   createConfession,
   getConfession,
   listConfessions,
-  listNpcSimilarConfessions,
+  listLibrarianSimilarConfessions,
   listReceivedLetters,
   sendConfessionLetter,
 } from '@/lib/api/confessions';
@@ -45,7 +45,7 @@ vi.mock('@/lib/api/confessions', () => ({
   createConfession: vi.fn(),
   getConfession: vi.fn(),
   listConfessions: vi.fn(),
-  listNpcSimilarConfessions: vi.fn(),
+  listLibrarianSimilarConfessions: vi.fn(),
   listReceivedLetters: vi.fn(),
   sendConfessionLetter: vi.fn(),
 }));
@@ -493,7 +493,7 @@ const makeSelectedBook = (id: number, receivedLetters: ConfessionLetter[] | null
 const mockedCreateConfession = vi.mocked(createConfession);
 const mockedGetConfession = vi.mocked(getConfession);
 const mockedListConfessions = vi.mocked(listConfessions);
-const mockedListNpcSimilarConfessions = vi.mocked(listNpcSimilarConfessions);
+const mockedListLibrarianSimilarConfessions = vi.mocked(listLibrarianSimilarConfessions);
 const mockedListReceivedLetters = vi.mocked(listReceivedLetters);
 const mockedSendConfessionLetter = vi.mocked(sendConfessionLetter);
 
@@ -506,12 +506,12 @@ function resetLibraryOverlayMocks() {
   mockedCreateConfession.mockReset();
   mockedGetConfession.mockReset();
   mockedListConfessions.mockReset();
-  mockedListNpcSimilarConfessions.mockReset();
+  mockedListLibrarianSimilarConfessions.mockReset();
   mockedListReceivedLetters.mockReset();
   mockedSendConfessionLetter.mockReset();
   mockedListConfessions.mockResolvedValue([makeBook(1)]);
   mockedGetConfession.mockResolvedValue(makeBookDetail(1));
-  mockedListNpcSimilarConfessions.mockResolvedValue([makeBook(2)]);
+  mockedListLibrarianSimilarConfessions.mockResolvedValue([makeBook(2)]);
   mockedListReceivedLetters.mockRejectedValue({ response: { status: 403 } });
   mockedCreateConfession.mockResolvedValue(makeBookDetail(3));
   mockedSendConfessionLetter.mockResolvedValue({

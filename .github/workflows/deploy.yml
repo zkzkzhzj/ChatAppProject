@@ -64,7 +64,7 @@ jobs:
   build-backend:
     name: Backend 이미지 빌드
     needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true' || inputs.force_rebuild
+    if: needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.deploy == 'true' || inputs.force_rebuild
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -92,7 +92,7 @@ jobs:
   build-frontend:
     name: Frontend 이미지 빌드
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true' || inputs.force_rebuild
+    if: needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.deploy == 'true' || inputs.force_rebuild
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

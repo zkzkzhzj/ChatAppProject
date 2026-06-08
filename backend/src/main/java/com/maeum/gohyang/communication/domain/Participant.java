@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 public class Participant {
 
+    public static final String DEFAULT_DISPLAY_NAME = "resident";
+
     private final Long id;
     private final Long userId;
     private final Long chatRoomId;
@@ -27,7 +29,7 @@ public class Participant {
     }
 
     public static Participant newMember(long userId, long chatRoomId) {
-        return new Participant(null, userId, chatRoomId, "resident",
+        return new Participant(null, userId, chatRoomId, DEFAULT_DISPLAY_NAME,
                 ParticipantRole.MEMBER, EntryType.PROXIMITY, LocalDateTime.now(), null);
     }
 

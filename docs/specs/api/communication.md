@@ -39,6 +39,7 @@
 ## GET `/api/v1/chat/messages`
 
 인증된 회원만 최근 메시지 목록을 조회할 수 있다. 게스트는 `403`을 받는다.
+이 엔드포인트는 DB에 저장된 사용자 채팅 메시지만 반환하며, STOMP 전용 시스템 입장/퇴장 메시지는 포함하지 않는다.
 
 **Response** `200 OK`
 
@@ -58,7 +59,7 @@
 |------|------|------|
 | id | UUID | Cassandra 메시지 ID |
 | participantId | Long | 발신자 참여자 ID |
-| senderId | Long | 발신 회원 ID |
+| senderId | Long? | 발신 회원 ID. 참여자 매핑이 없으면 `null`이며 내부 `participantId`로 대체하지 않는다. |
 | body | String | 메시지 본문 |
 | createdAt | Instant | 생성 시각 |
 

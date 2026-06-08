@@ -74,8 +74,7 @@ public class ChatRoomController {
 
     private MessageResponse toMessageResponse(Message message, Map<Long, Participant> participantMap) {
         Participant participant = participantMap.get(message.getParticipantId());
-        long senderId = (participant != null && participant.getUserId() != null)
-                ? participant.getUserId() : message.getParticipantId();
+        Long senderId = participant != null ? participant.getUserId() : null;
         return MessageResponse.from(message, senderId);
     }
 }

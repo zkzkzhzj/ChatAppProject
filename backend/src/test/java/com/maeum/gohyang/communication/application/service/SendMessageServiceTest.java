@@ -48,12 +48,12 @@ class SendMessageServiceTest {
     }
 
     @Nested
-    @DisplayName("success")
+    @DisplayName("성공")
     class Success {
 
         @Test
-        @DisplayName("plain mention-like text is saved as a normal user message")
-        void plain_mention_like_text_is_saved_as_normal_user_message() {
+        @DisplayName("멘션처럼 보이는 본문도 일반 사용자 메시지로 저장된다")
+        void 멘션처럼_보이는_본문도_일반_사용자_메시지로_저장된다() {
             String mentionBody = "@village-resident hello";
             given(loadParticipantPort.load(USER_ID, CHAT_ROOM_ID)).willReturn(Optional.of(userParticipant()));
             given(saveMessagePort.saveWithUser(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
@@ -65,8 +65,8 @@ class SendMessageServiceTest {
         }
 
         @Test
-        @DisplayName("participant is created automatically before sending a message")
-        void participant_is_created_automatically_before_sending_message() {
+        @DisplayName("메시지 전송 전 참여자가 자동 생성된다")
+        void 메시지_전송_전_참여자가_자동_생성된다() {
             given(loadParticipantPort.load(USER_ID, CHAT_ROOM_ID)).willReturn(Optional.empty());
             given(saveParticipantPort.save(any(Participant.class))).willReturn(userParticipant());
             given(saveMessagePort.saveWithUser(any(Message.class), anyLong())).willAnswer(inv -> inv.getArgument(0));
@@ -79,8 +79,8 @@ class SendMessageServiceTest {
         }
 
         @Test
-        @DisplayName("concurrent participant creation recovers by reloading")
-        void concurrent_participant_creation_recovers_by_reloading() {
+        @DisplayName("동시 참여자 생성 충돌 시 다시 조회해 복구한다")
+        void 동시_참여자_생성_충돌_시_다시_조회해_복구한다() {
             given(loadParticipantPort.load(USER_ID, CHAT_ROOM_ID))
                     .willReturn(Optional.empty())
                     .willReturn(Optional.of(userParticipant()));
@@ -97,26 +97,26 @@ class SendMessageServiceTest {
     }
 
     @Nested
-    @DisplayName("failure")
+    @DisplayName("실패")
     class Failure {
 
         @Test
-        @DisplayName("empty body throws InvalidMessageBodyException")
-        void empty_body_throws_invalid_message_body_exception() {
+        @DisplayName("빈 본문이면 InvalidMessageBodyException이 발생한다")
+        void 빈_본문이면_InvalidMessageBodyException이_발생한다() {
             assertThatThrownBy(() -> new SendMessageUseCase.Command(USER_ID, CHAT_ROOM_ID, ""))
                     .isInstanceOf(InvalidMessageBodyException.class);
         }
 
         @Test
-        @DisplayName("null body throws InvalidMessageBodyException")
-        void null_body_throws_invalid_message_body_exception() {
+        @DisplayName("null 본문이면 InvalidMessageBodyException이 발생한다")
+        void null_본문이면_InvalidMessageBodyException이_발생한다() {
             assertThatThrownBy(() -> new SendMessageUseCase.Command(USER_ID, CHAT_ROOM_ID, null))
                     .isInstanceOf(InvalidMessageBodyException.class);
         }
 
         @Test
-        @DisplayName("body longer than limit throws InvalidMessageBodyException")
-        void body_longer_than_limit_throws_invalid_message_body_exception() {
+        @DisplayName("본문 길이가 제한을 초과하면 InvalidMessageBodyException이 발생한다")
+        void 본문_길이가_제한을_초과하면_InvalidMessageBodyException이_발생한다() {
             String longBody = "a".repeat(1001);
             assertThatThrownBy(() -> new SendMessageUseCase.Command(USER_ID, CHAT_ROOM_ID, longBody))
                     .isInstanceOf(InvalidMessageBodyException.class);

@@ -2,13 +2,12 @@ package com.maeum.gohyang.cucumber.steps;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.maeum.gohyang.support.adapter.ChatTestAdapter;
 import com.maeum.gohyang.support.context.ScenarioContext;
 
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import lombok.RequiredArgsConstructor;
 
 /**
  * village_chat.feature 시나리오의 단계 정의.
@@ -18,13 +17,12 @@ import io.cucumber.java.en.When;
  * - 상태 저장은 ScenarioContext에 위임한다.
  * - 검증 표현은 비즈니스 언어로 작성한다.
  */
+@RequiredArgsConstructor
 public class CommunicationSteps {
 
-    @Autowired
-    private ChatTestAdapter chatTestAdapter;
+    private final ChatTestAdapter chatTestAdapter;
 
-    @Autowired
-    private ScenarioContext scenarioContext;
+    private final ScenarioContext scenarioContext;
 
     @When("게스트가 마을 채팅에 메시지 전송을 시도한다")
     public void 게스트가_마을_채팅에_메시지_전송을_시도한다() {
@@ -48,6 +46,6 @@ public class CommunicationSteps {
                 .as("응답에 userMessage가 포함되어야 한다")
                 .contains("userMessage")
                 .contains("body")
-                .doesNotContain("senderType");
+                .doesNotContain("\"senderType\":");
     }
 }

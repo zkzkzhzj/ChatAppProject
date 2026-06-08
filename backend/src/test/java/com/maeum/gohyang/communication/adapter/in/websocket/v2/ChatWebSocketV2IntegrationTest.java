@@ -71,6 +71,9 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
     @Autowired
     RoomSubscriptionRegistry subscriptionRegistry;
 
+    @Autowired
+    WebSocketSessionRegistry sessionRegistry;
+
     private final List<WebSocketSession> openSessions = new ArrayList<>();
 
     @AfterEach
@@ -81,6 +84,13 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
             }
         }
         openSessions.clear();
+        Awaitility.await()
+                .atMost(EVENT_AT_MOST)
+                .pollInterval(PROPAGATION_POLL_INTERVAL)
+                .untilAsserted(() -> {
+                    assertThat(subscriptionRegistry.roomCount()).isZero();
+                    assertThat(sessionRegistry.size()).isZero();
+                });
     }
 
     @Test
@@ -251,6 +261,15 @@ class ChatWebSocketV2IntegrationTest extends BaseTestContainers {
         sessionA.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
         sessionB.sendMessage(new TextMessage("{\"type\":\"SUBSCRIBE\",\"roomId\":" + roomId + "}"));
         awaitSessionCount(roomId, 2);
+        drain(queueB);
+        sessionA.sendMessage(new TextMessage(
+                "{\"type\":\"POSITION\",\"roomId\":" + roomId + ",\"x\":10.0,\"y\":20.0}"));
+        awaitMessageContaining(queueB,
+                "\"POSITION_UPDATE\"",
+                "\"displayId\":\"user-1001\"",
+                "\"userType\":\"MEMBER\"",
+                "\"x\":10.0",
+                "\"y\":20.0");
         drain(queueB);
 
         // When

@@ -8,14 +8,18 @@ const {
   mockConnectWithAuth,
   mockDisconnectStomp,
   mockEnsureValidRealtimeToken,
+  mockGet,
   mockParseTokenRole,
+  mockPrependMessages,
   mockSetLoginRequired,
   mockSubscribeToStompRealtimeChannels,
 } = vi.hoisted(() => ({
   mockConnectWithAuth: vi.fn(),
   mockDisconnectStomp: vi.fn(),
   mockEnsureValidRealtimeToken: vi.fn(),
+  mockGet: vi.fn(),
   mockParseTokenRole: vi.fn(),
+  mockPrependMessages: vi.fn(),
   mockSetLoginRequired: vi.fn(),
   mockSubscribeToStompRealtimeChannels: vi.fn(),
 }));
@@ -32,7 +36,7 @@ vi.mock('./realtimeAuth', () => ({
 }));
 
 vi.mock('@/lib/api/client', () => ({
-  default: { get: vi.fn().mockResolvedValue({ data: [] }) },
+  default: { get: mockGet },
 }));
 
 vi.mock('./tokenBridge', () => ({
@@ -52,7 +56,7 @@ vi.mock('@/store/useChatStore', () => ({
     (selector: (s: unknown) => unknown) =>
       selector({
         addMessage: vi.fn(),
-        prependMessages: vi.fn(),
+        prependMessages: mockPrependMessages,
         setConnectionStatus: vi.fn(),
         setLoginRequired: mockSetLoginRequired,
       }),
@@ -88,7 +92,10 @@ describe('useStomp — 멤버 토큰 만료 시 STOMP 자동 reconnect 차단', 
     mockConnectWithAuth.mockReset();
     mockDisconnectStomp.mockReset();
     mockEnsureValidRealtimeToken.mockReset();
+    mockGet.mockReset();
+    mockGet.mockResolvedValue({ data: [] });
     mockParseTokenRole.mockReset();
+    mockPrependMessages.mockReset();
     mockSetLoginRequired.mockReset();
     mockSubscribeToStompRealtimeChannels.mockReset();
     mockSubscribeToStompRealtimeChannels.mockReturnValue(vi.fn());
@@ -154,5 +161,40 @@ describe('useStomp — 멤버 토큰 만료 시 STOMP 자동 reconnect 차단', 
     onError(tokenInvalidError);
 
     expect(mockSetLoginRequired).not.toHaveBeenCalled();
+  });
+
+  it('member connection loads recent chat history and prepends it in chronological order', async () => {
+    const member = tokenWithRole('MEMBER');
+    const latest = {
+      id: 'message-2',
+      participantId: 11,
+      senderId: 43,
+      body: 'latest',
+      createdAt: '2026-04-08T12:01:00.000Z',
+    };
+    const older = {
+      id: 'message-1',
+      participantId: 10,
+      senderId: 42,
+      body: 'older',
+      createdAt: '2026-04-08T12:00:00.000Z',
+    };
+    localStorage.setItem('accessToken', member);
+    mockEnsureValidRealtimeToken.mockResolvedValue(member);
+    mockParseTokenRole.mockReturnValue('MEMBER');
+    mockGet.mockResolvedValue({ data: [latest, older] });
+
+    render(<TestHarness />);
+
+    await waitFor(() => {
+      expect(mockConnectWithAuth).toHaveBeenCalled();
+    });
+    const onConnected = mockConnectWithAuth.mock.calls[0][1] as () => void;
+    onConnected();
+
+    await waitFor(() => {
+      expect(mockGet).toHaveBeenCalledWith('/api/v1/chat/messages');
+      expect(mockPrependMessages).toHaveBeenCalledWith([older, latest]);
+    });
   });
 });

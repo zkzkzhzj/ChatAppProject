@@ -58,6 +58,17 @@ function userMessage(): MessageResponse {
   };
 }
 
+function systemMessage(): MessageResponse {
+  return {
+    id: 'system-1',
+    participantId: 0,
+    senderId: null,
+    senderType: 'SYSTEM',
+    body: '이웃이 입장하셨습니다.',
+    createdAt: '2026-04-08T12:00:01.000Z',
+  };
+}
+
 describe('subscribeToStompRealtimeChannels', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -93,6 +104,27 @@ describe('subscribeToStompRealtimeChannels', () => {
     const onMessage = mockSubscribeToChatRoom.mock.calls[0][1] as (msg: MessageResponse) => void;
 
     onMessage(userMessage());
+
+    expect(addMessage).toHaveBeenCalledWith(expectedMessage);
+    expect(mockEmitChatMessage).toHaveBeenCalledWith(expectedMessage);
+  });
+
+  it('preserves system chat messages so they render as system logs', () => {
+    const addMessage = vi.fn();
+    const expectedMessage = {
+      id: 'system-1',
+      participantId: 0,
+      senderId: null,
+      senderType: 'SYSTEM',
+      body: '이웃이 입장하셨습니다.',
+      createdAt: '2026-04-08T12:00:01.000Z',
+    };
+    subscribeToStompRealtimeChannels({
+      addMessage,
+    });
+    const onMessage = mockSubscribeToChatRoom.mock.calls[0][1] as (msg: MessageResponse) => void;
+
+    onMessage(systemMessage());
 
     expect(addMessage).toHaveBeenCalledWith(expectedMessage);
     expect(mockEmitChatMessage).toHaveBeenCalledWith(expectedMessage);

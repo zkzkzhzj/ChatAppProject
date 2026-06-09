@@ -5,7 +5,7 @@
 **<https://ghworld.co>**
 
 누군가의 온기가 필요할 때, 고향에 온 듯한 편안함을 느끼며 대화할 수 있는 **마을**을 제공한다.
-인터랙티브 2D 공간에서 캐릭터가 마을을 돌아다니고, 자기 공간을 꾸미며, 이웃(유저 또는 AI 주민)과 자연스럽게 소통하는 서비스다.
+인터랙티브 3D 공간에서 캐릭터가 마을과 도서관을 오가고, 이웃 유저와 자연스럽게 소통하는 서비스다.
 
 ---
 
@@ -14,8 +14,8 @@
 | 기능 | 설명 | 상태 |
 |------|------|------|
 | 회원가입/로그인 | 이메일 기반 인증 + 게스트 토큰 | ✅ 구현 완료 |
-| 마을 공간 | 인터랙티브 2D 마을 (Phaser.js). 카메라 팔로우, 대각선 이동 | ✅ 구현 완료 |
-| 마을 공개 채팅 | WebSocket(STOMP) 실시간 채팅. 유저/이웃 메시지 구분 | ✅ 구현 완료 |
+| 마을/도서관 공간 | Three.js 기반 3D 마을과 도서관. 캐릭터 이동, 카메라 팔로우, 씬 전환 | ✅ 구현 완료 |
+| 마을 공개 채팅 | WebSocket(STOMP) 실시간 채팅. 유저 메시지와 시스템 메시지 구분 | ✅ 구현 완료 |
 | @멘션 NPC | 일반 채팅에서 제거. 사서 RAG는 별도 트랙에서 설계 | 제거됨 |
 | 실시간 위치 공유 | STOMP 기반 캐릭터 위치 broadcast + 입퇴장 감지 | ✅ 구현 완료 |
 | 타이핑 인디케이터 | 상대방 입력 중 표시 | ✅ 구현 완료 |
@@ -48,15 +48,16 @@
 | Redis 7.2 | 세션/캐시 |
 | Cassandra 4.1 | 채팅 메시지 저장 (write-heavy) |
 | Kafka 3.7 (KRaft) | 도메인 간 비동기 이벤트 + Transactional Outbox |
-| Ollama | 로컬 LLM 서빙 (exaone3.5:7.8b) |
+| LLM | 일반 채팅 자동 응답은 제거됨. 사서 RAG는 후속 트랙 |
 
 ### Frontend
 
 | 항목 | 버전/설명 |
 |------|-----------|
-| Next.js | 16.2.2 (App Router) |
-| React | 19.2.4 |
-| Phaser.js | 3.90.0 (2D 마을 렌더링) |
+| Next.js | 16.2.6 (App Router) |
+| React | 19.2.6 |
+| Three.js | 0.184.x (3D 마을/도서관 렌더링) |
+| Howler.js | ^2.2.4 (환경음 재생) |
 | Tailwind CSS | 4.x (`@theme` 디자인 토큰) |
 | Zustand | 채팅/게임 상태 관리 |
 
@@ -86,7 +87,7 @@ Hexagonal Architecture (Ports & Adapters)
 Controller      →     UseCase               →  JPA Repository
 WebSocket       →     Domain Service        →  Cassandra Repository
 Kafka Consumer  →     Domain Entity         →  Kafka Producer (Outbox)
-                      Port (interface)      →  Ollama LLM API
+                      Port (interface)      →  External service adapter
 ```
 
 ### 도메인 구성
@@ -157,9 +158,9 @@ ChatAppProject/
 ├── frontend/                   # Next.js 클라이언트
 │   ├── src/app/                # App Router 페이지
 │   ├── src/components/chat/    # 채팅 UI 컴포넌트
-│   ├── src/game/               # Phaser 게임 씬
+│   ├── src/three/              # Three.js 씬, 캐릭터, 오디오, 채팅 연동
 │   ├── src/hooks/              # 커스텀 훅
-│   └── src/lib/websocket/      # STOMP 클라이언트
+│   └── src/lib/websocket/      # STOMP/raw WebSocket 클라이언트 facade
 ├── docs/                       # 프로젝트 문서
 │   ├── architecture/           # 아키텍처, ERD, ADR
 │   ├── specs/                  # API/WebSocket/이벤트 명세

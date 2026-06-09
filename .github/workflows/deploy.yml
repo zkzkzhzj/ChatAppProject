@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       force_rebuild:
-        description: "Ignore change detection and rebuild both images"
+        description: "Deprecated; CD now rebuilds both images"
         required: false
         type: boolean
         default: false
@@ -29,53 +29,9 @@ env:
   DEPLOY_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
 jobs:
-  detect-changes:
-    name: Detect changed areas
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-latest
-    outputs:
-      backend: ${{ steps.detect.outputs.backend }}
-      frontend: ${{ steps.detect.outputs.frontend }}
-      deploy: ${{ steps.detect.outputs.deploy }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.DEPLOY_SHA }}
-          fetch-depth: 2
-
-      - name: Detect changed areas
-        id: detect
-        run: |
-          set -euo pipefail
-
-          if git rev-parse HEAD^ >/dev/null 2>&1; then
-            git diff --name-only HEAD^ HEAD > changed-files.txt
-          else
-            git show --pretty="" --name-only HEAD > changed-files.txt
-          fi
-
-          backend=false
-          frontend=false
-          deploy=false
-
-          if grep -Eq '^backend/' changed-files.txt; then
-            backend=true
-          fi
-          if grep -Eq '^frontend/' changed-files.txt; then
-            frontend=true
-          fi
-          if grep -Eq '^(deploy/|\.github/workflows/deploy\.yml$)' changed-files.txt; then
-            deploy=true
-          fi
-
-          echo "backend=$backend" >> "$GITHUB_OUTPUT"
-          echo "frontend=$frontend" >> "$GITHUB_OUTPUT"
-          echo "deploy=$deploy" >> "$GITHUB_OUTPUT"
-
   build-backend:
     name: Build backend image
-    needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.deploy == 'true' || (github.event_name == 'workflow_dispatch' && inputs.force_rebuild)
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -104,8 +60,7 @@ jobs:
 
   build-frontend:
     name: Build frontend image
-    needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.deploy == 'true' || (github.event_name == 'workflow_dispatch' && inputs.force_rebuild)
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -138,16 +93,11 @@ jobs:
 
   deploy:
     name: Deploy to EC2 with SSM
-    needs: [detect-changes, build-backend, build-frontend]
+    needs: [build-backend, build-frontend]
     if: |
       always() &&
-      needs.detect-changes.result == 'success' &&
-      (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
-      (needs.build-frontend.result == 'success' || needs.build-frontend.result == 'skipped') &&
-      (needs.detect-changes.outputs.backend == 'true' ||
-       needs.detect-changes.outputs.frontend == 'true' ||
-       needs.detect-changes.outputs.deploy == 'true' ||
-       (github.event_name == 'workflow_dispatch' && inputs.force_rebuild))
+      needs.build-backend.result == 'success' &&
+      needs.build-frontend.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS credentials with OIDC
@@ -159,16 +109,8 @@ jobs:
       - name: Resolve deploy tags
         id: tags
         run: |
-          if [ "${{ needs.build-backend.result }}" = "success" ]; then
-            echo "app_tag=${{ env.DEPLOY_SHA }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "app_tag=" >> "$GITHUB_OUTPUT"
-          fi
-          if [ "${{ needs.build-frontend.result }}" = "success" ]; then
-            echo "frontend_tag=${{ env.DEPLOY_SHA }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "frontend_tag=" >> "$GITHUB_OUTPUT"
-          fi
+          echo "app_tag=${{ env.DEPLOY_SHA }}" >> "$GITHUB_OUTPUT"
+          echo "frontend_tag=${{ env.DEPLOY_SHA }}" >> "$GITHUB_OUTPUT"
 
       - name: Run deploy command through SSM
         id: ssm

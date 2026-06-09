@@ -67,8 +67,8 @@ stompClient.connect(
 
 ### `/topic/chat/village` — 메시지 수신
 
-유저 메시지와 NPC 응답이 **개별 `MessageResponse`**로 구독자 전체에게 broadcast된다.
-유저 메시지는 전송 즉시, NPC 응답은 비동기 생성 후 별도로 broadcast된다.
+유저 메시지와 SYSTEM 입장/퇴장 알림이 **개별 `MessageResponse`**로 구독자 전체에게 broadcast된다.
+일반 채팅의 NPC 자동 응답은 제거되었으며, 사서 RAG는 별도 후속 트랙에서 다룬다.
 
 **구독 예시 (JavaScript)**
 
@@ -94,25 +94,12 @@ stompClient.subscribe('/topic/chat/village', (message) => {
 }
 ```
 
-NPC 응답 예시 (비동기, 별도 broadcast):
-
-```json
-{
-  "id": "660f9511-f30c-52e5-b827-557766551111",
-  "participantId": 2,
-  "senderId": null,
-  "senderType": "NPC",
-  "body": "어서오세요, 마을에 오신 것을 환영합니다!",
-  "createdAt": "2026-04-08T12:00:00.001Z"
-}
-```
-
 | 필드 | 타입 | 비고 |
 |------|------|------|
 | id | UUID | 메시지 ID (Cassandra) |
 | participantId | Long | 참여자 ID |
-| senderId | Long (nullable) | 유저 메시지: 유저 ID, NPC 메시지: `null` |
-| senderType | String | `"USER"`, `"NPC"`, 또는 `"SYSTEM"` |
+| senderId | Long (nullable) | 유저 메시지: 유저 ID, SYSTEM 메시지: `null` |
+| senderType | String | `"USER"` 또는 `"SYSTEM"` |
 | body | String | 메시지 본문 |
 | createdAt | Instant (ISO 8601 UTC) | 메시지 생성 시각 |
 
@@ -149,13 +136,11 @@ REST POST /api/v1/chat/messages
   → SendMessageUseCase 실행
   → 유저 MessageResponse를 /topic/chat/village로 broadcast (단일 객체)
   → REST 응답으로 SendMessageResponse(userMessage만) 반환
-  → NPC 응답은 @Async 비동기 → 별도 MessageResponse broadcast
 
 STOMP /app/chat/village
   → 동일한 SendMessageUseCase 실행
   → 유저 MessageResponse를 /topic/chat/village로 broadcast (단일 객체)
   → STOMP 응답 없음 (구독 채널로만 수신)
-  → NPC 응답은 @Async 비동기 → 별도 MessageResponse broadcast
 ```
 
 Happy Path Cucumber 테스트는 REST로 수행한다.

@@ -1,36 +1,65 @@
 @import 'tailwindcss';
 
 @theme {
-  /* 마음의 고향 — 따뜻한 안식처 팔레트 */
+  /* 마음의 고향 — 오래 머물 수 있는 안식처 팔레트 */
   --color-cream: #faf6f0;
   --color-warm-white: #f5efe6;
   --color-sand: #e8dcc8;
   --color-bark: #5c4a3a;
   --color-bark-light: #7d6b5a;
   --color-bark-muted: #b0a090;
+  --color-ink: #263238;
+  --color-ink-soft: #40545c;
   --color-leaf: #6a9c5b;
   --color-leaf-dark: #4a7c3b;
+  --color-moss: #516b4b;
   --color-sky: #87ceeb;
+  --color-mist: #d9e8ec;
   --color-sunset: #f4a460;
   --color-hearth: #e07a5f;
   --color-hearth-soft: #f2a58f;
   --color-neighbor: #c4884d;
   --color-bubble-user: #e8dcc8;
   --color-bubble-neighbor: #dde4f0;
+  --color-panel: #fffaf3;
+  --color-panel-strong: #f0eadf;
 
   /* 폰트 */
   --font-sans: var(--font-body), 'Apple SD Gothic Neo', sans-serif;
   --font-display: var(--font-gowun), 'Apple SD Gothic Neo', serif;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html,
 body {
-  background: #faf6f0;
-  color: #5c4a3a;
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(135, 206, 235, 0.16), transparent 26rem),
+    linear-gradient(180deg, #f8f5ee 0%, #eef4ef 58%, #e7efe9 100%);
+  color: #263238;
+  overflow: hidden;
+  text-rendering: optimizeLegibility;
 }
 
 canvas {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
 ::-webkit-scrollbar {

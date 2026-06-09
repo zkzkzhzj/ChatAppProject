@@ -50,33 +50,47 @@ export default function ChatDrawer({ onOpenChange }: ChatDrawerProps) {
         onClick={() => {
           setOpen((v) => !v);
         }}
-        aria-label="채팅 내역 토글"
-        className="fixed right-4 bottom-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-leaf/90 text-cream shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
+        aria-label={open ? '채팅 내역 닫기' : '채팅 내역 열기'}
+        className="fixed right-4 bottom-4 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-cream/70 bg-ink/90 text-cream shadow-lg backdrop-blur-sm transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-mist"
       >
-        <span className="text-xl">💬</span>
+        <span className="text-sm font-semibold">{open ? '닫기' : '대화'}</span>
       </button>
 
+      {open && (
+        <button
+          type="button"
+          aria-label="채팅 내역 닫기"
+          onClick={() => {
+            setOpen(false);
+          }}
+          className="fixed inset-0 z-20 cursor-default bg-ink/18 backdrop-blur-[1px] md:hidden"
+        />
+      )}
+
       <aside
-        className="fixed right-0 top-0 z-30 flex h-full flex-col border-l border-sand/50 bg-cream/95 px-3 py-4 shadow-xl backdrop-blur-md transition-transform duration-300 ease-in-out"
+        className="fixed right-0 top-0 z-30 flex h-full max-w-[100vw] flex-col border-l border-sand/60 bg-panel/96 px-3 py-4 shadow-2xl backdrop-blur-md transition-transform duration-300 ease-in-out"
         style={{
-          width: DRAWER_WIDTH,
+          width: `min(100vw, ${String(DRAWER_WIDTH)}px)`,
           transform: open ? 'translateX(0)' : `translateX(${String(DRAWER_WIDTH)}px)`,
         }}
       >
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="font-display text-lg text-bark">대화 내역</h2>
+        <div className="mb-3 flex items-center justify-between border-b border-sand/60 pb-3">
+          <div>
+            <h2 className="font-display text-lg text-ink">마을 대화</h2>
+            <p className="text-xs text-ink-soft">이웃과 남긴 말들이 모입니다</p>
+          </div>
           <button
             type="button"
             onClick={() => {
               setOpen(false);
             }}
             aria-label="닫기"
-            className="text-bark-muted hover:text-bark"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-sand/70 text-sm font-semibold text-ink-soft hover:bg-panel-strong hover:text-ink"
           >
             ✕
           </button>
         </div>
-        <div className="flex-1 overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-hidden">
           <ChatMessageList height={drawerHeight} onResizeStart={() => undefined} />
         </div>
       </aside>

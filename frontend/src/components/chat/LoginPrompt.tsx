@@ -59,10 +59,15 @@ export default function LoginPrompt({ onClose }: LoginPromptProps) {
   };
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="w-80 rounded-3xl border-2 border-sand bg-cream p-6 shadow-xl">
-        <h2 className="mb-1 font-display text-lg font-semibold text-bark">마을에 들어가기</h2>
-        <p className="mb-4 text-xs text-bark-muted">처음이면 자동으로 가입돼요</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/35 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-[360px] rounded border border-sand/70 bg-panel p-5 shadow-2xl">
+        <div className="mb-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">ghworld</p>
+          <h2 className="mt-1 font-display text-xl font-semibold text-ink">마을에 들어가기</h2>
+          <p className="mt-2 text-sm leading-5 text-ink-soft">
+            처음 방문했다면 같은 정보로 계정을 만들고 바로 입장합니다.
+          </p>
+        </div>
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-3">
           <input
             type="email"
@@ -73,7 +78,7 @@ export default function LoginPrompt({ onClose }: LoginPromptProps) {
             placeholder="이메일"
             required
             autoFocus
-            className="rounded-xl border-[1.5px] border-sand bg-warm-white px-3 py-2.5 text-sm text-bark outline-none transition-all focus:border-leaf/40"
+            className="rounded border-[1.5px] border-sand bg-warm-white px-3 py-2.5 text-sm text-ink outline-none transition-all focus:border-moss/60 focus:ring-2 focus:ring-mist"
           />
           <input
             type="password"
@@ -84,20 +89,20 @@ export default function LoginPrompt({ onClose }: LoginPromptProps) {
             placeholder="비밀번호"
             required
             minLength={8}
-            className="rounded-xl border-[1.5px] border-sand bg-warm-white px-3 py-2.5 text-sm text-bark outline-none transition-all focus:border-leaf/40"
+            className="rounded border-[1.5px] border-sand bg-warm-white px-3 py-2.5 text-sm text-ink outline-none transition-all focus:border-moss/60 focus:ring-2 focus:ring-mist"
           />
           {error && <p className="text-xs text-hearth">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="rounded-xl bg-leaf py-2.5 font-display text-sm font-medium text-cream transition-all hover:bg-leaf-dark disabled:opacity-50"
+            className="rounded bg-ink py-2.5 text-sm font-semibold text-cream transition-all hover:bg-moss disabled:opacity-50"
           >
             {loading ? '들어가는 중...' : '마을 들어가기'}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-bark-muted transition-colors hover:text-bark"
+            className="text-sm text-ink-soft transition-colors hover:text-ink"
           >
             나중에 할게요
           </button>

@@ -25,7 +25,7 @@ describe('ChatDrawer', () => {
 
     render(<ChatDrawer onOpenChange={onOpenChange} />);
 
-    await user.click(screen.getByRole('button', { name: '채팅 내역 토글' }));
+    await user.click(screen.getByRole('button', { name: '채팅 내역 열기' }));
     expect(onOpenChange).toHaveBeenLastCalledWith(true);
 
     await user.click(screen.getByRole('button', { name: '닫기' }));

@@ -135,10 +135,11 @@ export default function LibraryOverlay() {
 
   if (entryBlocked) {
     return (
-      <div className="fixed inset-x-4 bottom-20 z-40 mx-auto w-[min(92vw,420px)] rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl">
-        <h2 className="font-display text-lg">사서방은 로그인 후 이용할 수 있어요</h2>
-        <p className="mt-2 text-sm leading-6 text-bark-muted">
-          남긴 마음과 답장을 안전하게 보관하기 위해 로그인이 필요합니다.
+      <div className="fixed inset-x-4 bottom-20 z-40 mx-auto w-[min(92vw,420px)] rounded border border-sand/70 bg-panel/96 p-4 text-ink shadow-2xl backdrop-blur-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">Library</p>
+        <h2 className="mt-1 font-display text-lg">사서방은 로그인이 필요합니다</h2>
+        <p className="mt-2 text-sm leading-6 text-ink-soft">
+          남긴 마음과 도착한 답장을 안전하게 보관하기 위해 회원 입장만 허용합니다.
         </p>
         <div className="mt-4 flex justify-end gap-2">
           <button
@@ -146,7 +147,7 @@ export default function LibraryOverlay() {
             onClick={() => {
               setEntryBlocked(false);
             }}
-            className="rounded border border-sand px-3 py-2 text-sm font-semibold text-bark"
+            className="rounded border border-sand px-3 py-2 text-sm font-semibold text-ink"
           >
             {LIBRARY_LABELS.close}
           </button>
@@ -155,9 +156,9 @@ export default function LibraryOverlay() {
             onClick={() => {
               setLoginRequired(true);
             }}
-            className="rounded bg-bark px-3 py-2 text-sm font-semibold text-cream"
+            className="rounded bg-ink px-3 py-2 text-sm font-semibold text-cream"
           >
-            로그인하기
+            로그인
           </button>
         </div>
       </div>

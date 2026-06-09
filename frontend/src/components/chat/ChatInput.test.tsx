@@ -44,7 +44,7 @@ describe('ChatInput', () => {
 
   it('does not send while IME is composing', () => {
     render(<ChatInput onLoginRequired={vi.fn()} />);
-    const input = screen.getByPlaceholderText('Enter로 전송');
+    const input = screen.getByPlaceholderText('마을에 남길 말을 입력하세요');
     fireEvent.change(input, { target: { value: '안녕' } });
 
     fireEvent.keyDown(input, { key: 'Enter', isComposing: true });
@@ -54,7 +54,7 @@ describe('ChatInput', () => {
 
   it('sends a normal message after composition ends', () => {
     render(<ChatInput onLoginRequired={vi.fn()} />);
-    const input = screen.getByPlaceholderText('Enter로 전송');
+    const input = screen.getByPlaceholderText('마을에 남길 말을 입력하세요');
     fireEvent.change(input, { target: { value: '안녕하세요' } });
 
     fireEvent.keyDown(input, { key: 'Enter', isComposing: false });
@@ -66,7 +66,7 @@ describe('ChatInput', () => {
   it('shows a plain connected member placeholder', () => {
     render(<ChatInput onLoginRequired={vi.fn()} />);
 
-    expect(screen.getByPlaceholderText('Enter로 전송')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('마을에 남길 말을 입력하세요')).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/@/)).not.toBeInTheDocument();
   });
 
@@ -75,7 +75,7 @@ describe('ChatInput', () => {
 
     render(<ChatInput onLoginRequired={vi.fn()} />);
 
-    expect(screen.getByPlaceholderText('마을에 연결 중...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('마을에 연결 중입니다')).toBeInTheDocument();
   });
 
   it('guest click opens login prompt', () => {
@@ -110,7 +110,7 @@ describe('ChatInput', () => {
     const onLoginRequired = vi.fn();
 
     render(<ChatInput onLoginRequired={onLoginRequired} />);
-    const input = screen.getByPlaceholderText('연결이 끊겼어요. 다시 로그인해 주세요.');
+    const input = screen.getByPlaceholderText('로그인하면 대화할 수 있어요');
     fireEvent.click(input);
 
     expect(onLoginRequired).toHaveBeenCalled();

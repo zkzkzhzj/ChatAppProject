@@ -92,12 +92,12 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
     connectionStatus === 'error'
       ? hasToken
         ? '연결이 끊겼어요. 잠시 후 다시 시도합니다.'
-        : '연결이 끊겼어요. 다시 로그인해 주세요.'
+        : '로그인하면 대화할 수 있어요'
       : connected
         ? hasToken
-          ? 'Enter로 전송'
+          ? '마을에 남길 말을 입력하세요'
           : '로그인하면 대화할 수 있어요'
-        : '마을에 연결 중...';
+        : '마을에 연결 중입니다';
 
   const handleGuestClick = () => {
     if (!hasToken) {
@@ -137,8 +137,9 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
           emitMyTypingUpdate(false);
           sendTypingStatus(false);
         }}
+        aria-label="마을 대화 입력"
         placeholder={placeholder}
-        className="w-full rounded-2xl border-[1.5px] border-sand/50 bg-cream/92 px-4 py-2.5 text-sm text-bark outline-none backdrop-blur-sm transition-all focus:border-leaf/40"
+        className="w-full rounded-full border-[1.5px] border-sand/70 bg-panel/96 px-4 py-3 text-sm text-ink shadow-lg outline-none backdrop-blur-sm transition-all placeholder:text-ink-soft/70 focus:border-moss/60 focus:ring-2 focus:ring-mist"
         maxLength={1000}
       />
     </div>

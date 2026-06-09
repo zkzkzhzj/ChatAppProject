@@ -576,9 +576,9 @@ describe('LibraryOverlay composition', () => {
       emitLibraryEntryBlocked();
     });
 
-    expect(await screen.findByText(/사서방은 로그인 후 이용할 수 있어요/)).toBeInTheDocument();
+    expect(await screen.findByText(/사서방은 로그인이 필요합니다/)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '로그인하기' }));
+    await user.click(screen.getByRole('button', { name: '로그인' }));
 
     expect(setLoginRequired).toHaveBeenCalledWith(true);
   });

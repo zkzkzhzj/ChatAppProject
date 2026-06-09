@@ -48,18 +48,16 @@ export default function WelcomeOverlay() {
       style={{
         opacity,
         transitionDuration: `${String(FADE_DURATION_MS)}ms`,
-        backgroundColor: 'rgba(250, 246, 240, 0.92)',
+        background: 'linear-gradient(180deg, rgba(250,246,240,0.96), rgba(225,238,231,0.94))',
       }}
     >
       <div className="text-center">
-        <p
-          className="font-display text-2xl"
-          style={{ color: 'var(--color-bark)', letterSpacing: '0.02em' }}
-        >
-          ghworld에 오신 것을 환영합니다
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-moss">ghworld</p>
+        <p className="font-display text-2xl" style={{ color: 'var(--color-ink)' }}>
+          마음을 잠시 내려놓는 마을
         </p>
-        <p className="mt-3 text-sm" style={{ color: 'var(--color-bark-light)' }}>
-          말 안 해도 괜찮아요. 천천히 머무세요.
+        <p className="mt-3 text-sm" style={{ color: 'var(--color-ink-soft)' }}>
+          말하지 않아도 괜찮아요. 천천히 둘러보세요.
         </p>
       </div>
     </div>

@@ -19,13 +19,13 @@ function resolveSender(message: ChatMessage, myUserId: number | null) {
     return {
       isMine: true,
       name: '나',
-      nameClass: 'text-bark-light',
+      nameClass: 'text-moss',
       bubbleClass: 'bg-bubble-user',
     };
   return {
     isMine: false,
     name: '이웃',
-    nameClass: 'text-neighbor',
+    nameClass: 'text-ink-soft',
     bubbleClass: 'bg-bubble-neighbor',
   };
 }
@@ -34,7 +34,7 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
   if (message.senderType === 'SYSTEM') {
     return (
       <div className="mb-2 flex justify-center">
-        <span className="rounded-full bg-sand/30 px-3 py-1 text-[11px] text-bark-muted">
+        <span className="rounded-full bg-mist/70 px-3 py-1 text-[11px] text-ink-soft">
           {message.body}
         </span>
       </div>
@@ -48,13 +48,13 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
     <div className={`mb-2 flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
       <span className={`mb-0.5 text-[11px] font-medium ${nameClass}`}>{name}</span>
       <div
-        className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed text-bark ${bubbleClass} ${
+        className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed text-ink shadow-sm ${bubbleClass} ${
           isMine ? 'rounded-br-sm' : 'rounded-bl-sm'
         }`}
       >
         {message.body}
       </div>
-      <span className="mt-0.5 text-[10px] text-bark-muted">{formatTime(message.createdAt)}</span>
+      <span className="mt-0.5 text-[10px] text-ink-soft">{formatTime(message.createdAt)}</span>
     </div>
   );
 }

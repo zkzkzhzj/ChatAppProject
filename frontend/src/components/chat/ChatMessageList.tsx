@@ -23,10 +23,8 @@ export default function ChatMessageList({ height, onResizeStart }: ChatMessageLi
     }
   }, [messages.length]);
 
-  if (messages.length === 0) return null;
-
   return (
-    <div className="pointer-events-auto mb-2 flex flex-col">
+    <div className="pointer-events-auto mb-2 flex h-full flex-col">
       <div
         onMouseDown={onResizeStart}
         className="flex h-4 cursor-ns-resize items-center justify-center"
@@ -35,12 +33,19 @@ export default function ChatMessageList({ height, onResizeStart }: ChatMessageLi
       </div>
       <div
         ref={scrollRef}
-        className="overflow-y-auto rounded-2xl bg-cream/88 px-3 py-2 backdrop-blur-sm"
+        className="min-h-0 flex-1 overflow-y-auto rounded bg-panel/92 px-3 py-2 shadow-inner backdrop-blur-sm"
         style={{ maxHeight: height }}
       >
-        {messages.map((msg) => (
-          <ChatBubble key={msg.id} message={msg} />
-        ))}
+        {messages.length === 0 ? (
+          <div className="flex h-full min-h-60 flex-col items-center justify-center text-center">
+            <p className="font-display text-base text-ink">아직 대화가 없습니다</p>
+            <p className="mt-2 max-w-56 text-xs leading-5 text-ink-soft">
+              Enter를 눌러 마을에 말을 남기면 이곳에 기록됩니다.
+            </p>
+          </div>
+        ) : (
+          messages.map((msg) => <ChatBubble key={msg.id} message={msg} />)
+        )}
       </div>
     </div>
   );

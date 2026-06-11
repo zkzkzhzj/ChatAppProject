@@ -149,7 +149,9 @@ function getSpecPath(cwd, trackId) {
   if (!fs.existsSync(trackFile)) return null;
   const content = fs.readFileSync(trackFile, "utf-8");
   const match = content.match(/^>\s*Spec:\s*(?:\[)?(docs\/[^\s\]\)]+\.md)/m);
-  if (match && fs.existsSync(path.join(cwd, match[1]))) return match[1];
+  // 상위 디렉토리 탐색 차단 — docs/ 하위 경로만 허용
+  const spec = match && !match[1].includes("..") ? path.normalize(match[1]).replace(/\\/g, "/") : null;
+  if (spec && spec.startsWith("docs/") && fs.existsSync(path.join(cwd, spec))) return spec;
   // 추측: features/{trackId}.md
   const guess = `docs/specs/features/${trackId}.md`;
   if (fs.existsSync(path.join(cwd, guess))) return guess;

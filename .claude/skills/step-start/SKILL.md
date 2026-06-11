@@ -97,6 +97,7 @@ gh issue comment {N} --body "Step {N} 완료. PR 생성 예정."
 ### 10단계 — 커밋 + PR (1 티켓 = 1 PR — git.md §4)
 
 step 완료는 **커밋**으로 남긴다 (1 작업 = 1 커밋). PR 은 티켓의 마지막 step 에서만 생성한다.
+마지막 step 판단: spec 파일 §5 tasks 의 총 step 수 == 현재 step 번호. 불일치하면 중간 step 으로 취급한다.
 
 - 중간 step: 커밋만 남기고 11단계 완료 보고로 이동
 - 티켓 마지막 step: pr-agent 호출. 6게이트 (review / full-review / concurrency / security / test-quality / docs) 자동 실행

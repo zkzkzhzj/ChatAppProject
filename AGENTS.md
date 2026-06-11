@@ -37,12 +37,17 @@ version: 2.0.0
 
 상세 기술·운영 맥락은 다음 순서로 읽는다.
 
-1. `docs/harness/README.md` — 모델 중립 하네스 SSoT
-2. `docs/harness/agent-orchestration.md` — 메인 AI + 서브 에이전트 운영 구조
-3. `docs/harness/context-window.md` — 슬라이딩 윈도우 컨텍스트 규칙
-4. `docs/harness/critic-gates.md` — Codex/Claude 교차 검증 게이트
-5. `docs/harness/superpowers-adoption.md` — Superpowers식 스킬 트리거 도입 기준
-6. `docs/knowledge/INDEX.md` — AI Native 지식 베이스
+1. `docs/handover/INDEX.md` — 활성 트랙과 현재 작업 상태 (가장 먼저)
+2. `docs/harness/README.md` — 모델 중립 하네스 SSoT
+3. `docs/harness/agent-orchestration.md` — 메인 AI + 서브 에이전트 운영 구조
+4. `docs/harness/context-window.md` — 슬라이딩 윈도우 컨텍스트 규칙
+5. `docs/harness/critic-gates.md` — Codex/Claude 교차 검증 게이트
+6. `docs/harness/superpowers-adoption.md` — Superpowers식 스킬 트리거 도입 기준
+7. `docs/knowledge/INDEX.md` — AI Native 지식 베이스
+
+git/PR 정책은 `docs/conventions/git.md`를 따른다 — **1 티켓 = 1 PR, 1 작업 = 1 커밋**
+(step은 PR 단위가 아니라 커밋 단위, `spec-driven.md` §2.2). 트랙 종료 시
+`docs/handover/INDEX.md` 활성 표와 트랙 파일 상태를 같은 PR에서 갱신한다.
 
 ---
 

@@ -139,15 +139,19 @@ function getWikiAgeDays(cwd) {
 }
 
 /**
- * spec 파일 경로 추측 — `docs/specs/features/{trackId}.md` 또는 다른 이름일 수 있음.
- * 트랙 파일 메타데이터 (`Spec:` 줄) 에서 추출 시도. 없으면 "(없음)".
+ * spec 파일 경로 추측 — 트랙 파일 메타데이터 (`Spec:` 줄) 에서 추출 시도.
+ * 정본 위치는 `docs/specs/features/{feature}.md` 지만, Codex superpowers 흐름의
+ * 설계 문서 (`docs/superpowers/specs/...`) 를 Spec 으로 링크한 트랙도 있으므로
+ * `docs/` 하위 임의 경로를 허용한다. 없으면 features/{trackId}.md 추측 후 "(없음)".
  */
 function getSpecPath(cwd, trackId) {
   const trackFile = path.join(cwd, "docs", "handover", `track-${trackId}.md`);
   if (!fs.existsSync(trackFile)) return null;
   const content = fs.readFileSync(trackFile, "utf-8");
-  const match = content.match(/^>\s*Spec:\s*(?:\[)?(docs\/specs\/features\/[^\s\]\)]+)/m);
-  if (match && fs.existsSync(path.join(cwd, match[1]))) return match[1];
+  const match = content.match(/^>\s*Spec:\s*(?:\[)?(docs\/[^\s\]\)]+\.md)/m);
+  // 상위 디렉토리 탐색 차단 — docs/ 하위 경로만 허용
+  const spec = match && !match[1].includes("..") ? path.normalize(match[1]).replace(/\\/g, "/") : null;
+  if (spec && spec.startsWith("docs/") && fs.existsSync(path.join(cwd, spec))) return spec;
   // 추측: features/{trackId}.md
   const guess = `docs/specs/features/${trackId}.md`;
   if (fs.existsSync(path.join(cwd, guess))) return guess;

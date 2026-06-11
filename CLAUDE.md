@@ -102,7 +102,7 @@ XML 태그 (Anthropic 공식 prompt engineering 패턴 — [`use-xml-tags`](http
 > **Spec-driven 4층 분리 모델** (트랙 `harness-spec-driven` C2 도입, 2026-04-30): Issue → Spec → Track → Step. 각 층의 시제·역할이 다르다 (상세: [`docs/conventions/spec-driven.md`](./docs/conventions/spec-driven.md)). 본 §5 사이클의 보강 3축:
 >
 > 1. Phase A 의 "요구사항 확인" 에 **Spec 파일 작성** (`docs/specs/features/{feature}.md`, [`_template.md`](./docs/specs/features/_template.md)) 이 포함된다. spec 의 `decisions` 4축 (왜·대안·빈틈·재검토) 미리 채우면 Comprehension Gate 자동 통과
-> 2. Phase B 의 "단계 N 구현" 은 **1 step = 1 PR (엄격, [`git.md`](./docs/conventions/git.md) §4)**. 한 PR 에 여러 step 섞지 않으며, 한 step 이 여러 PR 로 쪼개지지 않음. 메타·도구 트랙만 1 PR · N 커밋 예외
+> 2. Phase B 의 "단계 N 구현" 은 **1 티켓 = 1 PR · 1 작업(step) = 1 커밋** ([`git.md`](./docs/conventions/git.md) §4 / [`spec-driven.md`](./docs/conventions/spec-driven.md) §2.2, 2026-05-30 교정 — 구 "1 step = 1 PR" 정책 대체). step 은 PR 단위가 아니라 커밋 가능한 작업 단위다. 한 PR 안에 여러 step 커밋이 들어갈 수 있고, 이미 시작한 티켓을 임의로 여러 PR 로 나누지 않는다
 > 3. Phase C 의 "완료 보고" 는 **`/track-end` 자동화** (P3 산출물) — Acceptance Criteria 검증 + wiki 영향 분석 ([`wiki-policy.md`](./docs/conventions/wiki-policy.md) §2.1) + handover 정합 + RESERVED 닫기 + learning 노트 작성
 > 4. **컨텍스트 관리 — 60% 시점 proactive compaction** (트랙 `ai-native-2026-05-upgrade` D1, 2026-05-17 도입). Opus 4.7 1M 컨텍스트 시대에도 lost-in-the-middle 발생. autocompact 기다리지 말고 **컨텍스트 사용량 60% 시점에 `/compact` 자동 발동**. 큰 sub-agent 출격 / 백그라운드 결과 dump 직후가 trigger 가장 적합. sweep v1 §D.1 / sweep v2 §D.2 직접 출처.
 
@@ -138,7 +138,7 @@ XML 태그 (Anthropic 공식 prompt engineering 패턴 — [`use-xml-tags`](http
 ```text
 각 단계마다:
 
-4. 단계 N 구현 (1 step = 1 PR — 엄격)
+4. 단계 N 구현 (1 작업 = 1 커밋, PR 은 티켓 단위 — git.md §4)
    → 도메인 설계 (Entity, VO, Domain Service)
    → Port 정의 (in/out)
    → 구현 + 테스트 작성
@@ -149,7 +149,7 @@ XML 태그 (Anthropic 공식 prompt engineering 패턴 — [`use-xml-tags`](http
        · Tier C 왜·대안·빈틈 3축 — 카테고리 #5~#13 또는 spec.decisions 신규
        · 복수 매칭 시 최종 Tier = 가장 높은 (C > B > A)
        · spec.decisions 4축 미리 채움 → "이미 답했음" 자동 통과 (`comprehension-gate.md` §7.1)
-   → 단계 완료 보고 → 🔒 사용자 확인 후 PR 생성 + 다음 단계
+   → 단계 완료 보고 → 🔒 사용자 확인 후 커밋 + 다음 단계 (티켓 마지막 단계면 PR 생성)
 
 5. 동시성 및 성능 검토 (해당 단계에 상태 변경이 있을 때)
    → 상태 변경 로직에 동시 요청이 들어오면 어떻게 되는가?

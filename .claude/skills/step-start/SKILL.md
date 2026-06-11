@@ -37,7 +37,7 @@
 ### 4단계 — 구현
 
 - 도메인 → 어댑터 → 테스트 (CLAUDE.md §5.1 Phase B)
-- **1 step = 1 PR 원칙**: 다른 step 영역 침범 금지 (`git.md` §4)
+- **1 작업 = 1 커밋 원칙**: 다른 step 영역 침범 금지. PR 은 step 이 아니라 티켓 단위 (`git.md` §4, 2026-05-30 교정)
 
 ### 5단계 — 자동 fix-loop (테스트)
 
@@ -94,19 +94,22 @@ git diff ${STEP_START_COMMIT}..HEAD -- 'docs/specs/features/*.md'
 gh issue comment {N} --body "Step {N} 완료. PR 생성 예정."
 ```
 
-### 10단계 — PR 생성 (1 step = 1 PR 강제)
+### 10단계 — 커밋 + PR (1 티켓 = 1 PR — git.md §4)
 
-pr-agent 호출. 6게이트 (review / full-review / concurrency / security / test-quality / docs) 자동 실행.
+step 완료는 **커밋**으로 남긴다 (1 작업 = 1 커밋). PR 은 티켓의 마지막 step 에서만 생성한다.
+마지막 step 판단: spec 파일 §5 tasks 의 총 step 수 == 현재 step 번호. 불일치하면 중간 step 으로 취급한다.
 
-- 게이트 실패 → 자체 수정 → 재게이트 (한도 2회)
-- 한도 초과 → escalation
-- 통과 → 🔒 사용자 머지 요청 보고 (push 는 pr-agent 가 사용자 명시 동의 후만)
+- 중간 step: 커밋만 남기고 11단계 완료 보고로 이동
+- 티켓 마지막 step: pr-agent 호출. 6게이트 (review / full-review / concurrency / security / test-quality / docs) 자동 실행
+  - 게이트 실패 → 자체 수정 → 재게이트 (한도 2회)
+  - 한도 초과 → escalation
+  - 통과 → 🔒 사용자 머지 요청 보고 (push 는 pr-agent 가 사용자 명시 동의 후만)
 
 ### 11단계 — 완료 보고
 
 다음을 1 화면에 정리:
 
-- step N 완료, PR URL, 6게이트 결과 (CRITICAL/HIGH/MEDIUM 카운트)
+- step N 완료, 커밋 hash (티켓 마지막 step 이면 PR URL + 6게이트 결과 — CRITICAL/HIGH/MEDIUM 카운트)
 - Comprehension Gate 통과 형태 (Tier A 침묵 / Tier B 답변 1개 / Tier C 답변 3개 / [c] 스킵)
 - 답변 누적 경로 + learning 후보 (있으면)
 - 다음 행동: `/step-start {N+1}` 또는 `/track-end` (마지막 step 시)
@@ -131,7 +134,7 @@ pr-agent 호출. 6게이트 (review / full-review / concurrency / security / tes
 
 ## 관련 문서
 
-- `docs/conventions/spec-driven.md` §2.2 (1 step = 1 PR)
+- `docs/conventions/spec-driven.md` §2.2 (1 티켓 = 1 PR · 1 작업 = 1 커밋)
 - `docs/conventions/comprehension-gate.md` (13 카테고리 / Tier 시스템)
 - `CLAUDE.md` §5.1 Phase B (단계 N 구현)
 - `.claude/agents/pr-agent.md` (6게이트)

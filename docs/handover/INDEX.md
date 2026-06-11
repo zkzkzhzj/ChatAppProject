@@ -12,9 +12,9 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
-| `realtime-infra-reset` | [track-realtime-infra-reset.md](./track-realtime-infra-reset.md) | STOMP 운영 경로 + `/ws/v2` raw WebSocket + Redis Pub/Sub 현재 상태 감사와 전환 재설계 | 🔧 Step 0 Audit 진행 | #127 | 2026-06-06 |
+| — | — | (활성 트랙 없음) | — | — | — |
 
-> 기존 `ws-redis` Step 3~7 이슈는 하네스 정비 전 계획이라 폐기했다. 현재는 `realtime-infra-reset`에서 STOMP 운영 경로와 raw WS V2 실험 경로를 감사한 뒤 새 전환 계획을 세운다.
+> 기존 `ws-redis` Step 3~7 이슈는 하네스 정비 전 계획이라 폐기했다. 후속 실시간 인프라 의제는 `realtime-infra-reset` 종료 시점의 잔여 리스크(ADR-010 STOMP 제거 조건)를 기준으로 새 트랙을 연다.
 
 ## 완료 트랙 (Recently Closed)
 
@@ -22,6 +22,7 @@
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
+| `realtime-infra-reset` | [87 (STOMP 유지 + raw WS 컷오버 조건 — ADR-010)](../learning/87-stomp-retention-raw-ws-cutover-conditions.md) · [ADR-010](../architecture/decisions/010-realtime-stomp-retention-and-raw-ws-cutover.md) | 2026-06-11 | #128 (audit·step 작업) + 후속 안정화 #132~#138 |
 | `s3-media` | [51 (R2 vs S3 + CloudFront + OAC 설계 결정)](../learning/51-s3-vs-r2-cloudfront-oac-decision.md) · [52 (frontend 자산 외부화 패턴 — NEXT_PUBLIC env + 무중단 마이그)](../learning/52-frontend-asset-externalization-pattern.md) | 2026-05-20 | #96 (Step 1) · #102 (Step 2) · #103 (Step 5) |
 | `ai-native-2026-05-upgrade` | [83 (트랙 ⓒ 회고 — sweep 2축 + 즉시 도입 3종 + MCP baseline)](../learning/83-ai-native-2026-05-upgrade-trial.md) | 2026-05-17 | PR #94 |
 | `ctx-refresh-post-village-3d` | [79 (컨텍스트 노화 사이클 메타 학습)](../learning/79-context-refresh-cycle-meta-learning.md) | 2026-05-16 | (PR #91) |
@@ -35,7 +36,7 @@
 
 > 완료된 트랙의 `track-*.md`는 학습노트로 결정 이력이 충분히 옮겨졌고 후속 트랙이 더 이상 참조하지 않을 때 삭제한다. 후속 의제로 살아있는 트랙 (예: `realtime-infra-reset`, `token-auto-renewal` 재개) 은 종료 표시 후 보존한다. 메인 `handover.md` §2 "전체 완료 요약" 표에는 머지 시점 한 줄 등록 (보존 여부와 무관).
 >
-> **현재 잔존 트랙 파일** (2026-06-06 시점): `track-realtime-infra-reset.md` (Step 0 Audit 진행) · `track-ws-redis.md` (Step 3~7 폐기 후 과거 결정 이력으로 보존) · `track-token-auto-renewal.md` (재개 대기) · `track-village-3d.md` · `track-village-design-mvp.md` · `track-harness-spec-driven.md` · `track-infra-tls-hardening.md` · `track-ghost-session.md` — 후속 트랙 의제 정리되면 일괄 삭제 (별도 트랙).
+> **현재 잔존 트랙 파일** (2026-06-11 시점): `track-realtime-infra-reset.md` (✅ 종료 — ADR-010 잔여 리스크가 후속 트랙 의제로 살아있어 보존) · `track-ws-redis.md` (Step 3~7 폐기 후 과거 결정 이력으로 보존) · `track-token-auto-renewal.md` (재개 대기) · `track-village-3d.md` · `track-village-design-mvp.md` · `track-harness-spec-driven.md` · `track-infra-tls-hardening.md` · `track-ghost-session.md` — 후속 트랙 의제 정리되면 일괄 삭제 (별도 트랙).
 
 ---
 

@@ -1,5 +1,8 @@
-# Track: realtime-infra-reset
+# Track: realtime-infra-reset — ✅ 종료 (2026-06-11)
 
+> 종료 시점 결정: [ADR-010](../architecture/decisions/010-realtime-stomp-retention-and-raw-ws-cutover.md) — STOMP 유지 + raw WS 옵트인. 잔여 리스크는 §6 보류 메모 참조 (후속 트랙 의제).
+> 학습노트: [87 (STOMP 유지 + raw WS 컷오버 조건)](../learning/87-stomp-retention-raw-ws-cutover-conditions.md)
+>
 > 작업 영역: `backend/src/main/java/com/maeum/gohyang/global/config/`, `backend/src/main/java/com/maeum/gohyang/communication/adapter/in/websocket/`, `backend/src/main/java/com/maeum/gohyang/communication/adapter/out/messaging/redis/`, `frontend/src/lib/websocket/`, `deploy/`, `docs/specs/`
 > 시작일: 2026-06-06
 > Issue: #127
@@ -16,12 +19,12 @@
 
 ## 0.5 Acceptance Criteria
 
-- [ ] 기존 GitHub 이슈 #31~#35가 폐기 코멘트와 함께 close 된다.
-- [ ] STOMP 운영 경로와 raw WS V2 스파이크 경로가 감사 문서에서 분리된다.
-- [ ] Redis 설정과 V2 구현의 보존 후보/검증 부족 항목이 표로 정리된다.
-- [ ] 프론트 `useStomp` 책임이 기능 단위로 분리되어 다음 리팩터 범위가 명확해진다.
-- [ ] 운영 STOMP 명세와 raw WS 후보 명세가 분리된다.
-- [ ] 다음 구현 Step을 `Frontend Client Split`으로 할지, `Redis/V2 Stabilize`로 할지 결정 가능하다.
+- [x] 기존 GitHub 이슈 #31~#35가 폐기 코멘트와 함께 close 된다. (Step 0)
+- [x] STOMP 운영 경로와 raw WS V2 스파이크 경로가 감사 문서에서 분리된다. (Step 0)
+- [x] Redis 설정과 V2 구현의 보존 후보/검증 부족 항목이 표로 정리된다. (Step 0·1)
+- [x] 프론트 `useStomp` 책임이 기능 단위로 분리되어 다음 리팩터 범위가 명확해진다. (Step 2 — realtimeAuth / stompRealtimeSubscriptions 분리)
+- [x] 운영 STOMP 명세와 raw WS 후보 명세가 분리된다. (`docs/specs/websocket.md` / `websocket-raw-v2-draft.md`)
+- [x] 다음 구현 Step을 `Frontend Client Split`으로 할지, `Redis/V2 Stabilize`로 할지 결정 가능하다. (둘 다 수행 — Step 1·2, 이후 Step 3~6으로 확장)
 
 ---
 
@@ -152,8 +155,11 @@ Load Test + ADR 완료:
 
 ---
 
-## 6. 보류 메모
+## 6. 보류 메모 (→ 후속 트랙 의제, ADR-010 STOMP 제거 조건과 1:1)
 
-- WS 서버 별도 컨테이너 분리는 이번 트랙의 즉시 목표가 아니다.
+- WS 서버 별도 컨테이너 분리는 이번 트랙의 즉시 목표가 아니다. 재검토 트리거는 ADR-010 §서버 분리 판단 참조.
 - Gradle 멀티모듈 분리는 raw WS 전환 성공 뒤 별도 판단한다.
-- 메일 알림(`/user/queue/mail`)은 raw WS 1차 전환 범위에서 제외할 수 있다.
+- 메일 알림(`/user/queue/mail`)은 raw WS 1차 전환 범위에서 제외할 수 있다 — STOMP 제거 전 별도 결정 필요 (ADR-010 §메일 알림 선택지).
+- NPC 응답 broadcast 의 raw WS 대체는 application port 재설계 선호, STOMP 제거 직전 단계로 보류.
+- k6 raw V2 시나리오(`loadtest/raw-v2-mixed.js`)는 하네스만 준비됨 — dev/staging 대상 실측 미실행 (`loadtest/tokens.json` 필요).
+- `/ws/v2` reverse proxy upgrade 검증 + `NEXT_PUBLIC_REALTIME_TRANSPORT=raw` 수동 운영 검증 미수행.

@@ -12,7 +12,11 @@ export interface AnimalInstance {
   object: THREE.Object3D;
   /** 애니메이션 재생용 — 호출자가 update(delta) 책임. */
   mixer: THREE.AnimationMixer;
-  idle: THREE.AnimationAction | null;
+  /**
+   * 이동 중에만 재생하는 walk 클립. idle 클립은 의도적으로 재생하지 않는다 —
+   * Quaternius idle 모션의 고개 젖힘이 거슬린다는 사용자 피드백 (2026-06-12).
+   * 정지 시에는 bind pose 로 가만히 서 있는다.
+   */
   walk: THREE.AnimationAction | null;
 }
 
@@ -110,19 +114,14 @@ class AnimalModelRegistry {
     model.position.y = loaded.yOffset;
 
     const mixer = new THREE.AnimationMixer(model);
-    const idleClip =
-      loaded.clips.find((c) => /idle/i.test(c.name)) ??
-      (loaded.clips.length > 0 ? loaded.clips[0] : null);
     const walkClip =
       loaded.clips.find((c) => /walk/i.test(c.name)) ??
       loaded.clips.find((c) => /run|gallop|trot/i.test(c.name)) ??
       null;
 
-    const idle = idleClip ? mixer.clipAction(idleClip) : null;
     const walk = walkClip ? mixer.clipAction(walkClip) : null;
-    idle?.play();
 
-    return { object: wrapper, mixer, idle, walk };
+    return { object: wrapper, mixer, walk };
   }
 }
 

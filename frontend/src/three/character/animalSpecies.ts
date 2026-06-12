@@ -1,11 +1,12 @@
 /**
- * 동물 주민 종 배정 — displayId 기반 결정적 해시.
+ * 마을 주민 배정 — displayId 기반 결정적 해시.
  *
- * 랜덤이 아니라 결정적이어야 하는 이유: 다른 유저의 화면에서도 내가 같은 동물로
+ * 랜덤이 아니라 결정적이어야 하는 이유: 다른 유저의 화면에서도 내가 같은 주민으로
  * 보여야 한다. displayId 는 모든 클라이언트가 공유하는 유일한 식별자이므로
  * 이것을 시드로 쓰면 백엔드 변경 없이 전 클라이언트 표현이 일치한다.
  *
- * 모델: Quaternius Animated Animal Pack (CC0) — public/models/animals/LICENSE.md
+ * 로스터 = 동물 8 + 사람 4 (동물 마을에 사람도 섞여 사는 포근한 톤).
+ * 모델: Quaternius Animated Animal/Men/Women Pack (CC0) — public/models/animals/LICENSE.md
  */
 export const ANIMAL_SPECIES = [
   'fox',
@@ -16,6 +17,10 @@ export const ANIMAL_SPECIES = [
   'cow',
   'donkey',
   'stag',
+  'villager-m1',
+  'villager-m2',
+  'villager-f1',
+  'villager-f2',
 ] as const;
 
 export type AnimalSpecies = (typeof ANIMAL_SPECIES)[number];

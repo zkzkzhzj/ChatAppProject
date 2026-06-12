@@ -22,6 +22,8 @@ export class VillageScene {
   private remotePlayers = new Map<string, RemotePlayer>();
   private readonly decor: VillageDecor;
   private elapsed = 0;
+  /** 모닥불 불꽃 3겹 — updateAmbient 에서 일렁임 (D11: 저주파, 점멸 금지). */
+  private readonly flames: THREE.Mesh[] = [];
 
   constructor() {
     applyWarmLighting(this.scene);
@@ -39,10 +41,22 @@ export class VillageScene {
     this.libraryDoor = new THREE.Vector3(0, 0, VILLAGE.LIBRARY_Z + 2);
   }
 
-  /** 살아있는 디테일 (불씨·물결·반딧불) 진행 — SceneManager tick 에서 마을 렌더 시 호출. */
+  /** 살아있는 디테일 (불꽃·불씨·물결·반딧불) 진행 — SceneManager tick 에서 마을 렌더 시 호출. */
   updateAmbient(delta: number): void {
     this.elapsed += delta;
     this.decor.update(this.elapsed);
+
+    // 불꽃 일렁임 — 겹마다 위상 어긋난 호흡 + 미세한 좌우 흔들림
+    for (let i = 0; i < this.flames.length; i += 1) {
+      const flame = this.flames[i];
+      const phase = i * 2.1;
+      flame.scale.set(
+        1 + Math.sin(this.elapsed * 6.3 + phase) * 0.07,
+        1 + Math.sin(this.elapsed * 4.7 + phase) * 0.12,
+        1 + Math.cos(this.elapsed * 5.9 + phase) * 0.07,
+      );
+      flame.rotation.y = Math.sin(this.elapsed * 1.3 + phase) * 0.3;
+    }
   }
 
   private buildGround(): void {
@@ -64,61 +78,101 @@ export class VillageScene {
   }
 
   private buildPond(): void {
-    // 연못 (PlaneGeometry, 환경음 결 — Step 2 에서 PositionalAudio 부착)
-    const pondGeometry = new THREE.CircleGeometry(3, 32);
-    const pondMaterial = new THREE.MeshLambertMaterial({
-      color: 0x6b9bb3, // 회청록 물 톤
-      transparent: true,
-      opacity: 0.85,
-    });
-    const pond = new THREE.Mesh(pondGeometry, pondMaterial);
-    pond.rotation.x = -Math.PI / 2;
-    pond.position.set(-5, 0.02, VILLAGE.POND_Z);
-    pond.receiveShadow = true;
-    this.scene.add(pond);
+    const { POND_X, POND_Z, POND_RADIUS } = VILLAGE;
+
+    // 얕은 물 (가장자리 — 밝은 회청록)
+    const shallow = new THREE.Mesh(
+      new THREE.CircleGeometry(POND_RADIUS, 48),
+      new THREE.MeshLambertMaterial({ color: 0x71a7bd, transparent: true, opacity: 0.92 }),
+    );
+    shallow.rotation.x = -Math.PI / 2;
+    shallow.position.set(POND_X, 0.02, POND_Z);
+    shallow.receiveShadow = true;
+    this.scene.add(shallow);
+
+    // 깊은 물 (중심 — 어두운 톤, 두 단계 색으로 깊이감)
+    const deep = new THREE.Mesh(
+      new THREE.CircleGeometry(POND_RADIUS * 0.55, 40),
+      new THREE.MeshLambertMaterial({ color: 0x4a7e96, transparent: true, opacity: 0.95 }),
+    );
+    deep.rotation.x = -Math.PI / 2;
+    deep.position.set(POND_X, 0.025, POND_Z);
+    this.scene.add(deep);
 
     // 연못 가장자리 (모래톤 링 — 물과 잔디 경계를 부드럽게)
     const rim = new THREE.Mesh(
-      new THREE.RingGeometry(3, 3.5, 32),
+      new THREE.RingGeometry(POND_RADIUS, POND_RADIUS + 0.8, 48),
       new THREE.MeshLambertMaterial({ color: 0xd6c39a }),
     );
     rim.rotation.x = -Math.PI / 2;
-    rim.position.set(-5, 0.015, VILLAGE.POND_Z);
+    rim.position.set(POND_X, 0.015, POND_Z);
     this.scene.add(rim);
-    // 수련잎·물결은 villageDecor 가 담당 (구 placeholder 거품 제거)
+    // 부들·물가 돌·수련잎·물결은 villageDecor 가 담당
   }
 
   private buildCampfire(): void {
-    // 캠프파이어 통나무 4개 (Cylinder, 십자 결로 박음)
-    const logMaterial = new THREE.MeshLambertMaterial({ color: 0x6b4226 });
-    for (let i = 0; i < 4; i += 1) {
-      const log = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 1.6, 8), logMaterial);
-      log.rotation.z = Math.PI / 2;
-      log.rotation.y = (i * Math.PI) / 4;
-      log.position.set(0, 0.2, VILLAGE.CAMPFIRE_Z);
+    const fireZ = VILLAGE.CAMPFIRE_Z;
+
+    // 돌 둘레 (10개 — 불자리 경계)
+    const stoneMaterial = new THREE.MeshLambertMaterial({ color: 0x8d8579 });
+    for (let i = 0; i < 10; i += 1) {
+      const angle = (i / 10) * Math.PI * 2;
+      const stone = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22, 0), stoneMaterial);
+      stone.position.set(Math.cos(angle) * 1.1, 0.12, fireZ + Math.sin(angle) * 1.1);
+      stone.rotation.set(i, i * 2, 0);
+      stone.scale.y = 0.7;
+      stone.castShadow = true;
+      this.scene.add(stone);
+    }
+
+    // 장작 5개 (방사형으로 기대 세움)
+    const logMaterial = new THREE.MeshLambertMaterial({ color: 0x5e3a20 });
+    for (let i = 0; i < 5; i += 1) {
+      const angle = (i / 5) * Math.PI * 2;
+      const log = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 1.3, 6), logMaterial);
+      log.position.set(Math.cos(angle) * 0.35, 0.45, fireZ + Math.sin(angle) * 0.35);
+      // 윗단이 중심으로 모이도록 기울임 (인디언 티피 쌓기)
+      log.rotation.set(Math.sin(angle) * 0.65, 0, -Math.cos(angle) * 0.65);
       log.castShadow = true;
       this.scene.add(log);
     }
 
-    // 모닥불 (Cone, 주황 톤)
-    const fire = new THREE.Mesh(
-      new THREE.ConeGeometry(0.4, 1.2, 8),
-      new THREE.MeshLambertMaterial({
-        color: 0xff7a3a,
-        emissive: 0xff5500,
-        emissiveIntensity: 0.6,
-      }),
-    );
-    fire.position.set(0, 0.7, VILLAGE.CAMPFIRE_Z);
-    this.scene.add(fire);
+    // 불꽃 3겹 (바깥 진한 주황 → 가운데 주황 → 심지 노랑) — updateAmbient 가 일렁임
+    const flameSpecs = [
+      { r: 0.5, h: 1.1, y: 0.75, color: 0xe85d1a, emissive: 0xd94f0a, intensity: 0.7 },
+      { r: 0.34, h: 0.85, y: 0.72, color: 0xff9434, emissive: 0xff7a1a, intensity: 0.9 },
+      { r: 0.19, h: 0.6, y: 0.68, color: 0xffd97a, emissive: 0xffc24a, intensity: 1.0 },
+    ];
+    for (const spec of flameSpecs) {
+      const flame = new THREE.Mesh(
+        new THREE.ConeGeometry(spec.r, spec.h, 8),
+        new THREE.MeshLambertMaterial({
+          color: spec.color,
+          emissive: spec.emissive,
+          emissiveIntensity: spec.intensity,
+          transparent: true,
+          opacity: 0.92,
+        }),
+      );
+      flame.position.set(0, spec.y, fireZ);
+      this.scene.add(flame);
+      this.flames.push(flame);
+    }
 
-    // Campfire seats.
-    const chairMaterial = new THREE.MeshLambertMaterial({ color: 0x8b6f4e });
-    for (const offset of [-1.6, 1.6]) {
-      const chair = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, 0.6), chairMaterial);
-      chair.position.set(offset, 0.25, VILLAGE.CAMPFIRE_Z);
-      chair.castShadow = true;
-      this.scene.add(chair);
+    // 둘러앉는 그루터기 의자 4개 (모닥불을 바라보는 원형 배치)
+    const stumpMaterial = new THREE.MeshLambertMaterial({ color: 0x8b6f4e });
+    const stumpTop = new THREE.MeshLambertMaterial({ color: 0xb59a72 });
+    for (let i = 0; i < 4; i += 1) {
+      const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
+      const sx = Math.cos(angle) * 2.3;
+      const sz = fireZ + Math.sin(angle) * 2.3;
+      const stump = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.38, 0.5, 10), stumpMaterial);
+      stump.position.set(sx, 0.25, sz);
+      stump.castShadow = true;
+      this.scene.add(stump);
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.04, 10), stumpTop);
+      top.position.set(sx, 0.52, sz);
+      this.scene.add(top);
     }
   }
 
@@ -210,27 +264,40 @@ export class VillageScene {
       const sizeScale = 0.8 + v2 * 0.7;
 
       const trunk = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.3, 0.4, 2 * sizeScale, 8),
+        new THREE.CylinderGeometry(0.22 * sizeScale, 0.42 * sizeScale, 2.2 * sizeScale, 7),
         trunkMaterial,
       );
-      trunk.position.set(x, sizeScale, z);
+      trunk.position.set(x, 1.1 * sizeScale, z);
       trunk.castShadow = true;
       this.scene.add(trunk);
 
-      // 3그루 중 1그루는 활엽 (둥근 잎) — 나머지는 침엽 2색
+      // 3그루 중 1그루는 활엽 (잎뭉치 2개 클러스터) — 나머지는 침엽 2단 콘 (2색)
       if (i % 3 === 0) {
-        const leaves = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5 * sizeScale, 0), broadleaf);
-        leaves.position.set(x, 2 * sizeScale + 1.1 * sizeScale, z);
-        leaves.castShadow = true;
-        this.scene.add(leaves);
+        const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5 * sizeScale, 0), broadleaf);
+        crown.position.set(x, 3 * sizeScale, z);
+        crown.scale.y = 0.85;
+        crown.castShadow = true;
+        this.scene.add(crown);
+        const side = new THREE.Mesh(new THREE.IcosahedronGeometry(0.9 * sizeScale, 0), broadleaf);
+        side.position.set(x + 0.9 * sizeScale * (i % 2 === 0 ? 1 : -1), 2.4 * sizeScale, z);
+        side.castShadow = true;
+        this.scene.add(side);
       } else {
-        const leaves = new THREE.Mesh(
-          new THREE.ConeGeometry(1.4 * sizeScale, 2.6 * sizeScale, 8),
-          i % 2 === 0 ? conifer : coniferDark,
+        const leafMaterial = i % 2 === 0 ? conifer : coniferDark;
+        const lower = new THREE.Mesh(
+          new THREE.ConeGeometry(1.5 * sizeScale, 2 * sizeScale, 8),
+          leafMaterial,
         );
-        leaves.position.set(x, 2 * sizeScale + 1.2 * sizeScale, z);
-        leaves.castShadow = true;
-        this.scene.add(leaves);
+        lower.position.set(x, 2.7 * sizeScale, z);
+        lower.castShadow = true;
+        this.scene.add(lower);
+        const upper = new THREE.Mesh(
+          new THREE.ConeGeometry(1.05 * sizeScale, 1.7 * sizeScale, 8),
+          leafMaterial,
+        );
+        upper.position.set(x, 4 * sizeScale, z);
+        upper.castShadow = true;
+        this.scene.add(upper);
       }
     }
   }

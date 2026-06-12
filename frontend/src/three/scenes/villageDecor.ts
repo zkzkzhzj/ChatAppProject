@@ -30,10 +30,10 @@ const DECOR_SEED = 20260612;
 function isClearOfLandmarks(x: number, z: number): boolean {
   // 입구~도서관 세로 길
   if (Math.abs(x) < 2.2 && z > VILLAGE.LIBRARY_Z - 2 && z < VILLAGE.ENTRY_Z + 2) return false;
-  // 연못 (-5, POND_Z)
-  if (Math.hypot(x + 5, z - VILLAGE.POND_Z) < 5) return false;
-  // 캠프파이어
-  if (Math.hypot(x, z - VILLAGE.CAMPFIRE_Z) < 3.5) return false;
+  // 연못
+  if (Math.hypot(x - VILLAGE.POND_X, z - VILLAGE.POND_Z) < VILLAGE.POND_RADIUS + 2) return false;
+  // 캠프파이어 (돌 둘레 + 그루터기 의자 포함)
+  if (Math.hypot(x, z - VILLAGE.CAMPFIRE_Z) < 4) return false;
   // 도서관 footprint
   if (Math.abs(x) < 6 && Math.abs(z - VILLAGE.LIBRARY_Z) < 5.5) return false;
   return true;
@@ -61,7 +61,7 @@ function buildFlowers(scene: THREE.Scene, rng: () => number): void {
     (color) => new THREE.MeshLambertMaterial({ color }),
   );
 
-  for (let i = 0; i < 44; i += 1) {
+  for (let i = 0; i < 70; i += 1) {
     const point = scatterPoint(rng);
     if (!point) continue;
     const cluster = new THREE.Group();
@@ -90,7 +90,7 @@ function buildGrassTufts(scene: THREE.Scene, rng: () => number): void {
     new THREE.MeshLambertMaterial({ color: 0x7a9a55 }),
     new THREE.MeshLambertMaterial({ color: 0x90ad62 }),
   ];
-  for (let i = 0; i < 70; i += 1) {
+  for (let i = 0; i < 110; i += 1) {
     const point = scatterPoint(rng);
     if (!point) continue;
     const tuft = new THREE.Mesh(geometry, materials[Math.floor(rng() * materials.length)]);
@@ -107,7 +107,7 @@ function buildRocks(scene: THREE.Scene, rng: () => number): void {
     new THREE.MeshLambertMaterial({ color: 0x9a948a }),
     new THREE.MeshLambertMaterial({ color: 0x837d72 }),
   ];
-  for (let i = 0; i < 14; i += 1) {
+  for (let i = 0; i < 22; i += 1) {
     const point = scatterPoint(rng);
     if (!point) continue;
     const rock = new THREE.Mesh(geometry, materials[Math.floor(rng() * materials.length)]);
@@ -124,7 +124,7 @@ function buildBushes(scene: THREE.Scene, rng: () => number): void {
   const material = new THREE.MeshLambertMaterial({ color: 0x55794a });
   const berryGeometry = new THREE.SphereGeometry(0.06, 6, 5);
   const berryMaterial = new THREE.MeshLambertMaterial({ color: 0xd96a6a });
-  for (let i = 0; i < 12; i += 1) {
+  for (let i = 0; i < 18; i += 1) {
     const point = scatterPoint(rng);
     if (!point) continue;
     const bush = new THREE.Mesh(geometry, material);
@@ -156,7 +156,7 @@ function buildPathFence(scene: THREE.Scene): void {
   const woodMaterial = new THREE.MeshLambertMaterial({ color: 0x8a6a48 });
 
   for (const side of [-2.6, 2.6]) {
-    for (let z = VILLAGE.ENTRY_Z; z > VILLAGE.ENTRY_Z - 10; z -= 2) {
+    for (let z = VILLAGE.ENTRY_Z; z > VILLAGE.ENTRY_Z - 12; z -= 2) {
       const post = new THREE.Mesh(postGeometry, woodMaterial);
       post.position.set(side, 0.3, z);
       post.castShadow = true;
@@ -166,6 +166,52 @@ function buildPathFence(scene: THREE.Scene): void {
       rail.position.set(side, 0.45, z - 1);
       scene.add(rail);
     }
+  }
+}
+
+/** 마을 안쪽 나무 12그루 + 그루터기 4 — 넓어진 잔디가 비어 보이지 않게. */
+function buildInnerTrees(scene: THREE.Scene, rng: () => number): void {
+  const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x5a3d2a });
+  const leafMaterials = [
+    new THREE.MeshLambertMaterial({ color: 0x4a7c45 }),
+    new THREE.MeshLambertMaterial({ color: 0x6b9450 }),
+  ];
+
+  for (let i = 0; i < 12; i += 1) {
+    const point = scatterPoint(rng);
+    if (!point) continue;
+    const s = 0.55 + rng() * 0.5; // 외곽 숲보다 작게 — 시야 가림 최소화
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.16 * s, 0.3 * s, 1.8 * s, 7),
+      trunkMaterial,
+    );
+    trunk.position.set(point.x, 0.9 * s, point.z);
+    trunk.castShadow = true;
+    scene.add(trunk);
+
+    const leafMaterial = leafMaterials[Math.floor(rng() * leafMaterials.length)];
+    if (rng() > 0.5) {
+      const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1 * s, 0), leafMaterial);
+      crown.position.set(point.x, 2.4 * s, point.z);
+      crown.castShadow = true;
+      scene.add(crown);
+    } else {
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(1 * s, 2.2 * s, 8), leafMaterial);
+      cone.position.set(point.x, 2.6 * s, point.z);
+      cone.castShadow = true;
+      scene.add(cone);
+    }
+  }
+
+  // 그루터기 — 잘려나간 자리, 앉을 수도 있을 것 같은 디테일
+  const stumpMaterial = new THREE.MeshLambertMaterial({ color: 0x7d5f40 });
+  for (let i = 0; i < 4; i += 1) {
+    const point = scatterPoint(rng);
+    if (!point) continue;
+    const stump = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.35, 9), stumpMaterial);
+    stump.position.set(point.x, 0.17, point.z);
+    stump.castShadow = true;
+    scene.add(stump);
   }
 }
 
@@ -188,7 +234,8 @@ function buildLanterns(scene: THREE.Scene): LampResult {
   const spots: [number, number][] = [
     [3, VILLAGE.ENTRY_Z - 6],
     [-3, VILLAGE.CAMPFIRE_Z + 5],
-    [3, VILLAGE.LIBRARY_Z + 7],
+    [3, VILLAGE.POND_Z + 4],
+    [-3, VILLAGE.LIBRARY_Z + 7],
   ];
   for (const [x, z] of spots) {
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.2, 6), postMaterial);
@@ -217,37 +264,81 @@ interface PondResult {
   ripples: THREE.Mesh[];
 }
 
-/** 연못 디테일 — 수련잎 + 퍼지는 물결 링. */
+/** 연못 디테일 — 수련잎·연꽃 + 부들 + 물가 돌 + 퍼지는 물결 링. */
 function buildPondDetail(scene: THREE.Scene, rng: () => number): PondResult {
-  const pondX = -5;
+  const pondX = VILLAGE.POND_X;
   const pondZ = VILLAGE.POND_Z;
+  const radius = VILLAGE.POND_RADIUS;
 
+  // 수련잎 5 + 그중 2개엔 연꽃
   const padGeometry = new THREE.CircleGeometry(0.35, 12);
   const padMaterial = new THREE.MeshLambertMaterial({ color: 0x4f7d3d });
-  for (let i = 0; i < 4; i += 1) {
+  const lotusMaterial = new THREE.MeshLambertMaterial({ color: 0xf4b8c8 });
+  for (let i = 0; i < 5; i += 1) {
     const pad = new THREE.Mesh(padGeometry, padMaterial);
     const angle = rng() * Math.PI * 2;
-    const r = rng() * 2;
+    const r = rng() * (radius - 1.2);
+    const px = pondX + Math.cos(angle) * r;
+    const pz = pondZ + Math.sin(angle) * r;
     pad.rotation.x = -Math.PI / 2;
-    pad.position.set(pondX + Math.cos(angle) * r, 0.035, pondZ + Math.sin(angle) * r);
+    pad.position.set(px, 0.035, pz);
     pad.scale.setScalar(0.6 + rng() * 0.8);
     scene.add(pad);
+    if (i < 2) {
+      const lotus = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.18, 6), lotusMaterial);
+      lotus.position.set(px, 0.12, pz);
+      scene.add(lotus);
+    }
   }
 
+  // 부들 (cattail) 6 — 물가 가장자리에 줄기 + 갈색 이삭
+  const reedStemMaterial = new THREE.MeshLambertMaterial({ color: 0x6d8a4e });
+  const reedHeadMaterial = new THREE.MeshLambertMaterial({ color: 0x7a5230 });
+  for (let i = 0; i < 6; i += 1) {
+    const angle = rng() * Math.PI * 2;
+    const r = radius + 0.3 + rng() * 0.6;
+    const rx = pondX + Math.cos(angle) * r;
+    const rz = pondZ + Math.sin(angle) * r;
+    const h = 0.9 + rng() * 0.5;
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, h, 5), reedStemMaterial);
+    stem.position.set(rx, h / 2, rz);
+    stem.rotation.z = (rng() - 0.5) * 0.15;
+    scene.add(stem);
+    const head = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.22, 3, 6), reedHeadMaterial);
+    head.position.set(rx, h + 0.1, rz);
+    scene.add(head);
+  }
+
+  // 물가 돌 5 — 모래 가장자리에
+  const shoreStoneMaterial = new THREE.MeshLambertMaterial({ color: 0x97907f });
+  for (let i = 0; i < 5; i += 1) {
+    const angle = rng() * Math.PI * 2;
+    const stone = new THREE.Mesh(new THREE.DodecahedronGeometry(0.2, 0), shoreStoneMaterial);
+    stone.position.set(
+      pondX + Math.cos(angle) * (radius + 0.5),
+      0.1,
+      pondZ + Math.sin(angle) * (radius + 0.5),
+    );
+    stone.rotation.set(rng() * 3, rng() * 3, 0);
+    stone.scale.set(0.7 + rng(), 0.5 + rng() * 0.4, 0.7 + rng());
+    scene.add(stone);
+  }
+
+  // 퍼지는 물결 링 4 (얇게)
   const ripples: THREE.Mesh[] = [];
-  const rippleGeometry = new THREE.RingGeometry(0.3, 0.36, 24);
-  for (let i = 0; i < 3; i += 1) {
+  const rippleGeometry = new THREE.RingGeometry(0.3, 0.34, 28);
+  for (let i = 0; i < 4; i += 1) {
     const ripple = new THREE.Mesh(
       rippleGeometry,
       new THREE.MeshBasicMaterial({
-        color: 0xcfe8f0,
+        color: 0xdcf0f6,
         transparent: true,
         opacity: 0.5,
         side: THREE.DoubleSide,
       }),
     );
     ripple.rotation.x = -Math.PI / 2;
-    ripple.position.set(pondX + (rng() - 0.5) * 2, 0.04, pondZ + (rng() - 0.5) * 2);
+    ripple.position.set(pondX + (rng() - 0.5) * radius, 0.04, pondZ + (rng() - 0.5) * radius);
     scene.add(ripple);
     ripples.push(ripple);
   }
@@ -257,10 +348,11 @@ function buildPondDetail(scene: THREE.Scene, rng: () => number): PondResult {
 interface CampfireResult {
   embers: THREE.Mesh[];
   emberHome: { x: number; z: number; phase: number }[];
+  smoke: THREE.Mesh[];
   fireLight: THREE.PointLight;
 }
 
-/** 모닥불 살리기 — 불씨 입자 + 일렁이는 점광. */
+/** 모닥불 살리기 — 불씨 입자 + 피어오르는 연기 + 일렁이는 점광. */
 function buildCampfireDetail(scene: THREE.Scene, rng: () => number): CampfireResult {
   const embers: THREE.Mesh[] = [];
   const emberHome: { x: number; z: number; phase: number }[] = [];
@@ -270,7 +362,7 @@ function buildCampfireDetail(scene: THREE.Scene, rng: () => number): CampfireRes
     transparent: true,
     opacity: 0.9,
   });
-  for (let i = 0; i < 7; i += 1) {
+  for (let i = 0; i < 9; i += 1) {
     const ember = new THREE.Mesh(emberGeometry, emberMaterial.clone());
     const home = { x: (rng() - 0.5) * 0.5, z: (rng() - 0.5) * 0.5, phase: rng() * Math.PI * 2 };
     ember.position.set(home.x, 0.8, VILLAGE.CAMPFIRE_Z + home.z);
@@ -279,11 +371,24 @@ function buildCampfireDetail(scene: THREE.Scene, rng: () => number): CampfireRes
     emberHome.push(home);
   }
 
+  // 연기 3덩이 — 불 위에서 천천히 피어올라 커지며 사라짐
+  const smoke: THREE.Mesh[] = [];
+  const smokeGeometry = new THREE.SphereGeometry(0.22, 7, 6);
+  for (let i = 0; i < 3; i += 1) {
+    const puff = new THREE.Mesh(
+      smokeGeometry,
+      new THREE.MeshBasicMaterial({ color: 0xb9b2a8, transparent: true, opacity: 0.25 }),
+    );
+    puff.position.set(0, 1.6, VILLAGE.CAMPFIRE_Z);
+    scene.add(puff);
+    smoke.push(puff);
+  }
+
   const fireLight = new THREE.PointLight(0xff9c4a, 14, 12, 2);
   fireLight.position.set(0, 1.2, VILLAGE.CAMPFIRE_Z);
   scene.add(fireLight);
 
-  return { embers, emberHome, fireLight };
+  return { embers, emberHome, smoke, fireLight };
 }
 
 interface FireflyResult {
@@ -296,9 +401,9 @@ function buildFireflies(scene: THREE.Scene, rng: () => number): FireflyResult {
   const flies: THREE.Mesh[] = [];
   const centers: { x: number; z: number; phase: number; radius: number }[] = [];
   const geometry = new THREE.SphereGeometry(0.05, 6, 5);
-  for (let i = 0; i < 14; i += 1) {
+  for (let i = 0; i < 20; i += 1) {
     const angle = rng() * Math.PI * 2;
-    const r = VILLAGE.FOREST_WALL_RADIUS - 4 - rng() * 8;
+    const r = VILLAGE.FOREST_WALL_RADIUS - 4 - rng() * 10;
     const center = {
       x: Math.cos(angle) * r,
       z: Math.sin(angle) * r,
@@ -329,6 +434,7 @@ export function buildVillageDecor(scene: THREE.Scene): VillageDecor {
   buildGrassTufts(scene, rng);
   buildRocks(scene, rng);
   buildBushes(scene, rng);
+  buildInnerTrees(scene, rng);
   buildPathFence(scene);
   const lanterns = buildLanterns(scene);
   const pond = buildPondDetail(scene, rng);
@@ -349,6 +455,19 @@ export function buildVillageDecor(scene: THREE.Scene): VillageDecor {
           VILLAGE.CAMPFIRE_Z + home.z,
         );
         (ember.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.9 - t * 0.6);
+      }
+
+      // 연기 — 천천히 올라가며 커지고 옅어짐 (4초 주기 loop)
+      for (let i = 0; i < campfire.smoke.length; i += 1) {
+        const puff = campfire.smoke[i];
+        const t = (elapsed * 0.25 + i * 0.33) % 1;
+        puff.position.set(
+          Math.sin(elapsed * 0.8 + i * 2) * 0.3 * t,
+          1.5 + t * 2.6,
+          VILLAGE.CAMPFIRE_Z + Math.cos(elapsed * 0.6 + i * 2) * 0.2 * t,
+        );
+        puff.scale.setScalar(0.6 + t * 1.8);
+        (puff.material as THREE.MeshBasicMaterial).opacity = 0.28 * (1 - t);
       }
 
       // 연못 물결 — 퍼지면서 옅어지는 링 (loop)

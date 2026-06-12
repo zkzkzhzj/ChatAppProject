@@ -140,12 +140,15 @@ export class Character {
 
   private applyGait(next: 'idle' | 'walk'): void {
     if (!this.animal || this.gait === next) return;
-    const { idle, walk } = this.animal;
-    const from = next === 'walk' ? idle : walk;
-    const to = next === 'walk' ? walk : idle;
-    if (!to) return; // walk clip 없는 종은 idle 유지
-    from?.fadeOut(Character.GAIT_FADE_SEC);
-    to.reset().fadeIn(Character.GAIT_FADE_SEC).play();
+    const { walk } = this.animal;
+    if (!walk) return;
+    // idle 클립은 재생하지 않는다 (고개 젖힘 거슬림 — 사용자 피드백 2026-06-12).
+    // 정지 = bind pose 로 가만히, 이동 = walk fade in/out.
+    if (next === 'walk') {
+      walk.reset().fadeIn(Character.GAIT_FADE_SEC).play();
+    } else {
+      walk.fadeOut(Character.GAIT_FADE_SEC);
+    }
     this.gait = next;
   }
 

@@ -54,12 +54,12 @@ describe('villageDecor — 마을 데코 풀 패스', () => {
       if (!(obj instanceof THREE.Mesh)) return;
       const world = new THREE.Vector3();
       obj.getWorldPosition(world);
-      // 예외 1: 모닥불 불씨 — 캠프파이어는 길 중앙의 의도된 랜드마크
-      if (Math.hypot(world.x, world.z - 8) < 3.5) return;
+      // 예외 1: 모닥불 불씨·연기 — 캠프파이어는 길 중앙의 의도된 랜드마크
+      if (Math.hypot(world.x, world.z - 10) < 4) return;
       // 예외 2: 부유 요소 (반딧불, y ≥ 0.9) 는 지상 동선 침범 아님
       if (world.y >= 0.9) return;
       // 길 반폭 1.25 + 여유. 꽃 cluster 자식 offset(±0.4) 감안해 1.6 기준
-      if (Math.abs(world.x) < 1.6 && world.z > -24 && world.z < 27) {
+      if (Math.abs(world.x) < 1.6 && world.z > -29 && world.z < 34) {
         offenders.push(`${obj.uuid} @ ${world.x.toFixed(2)},${world.z.toFixed(2)}`);
       }
     });

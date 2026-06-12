@@ -97,12 +97,14 @@ export class RemotePlayer {
 
   private applyGait(next: 'idle' | 'walk'): void {
     if (!this.animal || this.gait === next) return;
-    const { idle, walk } = this.animal;
-    const from = next === 'walk' ? idle : walk;
-    const to = next === 'walk' ? walk : idle;
-    if (!to) return;
-    from?.fadeOut(GAIT_FADE_SEC);
-    to.reset().fadeIn(GAIT_FADE_SEC).play();
+    const { walk } = this.animal;
+    if (!walk) return;
+    // idle 클립 재생 X (고개 젖힘 거슬림 — 사용자 피드백 2026-06-12). Character 와 동일.
+    if (next === 'walk') {
+      walk.reset().fadeIn(GAIT_FADE_SEC).play();
+    } else {
+      walk.fadeOut(GAIT_FADE_SEC);
+    }
     this.gait = next;
   }
 

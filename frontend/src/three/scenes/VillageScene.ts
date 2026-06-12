@@ -6,11 +6,13 @@ import { Character } from '../character/Character';
 import { RemotePlayer } from '../character/RemotePlayer';
 import { CAMERA, VILLAGE } from '../constants';
 import { applyWarmLighting } from '../lighting';
+import { buildVillageDecor, type VillageDecor } from './villageDecor';
 
 /**
  * 마을 Scene — 입구·캠프파이어·연못·도서관 세로 구도 (사용자 결, 2026-05-10).
- * Step 1 PoC: 박스·구·실린더 기본 geometry 만. 자산 X.
  * Step 1.5: 다른 유저 placeholder (RemotePlayer) 동기화 추가.
+ * Visual pass (2026-06-12): 데코 풀 패스 (villageDecor) + 나무 다양화 + 도서관 창문
+ * + 유저 = 동물 주민 (Character/RemotePlayer 가 displayId 결정적 배정).
  */
 export class VillageScene {
   readonly scene = new THREE.Scene();
@@ -18,6 +20,8 @@ export class VillageScene {
   readonly libraryDoor: THREE.Vector3;
   /** 다른 유저 placeholder — key = displayId. spec §2.2 Out: 도서관 진입 유저는 표시 X. */
   private remotePlayers = new Map<string, RemotePlayer>();
+  private readonly decor: VillageDecor;
+  private elapsed = 0;
 
   constructor() {
     applyWarmLighting(this.scene);
@@ -27,11 +31,18 @@ export class VillageScene {
     this.buildCampfire();
     this.buildLibrary();
     this.buildForestWall();
+    this.decor = buildVillageDecor(this.scene);
 
     this.character = new Character(new THREE.Vector3(0, 0, VILLAGE.ENTRY_Z));
     this.scene.add(this.character.group);
 
     this.libraryDoor = new THREE.Vector3(0, 0, VILLAGE.LIBRARY_Z + 2);
+  }
+
+  /** 살아있는 디테일 (불씨·물결·반딧불) 진행 — SceneManager tick 에서 마을 렌더 시 호출. */
+  updateAmbient(delta: number): void {
+    this.elapsed += delta;
+    this.decor.update(this.elapsed);
   }
 
   private buildGround(): void {
@@ -66,19 +77,15 @@ export class VillageScene {
     pond.receiveShadow = true;
     this.scene.add(pond);
 
-    // 거품 3개 (구)
-    for (let i = 0; i < 3; i += 1) {
-      const bubble = new THREE.Mesh(
-        new THREE.SphereGeometry(0.15 + Math.random() * 0.1, 8, 6),
-        new THREE.MeshLambertMaterial({ color: 0xf4faff }),
-      );
-      bubble.position.set(
-        -5 + (Math.random() - 0.5) * 4,
-        0.05,
-        VILLAGE.POND_Z + (Math.random() - 0.5) * 4,
-      );
-      this.scene.add(bubble);
-    }
+    // 연못 가장자리 (모래톤 링 — 물과 잔디 경계를 부드럽게)
+    const rim = new THREE.Mesh(
+      new THREE.RingGeometry(3, 3.5, 32),
+      new THREE.MeshLambertMaterial({ color: 0xd6c39a }),
+    );
+    rim.rotation.x = -Math.PI / 2;
+    rim.position.set(-5, 0.015, VILLAGE.POND_Z);
+    this.scene.add(rim);
+    // 수련잎·물결은 villageDecor 가 담당 (구 placeholder 거품 제거)
   }
 
   private buildCampfire(): void {
@@ -151,28 +158,80 @@ export class VillageScene {
     );
     sign.position.set(0, 3.2, VILLAGE.LIBRARY_Z + 3.05);
     this.scene.add(sign);
+
+    // 창문 2개 — 안에 불이 켜진 따뜻한 노란빛 (들어가 보고 싶은 신호)
+    const windowMaterial = new THREE.MeshLambertMaterial({
+      color: 0xffe9b0,
+      emissive: 0xffc966,
+      emissiveIntensity: 0.7,
+    });
+    for (const x of [-2.4, 2.4]) {
+      const pane = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.3, 0.08), windowMaterial);
+      pane.position.set(x, 2.2, VILLAGE.LIBRARY_Z + 3.04);
+      this.scene.add(pane);
+      const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(1.3, 1.5, 0.06),
+        new THREE.MeshLambertMaterial({ color: 0x6b4a2e }),
+      );
+      frame.position.set(x, 2.2, VILLAGE.LIBRARY_Z + 3.0);
+      this.scene.add(frame);
+    }
+
+    // 굴뚝 + 박공의 작은 원형 창 — 실루엣에 집의 결 부여
+    const chimney = new THREE.Mesh(
+      new THREE.BoxGeometry(0.8, 1.6, 0.8),
+      new THREE.MeshLambertMaterial({ color: 0x9a6a4a }),
+    );
+    chimney.position.set(2.6, 5.6, VILLAGE.LIBRARY_Z - 1);
+    chimney.castShadow = true;
+    this.scene.add(chimney);
+
+    const roundWindow = new THREE.Mesh(new THREE.CircleGeometry(0.4, 16), windowMaterial);
+    roundWindow.position.set(0, 4.6, VILLAGE.LIBRARY_Z + 3.06);
+    this.scene.add(roundWindow);
   }
 
   private buildForestWall(): void {
-    // 숲 외곽 트리 (CylinderGeometry 줄기 + ConeGeometry 잎)
+    // 숲 외곽 트리 — 침엽(콘)·활엽(구) 두 종 + 키·색 변주로 "심은 벽" 느낌 제거.
+    // 변주는 index 기반 결정적 (모든 클라이언트 동일 — Math.random 금지).
     const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x5a3d2a });
-    const leavesMaterial = new THREE.MeshLambertMaterial({ color: 0x4a7c45 });
+    const conifer = new THREE.MeshLambertMaterial({ color: 0x4a7c45 });
+    const coniferDark = new THREE.MeshLambertMaterial({ color: 0x3d6b3a });
+    const broadleaf = new THREE.MeshLambertMaterial({ color: 0x6b9450 });
 
     for (let i = 0; i < VILLAGE.TREE_COUNT; i += 1) {
       const angle = (i / VILLAGE.TREE_COUNT) * Math.PI * 2;
-      const r = VILLAGE.FOREST_WALL_RADIUS + (Math.random() - 0.5) * 2;
+      // index 해시 → [0,1) 변주값 2개 (반경·크기)
+      const v1 = ((i * 2654435761) % 1000) / 1000;
+      const v2 = ((i * 40503 + 17) % 1000) / 1000;
+      const r = VILLAGE.FOREST_WALL_RADIUS + (v1 - 0.5) * 3;
       const x = Math.cos(angle) * r;
       const z = Math.sin(angle) * r;
+      const sizeScale = 0.8 + v2 * 0.7;
 
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 2, 8), trunkMaterial);
-      trunk.position.set(x, 1, z);
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.3, 0.4, 2 * sizeScale, 8),
+        trunkMaterial,
+      );
+      trunk.position.set(x, sizeScale, z);
       trunk.castShadow = true;
       this.scene.add(trunk);
 
-      const leaves = new THREE.Mesh(new THREE.ConeGeometry(1.4, 2.4, 8), leavesMaterial);
-      leaves.position.set(x, 3, z);
-      leaves.castShadow = true;
-      this.scene.add(leaves);
+      // 3그루 중 1그루는 활엽 (둥근 잎) — 나머지는 침엽 2색
+      if (i % 3 === 0) {
+        const leaves = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5 * sizeScale, 0), broadleaf);
+        leaves.position.set(x, 2 * sizeScale + 1.1 * sizeScale, z);
+        leaves.castShadow = true;
+        this.scene.add(leaves);
+      } else {
+        const leaves = new THREE.Mesh(
+          new THREE.ConeGeometry(1.4 * sizeScale, 2.6 * sizeScale, 8),
+          i % 2 === 0 ? conifer : coniferDark,
+        );
+        leaves.position.set(x, 2 * sizeScale + 1.2 * sizeScale, z);
+        leaves.castShadow = true;
+        this.scene.add(leaves);
+      }
     }
   }
 
@@ -207,15 +266,16 @@ export class VillageScene {
       existing.setTarget(pos.x, pos.y);
       return;
     }
-    const player = new RemotePlayer(pos.x, pos.y);
+    // displayId 전달 — 동물 종 결정적 배정 (그 유저 화면의 자기 캐릭터와 동일 종)
+    const player = new RemotePlayer(pos.x, pos.y, pos.id);
     this.remotePlayers.set(pos.id, player);
     this.scene.add(player.group);
   }
 
-  /** 매 프레임 호출 — RemotePlayer 의 lerp 진행. */
-  updateRemotePlayers(): void {
+  /** 매 프레임 호출 — RemotePlayer 의 lerp + 애니메이션 진행. */
+  updateRemotePlayers(delta?: number): void {
     for (const player of this.remotePlayers.values()) {
-      player.update();
+      player.update(delta);
     }
   }
 

@@ -2,10 +2,15 @@ import * as THREE from 'three';
 
 import { SpeechBubble } from '../chat/SpeechBubble';
 import { PHYSICS } from '../constants';
+import { type AnimalInstance, animalModelRegistry } from './AnimalModelRegistry';
+import { scaleJitterFor, speciesFor } from './animalSpecies';
 
 /**
- * Step 1 PoC 캐릭터 — 박스 + 구 placeholder.
- * Step 3 에서 Quaternius CC0 3D 모델로 교체.
+ * 자기 캐릭터 — displayId 가 정해지면 동물 주민 모델로 교체된다.
+ *
+ * 생성 직후에는 박스 + 구 placeholder. SceneManager.setSelfId → adoptAnimal()
+ * 호출로 Quaternius CC0 동물 모델 (정규화·애니메이션 포함) 로 swap.
+ * 모델 로드가 불가한 환경 (vitest, 네트워크 실패) 에서는 placeholder 유지.
  *
  * 물리 (spec D11):
  * - 걷기 (WALK_SPEED) + 점프 (가벼운 깡총, MAX_HEIGHT 1)
@@ -16,6 +21,11 @@ export class Character {
   private readonly velocityY = { value: 0 };
   private isOnGround = true;
   private readonly bodyHeight = 1.4;
+  /** placeholder 박스·구 — 동물 모델 도착 시 제거 + dispose. */
+  private placeholderMeshes: THREE.Mesh[] = [];
+  private animal: AnimalInstance | null = null;
+  private adoptedId: string | null = null;
+  private gait: 'idle' | 'walk' = 'idle';
   /**
    * 말풍선 stack — 새 메시지가 머리 바로 위, 기존 결 위로 밀어 올림.
    * 6초 timer 결로 자연 해제 결로 한도 X (안전판 50). spacing = 텍스트 줄 결 + 여유.
@@ -24,6 +34,7 @@ export class Character {
   private static readonly MAX_BUBBLES = 50;
   private static readonly BUBBLE_BASE_Y = 2.4;
   private static readonly BUBBLE_STACK_SPACING = 0.95;
+  private static readonly GAIT_FADE_SEC = 0.2;
 
   constructor(spawn: THREE.Vector3) {
     // 몸통 (박스)
@@ -33,6 +44,7 @@ export class Character {
     body.position.y = this.bodyHeight / 2;
     body.castShadow = true;
     this.group.add(body);
+    this.placeholderMeshes.push(body);
 
     // 머리 (구)
     const headGeometry = new THREE.SphereGeometry(0.35, 16, 12);
@@ -41,8 +53,42 @@ export class Character {
     head.position.y = this.bodyHeight + 0.3;
     head.castShadow = true;
     this.group.add(head);
+    this.placeholderMeshes.push(head);
 
     this.group.position.copy(spawn);
+  }
+
+  /**
+   * displayId 기반 동물 모델 채택 (결정적 — 모든 클라이언트에서 같은 종으로 보임).
+   * 같은 id 재호출은 무시. 모델 미로드 시 콜백이 안 와서 placeholder 유지.
+   */
+  adoptAnimal(displayId: string): void {
+    if (this.adoptedId === displayId) return;
+    this.adoptedId = displayId;
+    animalModelRegistry.request(speciesFor(displayId), (instance) => {
+      // 늦게 도착한 이전 요청 무시 (id 가 그 사이 바뀐 경우)
+      if (this.adoptedId !== displayId) return;
+      this.swapToAnimal(instance, scaleJitterFor(displayId));
+    });
+  }
+
+  private swapToAnimal(instance: AnimalInstance, jitter: number): void {
+    // 기존 동물 (재채택) 또는 placeholder 제거
+    if (this.animal) {
+      this.animal.mixer.stopAllAction();
+      this.group.remove(this.animal.object);
+    }
+    for (const mesh of this.placeholderMeshes) {
+      this.group.remove(mesh);
+      mesh.geometry.dispose();
+      (mesh.material as THREE.Material).dispose();
+    }
+    this.placeholderMeshes = [];
+
+    instance.object.scale.setScalar(jitter);
+    this.group.add(instance.object);
+    this.animal = instance;
+    this.gait = 'idle';
   }
 
   /** 입력 결과 적용해서 한 프레임 이동. delta = 초. */
@@ -84,6 +130,23 @@ export class Character {
         this.isOnGround = true;
       }
     }
+
+    // 동물 애니메이션 — idle ↔ walk crossfade
+    if (this.animal) {
+      this.applyGait(length > 0 ? 'walk' : 'idle');
+      this.animal.mixer.update(delta);
+    }
+  }
+
+  private applyGait(next: 'idle' | 'walk'): void {
+    if (!this.animal || this.gait === next) return;
+    const { idle, walk } = this.animal;
+    const from = next === 'walk' ? idle : walk;
+    const to = next === 'walk' ? walk : idle;
+    if (!to) return; // walk clip 없는 종은 idle 유지
+    from?.fadeOut(Character.GAIT_FADE_SEC);
+    to.reset().fadeIn(Character.GAIT_FADE_SEC).play();
+    this.gait = next;
   }
 
   get position(): THREE.Vector3 {
@@ -147,5 +210,8 @@ export class Character {
       bubble.dispose();
     }
     this.bubbles = [];
+    // 동물 모델의 geometry/material 은 registry 템플릿과 공유 — 여기서 dispose 금지.
+    // SceneManager.disposeScene 의 일괄 traverse 가 최종 정리를 맡는다.
+    this.animal?.mixer.stopAllAction();
   }
 }

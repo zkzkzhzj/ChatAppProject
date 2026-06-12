@@ -12,6 +12,7 @@ import type { ChatMessage } from '@/types/chat';
 
 import { AmbientSoundManager } from './audio/AmbientSoundManager';
 import { loadMasterVolume } from './audio/master-volume-store';
+import { animalModelRegistry } from './character/AnimalModelRegistry';
 import { CAMERA, TRANSITION, VILLAGE } from './constants';
 import { InputState } from './input';
 import { PositionSync } from './network/PositionSync';
@@ -70,6 +71,9 @@ export class SceneManager {
       0.1,
       120,
     );
+
+    // 동물 주민 모델 (Quaternius CC0) 백그라운드 프리로드 — 도착 전까지 placeholder 박스
+    animalModelRegistry.preloadAll();
 
     // Scenes
     this.village = new VillageScene();
@@ -181,12 +185,13 @@ export class SceneManager {
       }
     }
 
-    // RemotePlayer lerp 진행 (마을 전용)
+    // RemotePlayer lerp·애니메이션 + 살아있는 디테일 (불씨·물결·반딧불) — 마을 전용
     if (
       this.active === 'village' ||
       (this.active === 'transitioning' && this.sourceScene === 'village')
     ) {
-      this.village.updateRemotePlayers();
+      this.village.updateRemotePlayers(delta);
+      this.village.updateAmbient(delta);
     }
 
     sceneObj.updateCamera(this.camera);
@@ -274,6 +279,11 @@ export class SceneManager {
   setSelfId(id: string | null): void {
     this.positionSync.setSelfId(id);
     this.selfDisplayId = id;
+    // displayId 확정 → 내 동물 주민 채택 (마을·도서관 캐릭터 동일 종)
+    if (id) {
+      this.village.character.adoptAnimal(id);
+      this.library.character.adoptAnimal(id);
+    }
   }
 
   /** 가상 조이스틱 입력 (Step 1.7 모바일 hybrid). dx/dz ∈ [-1, 1]. */

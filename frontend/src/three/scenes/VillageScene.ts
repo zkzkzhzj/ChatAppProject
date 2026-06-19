@@ -22,6 +22,8 @@ export class VillageScene {
   private remotePlayers = new Map<string, RemotePlayer>();
   private readonly decor: VillageDecor;
   private elapsed = 0;
+  private cameraYaw: number = CAMERA.ORBIT_INITIAL_YAW;
+  private cameraPitch: number = CAMERA.ORBIT_INITIAL_PITCH;
   /** 모닥불 불꽃 3겹 — updateAmbient 에서 일렁임 (D11: 저주파, 점멸 금지). */
   private readonly flames: THREE.Mesh[] = [];
 
@@ -302,9 +304,32 @@ export class VillageScene {
     }
   }
 
-  /** 카메라 follow — 정적 + 천천히 (orbit X). spec D11. */
-  updateCamera(camera: THREE.PerspectiveCamera): void {
+  /** 카메라 follow — 캐릭터 기준 orbit. 이동 방향은 SceneManager 입력 의미를 그대로 둔다. */
+  updateCamera(
+    camera: THREE.PerspectiveCamera,
+    orbitDelta: { yaw: number; pitch: number } = { yaw: 0, pitch: 0 },
+  ): void {
     const target = this.character.position;
+
+    if (CAMERA.ORBIT_ENABLED) {
+      this.cameraYaw -= orbitDelta.yaw * CAMERA.ORBIT_YAW_SENSITIVITY;
+      this.cameraPitch = THREE.MathUtils.clamp(
+        this.cameraPitch - orbitDelta.pitch * CAMERA.ORBIT_PITCH_SENSITIVITY,
+        CAMERA.ORBIT_MIN_PITCH,
+        CAMERA.ORBIT_MAX_PITCH,
+      );
+
+      const horizontalDistance = Math.cos(this.cameraPitch) * CAMERA.DISTANCE;
+      const desired = new THREE.Vector3(
+        target.x + Math.sin(this.cameraYaw) * horizontalDistance,
+        target.y + CAMERA.HEIGHT_OFFSET + Math.sin(this.cameraPitch) * CAMERA.DISTANCE,
+        target.z + Math.cos(this.cameraYaw) * horizontalDistance,
+      );
+      camera.position.lerp(desired, CAMERA.FOLLOW_LERP);
+      camera.lookAt(target.x, target.y + 1, target.z);
+      return;
+    }
+
     const desired = new THREE.Vector3(
       target.x,
       target.y + CAMERA.HEIGHT_OFFSET,

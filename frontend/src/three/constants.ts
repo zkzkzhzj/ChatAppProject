@@ -3,13 +3,19 @@
  * 각 값 변경 시 spec D11 위반 신호 검토 (learning 72 §5).
  */
 
-// 카메라 — 정적 follow, orbit 자유 회전 X
+// 카메라 — 캐릭터 기준 orbit-follow. 이동 방향은 기존 월드 기준 유지.
 export const CAMERA = {
   FOLLOW_LERP: 0.08, // 천천히 따라가는 결 (Stardew 결)
   FOV: 50,
   HEIGHT_OFFSET: 8,
   DISTANCE: 12,
-  ORBIT_ENABLED: false, // D11 위반 시 true (사용자 결 박지 X)
+  ORBIT_ENABLED: true as boolean,
+  ORBIT_YAW_SENSITIVITY: 0.006,
+  ORBIT_PITCH_SENSITIVITY: 0.004,
+  ORBIT_MIN_PITCH: -0.85,
+  ORBIT_MAX_PITCH: 0.25,
+  ORBIT_INITIAL_YAW: 0,
+  ORBIT_INITIAL_PITCH: -0.55,
 } as const;
 
 // 라이팅 — warm tone + soft shadow + Fog

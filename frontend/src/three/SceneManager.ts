@@ -82,6 +82,7 @@ export class SceneManager {
     // Input — 키보드(WASD/점프) + 모바일 가상 조이스틱(InputState.setJoystick).
     // tap-to-move 결 거부 (사용자 결정 2026-05-13) — 모바일은 조이스틱 상시 노출 결로 정합.
     this.input = new InputState();
+    this.input.bindCameraElement(this.renderer.domElement);
 
     // Ambient sound (D6 v + D11 음향 결)
     this.ambientSound = new AmbientSoundManager();
@@ -194,7 +195,12 @@ export class SceneManager {
       this.village.updateAmbient(delta);
     }
 
-    sceneObj.updateCamera(this.camera);
+    const orbitDelta = this.input.consumeCameraOrbitDelta();
+    if (sceneObj instanceof VillageScene) {
+      sceneObj.updateCamera(this.camera, orbitDelta);
+    } else {
+      sceneObj.updateCamera(this.camera);
+    }
 
     // 위치 기반 환경음 (sound-config.ts zone 결로 음량 결 결)
     const charPos = sceneObj.character.position;

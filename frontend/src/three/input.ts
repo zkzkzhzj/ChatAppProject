@@ -13,11 +13,17 @@ export class InputState {
   private orbitPointerId: number | null = null;
   private orbitLastX = 0;
   private orbitLastY = 0;
+  private orbitStartX = 0;
+  private orbitStartY = 0;
+  private orbitDragging = false;
+  private orbitMode: 'immediate' | 'threshold' = 'immediate';
   private orbitYawDelta = 0;
   private orbitPitchDelta = 0;
   /** 가상 조이스틱 입력 (Step 1.7 모바일 hybrid). 0 = 비활성. */
   private joystickDx = 0;
   private joystickDz = 0;
+
+  private static readonly ORBIT_DRAG_THRESHOLD_PX = 6;
 
   constructor() {
     window.addEventListener('keydown', this.onKeyDown);
@@ -48,6 +54,7 @@ export class InputState {
   release = (): void => {
     this.keys.clear();
     this.orbitPointerId = null;
+    this.orbitDragging = false;
     this.orbitYawDelta = 0;
     this.orbitPitchDelta = 0;
     window.removeEventListener('pointermove', this.onPointerMove);
@@ -85,12 +92,18 @@ export class InputState {
 
   private onPointerDown = (e: PointerEvent): void => {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-    if (!e.isPrimary || (e.button !== 0 && e.button !== 2)) return;
+    if (!e.isPrimary) return;
+    if (e.pointerType === 'mouse' && e.button !== 2) return;
+    if (e.pointerType !== 'mouse' && e.button !== 0) return;
     if (e.button === 2) e.preventDefault();
 
     this.orbitPointerId = e.pointerId;
+    this.orbitStartX = e.clientX;
+    this.orbitStartY = e.clientY;
     this.orbitLastX = e.clientX;
     this.orbitLastY = e.clientY;
+    this.orbitMode = e.pointerType === 'mouse' ? 'immediate' : 'threshold';
+    this.orbitDragging = this.orbitMode === 'immediate';
     window.addEventListener('pointermove', this.onPointerMove);
     window.addEventListener('pointerup', this.onPointerUp);
     window.addEventListener('pointercancel', this.onPointerUp);
@@ -99,16 +112,26 @@ export class InputState {
   private onPointerMove = (e: PointerEvent): void => {
     if (this.orbitPointerId !== e.pointerId) return;
 
-    this.orbitYawDelta += e.clientX - this.orbitLastX;
-    this.orbitPitchDelta += e.clientY - this.orbitLastY;
+    const dx = e.clientX - this.orbitLastX;
+    const dy = e.clientY - this.orbitLastY;
     this.orbitLastX = e.clientX;
     this.orbitLastY = e.clientY;
+
+    if (!this.orbitDragging) {
+      const moved = Math.hypot(e.clientX - this.orbitStartX, e.clientY - this.orbitStartY);
+      if (moved < InputState.ORBIT_DRAG_THRESHOLD_PX) return;
+      this.orbitDragging = true;
+    }
+
+    this.orbitYawDelta += dx;
+    this.orbitPitchDelta += dy;
   };
 
   private onPointerUp = (e: PointerEvent): void => {
     if (this.orbitPointerId !== e.pointerId) return;
 
     this.orbitPointerId = null;
+    this.orbitDragging = false;
     window.removeEventListener('pointermove', this.onPointerMove);
     window.removeEventListener('pointerup', this.onPointerUp);
     window.removeEventListener('pointercancel', this.onPointerUp);
@@ -144,6 +167,7 @@ export class InputState {
       this.cameraElement = null;
     }
     this.orbitPointerId = null;
+    this.orbitDragging = false;
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('blur', this.release);

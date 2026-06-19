@@ -118,7 +118,7 @@ describe('InputState', () => {
       document.body.removeChild(canvas);
     });
 
-    it('primary pointer drag delta를 누적한 뒤 consume 시 0으로 초기화한다', () => {
+    it('mouse left pointer drag는 orbit delta를 만들지 않는다', () => {
       canvas.dispatchEvent(
         new PointerEvent('pointerdown', {
           pointerId: 1,
@@ -126,17 +126,17 @@ describe('InputState', () => {
           clientY: 100,
           button: 0,
           isPrimary: true,
+          pointerType: 'mouse',
         }),
       );
       window.dispatchEvent(
         new PointerEvent('pointermove', { pointerId: 1, clientX: 130, clientY: 85 }),
       );
 
-      expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 30, pitch: -15 });
       expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 0, pitch: 0 });
     });
 
-    it('right pointer drag도 orbit delta를 만든다', () => {
+    it('mouse right pointer drag delta를 누적한 뒤 consume 시 0으로 초기화한다', () => {
       canvas.dispatchEvent(
         new PointerEvent('pointerdown', {
           pointerId: 1,
@@ -144,12 +144,41 @@ describe('InputState', () => {
           clientY: 100,
           button: 2,
           isPrimary: true,
+          pointerType: 'mouse',
         }),
       );
       window.dispatchEvent(
         new PointerEvent('pointermove', { pointerId: 1, clientX: 130, clientY: 85 }),
       );
       expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 30, pitch: -15 });
+      expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 0, pitch: 0 });
+    });
+
+    it('touch drag는 임계값을 넘은 뒤 orbit delta를 만든다', () => {
+      canvas.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          pointerId: 1,
+          clientX: 100,
+          clientY: 100,
+          button: 0,
+          isPrimary: true,
+          pointerType: 'touch',
+        }),
+      );
+      window.dispatchEvent(
+        new PointerEvent('pointermove', {
+          pointerId: 1,
+          clientX: 103,
+          clientY: 102,
+          pointerType: 'touch',
+        }),
+      );
+      expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 0, pitch: 0 });
+
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { pointerId: 1, clientX: 130, clientY: 85 }),
+      );
+      expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 27, pitch: -17 });
     });
 
     it('secondary pointer와 입력 요소 위 pointerdown은 orbit drag를 시작하지 않는다', () => {

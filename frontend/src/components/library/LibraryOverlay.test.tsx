@@ -13,6 +13,7 @@ import {
   listConfessions,
   listLibrarianSimilarConfessions,
   listReceivedLetters,
+  markAllReceivedLettersRead,
   sendConfessionLetter,
 } from '@/lib/api/confessions';
 import {
@@ -47,6 +48,7 @@ vi.mock('@/lib/api/confessions', () => ({
   listConfessions: vi.fn(),
   listLibrarianSimilarConfessions: vi.fn(),
   listReceivedLetters: vi.fn(),
+  markAllReceivedLettersRead: vi.fn(),
   sendConfessionLetter: vi.fn(),
 }));
 
@@ -414,6 +416,7 @@ const mockedGetConfession = vi.mocked(getConfession);
 const mockedListConfessions = vi.mocked(listConfessions);
 const mockedListLibrarianSimilarConfessions = vi.mocked(listLibrarianSimilarConfessions);
 const mockedListReceivedLetters = vi.mocked(listReceivedLetters);
+const mockedMarkAllReceivedLettersRead = vi.mocked(markAllReceivedLettersRead);
 const mockedSendConfessionLetter = vi.mocked(sendConfessionLetter);
 
 function setMemberToken() {
@@ -427,11 +430,13 @@ function resetLibraryOverlayMocks() {
   mockedListConfessions.mockReset();
   mockedListLibrarianSimilarConfessions.mockReset();
   mockedListReceivedLetters.mockReset();
+  mockedMarkAllReceivedLettersRead.mockReset();
   mockedSendConfessionLetter.mockReset();
   mockedListConfessions.mockResolvedValue([makeBook(1)]);
   mockedGetConfession.mockResolvedValue(makeBookDetail(1));
   mockedListLibrarianSimilarConfessions.mockResolvedValue([makeBook(2)]);
   mockedListReceivedLetters.mockRejectedValue({ response: { status: 403 } });
+  mockedMarkAllReceivedLettersRead.mockResolvedValue(undefined);
   mockedCreateConfession.mockResolvedValue(makeBookDetail(3));
   mockedSendConfessionLetter.mockResolvedValue({
     id: 10,
@@ -524,6 +529,8 @@ describe('LibraryOverlay composition', () => {
   it('loads received letters for my own book and shows them in the shelf detail', async () => {
     const user = userEvent.setup();
     setMemberToken();
+    const mailRefreshListener = vi.fn();
+    const unsubscribe = onMailRefreshRequested(mailRefreshListener);
     mockedListReceivedLetters.mockResolvedValue([makeReceivedLetter(20, '누군가 남긴 마음')]);
 
     render(<LibraryOverlay />);
@@ -539,9 +546,15 @@ describe('LibraryOverlay composition', () => {
     expect(await screen.findByText('받은 편지')).toBeInTheDocument();
     expect(screen.getByText('누군가 남긴 마음')).toBeInTheDocument();
     expect(mockedListReceivedLetters).toHaveBeenCalledWith(1);
+    await waitFor(() => {
+      expect(mockedMarkAllReceivedLettersRead).toHaveBeenCalledTimes(1);
+      expect(mailRefreshListener).toHaveBeenCalledTimes(1);
+    });
     expect(
       screen.queryByRole('button', { name: LIBRARY_LABELS.sendHeart }),
     ).not.toBeInTheDocument();
+
+    unsubscribe();
   });
 
   it('requires login and skips API writes when an anonymous user submits a book', async () => {

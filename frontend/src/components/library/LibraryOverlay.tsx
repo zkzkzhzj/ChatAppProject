@@ -7,6 +7,7 @@ import {
   getConfession,
   listConfessions,
   listReceivedLetters,
+  markAllReceivedLettersRead,
   sendConfessionLetter,
 } from '@/lib/api/confessions';
 import { hasMemberToken } from '@/lib/auth/member-token';
@@ -109,6 +110,13 @@ export default function LibraryOverlay() {
 
     try {
       const receivedLetters = await listReceivedLetters(id);
+      if (receivedLetters.length > 0) {
+        void markAllReceivedLettersRead()
+          .then(() => {
+            emitMailRefreshRequested();
+          })
+          .catch(() => undefined);
+      }
       return { detail, receivedLetters };
     } catch (error) {
       if (getHttpStatus(error) !== 403) {

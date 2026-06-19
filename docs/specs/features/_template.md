@@ -1,4 +1,5 @@
 ---
+type: Feature Spec
 feature: {feature-id-kebab-case}
 track: {track-id}
 issue: "#{N}"

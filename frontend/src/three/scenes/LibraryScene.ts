@@ -300,12 +300,20 @@ export class LibraryScene {
     this.scene.add(note);
 
     const body = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.28, 0.55, 4, 8),
-      new THREE.MeshLambertMaterial({ color: 0x5b6f8f }),
+      new THREE.CapsuleGeometry(0.32, 0.68, 4, 8),
+      new THREE.MeshLambertMaterial({ color: 0x526f62 }),
     );
     body.position.set(0.65, 1.28, -2.15);
     body.castShadow = true;
     this.scene.add(body);
+
+    const apron = new THREE.Mesh(
+      new THREE.BoxGeometry(0.38, 0.5, 0.08),
+      new THREE.MeshLambertMaterial({ color: 0xf0dfbf }),
+    );
+    apron.position.set(0.65, 1.24, -1.9);
+    apron.rotation.x = -0.08;
+    this.scene.add(apron);
 
     const head = new THREE.Mesh(
       new THREE.SphereGeometry(0.23, 16, 12),
@@ -314,6 +322,39 @@ export class LibraryScene {
     head.position.set(0.65, 1.82, -2.15);
     head.castShadow = true;
     this.scene.add(head);
+
+    const hair = new THREE.Mesh(
+      new THREE.SphereGeometry(0.245, 16, 12),
+      new THREE.MeshLambertMaterial({ color: 0x4a3525 }),
+    );
+    hair.position.set(0.65, 1.9, -2.2);
+    hair.scale.set(1.05, 0.72, 0.9);
+    this.scene.add(hair);
+
+    const bun = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12, 12, 8),
+      new THREE.MeshLambertMaterial({ color: 0x4a3525 }),
+    );
+    bun.position.set(0.65, 1.9, -2.43);
+    this.scene.add(bun);
+
+    const glassesMaterial = new THREE.MeshBasicMaterial({ color: 0x2f2a24 });
+    for (const gx of [0.56, 0.74]) {
+      const lens = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.008, 6, 12), glassesMaterial);
+      lens.position.set(gx, 1.83, -1.94);
+      this.scene.add(lens);
+    }
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.01, 0.01), glassesMaterial);
+    bridge.position.set(0.65, 1.83, -1.94);
+    this.scene.add(bridge);
+
+    const heldBook = new THREE.Mesh(
+      new THREE.BoxGeometry(0.34, 0.06, 0.46),
+      new THREE.MeshLambertMaterial({ color: 0x8c4a3a }),
+    );
+    heldBook.position.set(0.28, 1.2, -1.82);
+    heldBook.rotation.set(0.2, -0.35, 0.1);
+    this.scene.add(heldBook);
   }
 
   updateCamera(camera: THREE.PerspectiveCamera): void {

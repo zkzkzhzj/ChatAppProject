@@ -6,7 +6,6 @@ import {
   createConfession,
   getConfession,
   listConfessions,
-  listLibrarianSimilarConfessions,
   listReceivedLetters,
   sendConfessionLetter,
 } from '@/lib/api/confessions';
@@ -86,10 +85,6 @@ export default function LibraryOverlay() {
     };
   }, [refreshBooks]);
 
-  async function handleRequestCounseling() {
-    await listLibrarianSimilarConfessions(LIBRARY_BOOKSHELF);
-  }
-
   async function handleSubmitBook(input: {
     title: string;
     body: string;
@@ -168,11 +163,7 @@ export default function LibraryOverlay() {
 
   return (
     <>
-      <LibrarianInteraction
-        near={interaction.nearLibrarian}
-        onRequestCounseling={handleRequestCounseling}
-        onSubmitBook={handleSubmitBook}
-      />
+      <LibrarianInteraction near={interaction.nearLibrarian} onSubmitBook={handleSubmitBook} />
       <BookshelfInteraction
         near={interaction.nearBookshelf}
         books={books}

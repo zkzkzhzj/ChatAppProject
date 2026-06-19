@@ -69,9 +69,11 @@ export class InputState {
     if (this.cameraElement === element) return;
     if (this.cameraElement) {
       this.cameraElement.removeEventListener('pointerdown', this.onPointerDown);
+      this.cameraElement.removeEventListener('contextmenu', this.onContextMenu);
     }
     this.cameraElement = element;
     this.cameraElement.addEventListener('pointerdown', this.onPointerDown);
+    this.cameraElement.addEventListener('contextmenu', this.onContextMenu);
   }
 
   consumeCameraOrbitDelta(): { yaw: number; pitch: number } {
@@ -83,7 +85,8 @@ export class InputState {
 
   private onPointerDown = (e: PointerEvent): void => {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-    if (!e.isPrimary || e.button !== 0) return;
+    if (!e.isPrimary || (e.button !== 0 && e.button !== 2)) return;
+    if (e.button === 2) e.preventDefault();
 
     this.orbitPointerId = e.pointerId;
     this.orbitLastX = e.clientX;
@@ -111,6 +114,10 @@ export class InputState {
     window.removeEventListener('pointercancel', this.onPointerUp);
   };
 
+  private onContextMenu = (e: MouseEvent): void => {
+    e.preventDefault();
+  };
+
   /** 한 프레임 입력 결과 반환. 키보드 우선, 키보드 없으면 조이스틱. */
   read(): { dx: number; dz: number; jump: boolean } {
     let dx = 0;
@@ -133,6 +140,7 @@ export class InputState {
     this.destroyed = true;
     if (this.cameraElement) {
       this.cameraElement.removeEventListener('pointerdown', this.onPointerDown);
+      this.cameraElement.removeEventListener('contextmenu', this.onContextMenu);
       this.cameraElement = null;
     }
     this.orbitPointerId = null;

@@ -8,6 +8,7 @@ import ChatDrawer from '@/components/chat/ChatDrawer';
 import GlobalMailNotification from '@/components/library/GlobalMailNotification';
 import LibraryOverlay from '@/components/library/LibraryOverlay';
 import AudioControls from '@/components/ui/AudioControls';
+import VillageControls from '@/components/ui/VillageControls';
 import WelcomeOverlay from '@/components/ui/WelcomeOverlay';
 import { useStomp } from '@/lib/websocket/useStomp';
 import { useChatStore } from '@/store/useChatStore';
@@ -26,6 +27,7 @@ export default function GameLoader() {
   const [manager, setManager] = useState<SceneManager | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
+  const loginRequired = useChatStore((s) => s.loginRequired);
   const setLoginRequired = useChatStore((s) => s.setLoginRequired);
 
   // 모바일 분기 — resize 결로 반응형
@@ -40,6 +42,11 @@ export default function GameLoader() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!loginRequired) return;
+    manager?.saveLoginReturnPosition();
+  }, [loginRequired, manager]);
+
   return (
     <>
       <ThreeGame onReady={setManager} />
@@ -53,6 +60,7 @@ export default function GameLoader() {
       />
       <ChatDrawer onOpenChange={setChatDrawerOpen} />
       {!chatDrawerOpen && <GlobalMailNotification />}
+      {!chatDrawerOpen && <VillageControls />}
       <LibraryOverlay />
       {/* 모바일 결 조이스틱 상시 노출 — tap-to-move 결 거부, 조이스틱 only (사용자 결정 2026-05-13). */}
       {isMobile && <VirtualJoystick sceneManager={manager} />}

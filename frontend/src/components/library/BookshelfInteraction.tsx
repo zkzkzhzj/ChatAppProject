@@ -312,18 +312,6 @@ export default function BookshelfInteraction({
                       다음
                     </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelected(null);
-                      setReceivedLetters(null);
-                      setHeartBody('');
-                      setMessage('');
-                    }}
-                    className="justify-self-start rounded border border-sand px-3 py-2 text-sm text-bark"
-                  >
-                    {LIBRARY_LABELS.close}
-                  </button>
                 </div>
               ) : (
                 <form onSubmit={(event) => void handleSendHeart(event)} className="grid gap-2">
@@ -339,19 +327,7 @@ export default function BookshelfInteraction({
                     className="h-24 resize-none rounded border border-sand bg-warm-white p-3"
                     maxLength={1000}
                   />
-                  <div className="flex items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelected(null);
-                        setReceivedLetters(null);
-                        setHeartBody('');
-                        setMessage('');
-                      }}
-                      className="rounded border border-sand px-3 py-2 text-sm text-bark"
-                    >
-                      {LIBRARY_LABELS.close}
-                    </button>
+                  <div className="flex justify-end">
                     <button
                       type="submit"
                       disabled={sendingHeart}

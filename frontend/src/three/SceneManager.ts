@@ -21,6 +21,14 @@ import { VillageScene } from './scenes/VillageScene';
 
 type Active = 'village' | 'library' | 'transitioning';
 
+const LOGIN_RETURN_POSITION_KEY = 'gohyang:login-return-position';
+
+interface LoginReturnPosition {
+  scene: 'village';
+  x: number;
+  z: number;
+}
+
 function hasLibraryAccess(): boolean {
   return hasMemberToken();
 }
@@ -78,6 +86,7 @@ export class SceneManager {
     // Scenes
     this.village = new VillageScene();
     this.library = new LibraryScene();
+    this.restoreLoginReturnPosition();
 
     // Input — 키보드(WASD/점프) + 모바일 가상 조이스틱(InputState.setJoystick).
     // tap-to-move 결 거부 (사용자 결정 2026-05-13) — 모바일은 조이스틱 상시 노출 결로 정합.
@@ -298,6 +307,18 @@ export class SceneManager {
     this.input.setJoystick(dx, dz);
   }
 
+  saveLoginReturnPosition(): void {
+    if (typeof window === 'undefined' || this.destroyed || this.active !== 'village') return;
+
+    const p = this.village.character.position;
+    const snapshot: LoginReturnPosition = {
+      scene: 'village',
+      x: p.x,
+      z: p.z,
+    };
+    window.sessionStorage.setItem(LOGIN_RETURN_POSITION_KEY, JSON.stringify(snapshot));
+  }
+
   /** ChatInputAnchor 결로 사용 — 자기 캐릭터 머리 위 위치 계산용. 마을 활성 시에만 유효. */
   getMyCharacterPosition(): THREE.Vector3 | null {
     if (this.destroyed || this.active !== 'village') return null;
@@ -335,6 +356,29 @@ export class SceneManager {
   }
 
   private selfDisplayId: string | null = null;
+
+  private restoreLoginReturnPosition(): void {
+    if (typeof window === 'undefined') return;
+
+    const raw = window.sessionStorage.getItem(LOGIN_RETURN_POSITION_KEY);
+    if (!raw) return;
+    window.sessionStorage.removeItem(LOGIN_RETURN_POSITION_KEY);
+
+    try {
+      const snapshot = JSON.parse(raw) as Partial<LoginReturnPosition>;
+      if (
+        snapshot.scene !== 'village' ||
+        typeof snapshot.x !== 'number' ||
+        typeof snapshot.z !== 'number'
+      ) {
+        return;
+      }
+
+      this.village.character.position.set(snapshot.x, 0, snapshot.z);
+    } catch {
+      // Ignore stale or manually edited sessionStorage.
+    }
+  }
 
   destroy(): void {
     if (this.destroyed) return;

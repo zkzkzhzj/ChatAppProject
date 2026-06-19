@@ -8,12 +8,11 @@ import { LIBRARY_LABELS } from './libraryLabels';
 
 const BOOK_REQUIRED_MESSAGE = '제목과 내용을 모두 입력해 주세요.';
 const BOOK_SUBMIT_ERROR_MESSAGE = '도서를 남기지 못했어요. 잠시 후 다시 시도해 주세요.';
-const COUNSELING_ERROR_MESSAGE = '상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
+const COUNSELING_READY_MESSAGE = '고민 상담은 아직 준비 중입니다. 지금은 마음을 남겨둘 수 있어요.';
 const DEFAULT_BOOKSHELF: ConfessionBookshelf = 'GENERAL';
 
 interface LibrarianInteractionProps {
   near: boolean;
-  onRequestCounseling: () => Promise<void> | void;
   onSubmitBook: (input: {
     title: string;
     body: string;
@@ -21,11 +20,7 @@ interface LibrarianInteractionProps {
   }) => Promise<void> | void;
 }
 
-export default function LibrarianInteraction({
-  near,
-  onRequestCounseling,
-  onSubmitBook,
-}: LibrarianInteractionProps) {
+export default function LibrarianInteraction({ near, onSubmitBook }: LibrarianInteractionProps) {
   const panelId = useId();
   const panelTitleId = useId();
   const [open, setOpen] = useState(false);
@@ -37,21 +32,11 @@ export default function LibrarianInteraction({
 
   if (!near) return null;
 
-  async function handleCounseling() {
+  function handleCounseling() {
     if (pending) return;
 
-    setPending('counseling');
-    setMessage('');
-
-    try {
-      await onRequestCounseling();
-      setMode('counseling');
-      setMessage('비슷한 마음이 남겨져 있었어요.');
-    } catch {
-      setMessage(COUNSELING_ERROR_MESSAGE);
-    } finally {
-      setPending(null);
-    }
+    setMode('counseling');
+    setMessage(COUNSELING_READY_MESSAGE);
   }
 
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
@@ -131,7 +116,7 @@ export default function LibrarianInteraction({
             <div className="grid gap-2">
               <button
                 type="button"
-                onClick={() => void handleCounseling()}
+                onClick={handleCounseling}
                 disabled={pending === 'counseling'}
                 className="rounded bg-bark px-3 py-2 text-cream"
               >

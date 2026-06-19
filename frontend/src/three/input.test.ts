@@ -136,7 +136,7 @@ describe('InputState', () => {
       expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 0, pitch: 0 });
     });
 
-    it('secondary pointer와 입력 요소 위 pointerdown은 orbit drag를 시작하지 않는다', () => {
+    it('right pointer drag도 orbit delta를 만든다', () => {
       canvas.dispatchEvent(
         new PointerEvent('pointerdown', {
           pointerId: 1,
@@ -144,6 +144,22 @@ describe('InputState', () => {
           clientY: 100,
           button: 2,
           isPrimary: true,
+        }),
+      );
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { pointerId: 1, clientX: 130, clientY: 85 }),
+      );
+      expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 30, pitch: -15 });
+    });
+
+    it('secondary pointer와 입력 요소 위 pointerdown은 orbit drag를 시작하지 않는다', () => {
+      canvas.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          pointerId: 1,
+          clientX: 100,
+          clientY: 100,
+          button: 0,
+          isPrimary: false,
         }),
       );
       window.dispatchEvent(
@@ -167,6 +183,14 @@ describe('InputState', () => {
       );
       expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 0, pitch: 0 });
       document.body.removeChild(textarea);
+    });
+
+    it('camera element contextmenu 기본 동작을 막는다', () => {
+      const event = new MouseEvent('contextmenu', { cancelable: true });
+
+      canvas.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
     });
 
     it('pointerup 이후 move는 orbit delta를 만들지 않는다', () => {

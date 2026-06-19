@@ -6,16 +6,14 @@ import { LIBRARY_LABELS } from './libraryLabels';
 
 interface MailNotificationProps {
   receivedCount: number;
-  replyCount: number;
 }
 
-export default function MailNotification({ receivedCount, replyCount }: MailNotificationProps) {
+export default function MailNotification({ receivedCount }: MailNotificationProps) {
   const popoverId = useId();
   const [open, setOpen] = useState(false);
-  const total = receivedCount + replyCount;
   const mailAriaLabel =
-    total > 0
-      ? `${LIBRARY_LABELS.mailAriaLabel}, 새 알림 ${String(total)}개`
+    receivedCount > 0
+      ? `${LIBRARY_LABELS.mailAriaLabel}, 새 알림 ${String(receivedCount)}개`
       : LIBRARY_LABELS.mailAriaLabel;
 
   return (
@@ -34,9 +32,9 @@ export default function MailNotification({ receivedCount, replyCount }: MailNoti
           <span aria-hidden="true" className="text-lg">
             ✉
           </span>
-          {total > 0 && (
+          {receivedCount > 0 && (
             <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-leaf px-1.5 text-xs font-semibold text-cream">
-              {total}
+              {receivedCount}
             </span>
           )}
         </button>
@@ -63,9 +61,6 @@ export default function MailNotification({ receivedCount, replyCount }: MailNoti
           </div>
           <p>
             {LIBRARY_LABELS.receivedHeart} {receivedCount}
-          </p>
-          <p>
-            {LIBRARY_LABELS.reply} {replyCount}
           </p>
           <p className="mt-2 text-xs text-bark-muted">자세한 내용은 도서를 열어 확인해 주세요.</p>
         </div>

@@ -29,6 +29,7 @@ export class VillageScene {
   private elapsed = 0;
   private cameraYaw: number = CAMERA.ORBIT_INITIAL_YAW;
   private cameraPitch: number = CAMERA.ORBIT_INITIAL_PITCH;
+  private cameraDistance: number = CAMERA.DISTANCE;
   /** 모닥불 불꽃 3겹 — updateAmbient 에서 일렁임 (D11: 저주파, 점멸 금지). */
   private readonly flames: THREE.Mesh[] = [];
 
@@ -492,6 +493,7 @@ export class VillageScene {
   updateCamera(
     camera: THREE.PerspectiveCamera,
     orbitDelta: { yaw: number; pitch: number } = { yaw: 0, pitch: 0 },
+    zoomDelta = 0,
   ): void {
     const target = this.character.position;
 
@@ -502,11 +504,16 @@ export class VillageScene {
         CAMERA.ORBIT_MIN_PITCH,
         CAMERA.ORBIT_MAX_PITCH,
       );
+      this.cameraDistance = THREE.MathUtils.clamp(
+        this.cameraDistance + zoomDelta * CAMERA.WHEEL_ZOOM_SENSITIVITY,
+        CAMERA.MIN_DISTANCE,
+        CAMERA.MAX_DISTANCE,
+      );
 
-      const horizontalDistance = Math.cos(this.cameraPitch) * CAMERA.DISTANCE;
+      const horizontalDistance = Math.cos(this.cameraPitch) * this.cameraDistance;
       const desired = new THREE.Vector3(
         target.x + Math.sin(this.cameraYaw) * horizontalDistance,
-        target.y + CAMERA.HEIGHT_OFFSET + Math.sin(this.cameraPitch) * CAMERA.DISTANCE,
+        target.y + CAMERA.HEIGHT_OFFSET + Math.sin(this.cameraPitch) * this.cameraDistance,
         target.z + Math.cos(this.cameraYaw) * horizontalDistance,
       );
       camera.position.lerp(desired, CAMERA.FOLLOW_LERP);

@@ -19,6 +19,9 @@ export class InputState {
   private orbitMode: 'immediate' | 'threshold' = 'immediate';
   private orbitYawDelta = 0;
   private orbitPitchDelta = 0;
+  private zoomDelta = 0;
+  private pinchPointers = new Map<number, { x: number; y: number }>();
+  private pinchLastDistance: number | null = null;
   /** 가상 조이스틱 입력 (Step 1.7 모바일 hybrid). 0 = 비활성. */
   private joystickDx = 0;
   private joystickDz = 0;
@@ -57,6 +60,9 @@ export class InputState {
     this.orbitDragging = false;
     this.orbitYawDelta = 0;
     this.orbitPitchDelta = 0;
+    this.zoomDelta = 0;
+    this.pinchPointers.clear();
+    this.pinchLastDistance = null;
     window.removeEventListener('pointermove', this.onPointerMove);
     window.removeEventListener('pointerup', this.onPointerUp);
     window.removeEventListener('pointercancel', this.onPointerUp);
@@ -76,10 +82,13 @@ export class InputState {
     if (this.cameraElement === element) return;
     if (this.cameraElement) {
       this.cameraElement.removeEventListener('pointerdown', this.onPointerDown);
+      this.cameraElement.removeEventListener('wheel', this.onWheel);
       this.cameraElement.removeEventListener('contextmenu', this.onContextMenu);
     }
     this.cameraElement = element;
+    this.cameraElement.style.touchAction = 'none';
     this.cameraElement.addEventListener('pointerdown', this.onPointerDown);
+    this.cameraElement.addEventListener('wheel', this.onWheel, { passive: false });
     this.cameraElement.addEventListener('contextmenu', this.onContextMenu);
   }
 
@@ -90,12 +99,32 @@ export class InputState {
     return delta;
   }
 
+  consumeCameraZoomDelta(): number {
+    const delta = this.zoomDelta;
+    this.zoomDelta = 0;
+    return delta;
+  }
+
   private onPointerDown = (e: PointerEvent): void => {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-    if (!e.isPrimary) return;
     if (e.pointerType === 'mouse' && e.button !== 2) return;
     if (e.pointerType !== 'mouse' && e.button !== 0) return;
     if (e.button === 2) e.preventDefault();
+
+    if (e.pointerType !== 'mouse') {
+      this.pinchPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this.pinchPointers.size >= 2) {
+        this.pinchLastDistance = this.currentPinchDistance();
+        this.orbitPointerId = null;
+        this.orbitDragging = false;
+        window.addEventListener('pointermove', this.onPointerMove);
+        window.addEventListener('pointerup', this.onPointerUp);
+        window.addEventListener('pointercancel', this.onPointerUp);
+        return;
+      }
+    }
+
+    if (!e.isPrimary) return;
 
     this.orbitPointerId = e.pointerId;
     this.orbitStartX = e.clientX;
@@ -110,6 +139,18 @@ export class InputState {
   };
 
   private onPointerMove = (e: PointerEvent): void => {
+    if (this.pinchPointers.has(e.pointerId)) {
+      this.pinchPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this.pinchPointers.size >= 2 && this.pinchLastDistance !== null) {
+        const nextDistance = this.currentPinchDistance();
+        if (nextDistance !== null) {
+          this.zoomDelta -= (nextDistance - this.pinchLastDistance) * 4;
+          this.pinchLastDistance = nextDistance;
+        }
+        return;
+      }
+    }
+
     if (this.orbitPointerId !== e.pointerId) return;
 
     const dx = e.clientX - this.orbitLastX;
@@ -128,6 +169,15 @@ export class InputState {
   };
 
   private onPointerUp = (e: PointerEvent): void => {
+    if (this.pinchPointers.delete(e.pointerId)) {
+      this.pinchLastDistance = this.pinchPointers.size >= 2 ? this.currentPinchDistance() : null;
+      if (this.pinchPointers.size === 0 && this.orbitPointerId === null) {
+        window.removeEventListener('pointermove', this.onPointerMove);
+        window.removeEventListener('pointerup', this.onPointerUp);
+        window.removeEventListener('pointercancel', this.onPointerUp);
+      }
+    }
+
     if (this.orbitPointerId !== e.pointerId) return;
 
     this.orbitPointerId = null;
@@ -140,6 +190,19 @@ export class InputState {
   private onContextMenu = (e: MouseEvent): void => {
     e.preventDefault();
   };
+
+  private onWheel = (e: WheelEvent): void => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    e.preventDefault();
+    this.zoomDelta += e.deltaY;
+  };
+
+  private currentPinchDistance(): number | null {
+    const points = [...this.pinchPointers.values()];
+    if (points.length < 2) return null;
+    const [a, b] = points;
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
 
   /** 한 프레임 입력 결과 반환. 키보드 우선, 키보드 없으면 조이스틱. */
   read(): { dx: number; dz: number; jump: boolean } {
@@ -163,11 +226,14 @@ export class InputState {
     this.destroyed = true;
     if (this.cameraElement) {
       this.cameraElement.removeEventListener('pointerdown', this.onPointerDown);
+      this.cameraElement.removeEventListener('wheel', this.onWheel);
       this.cameraElement.removeEventListener('contextmenu', this.onContextMenu);
       this.cameraElement = null;
     }
     this.orbitPointerId = null;
     this.orbitDragging = false;
+    this.pinchPointers.clear();
+    this.pinchLastDistance = null;
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('blur', this.release);

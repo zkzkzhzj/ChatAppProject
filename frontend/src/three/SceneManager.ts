@@ -234,8 +234,9 @@ export class SceneManager {
     }
 
     const orbitDelta = this.input.consumeCameraOrbitDelta();
+    const zoomDelta = this.input.consumeCameraZoomDelta();
     if (sceneObj instanceof VillageScene) {
-      sceneObj.updateCamera(this.camera, orbitDelta);
+      sceneObj.updateCamera(this.camera, orbitDelta, zoomDelta);
     } else {
       sceneObj.updateCamera(this.camera);
     }

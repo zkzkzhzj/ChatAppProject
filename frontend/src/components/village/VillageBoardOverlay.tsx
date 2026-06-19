@@ -132,7 +132,7 @@ export default function VillageBoardOverlay({ sceneManager }: VillageBoardOverla
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-3 bottom-4 z-40 mx-auto flex max-w-[520px] flex-col items-start gap-3 sm:left-4 sm:right-auto sm:mx-0">
+      <div className="pointer-events-none fixed inset-x-3 bottom-4 z-40 mx-auto flex max-w-[520px] flex-col items-center gap-3">
         {!panelOpen && interaction.nearSuggestionBoard && (
           <button
             type="button"

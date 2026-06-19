@@ -843,6 +843,11 @@ describe('BookshelfInteraction', () => {
     if (!letterDialog) {
       throw new Error('Expected a received letter dialog');
     }
+    expect(letterDialog).toHaveClass('overflow-hidden');
+    expect(within(letterDialog).getByText('받은 마음 1').parentElement).toHaveClass(
+      'overflow-y-auto',
+    );
+    expect(letterDialog.querySelector('time')).toHaveClass('shrink-0');
     expect(onReadReceivedLetters).toHaveBeenCalledTimes(1);
     await user.click(within(letterDialog).getByRole('button', { name: LIBRARY_LABELS.close }));
 

@@ -435,9 +435,9 @@ export default function BookshelfInteraction({
             role="dialog"
             aria-modal="true"
             aria-label="받은 편지 전문"
-            className="max-h-[min(78vh,640px)] w-[min(92vw,420px)] overflow-y-auto rounded border border-sand bg-cream p-5 text-bark shadow-2xl"
+            className="flex max-h-[min(78vh,640px)] w-[min(92vw,420px)] flex-col overflow-hidden rounded border border-sand bg-cream text-bark shadow-2xl"
           >
-            <header className="sticky top-0 z-10 mb-3 flex items-center justify-between gap-3 bg-cream pb-2">
+            <header className="flex shrink-0 items-center justify-between gap-3 border-b border-sand bg-cream px-5 py-4">
               <h3 className="truncate font-display text-lg">받은 편지</h3>
               <button
                 type="button"
@@ -449,8 +449,12 @@ export default function BookshelfInteraction({
                 {LIBRARY_LABELS.close}
               </button>
             </header>
-            <p className="whitespace-pre-wrap text-sm leading-6">{openedLetter.body}</p>
-            <time className="mt-4 block text-xs text-bark-muted">
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+              <p className="whitespace-pre-wrap break-words text-sm leading-6">
+                {openedLetter.body}
+              </p>
+            </div>
+            <time className="block shrink-0 border-t border-sand bg-cream px-5 py-3 text-xs text-bark-muted">
               {new Date(openedLetter.createdAt).toLocaleString()}
             </time>
           </section>

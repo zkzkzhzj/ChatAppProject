@@ -41,7 +41,7 @@ export class RemotePlayer {
   /** 말풍선 stack — Character 결과 동일 패턴 (timer 결로 자연 해제, 안전판 50, spacing 0.95). */
   private bubbles: SpeechBubble[] = [];
   private static readonly MAX_BUBBLES = 50;
-  private static readonly BUBBLE_BASE_Y = 1.4;
+  private static readonly BUBBLE_BASE_Y = 0.75;
   private static readonly BUBBLE_STACK_SPACING = 0.95;
 
   constructor(initialX: number, initialZ: number, displayId?: string, initialY = 0) {

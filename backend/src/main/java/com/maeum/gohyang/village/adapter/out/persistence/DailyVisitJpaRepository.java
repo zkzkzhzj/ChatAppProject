@@ -20,7 +20,7 @@ public interface DailyVisitJpaRepository extends JpaRepository<DailyVisitJpaEnti
     int insertIfAbsent(
             @Param("visitDate") LocalDate visitDate,
             @Param("visitorKey") String visitorKey,
-            @Param("visitorType") String visitorType
+            @Param("visitorType") DailyVisitType visitorType
     );
 
     long countByVisitDate(LocalDate visitDate);

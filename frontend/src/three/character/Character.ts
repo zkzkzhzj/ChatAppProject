@@ -67,7 +67,7 @@ export class Character {
     this.adoptedId = displayId;
     animalModelRegistry.request(speciesFor(displayId), (instance) => {
       // 늦게 도착한 이전 요청 무시 (id 가 그 사이 바뀐 경우)
-      if (this.adoptedId !== displayId) return;
+      if (this.adoptedId !== displayId || !instance) return;
       this.swapToAnimal(instance, scaleJitterFor(displayId));
     });
   }

@@ -7,6 +7,7 @@ import org.jspecify.annotations.Nullable;
 import com.maeum.gohyang.village.domain.DailyVisitType;
 import com.maeum.gohyang.village.domain.Suggestion;
 import com.maeum.gohyang.village.domain.SuggestionStatus;
+import com.maeum.gohyang.village.error.InvalidSuggestionStateException;
 
 public record SuggestionResponse(
         long id,
@@ -21,8 +22,11 @@ public record SuggestionResponse(
 
     public static SuggestionResponse from(Suggestion suggestion) {
         Long id = suggestion.getId();
+        if (id == null) {
+            throw new InvalidSuggestionStateException();
+        }
         return new SuggestionResponse(
-                id == null ? 0 : id,
+                id,
                 suggestion.getAuthorType(),
                 suggestion.getTitle(),
                 suggestion.getBody(),

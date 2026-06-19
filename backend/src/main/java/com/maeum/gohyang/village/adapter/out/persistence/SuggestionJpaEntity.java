@@ -7,7 +7,7 @@ import org.jspecify.annotations.Nullable;
 import com.maeum.gohyang.village.domain.DailyVisitType;
 import com.maeum.gohyang.village.domain.Suggestion;
 import com.maeum.gohyang.village.domain.SuggestionStatus;
-import com.maeum.gohyang.village.error.InvalidSuggestionContentException;
+import com.maeum.gohyang.village.error.InvalidSuggestionStateException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -81,7 +81,7 @@ public class SuggestionJpaEntity {
                         || createdAt == null
                         || updatedAt == null
         ) {
-            throw new InvalidSuggestionContentException();
+            throw new InvalidSuggestionStateException();
         }
         return Suggestion.restore(
                 id,

@@ -1,7 +1,7 @@
 package com.maeum.gohyang.village.adapter.out.persistence;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,14 +60,14 @@ public class VillagePersistenceAdapter
 
     @Override
     public boolean addIfAbsent(LocalDate visitDate, String visitorKey, DailyVisitType visitorType) {
-        return dailyVisitJpaRepository.insertIfAbsent(visitDate, visitorKey, visitorType.name()) > 0;
+        return dailyVisitJpaRepository.insertIfAbsent(visitDate, visitorKey, visitorType) > 0;
     }
 
     @Override
     public DailyVisitStats load(
             LocalDate visitDate,
-            LocalDateTime startInclusive,
-            LocalDateTime endExclusive
+            OffsetDateTime startInclusive,
+            OffsetDateTime endExclusive
     ) {
         long guestCount = dailyVisitJpaRepository.countByVisitDateAndVisitorType(
                 visitDate,

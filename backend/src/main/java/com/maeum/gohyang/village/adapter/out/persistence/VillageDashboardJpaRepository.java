@@ -1,6 +1,6 @@
 package com.maeum.gohyang.village.adapter.out.persistence;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -12,7 +12,7 @@ public interface VillageDashboardJpaRepository extends Repository<ConfessionDash
             + "WHERE created_at >= :startInclusive AND created_at < :endExclusive",
             nativeQuery = true)
     long countConfessionsCreatedBetween(
-            @Param("startInclusive") LocalDateTime startInclusive,
-            @Param("endExclusive") LocalDateTime endExclusive
+            @Param("startInclusive") OffsetDateTime startInclusive,
+            @Param("endExclusive") OffsetDateTime endExclusive
     );
 }

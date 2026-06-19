@@ -8,13 +8,15 @@ import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -41,7 +43,18 @@ class VillageBoardServiceTest {
     @Mock SaveSuggestionPort saveSuggestionPort;
     @Mock LoadSuggestionsPort loadSuggestionsPort;
 
-    @InjectMocks VillageBoardService service;
+    VillageBoardService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new VillageBoardService(
+                addDailyVisitPort,
+                loadDailyVisitStatsPort,
+                saveSuggestionPort,
+                loadSuggestionsPort,
+                "Asia/Seoul"
+        );
+    }
 
     @Test
     @DisplayName("오늘 방문을 insert-if-absent로 기록하고 집계를 반환한다")
@@ -51,8 +64,8 @@ class VillageBoardServiceTest {
                 .willReturn(true);
         given(loadDailyVisitStatsPort.load(
                 any(LocalDate.class),
-                any(LocalDateTime.class),
-                any(LocalDateTime.class)
+                any(OffsetDateTime.class),
+                any(OffsetDateTime.class)
         )).willReturn(stats);
 
         RecordDailyVisitUseCase.Result result = service.execute(
@@ -69,19 +82,27 @@ class VillageBoardServiceTest {
     void 대시보드는_오늘_시작과_내일_시작_사이의_마음_개수를_조회한다() {
         DailyVisitStats stats = new DailyVisitStats(1, 1, 2, 3);
         ArgumentCaptor<LocalDate> dateCaptor = ArgumentCaptor.forClass(LocalDate.class);
-        ArgumentCaptor<LocalDateTime> startCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
-        ArgumentCaptor<LocalDateTime> endCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+        ArgumentCaptor<OffsetDateTime> startCaptor = ArgumentCaptor.forClass(OffsetDateTime.class);
+        ArgumentCaptor<OffsetDateTime> endCaptor = ArgumentCaptor.forClass(OffsetDateTime.class);
         given(loadDailyVisitStatsPort.load(
                 any(LocalDate.class),
-                any(LocalDateTime.class),
-                any(LocalDateTime.class)
+                any(OffsetDateTime.class),
+                any(OffsetDateTime.class)
         )).willReturn(stats);
 
         assertThat(service.execute().stats()).isEqualTo(stats);
 
         verify(loadDailyVisitStatsPort).load(dateCaptor.capture(), startCaptor.capture(), endCaptor.capture());
-        assertThat(startCaptor.getValue()).isEqualTo(dateCaptor.getValue().atStartOfDay());
-        assertThat(endCaptor.getValue()).isEqualTo(dateCaptor.getValue().plusDays(1).atStartOfDay());
+        assertThat(startCaptor.getValue()).isEqualTo(
+                dateCaptor.getValue().atStartOfDay(serviceZone()).toOffsetDateTime()
+        );
+        assertThat(endCaptor.getValue()).isEqualTo(
+                dateCaptor.getValue().plusDays(1).atStartOfDay(serviceZone()).toOffsetDateTime()
+        );
+    }
+
+    private ZoneId serviceZone() {
+        return ZoneId.of("Asia/Seoul");
     }
 
     @Test

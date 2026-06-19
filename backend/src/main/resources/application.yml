@@ -43,6 +43,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: ${HIBERNATE_JDBC_TIME_ZONE:Asia/Seoul}
     show-sql: false
 
   security:
@@ -101,6 +105,7 @@ security:
   env-public-paths: ${SECURITY_ENV_PUBLIC_PATHS:/actuator/**}
 
 village:
+  timezone: ${VILLAGE_TIMEZONE:Asia/Seoul}
   public-chat-room-id: 1
   map:
     max-x: 2400.0

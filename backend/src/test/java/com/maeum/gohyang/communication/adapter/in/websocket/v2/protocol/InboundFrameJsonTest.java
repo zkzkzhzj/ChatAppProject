@@ -82,6 +82,22 @@ class InboundFrameJsonTest {
     }
 
     @Test
+    void POSITION_타입은_z가_없으면_높이를_0으로_처리한다() throws Exception {
+        // Given
+        String json = """
+                {"type":"POSITION","roomId":1,"x":100.5,"y":200.0}
+                """;
+
+        // When
+        InboundFrame frame = objectMapper.readValue(json, InboundFrame.class);
+
+        // Then
+        assertThat(frame).isInstanceOf(PositionFrame.class);
+        PositionFrame position = (PositionFrame) frame;
+        assertThat(position.height()).isZero();
+    }
+
+    @Test
     void TYPING_타입은_TypingFrame으로_파싱된다() throws Exception {
         // Given
         String json = """

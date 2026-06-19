@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ANIMAL_SPECIES, hashDisplayId, scaleJitterFor, speciesFor } from './animalSpecies';
+import { hashDisplayId, scaleJitterFor, speciesFor, VILLAGER_SPECIES } from './animalSpecies';
 
 describe('animalSpecies — displayId 결정적 동물 배정', () => {
   it('같은 displayId 는 항상 같은 종', () => {
@@ -19,12 +19,12 @@ describe('animalSpecies — displayId 결정적 동물 배정', () => {
     for (let i = 0; i < 500; i += 1) {
       seen.add(speciesFor(`user-${String(i)}`));
     }
-    expect(seen.size).toBe(ANIMAL_SPECIES.length);
+    expect(seen.size).toBe(VILLAGER_SPECIES.length);
   });
 
   it('배정 결과는 종 목록 안의 값', () => {
     for (let i = 0; i < 50; i += 1) {
-      expect(ANIMAL_SPECIES).toContain(speciesFor(`guest-${String(i)}`));
+      expect(VILLAGER_SPECIES).toContain(speciesFor(`guest-${String(i)}`));
     }
   });
 

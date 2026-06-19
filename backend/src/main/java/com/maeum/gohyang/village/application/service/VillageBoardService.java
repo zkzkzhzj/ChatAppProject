@@ -1,10 +1,11 @@
 package com.maeum.gohyang.village.application.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,14 +20,10 @@ import com.maeum.gohyang.village.application.port.out.SaveSuggestionPort;
 import com.maeum.gohyang.village.domain.DailyVisitStats;
 import com.maeum.gohyang.village.domain.Suggestion;
 
-import lombok.RequiredArgsConstructor;
-
 @Service
-@RequiredArgsConstructor
 public class VillageBoardService implements RecordDailyVisitUseCase, GetVillageDashboardUseCase,
         CreateSuggestionUseCase, ListSuggestionsUseCase {
 
-    private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
     private static final int DEFAULT_LIMIT = 20;
     private static final int MAX_LIMIT = 50;
 
@@ -34,6 +31,21 @@ public class VillageBoardService implements RecordDailyVisitUseCase, GetVillageD
     private final LoadDailyVisitStatsPort loadDailyVisitStatsPort;
     private final SaveSuggestionPort saveSuggestionPort;
     private final LoadSuggestionsPort loadSuggestionsPort;
+    private final ZoneId serviceZone;
+
+    public VillageBoardService(
+            AddDailyVisitPort addDailyVisitPort,
+            LoadDailyVisitStatsPort loadDailyVisitStatsPort,
+            SaveSuggestionPort saveSuggestionPort,
+            LoadSuggestionsPort loadSuggestionsPort,
+            @Value("${village.timezone:Asia/Seoul}") String serviceTimezone
+    ) {
+        this.addDailyVisitPort = addDailyVisitPort;
+        this.loadDailyVisitStatsPort = loadDailyVisitStatsPort;
+        this.saveSuggestionPort = saveSuggestionPort;
+        this.loadSuggestionsPort = loadSuggestionsPort;
+        this.serviceZone = ZoneId.of(serviceTimezone);
+    }
 
     @Override
     @Transactional
@@ -68,11 +80,15 @@ public class VillageBoardService implements RecordDailyVisitUseCase, GetVillageD
     }
 
     private DailyVisitStats loadStats(LocalDate date) {
-        return loadDailyVisitStatsPort.load(date, date.atStartOfDay(), date.plusDays(1).atStartOfDay());
+        return loadDailyVisitStatsPort.load(
+                date,
+                date.atStartOfDay(serviceZone).toOffsetDateTime(),
+                date.plusDays(1).atStartOfDay(serviceZone).toOffsetDateTime()
+        );
     }
 
     private LocalDate today() {
-        return LocalDateTime.now(SERVICE_ZONE).toLocalDate();
+        return ZonedDateTime.now(serviceZone).toLocalDate();
     }
 
     private int normalizeLimit(int limit) {

@@ -35,7 +35,7 @@ export class RemotePlayer {
   private readonly material: THREE.MeshLambertMaterial;
   private readonly placeholderBody: THREE.Mesh;
   private animal: AnimalInstance | null = null;
-  private adopted = false;
+  private adoptionRequested = false;
   private disposed = false;
   private gait: 'idle' | 'walk' = 'idle';
   /** 말풍선 stack — Character 결과 동일 패턴 (timer 결로 자연 해제, 안전판 50, spacing 0.95). */
@@ -58,10 +58,10 @@ export class RemotePlayer {
     this.targetY = initialY;
 
     if (displayId) {
-      this.adopted = true;
+      this.adoptionRequested = true;
       animalModelRegistry.request(speciesFor(displayId), (instance) => {
         // LEAVE 가 로드보다 먼저 온 경우 — 늦은 콜백 무시 (leak 방지)
-        if (this.disposed) return;
+        if (this.disposed || !instance) return;
         this.swapToAnimal(instance, scaleJitterFor(displayId));
       });
     }
@@ -161,7 +161,7 @@ export class RemotePlayer {
   }
 
   /** 주민 모델 채택 시도 여부 (디버그·테스트용). */
-  get hasAdopted(): boolean {
-    return this.adopted;
+  get hasAdoptionRequested(): boolean {
+    return this.adoptionRequested;
   }
 }

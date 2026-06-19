@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
-import { ANIMAL_SPECIES, type AnimalSpecies } from './animalSpecies';
+import { type AnimalSpecies, VILLAGER_SPECIES } from './animalSpecies';
 
 /** 캐릭터 표준 키 (placeholder 박스 1.4 + 머리와 맞춤 — 말풍선 높이 호환). */
 const TARGET_HEIGHT = 1.5;
@@ -27,7 +27,7 @@ interface LoadedTemplate {
   yOffset: number;
 }
 
-type PendingRequest = (instance: AnimalInstance) => void;
+type PendingRequest = (instance: AnimalInstance | null) => void;
 
 /**
  * GLB 주민 모델 1회 로드 + 인스턴스 clone 캐시.
@@ -48,7 +48,7 @@ class AnimalModelRegistry {
     if (this.started) return;
     this.started = true;
     const loader = new GLTFLoader();
-    for (const species of ANIMAL_SPECIES) {
+    for (const species of VILLAGER_SPECIES) {
       loader.load(
         `${basePath}/${species}.glb`,
         (gltf) => {
@@ -57,7 +57,11 @@ class AnimalModelRegistry {
         undefined,
         () => {
           // 로드 실패 — 해당 종은 placeholder 박스 유지. 콘솔 노이즈만 남기지 않는다.
+          const waiters = this.pending.get(species) ?? [];
           this.pending.delete(species);
+          for (const cb of waiters) {
+            cb(null);
+          }
         },
       );
     }

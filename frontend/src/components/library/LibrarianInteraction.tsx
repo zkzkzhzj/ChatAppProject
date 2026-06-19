@@ -117,7 +117,7 @@ export default function LibrarianInteraction({ near, onSubmitBook }: LibrarianIn
               <button
                 type="button"
                 onClick={handleCounseling}
-                disabled={pending === 'counseling'}
+                disabled={!!pending}
                 className="rounded bg-bark px-3 py-2 text-cream"
               >
                 {LIBRARY_LABELS.counseling}

@@ -40,9 +40,21 @@ export default function VillageBoardOverlay({ sceneManager }: VillageBoardOverla
   const [body, setBody] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [member, setMember] = useState(false);
 
-  const canCreateSuggestion = hasMemberToken();
+  const canCreateSuggestion = member;
   const latestSuggestion = useMemo(() => suggestions[0] ?? null, [suggestions]);
+
+  useEffect(() => {
+    const syncMember = () => {
+      setMember(hasMemberToken());
+    };
+    syncMember();
+    window.addEventListener('storage', syncMember);
+    return () => {
+      window.removeEventListener('storage', syncMember);
+    };
+  }, []);
 
   const refreshDashboard = useCallback(async () => {
     try {

@@ -8,9 +8,14 @@
  * 로스터 = 사람 4 (동물 모델은 2026-06-15 디자인 피드백으로 제외).
  * 모델: Quaternius Animated Men/Women Pack (CC0) — public/models/animals/LICENSE.md
  */
-export const ANIMAL_SPECIES = ['villager-m1', 'villager-m2', 'villager-f1', 'villager-f2'] as const;
+export const VILLAGER_SPECIES = [
+  'villager-m1',
+  'villager-m2',
+  'villager-f1',
+  'villager-f2',
+] as const;
 
-export type AnimalSpecies = (typeof ANIMAL_SPECIES)[number];
+export type AnimalSpecies = (typeof VILLAGER_SPECIES)[number];
 
 /** FNV-1a 32bit — 짧은 문자열에서도 분포 양호, 의존성 0. */
 export function hashDisplayId(displayId: string): number {
@@ -23,7 +28,7 @@ export function hashDisplayId(displayId: string): number {
 }
 
 export function speciesFor(displayId: string): AnimalSpecies {
-  return ANIMAL_SPECIES[hashDisplayId(displayId) % ANIMAL_SPECIES.length];
+  return VILLAGER_SPECIES[hashDisplayId(displayId) % VILLAGER_SPECIES.length];
 }
 
 /**

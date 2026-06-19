@@ -676,7 +676,7 @@ function wrapText(
   maxWidth: number,
   maxLines: number,
 ): string[] {
-  const normalized = text.replace(/s+/g, ' ').trim();
+  const normalized = text.replace(/\s+/g, ' ').trim();
   const lines: string[] = [];
   let current = '';
 

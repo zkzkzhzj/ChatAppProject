@@ -14,7 +14,7 @@ describe('animalSpecies — displayId 결정적 동물 배정', () => {
     expect(hashDisplayId('user-1')).not.toBe(hashDisplayId('user-2'));
   });
 
-  it('충분한 id 표본에서 8종이 모두 등장 (분포 확인)', () => {
+  it('충분한 id 표본에서 모든 종이 등장 (분포 확인)', () => {
     const seen = new Set<string>();
     for (let i = 0; i < 500; i += 1) {
       seen.add(speciesFor(`user-${String(i)}`));

@@ -5,10 +5,10 @@ import { type AnimalInstance, animalModelRegistry } from './AnimalModelRegistry'
 import { scaleJitterFor, speciesFor } from './animalSpecies';
 
 /**
- * 다른 유저 — displayId 가 주어지면 그 유저의 동물 주민 모델로 표시된다.
+ * 다른 유저 — displayId 가 주어지면 그 유저의 주민 모델로 표시된다.
  *
  * 종 배정은 displayId 해시라서 내 화면의 이 유저와 그 유저 본인 화면의 자기
- * 캐릭터가 같은 동물이다. 모델 미로드 환경 (vitest 등) 은 박스 placeholder 유지.
+ * 캐릭터가 같은 모델이다. 모델 미로드 환경 (vitest 등) 은 박스 placeholder 유지.
  *
  * setTarget 으로 받은 좌표를 매 프레임 `update()` 호출 시 lerp 로 점근시킨다
  * (네트워크 jitter 흡수). 이동 중이면 walk, 멈추면 idle 애니메이션.
@@ -144,7 +144,7 @@ export class RemotePlayer {
     }
     this.bubbles = [];
     // placeholder 박스는 인스턴스 소유 — 즉시 dispose.
-    // 동물 모델의 geometry/material 은 registry 템플릿과 공유라 dispose 금지
+    // 주민 모델의 geometry/material 은 registry 템플릿과 공유라 dispose 금지
     // (다른 RemotePlayer / Character 인스턴스가 같은 리소스를 그리는 중).
     this.geometry.dispose();
     this.material.dispose();
@@ -155,7 +155,7 @@ export class RemotePlayer {
     }
   }
 
-  /** 동물 모델 채택 시도 여부 (디버그·테스트용). */
+  /** 주민 모델 채택 시도 여부 (디버그·테스트용). */
   get hasAdopted(): boolean {
     return this.adopted;
   }

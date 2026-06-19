@@ -6,10 +6,10 @@ import { type AnimalInstance, animalModelRegistry } from './AnimalModelRegistry'
 import { scaleJitterFor, speciesFor } from './animalSpecies';
 
 /**
- * 자기 캐릭터 — displayId 가 정해지면 동물 주민 모델로 교체된다.
+ * 자기 캐릭터 — displayId 가 정해지면 주민 모델로 교체된다.
  *
  * 생성 직후에는 박스 + 구 placeholder. SceneManager.setSelfId → adoptAnimal()
- * 호출로 Quaternius CC0 동물 모델 (정규화·애니메이션 포함) 로 swap.
+ * 호출로 Quaternius CC0 주민 모델 (정규화·애니메이션 포함) 로 swap.
  * 모델 로드가 불가한 환경 (vitest, 네트워크 실패) 에서는 placeholder 유지.
  *
  * 물리 (spec D11):
@@ -59,7 +59,7 @@ export class Character {
   }
 
   /**
-   * displayId 기반 동물 모델 채택 (결정적 — 모든 클라이언트에서 같은 종으로 보임).
+   * displayId 기반 주민 모델 채택 (결정적 — 모든 클라이언트에서 같은 종으로 보임).
    * 같은 id 재호출은 무시. 모델 미로드 시 콜백이 안 와서 placeholder 유지.
    */
   adoptAnimal(displayId: string): void {
@@ -73,7 +73,7 @@ export class Character {
   }
 
   private swapToAnimal(instance: AnimalInstance, jitter: number): void {
-    // 기존 동물 (재채택) 또는 placeholder 제거
+    // 기존 주민 모델 (재채택) 또는 placeholder 제거
     if (this.animal) {
       this.animal.mixer.stopAllAction();
       this.group.remove(this.animal.object);
@@ -131,7 +131,7 @@ export class Character {
       }
     }
 
-    // 동물 애니메이션 — idle ↔ walk crossfade
+    // 주민 모델 애니메이션 — idle ↔ walk crossfade
     if (this.animal) {
       this.applyGait(length > 0 ? 'walk' : 'idle');
       this.animal.mixer.update(delta);
@@ -213,7 +213,7 @@ export class Character {
       bubble.dispose();
     }
     this.bubbles = [];
-    // 동물 모델의 geometry/material 은 registry 템플릿과 공유 — 여기서 dispose 금지.
+    // 주민 모델의 geometry/material 은 registry 템플릿과 공유 — 여기서 dispose 금지.
     // SceneManager.disposeScene 의 일괄 traverse 가 최종 정리를 맡는다.
     this.animal?.mixer.stopAllAction();
   }

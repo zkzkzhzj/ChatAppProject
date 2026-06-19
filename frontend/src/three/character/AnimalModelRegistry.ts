@@ -30,7 +30,7 @@ interface LoadedTemplate {
 type PendingRequest = (instance: AnimalInstance) => void;
 
 /**
- * GLB 동물 모델 1회 로드 + 인스턴스 clone 캐시.
+ * GLB 주민 모델 1회 로드 + 인스턴스 clone 캐시.
  *
  * - 로드는 SceneManager(브라우저 런타임)만 트리거한다. 테스트에서 Character /
  *   RemotePlayer 를 직접 생성하면 로드가 시작되지 않아 placeholder 가 유지된다
@@ -43,7 +43,7 @@ class AnimalModelRegistry {
   private pending = new Map<AnimalSpecies, PendingRequest[]>();
   private started = false;
 
-  /** SceneManager 생성 시 1회 호출 — 8종 백그라운드 로드. 실패는 종 단위로 무시 (placeholder 유지). */
+  /** SceneManager 생성 시 1회 호출 — 4종 백그라운드 로드. 실패는 종 단위로 무시 (placeholder 유지). */
   preloadAll(basePath = '/models/animals'): void {
     if (this.started) return;
     this.started = true;

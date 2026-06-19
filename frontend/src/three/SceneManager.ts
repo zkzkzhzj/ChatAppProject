@@ -72,7 +72,7 @@ export class SceneManager {
       120,
     );
 
-    // 동물 주민 모델 (Quaternius CC0) 백그라운드 프리로드 — 도착 전까지 placeholder 박스
+    // 마을 주민 모델 (Quaternius CC0) 백그라운드 프리로드 — 도착 전까지 placeholder 박스
     animalModelRegistry.preloadAll();
 
     // Scenes
@@ -279,7 +279,7 @@ export class SceneManager {
   setSelfId(id: string | null): void {
     this.positionSync.setSelfId(id);
     this.selfDisplayId = id;
-    // displayId 확정 → 내 동물 주민 채택 (마을·도서관 캐릭터 동일 종)
+    // displayId 확정 → 내 주민 모델 채택 (마을·도서관 캐릭터 동일 종)
     if (id) {
       this.village.character.adoptAnimal(id);
       this.library.character.adoptAnimal(id);

@@ -12,7 +12,7 @@ import { buildVillageDecor, type VillageDecor } from './villageDecor';
  * 마을 Scene — 입구·캠프파이어·연못·도서관 세로 구도 (사용자 결, 2026-05-10).
  * Step 1.5: 다른 유저 placeholder (RemotePlayer) 동기화 추가.
  * Visual pass (2026-06-12): 데코 풀 패스 (villageDecor) + 나무 다양화 + 도서관 창문
- * + 유저 = 동물 주민 (Character/RemotePlayer 가 displayId 결정적 배정).
+ * + 유저 = 마을 주민 (Character/RemotePlayer 가 displayId 결정적 배정).
  */
 export class VillageScene {
   readonly scene = new THREE.Scene();
@@ -333,7 +333,7 @@ export class VillageScene {
       existing.setTarget(pos.x, pos.y);
       return;
     }
-    // displayId 전달 — 동물 종 결정적 배정 (그 유저 화면의 자기 캐릭터와 동일 종)
+    // displayId 전달 — 주민 모델 결정적 배정 (그 유저 화면의 자기 캐릭터와 동일 종)
     const player = new RemotePlayer(pos.x, pos.y, pos.id);
     this.remotePlayers.set(pos.id, player);
     this.scene.add(player.group);

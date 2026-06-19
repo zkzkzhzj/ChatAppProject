@@ -14,7 +14,7 @@ public interface DailyVisitJpaRepository extends JpaRepository<DailyVisitJpaEnti
     @Modifying
     @Query(value = "INSERT INTO daily_visit "
             + "(visit_date, visitor_key, visitor_type, created_at) "
-            + "VALUES (:visitDate, :visitorKey, :visitorType, NOW()) "
+            + "VALUES (:visitDate, :visitorKey, :#{#visitorType.name()}, NOW()) "
             + "ON CONFLICT (visit_date, visitor_key) DO NOTHING",
             nativeQuery = true)
     int insertIfAbsent(

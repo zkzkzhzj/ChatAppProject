@@ -46,7 +46,7 @@ export default function MailNotification({
         <div
           id={popoverId}
           role="status"
-          className={`${embedded ? 'absolute right-0 bottom-12' : ''} w-56 rounded border border-sand bg-cream/95 p-3 text-sm text-bark shadow-xl`}
+          className={`${embedded ? 'absolute right-0 bottom-12' : ''} w-[min(14rem,calc(100vw-2rem))] rounded border border-sand bg-cream/95 p-3 text-sm text-bark shadow-xl`}
         >
           <div className="mb-2 flex items-center justify-between gap-3">
             <strong className="text-sm">우편함</strong>

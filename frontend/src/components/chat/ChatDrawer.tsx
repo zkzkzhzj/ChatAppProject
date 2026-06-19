@@ -7,8 +7,6 @@ import { useChatStore } from '@/store/useChatStore';
 import ChatMessageList from './ChatMessageList';
 import LoginPrompt from './LoginPrompt';
 
-const DRAWER_WIDTH = 360;
-
 /**
  * 우측 사이드 채팅 내역 드로우어 (Step 1.7, spec D14).
  *
@@ -76,14 +74,13 @@ export default function ChatDrawer({
       )}
 
       <aside
-        className="fixed right-0 top-0 z-30 flex h-full flex-col border-l border-sand/50 bg-cream/95 px-3 py-4 shadow-xl backdrop-blur-md transition-transform duration-300 ease-in-out"
+        className="fixed right-0 top-0 z-30 flex h-full w-[min(360px,calc(100vw-1rem))] flex-col border-l border-sand/50 bg-cream/95 px-3 py-4 shadow-xl backdrop-blur-md transition-transform duration-300 ease-in-out"
         style={{
-          width: DRAWER_WIDTH,
-          transform: open ? 'translateX(0)' : `translateX(${String(DRAWER_WIDTH)}px)`,
+          transform: open ? 'translateX(0)' : 'translateX(100%)',
         }}
       >
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="font-display text-lg text-bark">대화 내역</h2>
+        <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
+          <h2 className="truncate font-display text-lg text-bark">대화 내역</h2>
           <button
             type="button"
             onClick={() => {

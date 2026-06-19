@@ -56,7 +56,7 @@ export default function AudioControls({ sceneManager, embedded = false }: Props)
     >
       {open && (
         <div
-          className="absolute right-0 bottom-12 flex items-center gap-2 rounded-full bg-cream/95 px-3 py-2 text-bark shadow-lg backdrop-blur-sm"
+          className="absolute right-0 bottom-12 flex w-[min(12rem,calc(100vw-2rem))] items-center gap-2 rounded-full bg-cream/95 px-3 py-2 text-bark shadow-lg backdrop-blur-sm"
           role="dialog"
           aria-label="환경음 볼륨 조절"
         >
@@ -68,8 +68,8 @@ export default function AudioControls({ sceneManager, embedded = false }: Props)
             value={volume}
             onChange={onChange}
             aria-label={`환경음 볼륨 ${String(volume)}%`}
-            className="cursor-pointer"
-            style={{ width: 120, accentColor: muted ? '#9ca3af' : '#7c6f5a' }}
+            className="min-w-0 flex-1 cursor-pointer"
+            style={{ accentColor: muted ? '#9ca3af' : '#7c6f5a' }}
           />
           <span className="min-w-[28px] text-right text-xs tabular-nums text-bark-muted">
             {volume}

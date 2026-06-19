@@ -8,6 +8,7 @@ import ChatDrawer from '@/components/chat/ChatDrawer';
 import LibraryOverlay from '@/components/library/LibraryOverlay';
 import FloatingActionMenu from '@/components/ui/FloatingActionMenu';
 import WelcomeOverlay from '@/components/ui/WelcomeOverlay';
+import VillageBoardOverlay from '@/components/village/VillageBoardOverlay';
 import { useStomp } from '@/lib/websocket/useStomp';
 import { useChatStore } from '@/store/useChatStore';
 import ChatInputAnchor from '@/three/chat/ChatInputAnchor';
@@ -67,6 +68,7 @@ export default function GameLoader() {
         onChatOpenChange={setChatDrawerOpen}
       />
       <LibraryOverlay />
+      <VillageBoardOverlay />
       {/* 모바일 결 조이스틱 상시 노출 — tap-to-move 결 거부, 조이스틱 only (사용자 결정 2026-05-13). */}
       {isMobile && <VirtualJoystick sceneManager={manager} />}
     </>

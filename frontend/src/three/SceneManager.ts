@@ -5,6 +5,7 @@ import {
   emitLibraryEntryBlocked,
   emitLibraryInteractionChange,
   emitSceneChange,
+  emitVillageBoardInteractionChange,
 } from '@/lib/scene/sceneBridge';
 import { sendLeaveVillage } from '@/lib/websocket/realtimeClient';
 import type { PositionBroadcast } from '@/lib/websocket/realtimeTypes';
@@ -208,8 +209,14 @@ export class SceneManager {
           nearLibrarian: libraryScene.isNearLibrarian(),
           nearBookshelf: libraryScene.isNearBookshelf(),
         });
+        emitVillageBoardInteractionChange({ nearDashboard: false, nearSuggestionBoard: false });
       } else {
         emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
+        const villageScene = sceneObj as VillageScene;
+        emitVillageBoardInteractionChange({
+          nearDashboard: villageScene.isNearDashboardBoard(),
+          nearSuggestionBoard: villageScene.isNearSuggestionBoard(),
+        });
       }
     }
 
@@ -272,6 +279,7 @@ export class SceneManager {
     this.active = 'transitioning';
     emitSceneChange(this.active);
     emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
+    emitVillageBoardInteractionChange({ nearDashboard: false, nearSuggestionBoard: false });
     this.fadeDirection = 1; // fade out
 
     // 도서관 진입 즉시 LEAVE broadcast — 다른 클라이언트에서 본인 placeholder 제거 (Codex P1).
@@ -410,6 +418,7 @@ export class SceneManager {
     this.destroyed = true;
     cancelAnimationFrame(this.rafId);
     emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
+    emitVillageBoardInteractionChange({ nearDashboard: false, nearSuggestionBoard: false });
     window.removeEventListener('resize', this.onResize);
     this.input.destroy();
     this.ambientSound.destroy();

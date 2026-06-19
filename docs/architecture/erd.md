@@ -17,7 +17,7 @@
 | Context | 소유 테이블 |
 |---------|------------|
 | Identity | users, user_local_auth, user_social_auth |
-| Village | space, space_placement, character*, character_equipment* |
+| Village | space, space_placement, character*, character_equipment*, daily_visit, suggestion |
 | Economy - Wallet | point_wallet, point_transaction |
 | Economy - Inventory | item_definition, user_item_inventory |
 | Communication | chat_room, participant, category, chat_room_category |
@@ -110,6 +110,38 @@ CHARACTER_EQUIPMENT {
 SPACE ||--o{ SPACE_PLACEMENT  : "1:N"
 CHARACTER ||--o{ CHARACTER_EQUIPMENT : "1:0..N"
 ```
+
+### VILLAGE_DAILY_VISIT / SUGGESTION
+
+```text
+DAILY_VISIT {
+    Long id PK
+    Date visit_date
+    String visitor_key       -- MEMBER: user-{userId}, GUEST: guest-{UUID}
+    String visitor_type      -- MEMBER / GUEST
+    DateTime created_at
+    UNIQUE (visit_date, visitor_key)
+}
+
+SUGGESTION {
+    Long id PK
+    String author_key        -- MEMBER: user-{userId}, GUEST: guest-{UUID}
+    String author_type       -- MEMBER / GUEST
+    String title             -- varchar(120)
+    String body              -- varchar(1000)
+    String status            -- OPEN / DONE
+    String admin_comment     -- nullable, future admin answer surface
+    DateTime created_at
+    DateTime updated_at
+}
+```
+
+> `daily_visit`는 하루 방문자 중복 방지를 위해 `(visit_date, visitor_key)` unique와
+> `INSERT ... ON CONFLICT DO NOTHING` 패턴을 사용한다. 방문자 수는 사람 실명 식별이 아니라
+> 토큰 기반 손님/회원 식별자의 일일 집계다.
+>
+> 마을 전광판의 "오늘의 마음" 수는 `confession_record.created_at`을 KST 날짜 범위로 읽는
+> read model이다. 도메인 간 FK는 만들지 않고, 대시보드 조회 전용 SQL로만 참조한다.
 
 ---
 
@@ -204,8 +236,6 @@ CHAT_ROOM ||--|{ PARTICIPANT
 CHAT_ROOM ||--|{ CHAT_ROOM_CATEGORY
 CATEGORY ||--o{ CHAT_ROOM_CATEGORY
 ```
-
----
 
 ## 7.5 Confession Context - PostgreSQL
 

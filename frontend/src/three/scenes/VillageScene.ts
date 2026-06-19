@@ -21,6 +21,8 @@ export class VillageScene {
   /** 다른 유저 placeholder — key = displayId. spec §2.2 Out: 도서관 진입 유저는 표시 X. */
   private remotePlayers = new Map<string, RemotePlayer>();
   private readonly decor: VillageDecor;
+  private readonly dashboardBoard = new THREE.Vector3(-13, 0, VILLAGE.ENTRY_Z - 3);
+  private readonly suggestionBoard = new THREE.Vector3(13, 0, VILLAGE.ENTRY_Z - 3);
   private elapsed = 0;
   private cameraYaw: number = CAMERA.ORBIT_INITIAL_YAW;
   private cameraPitch: number = CAMERA.ORBIT_INITIAL_PITCH;
@@ -34,6 +36,7 @@ export class VillageScene {
     this.buildPond();
     this.buildCampfire();
     this.buildLibrary();
+    this.buildCommunityBoards();
     this.buildForestWall();
     this.decor = buildVillageDecor(this.scene);
 
@@ -247,6 +250,73 @@ export class VillageScene {
     this.scene.add(roundWindow);
   }
 
+  private buildCommunityBoards(): void {
+    this.buildBoard(this.dashboardBoard, '오늘의 방문자', '손님과 이웃의 발자국');
+    this.buildBoard(this.suggestionBoard, '건의 게시판', '마을에 남기는 바람');
+  }
+
+  private buildBoard(position: THREE.Vector3, title: string, subtitle: string): void {
+    const postMaterial = new THREE.MeshLambertMaterial({ color: 0x6b4a2e });
+    const boardMaterial = new THREE.MeshLambertMaterial({ color: 0xb8794b });
+    const edgeMaterial = new THREE.MeshLambertMaterial({ color: 0x4d3320 });
+
+    for (const x of [-1.45, 1.45]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.24, 2.7, 0.24), postMaterial);
+      post.position.set(position.x + x, 1.25, position.z);
+      post.castShadow = true;
+      this.scene.add(post);
+    }
+
+    const board = new THREE.Mesh(new THREE.BoxGeometry(3.5, 1.85, 0.22), boardMaterial);
+    board.position.set(position.x, 2.15, position.z + 0.03);
+    board.castShadow = true;
+    this.scene.add(board);
+
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.18, 0.28), edgeMaterial);
+    cap.position.set(position.x, 3.17, position.z + 0.06);
+    cap.castShadow = true;
+    this.scene.add(cap);
+
+    const label = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.1, 1.35),
+      new THREE.MeshBasicMaterial({
+        map: this.createBoardTexture(title, subtitle),
+        transparent: true,
+      }),
+    );
+    label.position.set(position.x, 2.18, position.z + 0.16);
+    this.scene.add(label);
+  }
+
+  private createBoardTexture(title: string, subtitle: string): THREE.CanvasTexture {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    ctx.fillStyle = '#f1dfb8';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#6b4a2e';
+    ctx.lineWidth = 12;
+    ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+    ctx.fillStyle = '#3f2b1c';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '700 54px sans-serif';
+    ctx.fillText(title, canvas.width / 2, 96);
+    ctx.font = '500 30px sans-serif';
+    ctx.fillStyle = '#6b4a2e';
+    ctx.fillText(subtitle, canvas.width / 2, 164);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+    return texture;
+  }
+
   private buildForestWall(): void {
     // 숲 외곽 트리 — 침엽(콘)·활엽(구) 두 종 + 키·색 변주로 "심은 벽" 느낌 제거.
     // 변주는 index 기반 결정적 (모든 클라이언트 동일 — Math.random 금지).
@@ -346,6 +416,14 @@ export class VillageScene {
   /** 캐릭터가 도서관 진입 트리거 안에 있는가? */
   isAtLibraryDoor(): boolean {
     return this.character.position.distanceTo(this.libraryDoor) < VILLAGE.LIBRARY_TRIGGER_RADIUS;
+  }
+
+  isNearDashboardBoard(): boolean {
+    return this.character.position.distanceTo(this.dashboardBoard) < VILLAGE.BOARD_TRIGGER_RADIUS;
+  }
+
+  isNearSuggestionBoard(): boolean {
+    return this.character.position.distanceTo(this.suggestionBoard) < VILLAGE.BOARD_TRIGGER_RADIUS;
   }
 
   /**

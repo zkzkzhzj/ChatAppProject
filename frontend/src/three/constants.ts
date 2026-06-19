@@ -58,6 +58,7 @@ export const VILLAGE = {
   POND_RADIUS: 4.5,
   LIBRARY_Z: -27, // 도서관 (북쪽, 진입 트리거)
   LIBRARY_TRIGGER_RADIUS: 3, // 캐릭터가 이 반경 안에 들어오면 도서관 진입
+  BOARD_TRIGGER_RADIUS: 4,
   FOREST_WALL_RADIUS: 40, // 숲 외곽 경계 (collision)
   TREE_COUNT: 76, // 숲 wall 둘레 트리
 } as const;

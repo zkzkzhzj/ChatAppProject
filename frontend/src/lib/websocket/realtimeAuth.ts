@@ -1,6 +1,7 @@
 import { isTokenExpired } from '@/lib/auth';
 
 const TOKEN_KEY = 'accessToken';
+let guestTokenRequest: Promise<string | null> | null = null;
 
 export type RealtimeTokenRole = 'MEMBER' | 'GUEST';
 
@@ -30,10 +31,11 @@ async function issueGuestToken(): Promise<string | null> {
 }
 
 async function issueAndStoreGuestToken(): Promise<string | null> {
-  const fresh = await issueGuestToken();
-  if (fresh) {
-    localStorage.setItem(TOKEN_KEY, fresh);
-  }
+  guestTokenRequest ??= issueGuestToken().finally(() => {
+    guestTokenRequest = null;
+  });
+  const fresh = await guestTokenRequest;
+  if (fresh) localStorage.setItem(TOKEN_KEY, fresh);
   return fresh;
 }
 

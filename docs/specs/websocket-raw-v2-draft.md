@@ -62,7 +62,8 @@ ws://localhost:8080/ws/v2?access_token=<token>
   "type": "POSITION",
   "roomId": 1,
   "x": 120.5,
-  "y": 340.0
+  "y": 340.0,
+  "z": 0.75
 }
 ```
 
@@ -114,7 +115,8 @@ ws://localhost:8080/ws/v2?access_token=<token>
   "displayId": "user-42",
   "userType": "MEMBER",
   "x": 120.5,
-  "y": 340.0
+  "y": 340.0,
+  "z": 0.75
 }
 ```
 
@@ -152,7 +154,7 @@ ws://localhost:8080/ws/v2?access_token=<token>
 ## Step 3 Parity 상태
 
 - `POSITION`은 STOMP V1 `PositionHandler`와 같이 인증된 principal과 유한한 좌표만 요구하고, 좌표를 서버에서 clamp하지 않는다.
-- 구독 세션 disconnect 시 해당 세션이 구독하던 각 room에 `POSITION_UPDATE`를 `userType: "LEAVE"`, `x: 0.0`, `y: 0.0`으로 broadcast한다.
+- 구독 세션 disconnect 시 해당 세션이 구독하던 각 room에 `POSITION_UPDATE`를 `userType: "LEAVE"`, `x: 0.0`, `y: 0.0`, `z: 0.0`으로 broadcast한다.
 - `POSITION_UPDATE`, `TYPING_UPDATE`의 사용자 식별 필드는 현재 구현 기준 `displayId`다.
 - guest token은 `POSITION`, `TYPING` broadcast가 가능하지만 `PUBLISH`는 `COMM_003`으로 거절한다.
 

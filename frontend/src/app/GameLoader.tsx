@@ -5,10 +5,8 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 import ChatDrawer from '@/components/chat/ChatDrawer';
-import GlobalMailNotification from '@/components/library/GlobalMailNotification';
 import LibraryOverlay from '@/components/library/LibraryOverlay';
-import AudioControls from '@/components/ui/AudioControls';
-import VillageControls from '@/components/ui/VillageControls';
+import FloatingActionMenu from '@/components/ui/FloatingActionMenu';
 import WelcomeOverlay from '@/components/ui/WelcomeOverlay';
 import { useStomp } from '@/lib/websocket/useStomp';
 import { useChatStore } from '@/store/useChatStore';
@@ -51,16 +49,23 @@ export default function GameLoader() {
     <>
       <ThreeGame onReady={setManager} />
       <WelcomeOverlay />
-      {!chatDrawerOpen && <AudioControls sceneManager={manager} />}
       <ChatInputAnchor
         sceneManager={manager}
         onLoginRequired={() => {
           setLoginRequired(true);
         }}
       />
-      <ChatDrawer onOpenChange={setChatDrawerOpen} />
-      {!chatDrawerOpen && <GlobalMailNotification />}
-      {!chatDrawerOpen && <VillageControls />}
+      <ChatDrawer
+        open={chatDrawerOpen}
+        onOpenRequest={setChatDrawerOpen}
+        onOpenChange={setChatDrawerOpen}
+        hideTrigger
+      />
+      <FloatingActionMenu
+        sceneManager={manager}
+        chatOpen={chatDrawerOpen}
+        onChatOpenChange={setChatDrawerOpen}
+      />
       <LibraryOverlay />
       {/* 모바일 결 조이스틱 상시 노출 — tap-to-move 결 거부, 조이스틱 only (사용자 결정 2026-05-13). */}
       {isMobile && <VirtualJoystick sceneManager={manager} />}

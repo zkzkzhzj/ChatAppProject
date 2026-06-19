@@ -7,9 +7,10 @@ import type { SceneManager } from '@/three/SceneManager';
 
 interface Props {
   sceneManager: SceneManager | null;
+  embedded?: boolean;
 }
 
-export default function AudioControls({ sceneManager }: Props) {
+export default function AudioControls({ sceneManager, embedded = false }: Props) {
   const [volume, setVolume] = useState<number>(() => Math.round(loadMasterVolume() * 100));
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -40,20 +41,22 @@ export default function AudioControls({ sceneManager }: Props) {
   };
 
   const muted = volume === 0;
-  const fabBottom = 144;
-
   return (
     <div
       ref={panelRef}
-      className="fixed z-20"
-      style={{
-        bottom: `calc(${String(fabBottom)}px + env(safe-area-inset-bottom))`,
-        right: 'calc(1rem + env(safe-area-inset-right))',
-      }}
+      className={embedded ? 'relative' : 'fixed z-20'}
+      style={
+        embedded
+          ? undefined
+          : {
+              bottom: 'calc(144px + env(safe-area-inset-bottom))',
+              right: 'calc(1rem + env(safe-area-inset-right))',
+            }
+      }
     >
       {open && (
         <div
-          className="absolute right-0 bottom-14 flex items-center gap-2 rounded-full bg-cream/95 px-3 py-2 text-bark shadow-lg backdrop-blur-sm"
+          className="absolute right-0 bottom-12 flex items-center gap-2 rounded-full bg-cream/95 px-3 py-2 text-bark shadow-lg backdrop-blur-sm"
           role="dialog"
           aria-label="환경음 볼륨 조절"
         >
@@ -81,7 +84,7 @@ export default function AudioControls({ sceneManager }: Props) {
         }}
         aria-label={muted ? '환경음 볼륨 (음소거)' : `환경음 볼륨 ${String(volume)}%`}
         aria-expanded={open}
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
+        className={`${embedded ? 'h-10 w-10' : 'h-12 w-12'} flex items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105`}
       >
         <SpeakerIcon muted={muted} />
       </button>

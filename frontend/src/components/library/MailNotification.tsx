@@ -6,9 +6,13 @@ import { LIBRARY_LABELS } from './libraryLabels';
 
 interface MailNotificationProps {
   receivedCount: number;
+  embedded?: boolean;
 }
 
-export default function MailNotification({ receivedCount }: MailNotificationProps) {
+export default function MailNotification({
+  receivedCount,
+  embedded = false,
+}: MailNotificationProps) {
   const popoverId = useId();
   const [open, setOpen] = useState(false);
   const mailAriaLabel =
@@ -17,7 +21,7 @@ export default function MailNotification({ receivedCount }: MailNotificationProp
       : LIBRARY_LABELS.mailAriaLabel;
 
   return (
-    <div className="fixed right-4 bottom-20 z-30">
+    <div className={embedded ? 'relative' : 'fixed right-4 bottom-20 z-30'}>
       {!open && (
         <button
           type="button"
@@ -27,7 +31,7 @@ export default function MailNotification({ receivedCount }: MailNotificationProp
           onClick={() => {
             setOpen(true);
           }}
-          className="relative flex h-12 w-12 items-center justify-center rounded-full bg-warm-white text-bark shadow-lg ring-1 ring-sand/80 transition-transform hover:scale-105"
+          className={`${embedded ? 'h-10 w-10' : 'h-12 w-12'} relative flex items-center justify-center rounded-full bg-warm-white text-bark shadow-lg ring-1 ring-sand/80 transition-transform hover:scale-105`}
         >
           <span aria-hidden="true" className="text-lg">
             ✉
@@ -44,7 +48,7 @@ export default function MailNotification({ receivedCount }: MailNotificationProp
         <div
           id={popoverId}
           role="status"
-          className="w-56 rounded border border-sand bg-cream/95 p-3 text-sm text-bark shadow-xl"
+          className={`${embedded ? 'absolute right-0 bottom-12' : ''} w-56 rounded border border-sand bg-cream/95 p-3 text-sm text-bark shadow-xl`}
         >
           <div className="mb-2 flex items-center justify-between gap-3">
             <strong className="text-sm">우편함</strong>

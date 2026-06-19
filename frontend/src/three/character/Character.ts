@@ -32,7 +32,7 @@ export class Character {
    */
   private bubbles: SpeechBubble[] = [];
   private static readonly MAX_BUBBLES = 50;
-  private static readonly BUBBLE_BASE_Y = 2.4;
+  private static readonly BUBBLE_BASE_Y = 1.4;
   private static readonly BUBBLE_STACK_SPACING = 0.95;
   private static readonly GAIT_FADE_SEC = 0.2;
 

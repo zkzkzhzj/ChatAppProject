@@ -119,7 +119,9 @@ describe('rawWebSocketClient', () => {
     disconnectRawWebSocket();
 
     expect(socket.sent).toContain(JSON.stringify({ type: 'PUBLISH', roomId: 1, body: 'hello' }));
-    expect(socket.sent).toContain(JSON.stringify({ type: 'POSITION', roomId: 1, x: 1, y: 2 }));
+    expect(socket.sent).toContain(
+      JSON.stringify({ type: 'POSITION', roomId: 1, x: 1, y: 2, z: 0 }),
+    );
     expect(socket.sent).toContain(JSON.stringify({ type: 'TYPING', roomId: 1, typing: true }));
     expect(socket.sent).toContain(JSON.stringify({ type: 'UNSUBSCRIBE', roomId: 1 }));
   });

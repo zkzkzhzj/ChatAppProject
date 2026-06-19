@@ -12,11 +12,12 @@ public record PositionUpdateEvent(
         String displayId,
         String userType,
         double x,
-        double y
+        double y,
+        double z
 ) implements OutboundFrame {
 
     public static PositionUpdateEvent of(long roomId, String displayId, String userType,
-                                          double x, double y) {
-        return new PositionUpdateEvent(EnvelopeType.POSITION_UPDATE, roomId, displayId, userType, x, y);
+                                          double x, double y, double z) {
+        return new PositionUpdateEvent(EnvelopeType.POSITION_UPDATE, roomId, displayId, userType, x, y, z);
     }
 }

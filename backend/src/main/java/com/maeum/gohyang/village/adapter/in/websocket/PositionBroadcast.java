@@ -5,5 +5,6 @@ public record PositionBroadcast(
         String id,
         PositionUserType userType,
         double x,
-        double y
+        double y,
+        double z
 ) { }

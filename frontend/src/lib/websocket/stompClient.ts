@@ -110,12 +110,12 @@ export function subscribeToMailNotifications(
   });
 }
 
-export function sendPosition(x: number, y: number): void {
+export function sendPosition(x: number, y: number, z = 0): void {
   const client = getStompClient();
   if (!client.connected) return;
   client.publish({
     destination: '/app/village/position',
-    body: JSON.stringify({ x, y }),
+    body: JSON.stringify({ x, y, z }),
   });
 }
 

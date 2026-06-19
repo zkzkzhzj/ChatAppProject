@@ -122,7 +122,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         AuthenticatedUser user = JwtHandshakeInterceptor.principalOf(session.getAttributes());
         if (user != null) {
             for (long roomId : subscriptionRegistry.roomsOf(session.getId())) {
-                bus.publish(roomId, PositionUpdateEvent.of(roomId, user.displayId(), "LEAVE", 0, 0));
+                bus.publish(roomId, PositionUpdateEvent.of(
+                        roomId, user.displayId(), "LEAVE", 0, 0, 0
+                ));
             }
         }
         subscriptionRegistry.unsubscribeAll(session.getId());
@@ -173,11 +175,13 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         if (!requireKnownRoom(session, frame.roomId())) {
             return;
         }
-        if (!Double.isFinite(frame.x()) || !Double.isFinite(frame.y())) {
+        double height = frame.height();
+        if (!Double.isFinite(frame.x()) || !Double.isFinite(frame.y()) || !Double.isFinite(height)) {
             return;
         }
-        bus.publish(frame.roomId(),
-                PositionUpdateEvent.of(frame.roomId(), user.displayId(), user.role().name(), frame.x(), frame.y()));
+        bus.publish(frame.roomId(), PositionUpdateEvent.of(
+                frame.roomId(), user.displayId(), user.role().name(), frame.x(), frame.y(), height
+        ));
     }
 
     /** 타이핑 상태 broadcast — V1 TypingHandler 와 정책 동일. 게스트 포함 인증 유저만. */

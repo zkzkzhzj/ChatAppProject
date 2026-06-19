@@ -199,7 +199,7 @@ export class SceneManager {
       // 마을에 있을 때만 자기 위치 broadcast (도서관은 spec §2.2 Out)
       if (this.active === 'village') {
         const p = sceneObj.character.position;
-        this.positionSync.sendIfChanged(p.x, p.z);
+        this.positionSync.sendIfChanged(p.x, p.z, p.y);
       }
 
       if (this.active === 'library') {

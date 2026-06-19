@@ -8,6 +8,7 @@ export interface PositionBroadcast {
   userType: 'MEMBER' | 'GUEST' | 'LEAVE';
   x: number;
   y: number;
+  z?: number;
 }
 
 export interface MailNotificationBroadcast {

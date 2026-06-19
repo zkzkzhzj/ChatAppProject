@@ -52,7 +52,7 @@ describe('realtimeClient transport selection', () => {
     disconnectRealtime();
 
     expect(mockConnectWithAuth).toHaveBeenCalledWith('token', onConnected, onError);
-    expect(mockSendStompPosition).toHaveBeenCalledWith(1, 2);
+    expect(mockSendStompPosition).toHaveBeenCalledWith(1, 2, 0);
     expect(mockDisconnectStomp).toHaveBeenCalledTimes(1);
     expect(mockConnectRawWebSocket).not.toHaveBeenCalled();
   });
@@ -68,7 +68,7 @@ describe('realtimeClient transport selection', () => {
     disconnectRealtime();
 
     expect(mockConnectRawWebSocket).toHaveBeenCalledWith('token', onConnected, onError);
-    expect(mockSendRawPosition).toHaveBeenCalledWith(1, 2);
+    expect(mockSendRawPosition).toHaveBeenCalledWith(1, 2, 0);
     expect(mockDisconnectRawWebSocket).toHaveBeenCalledTimes(1);
     expect(mockConnectWithAuth).not.toHaveBeenCalled();
   });

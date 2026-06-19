@@ -358,12 +358,13 @@ export class VillageScene {
       return;
     }
     const existing = this.remotePlayers.get(pos.id);
+    const height = pos.z ?? 0;
     if (existing) {
-      existing.setTarget(pos.x, pos.y);
+      existing.setTarget(pos.x, pos.y, height);
       return;
     }
     // displayId 전달 — 주민 모델 결정적 배정 (그 유저 화면의 자기 캐릭터와 동일 종)
-    const player = new RemotePlayer(pos.x, pos.y, pos.id);
+    const player = new RemotePlayer(pos.x, pos.y, pos.id, height);
     this.remotePlayers.set(pos.id, player);
     this.scene.add(player.group);
   }

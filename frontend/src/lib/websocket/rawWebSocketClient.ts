@@ -23,6 +23,7 @@ type RawInboundFrame =
       userType: PositionBroadcast['userType'];
       x: number;
       y: number;
+      z?: number;
     }
   | {
       type: 'TYPING_UPDATE';
@@ -66,6 +67,7 @@ function mapPosition(
     userType: frame.userType,
     x: frame.x,
     y: frame.y,
+    z: frame.z,
   };
 }
 
@@ -154,10 +156,10 @@ export function sendRawTypingStatus(typing: boolean): void {
   sendRawFrame({ type: 'TYPING', roomId: PUBLIC_ROOM_ID, typing });
 }
 
-export function sendRawPosition(x: number, y: number): void {
-  sendRawFrame({ type: 'POSITION', roomId: PUBLIC_ROOM_ID, x, y });
+export function sendRawPosition(x: number, y: number, z = 0): void {
+  sendRawFrame({ type: 'POSITION', roomId: PUBLIC_ROOM_ID, x, y, z });
 }
 
 export function sendRawLeaveVillage(): void {
-  sendRawFrame({ type: 'POSITION', roomId: PUBLIC_ROOM_ID, x: 0, y: 0 });
+  sendRawFrame({ type: 'POSITION', roomId: PUBLIC_ROOM_ID, x: 0, y: 0, z: 0 });
 }

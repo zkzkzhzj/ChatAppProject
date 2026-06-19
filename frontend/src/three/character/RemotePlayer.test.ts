@@ -13,10 +13,11 @@ describe('RemotePlayer', () => {
 
   it('setTarget 호출 후 update 한 번 결로 LERP_FACTOR 비율 점근', () => {
     const rp = new RemotePlayer(0, 0);
-    rp.setTarget(10, -8);
+    rp.setTarget(10, -8, 0.6);
     rp.update();
     expect(rp.group.position.x).toBeCloseTo(10 * LERP_FACTOR, 5);
     expect(rp.group.position.z).toBeCloseTo(-8 * LERP_FACTOR, 5);
+    expect(rp.group.position.y).toBeCloseTo(0.6 * LERP_FACTOR, 5);
   });
 
   it('update 반복하면 target 에 수렴', () => {

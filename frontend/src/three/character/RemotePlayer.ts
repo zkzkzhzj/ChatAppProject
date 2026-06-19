@@ -30,6 +30,7 @@ export class RemotePlayer {
   readonly group = new THREE.Group();
   private targetX: number;
   private targetZ: number;
+  private targetY: number;
   private readonly geometry: THREE.BoxGeometry;
   private readonly material: THREE.MeshLambertMaterial;
   private readonly placeholderBody: THREE.Mesh;
@@ -40,10 +41,10 @@ export class RemotePlayer {
   /** 말풍선 stack — Character 결과 동일 패턴 (timer 결로 자연 해제, 안전판 50, spacing 0.95). */
   private bubbles: SpeechBubble[] = [];
   private static readonly MAX_BUBBLES = 50;
-  private static readonly BUBBLE_BASE_Y = 2.4;
+  private static readonly BUBBLE_BASE_Y = 1.4;
   private static readonly BUBBLE_STACK_SPACING = 0.95;
 
-  constructor(initialX: number, initialZ: number, displayId?: string) {
+  constructor(initialX: number, initialZ: number, displayId?: string, initialY = 0) {
     this.geometry = new THREE.BoxGeometry(0.6, BODY_HEIGHT, 0.6);
     this.material = new THREE.MeshLambertMaterial({ color: REMOTE_COLOR });
     this.placeholderBody = new THREE.Mesh(this.geometry, this.material);
@@ -51,9 +52,10 @@ export class RemotePlayer {
     this.placeholderBody.castShadow = true;
     this.group.add(this.placeholderBody);
 
-    this.group.position.set(initialX, 0, initialZ);
+    this.group.position.set(initialX, initialY, initialZ);
     this.targetX = initialX;
     this.targetZ = initialZ;
+    this.targetY = initialY;
 
     if (displayId) {
       this.adopted = true;
@@ -72,17 +74,20 @@ export class RemotePlayer {
     this.animal = instance;
   }
 
-  setTarget(x: number, z: number): void {
+  setTarget(x: number, z: number, y = 0): void {
     this.targetX = x;
     this.targetZ = z;
+    this.targetY = y;
   }
 
   /** 매 프레임 호출. lerp 비율 일정 — delta 비독립이지만 60fps 가정으로 충분. */
   update(delta: number = DEFAULT_DELTA): void {
     const dx = this.targetX - this.group.position.x;
     const dz = this.targetZ - this.group.position.z;
+    const dy = this.targetY - this.group.position.y;
     this.group.position.x += dx * LERP_FACTOR;
     this.group.position.z += dz * LERP_FACTOR;
+    this.group.position.y += dy * LERP_FACTOR;
 
     const moving = Math.hypot(dx, dz) > MOVING_EPSILON;
     if (moving) {

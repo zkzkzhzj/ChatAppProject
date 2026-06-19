@@ -54,7 +54,7 @@ class OutboundFrameJsonTest {
 
     @Test
     void 위치_업데이트_이벤트는_좌표를_직렬화한다() {
-        PositionUpdateEvent event = PositionUpdateEvent.of(1L, "user-101", "MEMBER", 100.5, 200.0);
+        PositionUpdateEvent event = PositionUpdateEvent.of(1L, "user-101", "MEMBER", 100.5, 200.0, 0.6);
 
         JsonNode json = objectMapper.valueToTree(event);
 
@@ -64,6 +64,7 @@ class OutboundFrameJsonTest {
         assertThat(json.get("userType").asString()).isEqualTo("MEMBER");
         assertThat(json.get("x").asDouble()).isEqualTo(100.5);
         assertThat(json.get("y").asDouble()).isEqualTo(200.0);
+        assertThat(json.get("z").asDouble()).isEqualTo(0.6);
     }
 
     @Test

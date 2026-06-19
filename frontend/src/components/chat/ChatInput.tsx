@@ -35,10 +35,11 @@ function getServerSnapshot() {
 interface ChatInputProps {
   onLoginRequired: () => void;
   onSent?: () => void;
+  onCancel?: () => void;
 }
 
 const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInput(
-  { onLoginRequired, onSent },
+  { onLoginRequired, onSent, onCancel },
   ref,
 ) {
   const [draft, setDraft] = useState('');
@@ -80,11 +81,13 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(function ChatInpu
         handleSend();
       } else {
         (e.target as HTMLInputElement).blur();
+        onCancel?.();
       }
     }
 
     if (e.key === 'Escape') {
       (e.target as HTMLInputElement).blur();
+      onCancel?.();
     }
   };
 

@@ -35,22 +35,32 @@ export default function VillageControls() {
 
   return (
     <>
-      <div className="fixed right-4 bottom-56 z-20 grid gap-2">
+      <div
+        className="fixed z-20 grid gap-2"
+        style={{
+          right: 'calc(1rem + env(safe-area-inset-right))',
+          bottom: 'calc(224px + env(safe-area-inset-bottom))',
+        }}
+      >
         <button
           type="button"
           onClick={handleAuthClick}
-          className="h-10 rounded-full bg-cream/95 px-4 text-sm font-semibold text-bark shadow-lg ring-1 ring-sand/70 backdrop-blur-sm transition-transform hover:scale-105"
+          aria-label={member ? '로그아웃' : '로그인'}
+          title={member ? '로그아웃' : '로그인'}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
         >
-          {member ? '로그아웃' : '로그인'}
+          {member ? <LogOutIcon /> : <LogInIcon />}
         </button>
         <button
           type="button"
           onClick={() => {
             setGuideOpen(true);
           }}
-          className="h-10 rounded-full bg-cream/95 px-4 text-sm font-semibold text-bark shadow-lg ring-1 ring-sand/70 backdrop-blur-sm transition-transform hover:scale-105"
+          aria-label="가이드"
+          title="가이드"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
         >
-          가이드
+          <GuideIcon />
         </button>
       </div>
 
@@ -89,5 +99,65 @@ export default function VillageControls() {
         </div>
       )}
     </>
+  );
+}
+
+function LogInIcon() {
+  return (
+    <svg
+      width={20}
+      height={20}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+      <path d="M10 17l5-5-5-5" />
+      <path d="M15 12H3" />
+    </svg>
+  );
+}
+
+function LogOutIcon() {
+  return (
+    <svg
+      width={20}
+      height={20}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <path d="M16 17l5-5-5-5" />
+      <path d="M21 12H9" />
+    </svg>
+  );
+}
+
+function GuideIcon() {
+  return (
+    <svg
+      width={20}
+      height={20}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.1 9a3 3 0 1 1 5.8 1c-.5 1.4-2.2 1.8-2.7 3" />
+      <path d="M12 17h.01" />
+    </svg>
   );
 }

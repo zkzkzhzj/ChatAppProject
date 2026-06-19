@@ -44,6 +44,25 @@ describe('villageDecor — 마을 데코 풀 패스', () => {
     }).not.toThrow();
   });
 
+  it('모닥불 주변에 대화 아지트 전용 오브젝트가 결정적으로 배치된다', () => {
+    const scene = new THREE.Scene();
+    buildVillageDecor(scene);
+    scene.updateMatrixWorld(true);
+
+    const hideoutObjects: string[] = [];
+    scene.traverse((obj) => {
+      if (!(obj instanceof THREE.Object3D)) return;
+      if (obj.userData.villageDecorRole) {
+        hideoutObjects.push(String(obj.userData.villageDecorRole));
+      }
+    });
+
+    expect(hideoutObjects.filter((role) => role === 'campfire-seat')).toHaveLength(6);
+    expect(hideoutObjects.filter((role) => role === 'campfire-lantern')).toHaveLength(5);
+    expect(hideoutObjects).toContain('campfire-gathering-ring');
+    expect(hideoutObjects).toContain('campfire-keepsake-sign');
+  });
+
   it('입구~도서관 길 위에는 지상 데코가 없다 (동선 보호)', () => {
     const scene = new THREE.Scene();
     buildVillageDecor(scene);
@@ -54,8 +73,8 @@ describe('villageDecor — 마을 데코 풀 패스', () => {
       if (!(obj instanceof THREE.Mesh)) return;
       const world = new THREE.Vector3();
       obj.getWorldPosition(world);
-      // 예외 1: 모닥불 불씨·연기 — 캠프파이어는 길 중앙의 의도된 랜드마크
-      if (Math.hypot(world.x, world.z - 10) < 4) return;
+      // 예외 1: 모닥불 아지트 — 길 중앙의 의도된 랜드마크
+      if (Math.hypot(world.x, world.z - 10) < 6) return;
       // 예외 2: 부유 요소 (반딧불, y ≥ 0.9) 는 지상 동선 침범 아님
       if (world.y >= 0.9) return;
       // 길 반폭 1.25 + 여유. 꽃 cluster 자식 offset(±0.4) 감안해 1.6 기준

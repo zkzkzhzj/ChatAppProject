@@ -26,6 +26,11 @@ function mulberry32(seed: number): () => number {
 
 const DECOR_SEED = 20260612;
 
+function tagDecor<T extends THREE.Object3D>(obj: T, role: string): T {
+  obj.userData.villageDecorRole = role;
+  return obj;
+}
+
 /** 길·연못·캠프파이어·도서관·입구를 피해서 배치 (걸어다니는 동선 보호). */
 function isClearOfLandmarks(x: number, z: number): boolean {
   // 입구~도서관 세로 길
@@ -213,6 +218,77 @@ function buildInnerTrees(scene: THREE.Scene, rng: () => number): void {
     stump.castShadow = true;
     scene.add(stump);
   }
+}
+
+function buildCampfireHideout(scene: THREE.Scene): void {
+  const fireZ = VILLAGE.CAMPFIRE_Z;
+
+  const ring = tagDecor(
+    new THREE.Mesh(
+      new THREE.RingGeometry(3.2, 5.4, 48),
+      new THREE.MeshLambertMaterial({ color: 0xb98f5f, transparent: true, opacity: 0.78 }),
+    ),
+    'campfire-gathering-ring',
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.set(0, 0.018, fireZ);
+  scene.add(ring);
+
+  const seatMaterial = new THREE.MeshLambertMaterial({ color: 0x7a5636 });
+  const seatTopMaterial = new THREE.MeshLambertMaterial({ color: 0xb68a5a });
+  for (let i = 0; i < 6; i += 1) {
+    const angle = (i / 6) * Math.PI * 2 + Math.PI / 6;
+    const x = Math.cos(angle) * 4.25;
+    const z = fireZ + Math.sin(angle) * 4.25;
+    const seat = tagDecor(
+      new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.45, 0.5, 10), seatMaterial),
+      'campfire-seat',
+    );
+    seat.position.set(x, 0.25, z);
+    seat.rotation.y = -angle;
+    seat.castShadow = true;
+    scene.add(seat);
+
+    const top = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.05, 10), seatTopMaterial);
+    top.position.set(x, 0.53, z);
+    scene.add(top);
+  }
+
+  const postMaterial = new THREE.MeshLambertMaterial({ color: 0x4a3525 });
+  const glowMaterial = new THREE.MeshLambertMaterial({
+    color: 0xffd58a,
+    emissive: 0xffa84a,
+    emissiveIntensity: 0.9,
+  });
+  for (let i = 0; i < 5; i += 1) {
+    const angle = (i / 5) * Math.PI * 2 + Math.PI / 5;
+    const x = Math.cos(angle) * 5.7;
+    const z = fireZ + Math.sin(angle) * 5.7;
+    const post = tagDecor(
+      new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.4, 6), postMaterial),
+      'campfire-lantern',
+    );
+    post.position.set(x, 0.7, z);
+    post.castShadow = true;
+    scene.add(post);
+
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), glowMaterial);
+    glow.position.set(x, 1.45, z);
+    scene.add(glow);
+  }
+
+  const sign = tagDecor(new THREE.Group(), 'campfire-keepsake-sign');
+  const signPost = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.12), postMaterial);
+  signPost.position.set(-5.2, 0.45, fireZ - 1.5);
+  sign.add(signPost);
+  const signBoard = new THREE.Mesh(
+    new THREE.BoxGeometry(1.1, 0.42, 0.08),
+    new THREE.MeshLambertMaterial({ color: 0xc99a62 }),
+  );
+  signBoard.position.set(-5.2, 1, fireZ - 1.5);
+  signBoard.rotation.y = 0.35;
+  sign.add(signBoard);
+  scene.add(sign);
 }
 
 interface LampResult {
@@ -435,6 +511,7 @@ export function buildVillageDecor(scene: THREE.Scene): VillageDecor {
   buildRocks(scene, rng);
   buildBushes(scene, rng);
   buildInnerTrees(scene, rng);
+  buildCampfireHideout(scene);
   buildPathFence(scene);
   const lanterns = buildLanterns(scene);
   const pond = buildPondDetail(scene, rng);

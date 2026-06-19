@@ -29,7 +29,7 @@ export class VillageScene {
   private elapsed = 0;
   private cameraYaw: number = CAMERA.ORBIT_INITIAL_YAW;
   private cameraPitch: number = CAMERA.ORBIT_INITIAL_PITCH;
-  private cameraDistance: number = CAMERA.DISTANCE;
+  private cameraDistance: number = Math.cos(CAMERA.ORBIT_INITIAL_PITCH) * CAMERA.DISTANCE;
   /** 모닥불 불꽃 3겹 — updateAmbient 에서 일렁임 (D11: 저주파, 점멸 금지). */
   private readonly flames: THREE.Mesh[] = [];
 
@@ -510,7 +510,7 @@ export class VillageScene {
         CAMERA.MAX_DISTANCE,
       );
 
-      const horizontalDistance = Math.cos(this.cameraPitch) * this.cameraDistance;
+      const horizontalDistance = this.cameraDistance;
       const desired = new THREE.Vector3(
         target.x + Math.sin(this.cameraYaw) * horizontalDistance,
         target.y + CAMERA.HEIGHT_OFFSET + Math.sin(this.cameraPitch) * this.cameraDistance,

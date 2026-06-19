@@ -344,15 +344,15 @@ export class VillageScene {
 
       stats.forEach(([label, value], index) => {
         const x = 90 + (index % 2) * 302;
-        const y = 166 + Math.floor(index / 2) * 84;
+        const y = 158 + Math.floor(index / 2) * 92;
         ctx.fillStyle = '#fff7e6';
-        roundRect(ctx, x, y, 260, 60, 14);
+        roundRect(ctx, x, y, 260, 72, 14);
         ctx.fill();
         ctx.strokeStyle = '#d7bb84';
         ctx.lineWidth = 3;
         ctx.stroke();
-        drawText(ctx, label, x + 24, y + 24, '500 22px sans-serif', '#6b4a2e');
-        drawText(ctx, value.toLocaleString(), x + 140, y + 42, '700 34px sans-serif', '#3f2b1c');
+        drawText(ctx, label, x + 24, y + 25, '500 22px sans-serif', '#6b4a2e');
+        drawText(ctx, value.toLocaleString(), x + 140, y + 47, '700 34px sans-serif', '#3f2b1c');
       });
     });
   }
@@ -371,31 +371,43 @@ export class VillageScene {
       );
 
       if (!suggestion) {
+        ctx.fillStyle = '#fff7e6';
+        roundRect(ctx, 76, 158, 616, 164, 16);
+        ctx.fill();
+        ctx.strokeStyle = '#d7bb84';
+        ctx.lineWidth = 3;
+        ctx.stroke();
         drawCenteredText(
           ctx,
           '아직 등록된 건의사항이 없어요',
           canvas.width / 2,
-          228,
+          240,
           '600 34px sans-serif',
           '#6b4a2e',
         );
         return;
       }
 
+      ctx.fillStyle = '#fff7e6';
+      roundRect(ctx, 76, 158, 616, 164, 16);
+      ctx.fill();
+      ctx.strokeStyle = '#d7bb84';
+      ctx.lineWidth = 3;
+      ctx.stroke();
       const status = suggestion.status === 'DONE' ? '처리 완료' : '접수';
       ctx.font = '700 34px sans-serif';
       drawText(
         ctx,
         truncateText(ctx, suggestion.title, 520),
-        82,
-        188,
+        100,
+        196,
         '700 34px sans-serif',
         '#3f2b1c',
       );
-      drawText(ctx, status, 620, 188, '600 24px sans-serif', '#6b4a2e');
+      drawText(ctx, status, 600, 196, '600 24px sans-serif', '#6b4a2e');
       ctx.font = '500 28px sans-serif';
       wrapText(ctx, suggestion.body, 610, 2).forEach((line, index) => {
-        drawText(ctx, line, 82, 238 + index * 38, '500 28px sans-serif', '#5f432d');
+        drawText(ctx, line, 100, 248 + index * 38, '500 28px sans-serif', '#5f432d');
       });
     });
   }

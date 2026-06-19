@@ -71,7 +71,7 @@ describe('FloatingActionMenu', () => {
     const guideButton = screen.getByRole('button', { name: '가이드' });
     expect(guideButton).toBeInTheDocument();
     expect(guideButton.parentElement).toHaveStyle({
-      transform: 'translate(-86px, 0px) scale(1)',
+      transform: 'translate(-76px, 78px) scale(1)',
     });
     expect(mockGetUnreadReceivedLetterCount).not.toHaveBeenCalled();
   });

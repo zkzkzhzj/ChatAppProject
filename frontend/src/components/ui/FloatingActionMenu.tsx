@@ -27,11 +27,11 @@ const actionClass =
   'flex h-9 w-9 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105';
 
 const slots = [
-  { x: -15, y: -85 },
-  { x: -43, y: -74 },
-  { x: -66, y: -55 },
-  { x: -81, y: -29 },
-  { x: -86, y: 0 },
+  { x: -22, y: -118 },
+  { x: -76, y: -96 },
+  { x: -108, y: -45 },
+  { x: -108, y: 25 },
+  { x: -76, y: 78 },
 ] as const;
 
 export default function FloatingActionMenu({

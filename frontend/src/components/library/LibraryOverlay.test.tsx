@@ -189,6 +189,8 @@ describe('MailNotification', () => {
     fireEvent.click(mailButton);
 
     expect(screen.getByRole('status')).toHaveAttribute('id', popoverId);
+    expect(mailButton).toBeInTheDocument();
+    expect(mailButton).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('도착한 마음 2')).toBeInTheDocument();
     expect(screen.queryByText(/답장/)).not.toBeInTheDocument();
     expect(screen.queryByText('편지 전문')).not.toBeInTheDocument();

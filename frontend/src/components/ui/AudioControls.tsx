@@ -84,7 +84,7 @@ export default function AudioControls({ sceneManager, embedded = false }: Props)
         }}
         aria-label={muted ? '환경음 볼륨 (음소거)' : `환경음 볼륨 ${String(volume)}%`}
         aria-expanded={open}
-        className={`${embedded ? 'h-10 w-10' : 'h-12 w-12'} flex items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105`}
+        className={`${embedded ? 'h-9 w-9' : 'h-12 w-12'} flex items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105`}
       >
         <SpeakerIcon muted={muted} />
       </button>

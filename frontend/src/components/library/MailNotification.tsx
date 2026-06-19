@@ -22,27 +22,25 @@ export default function MailNotification({
 
   return (
     <div className={embedded ? 'relative' : 'fixed right-4 bottom-20 z-30'}>
-      {!open && (
-        <button
-          type="button"
-          aria-label={mailAriaLabel}
-          aria-controls={popoverId}
-          aria-expanded={open}
-          onClick={() => {
-            setOpen(true);
-          }}
-          className={`${embedded ? 'h-10 w-10' : 'h-12 w-12'} relative flex items-center justify-center rounded-full bg-warm-white text-bark shadow-lg ring-1 ring-sand/80 transition-transform hover:scale-105`}
-        >
-          <span aria-hidden="true" className="text-lg">
-            ✉
+      <button
+        type="button"
+        aria-label={mailAriaLabel}
+        aria-controls={popoverId}
+        aria-expanded={open}
+        onClick={() => {
+          setOpen(true);
+        }}
+        className={`${embedded ? 'h-9 w-9' : 'h-12 w-12'} relative flex items-center justify-center rounded-full bg-warm-white text-bark shadow-lg ring-1 ring-sand/80 transition-transform hover:scale-105`}
+      >
+        <span aria-hidden="true" className={embedded ? 'text-base' : 'text-lg'}>
+          ✉
+        </span>
+        {receivedCount > 0 && (
+          <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-leaf px-1.5 text-xs font-semibold text-cream">
+            {receivedCount}
           </span>
-          {receivedCount > 0 && (
-            <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-leaf px-1.5 text-xs font-semibold text-cream">
-              {receivedCount}
-            </span>
-          )}
-        </button>
-      )}
+        )}
+      </button>
 
       {open && (
         <div

@@ -48,6 +48,12 @@ describe('FloatingActionMenu', () => {
     });
   });
 
+  it('hides the menu while the chat drawer is open', () => {
+    render(<FloatingActionMenu sceneManager={null} chatOpen={true} onChatOpenChange={vi.fn()} />);
+
+    expect(screen.queryByRole('button', { name: '마을 메뉴' })).not.toBeInTheDocument();
+  });
+
   it('fans out all five actions from the menu button', () => {
     render(<FloatingActionMenu sceneManager={null} chatOpen={false} onChatOpenChange={vi.fn()} />);
 
@@ -62,7 +68,11 @@ describe('FloatingActionMenu', () => {
       opacity: '1',
     });
     expect(screen.getByRole('button', { name: '로그인' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '가이드' })).toBeInTheDocument();
+    const guideButton = screen.getByRole('button', { name: '가이드' });
+    expect(guideButton).toBeInTheDocument();
+    expect(guideButton.parentElement).toHaveStyle({
+      transform: 'translate(-86px, 0px) scale(1)',
+    });
     expect(mockGetUnreadReceivedLetterCount).not.toHaveBeenCalled();
   });
 

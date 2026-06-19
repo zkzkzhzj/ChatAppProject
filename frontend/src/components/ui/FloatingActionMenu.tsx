@@ -24,14 +24,14 @@ interface MailCounts {
 }
 
 const actionClass =
-  'flex h-10 w-10 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105';
+  'flex h-9 w-9 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105';
 
 const slots = [
-  { x: 0, y: -58 },
-  { x: -44, y: -48 },
-  { x: -78, y: -18 },
-  { x: -102, y: 22 },
-  { x: -116, y: 68 },
+  { x: -15, y: -85 },
+  { x: -43, y: -74 },
+  { x: -66, y: -55 },
+  { x: -81, y: -29 },
+  { x: -86, y: 0 },
 ] as const;
 
 export default function FloatingActionMenu({
@@ -116,13 +116,15 @@ export default function FloatingActionMenu({
     );
   };
 
+  if (chatOpen && !guideOpen) return null;
+
   return (
     <>
       <div
         className="fixed z-40"
         style={{
           right: 'calc(1rem + env(safe-area-inset-right))',
-          bottom: 'calc(1rem + env(safe-area-inset-bottom))',
+          bottom: 'calc(4.5rem + env(safe-area-inset-bottom))',
         }}
       >
         {renderSlot(

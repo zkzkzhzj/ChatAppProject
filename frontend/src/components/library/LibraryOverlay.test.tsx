@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+﻿import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -13,6 +13,7 @@ import {
   listConfessions,
   listLibrarianSimilarConfessions,
   listReceivedLetters,
+  markAllReceivedLettersRead,
   sendConfessionLetter,
 } from '@/lib/api/confessions';
 import {
@@ -47,6 +48,7 @@ vi.mock('@/lib/api/confessions', () => ({
   listConfessions: vi.fn(),
   listLibrarianSimilarConfessions: vi.fn(),
   listReceivedLetters: vi.fn(),
+  markAllReceivedLettersRead: vi.fn(),
   sendConfessionLetter: vi.fn(),
 }));
 
@@ -172,14 +174,14 @@ describe('sceneBridge', () => {
 
 describe('MailNotification', () => {
   it('renders compact counts without letter body content', () => {
-    render(<MailNotification receivedCount={2} replyCount={1} />);
+    render(<MailNotification receivedCount={2} />);
 
     const mailButton = screen.getByRole('button', { name: /우편 알림 확인/ });
     const popoverId = mailButton.getAttribute('aria-controls');
 
     expect(mailButton).toBeInTheDocument();
     expect(mailButton.parentElement).toHaveClass('bottom-20');
-    expect(mailButton).toHaveAccessibleName('우편 알림 확인, 새 알림 3개');
+    expect(mailButton).toHaveAccessibleName('우편 알림 확인, 새 알림 2개');
     expect(mailButton).toHaveAttribute('aria-expanded', 'false');
     expect(popoverId).toBeTruthy();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
@@ -187,8 +189,10 @@ describe('MailNotification', () => {
     fireEvent.click(mailButton);
 
     expect(screen.getByRole('status')).toHaveAttribute('id', popoverId);
+    expect(mailButton).toBeInTheDocument();
+    expect(mailButton).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('도착한 마음 2')).toBeInTheDocument();
-    expect(screen.getByText('답장 1')).toBeInTheDocument();
+    expect(screen.queryByText(/답장/)).not.toBeInTheDocument();
     expect(screen.queryByText('편지 전문')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '우편 알림 닫기' }));
@@ -199,38 +203,33 @@ describe('MailNotification', () => {
 
 describe('LibrarianInteraction', () => {
   it('renders no ring when the player is away from the librarian', () => {
-    render(
-      <LibrarianInteraction near={false} onSubmitBook={vi.fn()} onRequestCounseling={vi.fn()} />,
-    );
+    render(<LibrarianInteraction near={false} onSubmitBook={vi.fn()} />);
 
     expect(screen.queryByRole('button', { name: /고민이 있으신가요/ })).not.toBeInTheDocument();
   });
 
   it('opens counseling and book submission choices near the librarian', async () => {
     const user = userEvent.setup();
-    const onRequestCounseling = vi.fn();
 
-    render(
-      <LibrarianInteraction
-        near={true}
-        onSubmitBook={vi.fn()}
-        onRequestCounseling={onRequestCounseling}
-      />,
-    );
+    render(<LibrarianInteraction near={true} onSubmitBook={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: '고민 상담하기' }));
 
-    expect(onRequestCounseling).toHaveBeenCalled();
-    expect(screen.getByText('비슷한 마음이 남겨져 있었어요.')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: /사서방 사서/ })).toHaveClass(
+      'max-h-[min(78vh,640px)]',
+      'overflow-y-auto',
+    );
+
+    expect(
+      screen.getByText('고민 상담은 아직 준비 중입니다. 지금은 마음을 남겨둘 수 있어요.'),
+    ).toBeInTheDocument();
   });
 
   it('hides the speech bubble while the librarian panel is open and restores it after close', async () => {
     const user = userEvent.setup();
 
-    render(
-      <LibrarianInteraction near={true} onSubmitBook={vi.fn()} onRequestCounseling={vi.fn()} />,
-    );
+    render(<LibrarianInteraction near={true} onSubmitBook={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
 
@@ -244,63 +243,28 @@ describe('LibrarianInteraction', () => {
   it('clears previous counseling feedback when the panel is reopened', async () => {
     const user = userEvent.setup();
 
-    render(
-      <LibrarianInteraction near={true} onSubmitBook={vi.fn()} onRequestCounseling={vi.fn()} />,
-    );
+    render(<LibrarianInteraction near={true} onSubmitBook={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.counseling }));
-    expect(await screen.findByText('비슷한 마음이 남겨져 있었어요.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('고민 상담은 아직 준비 중입니다. 지금은 마음을 남겨둘 수 있어요.'),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.close }));
     await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
 
-    expect(screen.queryByText('비슷한 마음이 남겨져 있었어요.')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('고민 상담은 아직 준비 중입니다. 지금은 마음을 남겨둘 수 있어요.'),
+    ).not.toBeInTheDocument();
   });
 });
 describe('LibrarianInteraction quality hardening', () => {
-  it('prevents repeated counseling requests while the first request is pending', async () => {
-    const user = userEvent.setup();
-    let resolveCounseling: (() => void) | undefined;
-    const onRequestCounseling = vi.fn(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveCounseling = resolve;
-        }),
-    );
-
-    render(
-      <LibrarianInteraction
-        near={true}
-        onSubmitBook={vi.fn()}
-        onRequestCounseling={onRequestCounseling}
-      />,
-    );
-
-    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
-
-    const counselingButton = screen.getByRole('button', { name: LIBRARY_LABELS.counseling });
-    await user.click(counselingButton);
-    await user.click(counselingButton);
-
-    expect(onRequestCounseling).toHaveBeenCalledTimes(1);
-    expect(counselingButton).toBeDisabled();
-
-    resolveCounseling?.();
-    await screen.findByText('비슷한 마음이 남겨져 있었어요.');
-  });
-
   it('submits a trimmed general book payload', async () => {
     const user = userEvent.setup();
     const onSubmitBook = vi.fn();
 
-    render(
-      <LibrarianInteraction
-        near={true}
-        onSubmitBook={onSubmitBook}
-        onRequestCounseling={vi.fn()}
-      />,
-    );
+    render(<LibrarianInteraction near={true} onSubmitBook={onSubmitBook} />);
 
     await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
@@ -320,9 +284,7 @@ describe('LibrarianInteraction quality hardening', () => {
   it('clears fields and shows a success message after successful book submit', async () => {
     const user = userEvent.setup();
 
-    render(
-      <LibrarianInteraction near={true} onSubmitBook={vi.fn()} onRequestCounseling={vi.fn()} />,
-    );
+    render(<LibrarianInteraction near={true} onSubmitBook={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
@@ -343,13 +305,7 @@ describe('LibrarianInteraction quality hardening', () => {
     const user = userEvent.setup();
     const onSubmitBook = vi.fn();
 
-    render(
-      <LibrarianInteraction
-        near={true}
-        onSubmitBook={onSubmitBook}
-        onRequestCounseling={vi.fn()}
-      />,
-    );
+    render(<LibrarianInteraction near={true} onSubmitBook={onSubmitBook} />);
 
     await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
@@ -371,13 +327,7 @@ describe('LibrarianInteraction quality hardening', () => {
         }),
     );
 
-    render(
-      <LibrarianInteraction
-        near={true}
-        onSubmitBook={onSubmitBook}
-        onRequestCounseling={vi.fn()}
-      />,
-    );
+    render(<LibrarianInteraction near={true} onSubmitBook={onSubmitBook} />);
 
     await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.leaveBook }));
@@ -402,7 +352,6 @@ describe('LibrarianInteraction quality hardening', () => {
       <LibrarianInteraction
         near={true}
         onSubmitBook={vi.fn().mockRejectedValue(new Error('failed'))}
-        onRequestCounseling={vi.fn()}
       />,
     );
 
@@ -417,31 +366,10 @@ describe('LibrarianInteraction quality hardening', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows feedback when async counseling request fails', async () => {
-    const user = userEvent.setup();
-
-    render(
-      <LibrarianInteraction
-        near={true}
-        onSubmitBook={vi.fn()}
-        onRequestCounseling={vi.fn().mockRejectedValue(new Error('failed'))}
-      />,
-    );
-
-    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
-    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.counseling }));
-
-    expect(
-      await screen.findByText('상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'),
-    ).toBeInTheDocument();
-  });
-
   it('connects the trigger aria-expanded and aria-controls values to the opened panel', async () => {
     const user = userEvent.setup();
 
-    render(
-      <LibrarianInteraction near={true} onSubmitBook={vi.fn()} onRequestCounseling={vi.fn()} />,
-    );
+    render(<LibrarianInteraction near={true} onSubmitBook={vi.fn()} />);
 
     const trigger = screen.getByRole('button', { name: /고민이 있으신가요/ });
 
@@ -495,6 +423,7 @@ const mockedGetConfession = vi.mocked(getConfession);
 const mockedListConfessions = vi.mocked(listConfessions);
 const mockedListLibrarianSimilarConfessions = vi.mocked(listLibrarianSimilarConfessions);
 const mockedListReceivedLetters = vi.mocked(listReceivedLetters);
+const mockedMarkAllReceivedLettersRead = vi.mocked(markAllReceivedLettersRead);
 const mockedSendConfessionLetter = vi.mocked(sendConfessionLetter);
 
 function setMemberToken() {
@@ -508,11 +437,13 @@ function resetLibraryOverlayMocks() {
   mockedListConfessions.mockReset();
   mockedListLibrarianSimilarConfessions.mockReset();
   mockedListReceivedLetters.mockReset();
+  mockedMarkAllReceivedLettersRead.mockReset();
   mockedSendConfessionLetter.mockReset();
   mockedListConfessions.mockResolvedValue([makeBook(1)]);
   mockedGetConfession.mockResolvedValue(makeBookDetail(1));
   mockedListLibrarianSimilarConfessions.mockResolvedValue([makeBook(2)]);
   mockedListReceivedLetters.mockRejectedValue({ response: { status: 403 } });
+  mockedMarkAllReceivedLettersRead.mockResolvedValue(undefined);
   mockedCreateConfession.mockResolvedValue(makeBookDetail(3));
   mockedSendConfessionLetter.mockResolvedValue({
     id: 10,
@@ -577,6 +508,10 @@ describe('LibraryOverlay composition', () => {
     });
 
     expect(await screen.findByText(/사서방은 로그인 후 이용할 수 있어요/)).toBeInTheDocument();
+    expect(screen.getByText(/사서방은 로그인 후 이용할 수 있어요/).parentElement).toHaveClass(
+      'z-50',
+      'max-h-[min(78vh,520px)]',
+    );
 
     await user.click(screen.getByRole('button', { name: '로그인하기' }));
 
@@ -605,6 +540,8 @@ describe('LibraryOverlay composition', () => {
   it('loads received letters for my own book and shows them in the shelf detail', async () => {
     const user = userEvent.setup();
     setMemberToken();
+    const mailRefreshListener = vi.fn();
+    const unsubscribe = onMailRefreshRequested(mailRefreshListener);
     mockedListReceivedLetters.mockResolvedValue([makeReceivedLetter(20, '누군가 남긴 마음')]);
 
     render(<LibraryOverlay />);
@@ -620,9 +557,27 @@ describe('LibraryOverlay composition', () => {
     expect(await screen.findByText('받은 편지')).toBeInTheDocument();
     expect(screen.getByText('누군가 남긴 마음')).toBeInTheDocument();
     expect(mockedListReceivedLetters).toHaveBeenCalledWith(1);
+    expect(mockedMarkAllReceivedLettersRead).not.toHaveBeenCalled();
+    expect(mailRefreshListener).not.toHaveBeenCalled();
+
+    const receivedLetterButton = screen
+      .getAllByRole('button')
+      .find((button) => button.querySelector('time'));
+    if (!receivedLetterButton) {
+      throw new Error('Expected a received letter button');
+    }
+    await user.click(receivedLetterButton);
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('dialog')).toHaveLength(2);
+      expect(mockedMarkAllReceivedLettersRead).toHaveBeenCalledTimes(1);
+      expect(mailRefreshListener).toHaveBeenCalledTimes(1);
+    });
     expect(
       screen.queryByRole('button', { name: LIBRARY_LABELS.sendHeart }),
     ).not.toBeInTheDocument();
+
+    unsubscribe();
   });
 
   it('requires login and skips API writes when an anonymous user submits a book', async () => {
@@ -784,6 +739,10 @@ describe('BookshelfInteraction', () => {
 
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
 
+    expect(screen.getByRole('dialog', { name: LIBRARY_LABELS.bookshelfTitle })).toHaveClass(
+      'max-h-[min(78vh,680px)]',
+      'overflow-y-auto',
+    );
     expect(
       screen.queryByRole('button', { name: LIBRARY_LABELS.bookshelfAction }),
     ).not.toBeInTheDocument();
@@ -834,7 +793,8 @@ describe('BookshelfInteraction', () => {
     await screen.findByRole('heading', { name: '책 3' });
 
     const heartBody = screen.getByLabelText('마음 내용');
-    await user.type(heartBody, '  고마워요  ');
+    expect(heartBody).toHaveAttribute('maxLength', '1500');
+    await user.type(heartBody, '  \uACE0\uB9C8\uC6CC\uC694  ');
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.sendHeart }));
 
     await waitFor(() => {
@@ -846,6 +806,7 @@ describe('BookshelfInteraction', () => {
 
   it('shows received letters instead of the heart form for my own book', async () => {
     const user = userEvent.setup();
+    const onReadReceivedLetters = vi.fn();
     const letters = Array.from({ length: 6 }, (_, index) =>
       makeReceivedLetter(index + 1, `받은 마음 ${String(index + 1)}`),
     );
@@ -856,6 +817,7 @@ describe('BookshelfInteraction', () => {
         books={[makeBook(11)]}
         onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(11, letters))}
         onSendHeart={vi.fn()}
+        onReadReceivedLetters={onReadReceivedLetters}
       />,
     );
 
@@ -869,9 +831,29 @@ describe('BookshelfInteraction', () => {
       screen.queryByRole('button', { name: LIBRARY_LABELS.sendHeart }),
     ).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '다음' }));
+    const letterButton = screen
+      .getAllByRole('button')
+      .find((button) => button.querySelector('time'));
+    if (!letterButton) {
+      throw new Error('Expected a received letter button');
+    }
+    await user.click(letterButton);
 
-    expect(screen.getByText('받은 마음 6')).toBeInTheDocument();
+    const letterDialog = screen.getAllByRole('dialog').at(-1);
+    if (!letterDialog) {
+      throw new Error('Expected a received letter dialog');
+    }
+    expect(letterDialog).toHaveClass('overflow-hidden');
+    expect(within(letterDialog).getByText('받은 마음 1').parentElement).toHaveClass(
+      'overflow-y-auto',
+    );
+    expect(letterDialog.querySelector('time')).toHaveClass('shrink-0');
+    expect(onReadReceivedLetters).toHaveBeenCalledTimes(1);
+    await user.click(within(letterDialog).getByRole('button', { name: LIBRARY_LABELS.close }));
+
+    await user.click(screen.getByRole('button', { name: '\uB2E4\uC74C' }));
+
+    expect(screen.getByText('\uBC1B\uC740 \uB9C8\uC74C 6')).toBeInTheDocument();
   });
 
   it('moves to the next page when more than eight books are available', async () => {

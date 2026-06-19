@@ -6,5 +6,8 @@ package com.maeum.gohyang.communication.adapter.in.websocket.v2.protocol;
  * 비영속 — Cassandra 저장 없이 같은 방의 다른 세션들에게만 broadcast 된다.
  * 좌표 검증·clamping 은 핸들러가 책임진다.
  */
-public record PositionFrame(long roomId, double x, double y) implements InboundFrame {
+public record PositionFrame(long roomId, double x, double y, Double z) implements InboundFrame {
+    public double height() {
+        return z == null ? 0 : z;
+    }
 }

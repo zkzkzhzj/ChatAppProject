@@ -6,8 +6,8 @@ import {
   createConfession,
   getConfession,
   listConfessions,
-  listLibrarianSimilarConfessions,
   listReceivedLetters,
+  markAllReceivedLettersRead,
   sendConfessionLetter,
 } from '@/lib/api/confessions';
 import { hasMemberToken } from '@/lib/auth/member-token';
@@ -86,10 +86,6 @@ export default function LibraryOverlay() {
     };
   }, [refreshBooks]);
 
-  async function handleRequestCounseling() {
-    await listLibrarianSimilarConfessions(LIBRARY_BOOKSHELF);
-  }
-
   async function handleSubmitBook(input: {
     title: string;
     body: string;
@@ -133,9 +129,14 @@ export default function LibraryOverlay() {
     emitMailRefreshRequested();
   }
 
+  async function handleReadReceivedLetters() {
+    await markAllReceivedLettersRead();
+    emitMailRefreshRequested();
+  }
+
   if (entryBlocked) {
     return (
-      <div className="fixed inset-x-4 bottom-20 z-40 mx-auto w-[min(92vw,420px)] rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl">
+      <div className="fixed inset-x-3 bottom-4 z-50 mx-auto max-h-[min(78vh,520px)] w-[min(92vw,420px)] overflow-y-auto rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl">
         <h2 className="font-display text-lg">사서방은 로그인 후 이용할 수 있어요</h2>
         <p className="mt-2 text-sm leading-6 text-bark-muted">
           남긴 마음과 답장을 안전하게 보관하기 위해 로그인이 필요합니다.
@@ -168,16 +169,13 @@ export default function LibraryOverlay() {
 
   return (
     <>
-      <LibrarianInteraction
-        near={interaction.nearLibrarian}
-        onRequestCounseling={handleRequestCounseling}
-        onSubmitBook={handleSubmitBook}
-      />
+      <LibrarianInteraction near={interaction.nearLibrarian} onSubmitBook={handleSubmitBook} />
       <BookshelfInteraction
         near={interaction.nearBookshelf}
         books={books}
         onSelectBook={handleSelectBook}
         onSendHeart={handleSendHeart}
+        onReadReceivedLetters={handleReadReceivedLetters}
       />
     </>
   );

@@ -95,6 +95,7 @@ Wiki를 대상으로 질문할 때:
 
 ```yaml
 ---
+type: Wiki Concept
 title: 페이지 제목
 tags: [tag1, tag2, tag3]        # Grep 검색용. 도메인명 + 기술명 포함
 related: [카테고리/파일명.md]     # docs/wiki/ 기준 상대 경로. Claude가 바로 Read 가능

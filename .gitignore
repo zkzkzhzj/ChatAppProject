@@ -39,6 +39,9 @@ backend/.gradle/
 .claude/cache/
 .mcp.json
 
+# Superpowers local runtime state
+.superpowers/
+
 # Gradle home cache
 backend/.gradle-home/
 

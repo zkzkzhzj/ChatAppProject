@@ -74,12 +74,12 @@ export function sendTypingStatus(typing: boolean): void {
   sendStompTypingStatus(typing);
 }
 
-export function sendPosition(x: number, y: number): void {
+export function sendPosition(x: number, y: number, z = 0): void {
   if (resolveRealtimeTransport() === 'raw') {
-    sendRawPosition(x, y);
+    sendRawPosition(x, y, z);
     return;
   }
-  sendStompPosition(x, y);
+  sendStompPosition(x, y, z);
 }
 
 export function sendLeaveVillage(): void {

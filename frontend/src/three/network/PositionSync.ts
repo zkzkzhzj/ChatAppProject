@@ -19,7 +19,7 @@ export const THROTTLE_MS = 100;
 export const HEARTBEAT_MS = 2000;
 export const POSITION_EPSILON = 0.01;
 
-export type PositionSender = (x: number, y: number) => void;
+export type PositionSender = (x: number, y: number, z?: number) => void;
 
 export class PositionSync {
   private selfId: string | null = null;
@@ -28,6 +28,7 @@ export class PositionSync {
   private lastSentAt = Number.NEGATIVE_INFINITY;
   private lastX = Number.NaN;
   private lastZ = Number.NaN;
+  private lastHeight = Number.NaN;
 
   constructor(private readonly sender: PositionSender = sendPosition) {}
 
@@ -46,7 +47,7 @@ export class PositionSync {
    * throttle 통과 + 직전 송신 대비 변화 임계값 이상일 때만 발신.
    * 반환 = 실제 송신 여부 (테스트 검증용).
    */
-  sendIfChanged(x: number, z: number, now: number = performance.now()): boolean {
+  sendIfChanged(x: number, z: number, height = 0, now: number = performance.now()): boolean {
     if (now - this.lastSentAt < THROTTLE_MS) return false;
 
     const hasLast = Number.isFinite(this.lastX);
@@ -56,13 +57,15 @@ export class PositionSync {
     if (hasLast && !heartbeatDue) {
       const dx = Math.abs(x - this.lastX);
       const dz = Math.abs(z - this.lastZ);
-      if (dx < POSITION_EPSILON && dz < POSITION_EPSILON) return false;
+      const dy = Math.abs(height - this.lastHeight);
+      if (dx < POSITION_EPSILON && dz < POSITION_EPSILON && dy < POSITION_EPSILON) return false;
     }
 
-    this.sender(x, z);
+    this.sender(x, z, height);
     this.lastSentAt = now;
     this.lastX = x;
     this.lastZ = z;
+    this.lastHeight = height;
     return true;
   }
 
@@ -70,5 +73,6 @@ export class PositionSync {
     this.lastSentAt = Number.NEGATIVE_INFINITY;
     this.lastX = Number.NaN;
     this.lastZ = Number.NaN;
+    this.lastHeight = Number.NaN;
   }
 }

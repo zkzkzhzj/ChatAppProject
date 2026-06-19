@@ -5,26 +5,48 @@ export interface LibraryInteractionState {
   nearBookshelf: boolean;
 }
 
+export interface VillageBoardInteractionState {
+  nearDashboard: boolean;
+  nearSuggestionBoard: boolean;
+}
+
 type SceneListener = (scene: SceneName) => void;
 type InteractionListener = (state: LibraryInteractionState) => void;
+type VillageBoardInteractionListener = (state: VillageBoardInteractionState) => void;
 type LibraryEntryBlockedListener = () => void;
 
 const sceneListeners = new Set<SceneListener>();
 const interactionListeners = new Set<InteractionListener>();
+const villageBoardInteractionListeners = new Set<VillageBoardInteractionListener>();
 const libraryEntryBlockedListeners = new Set<LibraryEntryBlockedListener>();
 
 const initialInteraction: LibraryInteractionState = {
   nearLibrarian: false,
   nearBookshelf: false,
 };
+const initialVillageBoardInteraction: VillageBoardInteractionState = {
+  nearDashboard: false,
+  nearSuggestionBoard: false,
+};
 
 let currentScene: SceneName = 'village';
 let currentInteraction: LibraryInteractionState = cloneInteractionState(initialInteraction);
+let currentVillageBoardInteraction: VillageBoardInteractionState =
+  cloneVillageBoardInteractionState(initialVillageBoardInteraction);
 
 function cloneInteractionState(state: LibraryInteractionState): LibraryInteractionState {
   return {
     nearLibrarian: state.nearLibrarian,
     nearBookshelf: state.nearBookshelf,
+  };
+}
+
+function cloneVillageBoardInteractionState(
+  state: VillageBoardInteractionState,
+): VillageBoardInteractionState {
+  return {
+    nearDashboard: state.nearDashboard,
+    nearSuggestionBoard: state.nearSuggestionBoard,
   };
 }
 
@@ -65,6 +87,30 @@ export function onLibraryInteractionChange(listener: InteractionListener): () =>
   };
 }
 
+export function emitVillageBoardInteractionChange(state: VillageBoardInteractionState): void {
+  if (
+    currentVillageBoardInteraction.nearDashboard === state.nearDashboard &&
+    currentVillageBoardInteraction.nearSuggestionBoard === state.nearSuggestionBoard
+  ) {
+    return;
+  }
+
+  currentVillageBoardInteraction = cloneVillageBoardInteractionState(state);
+  villageBoardInteractionListeners.forEach((listener) => {
+    listener(cloneVillageBoardInteractionState(currentVillageBoardInteraction));
+  });
+}
+
+export function onVillageBoardInteractionChange(
+  listener: VillageBoardInteractionListener,
+): () => void {
+  listener(cloneVillageBoardInteractionState(currentVillageBoardInteraction));
+  villageBoardInteractionListeners.add(listener);
+  return () => {
+    villageBoardInteractionListeners.delete(listener);
+  };
+}
+
 export function emitLibraryEntryBlocked(): void {
   libraryEntryBlockedListeners.forEach((listener) => {
     listener();
@@ -81,17 +127,23 @@ export function onLibraryEntryBlocked(listener: LibraryEntryBlockedListener): ()
 export function getSceneSnapshot(): {
   scene: SceneName;
   interaction: LibraryInteractionState;
+  villageBoardInteraction: VillageBoardInteractionState;
 } {
   return {
     scene: currentScene,
     interaction: cloneInteractionState(currentInteraction),
+    villageBoardInteraction: cloneVillageBoardInteractionState(currentVillageBoardInteraction),
   };
 }
 
 export function resetSceneBridgeForTest(): void {
   currentScene = 'village';
   currentInteraction = cloneInteractionState(initialInteraction);
+  currentVillageBoardInteraction = cloneVillageBoardInteractionState(
+    initialVillageBoardInteraction,
+  );
   sceneListeners.clear();
   interactionListeners.clear();
+  villageBoardInteractionListeners.clear();
   libraryEntryBlockedListeners.clear();
 }

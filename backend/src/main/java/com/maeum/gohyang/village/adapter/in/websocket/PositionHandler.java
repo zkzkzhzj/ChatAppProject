@@ -39,7 +39,8 @@ public class PositionHandler {
             return;
         }
 
-        if (!isValidCoordinate(request.x(), request.y())) {
+        double height = request.z() == null ? 0 : request.z();
+        if (!isValidCoordinate(request.x(), request.y()) || !Double.isFinite(height)) {
             return;
         }
 
@@ -47,7 +48,8 @@ public class PositionHandler {
                 user.displayId(),
                 user.isGuest() ? PositionUserType.GUEST : PositionUserType.MEMBER,
                 request.x(),
-                request.y()
+                request.y(),
+                height
         );
 
         messagingTemplate.convertAndSend(TOPIC_POSITIONS, broadcast);
@@ -66,7 +68,7 @@ public class PositionHandler {
             return;
         }
         PositionBroadcast leave = new PositionBroadcast(
-                user.displayId(), PositionUserType.LEAVE, 0, 0
+                user.displayId(), PositionUserType.LEAVE, 0, 0, 0
         );
         messagingTemplate.convertAndSend(TOPIC_POSITIONS, leave);
     }

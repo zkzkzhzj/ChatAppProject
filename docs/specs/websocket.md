@@ -160,7 +160,8 @@ WebSocket 경로는 프론트엔드 실시간 UX용이다.
 ```json
 {
   "x": 120.5,
-  "y": 340.0
+  "y": 340.0,
+  "z": 0.75
 }
 ```
 
@@ -168,6 +169,7 @@ WebSocket 경로는 프론트엔드 실시간 UX용이다.
 |------|------|------|
 | x | double | 필수 |
 | y | double | 필수 |
+| z | double | 선택. 점프 높이, 생략 시 0 |
 
 ### `/topic/village/positions` -- 위치 수신
 
@@ -182,7 +184,8 @@ WebSocket 경로는 프론트엔드 실시간 UX용이다.
   "id": "user-42",
   "userType": "MEMBER",
   "x": 120.5,
-  "y": 340.0
+  "y": 340.0,
+  "z": 0.75
 }
 ```
 
@@ -193,7 +196,8 @@ WebSocket 경로는 프론트엔드 실시간 UX용이다.
   "id": "guest-a1b2c3d4",
   "userType": "LEAVE",
   "x": 0,
-  "y": 0
+  "y": 0,
+  "z": 0
 }
 ```
 
@@ -203,6 +207,7 @@ WebSocket 경로는 프론트엔드 실시간 UX용이다.
 | userType | PositionUserType (Enum) | `MEMBER`, `GUEST`, 또는 `LEAVE` (퇴장). JSON 직렬화 시 문자열 |
 | x | double | 퇴장 시 0 |
 | y | double | 퇴장 시 0 |
+| z | double | 점프 높이. 퇴장 시 0 |
 
 퇴장 broadcast는 `PositionDisconnectListener`가 STOMP 세션 종료 이벤트를 감지하여 자동 발행한다.
 

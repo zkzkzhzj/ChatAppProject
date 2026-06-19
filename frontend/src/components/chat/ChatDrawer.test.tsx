@@ -25,8 +25,17 @@ describe('ChatDrawer', () => {
 
     render(<ChatDrawer onOpenChange={onOpenChange} />);
 
+    const drawer = document.querySelector('aside');
+    expect(drawer).toHaveClass('w-[min(360px,calc(100vw-1rem))]');
+    expect(drawer).toHaveStyle({
+      transform: 'translateX(100%)',
+    });
+
     await user.click(screen.getByRole('button', { name: '채팅 내역 토글' }));
     expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    expect(drawer).toHaveStyle({
+      transform: 'translateX(0)',
+    });
 
     await user.click(screen.getByRole('button', { name: '닫기' }));
     expect(onOpenChange).toHaveBeenLastCalledWith(false);

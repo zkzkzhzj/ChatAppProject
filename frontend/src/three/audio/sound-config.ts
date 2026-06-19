@@ -59,21 +59,24 @@ export const VILLAGE_SOUNDS: readonly SoundZone[] = [
     src: assetUrl('/v1/audio/ambient/crackling-fire.m4a'),
     description: '캠프파이어 모닥불 (모임 광장 가까이)',
     maxVolume: 0.22,
-    model: { kind: 'point', x: 0, z: 8, fadeRadius: 8 },
+    // VILLAGE.CAMPFIRE_Z 정합 (constants.ts — 2026-06-12 맵 확장)
+    model: { kind: 'point', x: 0, z: 10, fadeRadius: 8 },
   },
   {
     id: 'pond-water',
     src: assetUrl('/v1/audio/ambient/pond-water.m4a'),
     description: '연못 물소리 (사용자 의견 — "물소리 좋거든")',
     maxVolume: 0.2,
-    model: { kind: 'point', x: -5, z: -5, fadeRadius: 6 },
+    // VILLAGE.POND_X/POND_Z 정합 (constants.ts — 2026-06-12 맵 확장)
+    model: { kind: 'point', x: -10, z: -8, fadeRadius: 7 },
   },
   {
     id: 'forest-birds',
     src: assetUrl('/v1/audio/ambient/forest-birds.m4a'),
     description: '숲 새소리 (마을 외곽 가까이)',
     maxVolume: 0.25,
-    model: { kind: 'forest-edge', outerRadius: 28 },
+    // VILLAGE.FOREST_WALL_RADIUS 정합 (constants.ts — 2026-06-12 맵 확장)
+    model: { kind: 'forest-edge', outerRadius: 40 },
   },
 ];
 

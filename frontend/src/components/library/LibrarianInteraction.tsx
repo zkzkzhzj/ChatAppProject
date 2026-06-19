@@ -8,12 +8,11 @@ import { LIBRARY_LABELS } from './libraryLabels';
 
 const BOOK_REQUIRED_MESSAGE = '제목과 내용을 모두 입력해 주세요.';
 const BOOK_SUBMIT_ERROR_MESSAGE = '도서를 남기지 못했어요. 잠시 후 다시 시도해 주세요.';
-const COUNSELING_ERROR_MESSAGE = '상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
+const COUNSELING_READY_MESSAGE = '고민 상담은 아직 준비 중입니다. 지금은 마음을 남겨둘 수 있어요.';
 const DEFAULT_BOOKSHELF: ConfessionBookshelf = 'GENERAL';
 
 interface LibrarianInteractionProps {
   near: boolean;
-  onRequestCounseling: () => Promise<void> | void;
   onSubmitBook: (input: {
     title: string;
     body: string;
@@ -21,11 +20,7 @@ interface LibrarianInteractionProps {
   }) => Promise<void> | void;
 }
 
-export default function LibrarianInteraction({
-  near,
-  onRequestCounseling,
-  onSubmitBook,
-}: LibrarianInteractionProps) {
+export default function LibrarianInteraction({ near, onSubmitBook }: LibrarianInteractionProps) {
   const panelId = useId();
   const panelTitleId = useId();
   const [open, setOpen] = useState(false);
@@ -37,21 +32,11 @@ export default function LibrarianInteraction({
 
   if (!near) return null;
 
-  async function handleCounseling() {
+  function handleCounseling() {
     if (pending) return;
 
-    setPending('counseling');
-    setMessage('');
-
-    try {
-      await onRequestCounseling();
-      setMode('counseling');
-      setMessage('비슷한 마음이 남겨져 있었어요.');
-    } catch {
-      setMessage(COUNSELING_ERROR_MESSAGE);
-    } finally {
-      setPending(null);
-    }
+    setMode('counseling');
+    setMessage(COUNSELING_READY_MESSAGE);
   }
 
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
@@ -83,7 +68,7 @@ export default function LibrarianInteraction({
   }
 
   return (
-    <div className="fixed left-1/2 bottom-8 z-30 -translate-x-1/2">
+    <div className="fixed inset-x-3 bottom-4 z-50 mx-auto flex max-w-[420px] justify-center sm:left-1/2 sm:right-auto sm:bottom-8 sm:block sm:-translate-x-1/2">
       <button
         type="button"
         hidden={open}
@@ -109,10 +94,10 @@ export default function LibrarianInteraction({
           id={panelId}
           role="dialog"
           aria-labelledby={panelTitleId}
-          className="mt-3 w-[min(92vw,420px)] rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl"
+          className="mt-3 max-h-[min(78vh,640px)] w-full overflow-y-auto rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl sm:w-[min(92vw,420px)]"
         >
-          <header className="mb-3 flex items-center justify-between">
-            <h2 id={panelTitleId} className="font-display text-lg">
+          <header className="sticky top-0 z-10 mb-3 flex items-center justify-between gap-3 bg-cream/95 pb-2">
+            <h2 id={panelTitleId} className="truncate font-display text-lg">
               {LIBRARY_LABELS.roomName} 사서
             </h2>
             <button
@@ -131,8 +116,8 @@ export default function LibrarianInteraction({
             <div className="grid gap-2">
               <button
                 type="button"
-                onClick={() => void handleCounseling()}
-                disabled={pending === 'counseling'}
+                onClick={handleCounseling}
+                disabled={!!pending}
                 className="rounded bg-bark px-3 py-2 text-cream"
               >
                 {LIBRARY_LABELS.counseling}

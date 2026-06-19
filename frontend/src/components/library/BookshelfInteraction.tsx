@@ -17,6 +17,7 @@ import { LIBRARY_LABELS } from './libraryLabels';
 
 const BOOKS_PER_PAGE = 8;
 const LETTERS_PER_PAGE = 5;
+const HEART_BODY_MAX_LENGTH = 1500;
 const HEART_SUCCESS_MESSAGE = '마음이 조용히 전해졌어요.';
 const SELECT_ERROR_MESSAGE = '도서를 열지 못했어요. 잠시 후 다시 시도해 주세요.';
 const HEART_ERROR_MESSAGE = '마음을 보내지 못했어요. 잠시 후 다시 시도해 주세요.';
@@ -36,6 +37,7 @@ interface BookshelfInteractionProps {
   books: ConfessionSummary[];
   onSelectBook: (id: number) => Promise<SelectedBookResult>;
   onSendHeart: (id: number, body: string) => Promise<void> | void;
+  onReadReceivedLetters?: () => Promise<void> | void;
 }
 
 interface SelectedBookResult {
@@ -72,6 +74,7 @@ export default function BookshelfInteraction({
   books,
   onSelectBook,
   onSendHeart,
+  onReadReceivedLetters,
 }: BookshelfInteractionProps) {
   const panelId = useId();
   const panelTitleId = useId();
@@ -81,6 +84,8 @@ export default function BookshelfInteraction({
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<ConfessionDetail | null>(null);
   const [receivedLetters, setReceivedLetters] = useState<ConfessionLetter[] | null>(null);
+  const [openedLetter, setOpenedLetter] = useState<ConfessionLetter | null>(null);
+  const [receivedLettersRead, setReceivedLettersRead] = useState(false);
   const [letterPage, setLetterPage] = useState(0);
   const [heartBody, setHeartBody] = useState('');
   const [message, setMessage] = useState('');
@@ -124,6 +129,8 @@ export default function BookshelfInteraction({
     setOpen(false);
     setSelected(null);
     setReceivedLetters(null);
+    setOpenedLetter(null);
+    setReceivedLettersRead(false);
     setLetterPage(0);
     setMessage('');
     triggerRef.current?.focus();
@@ -183,6 +190,8 @@ export default function BookshelfInteraction({
       const result = await onSelectBook(id);
       setSelected(result.detail);
       setReceivedLetters(result.receivedLetters);
+      setOpenedLetter(null);
+      setReceivedLettersRead(false);
       setLetterPage(0);
       setHeartBody('');
     } catch {
@@ -216,8 +225,27 @@ export default function BookshelfInteraction({
     }
   }
 
+  async function handleOpenLetter(letter: ConfessionLetter) {
+    setOpenedLetter(letter);
+    if (receivedLettersRead) return;
+
+    setReceivedLettersRead(true);
+    try {
+      await onReadReceivedLetters?.();
+      setReceivedLetters(
+        (current) =>
+          current?.map((item) => ({
+            ...item,
+            authorReadAt: item.authorReadAt ?? new Date().toISOString(),
+          })) ?? null,
+      );
+    } catch {
+      setReceivedLettersRead(false);
+    }
+  }
+
   return (
-    <div className="fixed right-20 bottom-4 z-30">
+    <div className="fixed inset-x-3 bottom-4 z-50 mx-auto flex max-w-[560px] min-w-0 justify-end sm:inset-x-auto sm:right-20">
       <button
         ref={triggerRef}
         type="button"
@@ -241,10 +269,10 @@ export default function BookshelfInteraction({
           aria-labelledby={panelTitleId}
           tabIndex={-1}
           onKeyDown={handlePanelKeyDown}
-          className="library-bookshelf-zoom mt-3 w-[min(92vw,520px)] rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl"
+          className="library-bookshelf-zoom mt-3 max-h-[min(78vh,680px)] w-full min-w-0 overflow-x-hidden overflow-y-auto rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl sm:w-[min(92vw,520px)]"
         >
-          <header className="mb-4 flex items-center justify-between gap-4">
-            <h2 id={panelTitleId} className="font-display text-xl">
+          <header className="sticky top-0 z-10 mb-4 flex min-w-0 items-center justify-between gap-4 bg-cream/95 pb-2">
+            <h2 id={panelTitleId} className="min-w-0 truncate font-display text-xl">
               {LIBRARY_LABELS.bookshelfTitle}
             </h2>
             <button
@@ -259,27 +287,31 @@ export default function BookshelfInteraction({
           </header>
 
           {selected ? (
-            <article className="grid gap-4">
-              <div className="rounded border border-sand bg-warm-white p-4">
-                <h3 className="font-display text-lg">{selected.title}</h3>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{selected.body}</p>
+            <article className="grid min-w-0 gap-4">
+              <div className="min-w-0 rounded border border-sand bg-warm-white p-4">
+                <h3 className="truncate font-display text-lg">{selected.title}</h3>
+                <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6">
+                  {selected.body}
+                </p>
               </div>
 
               {receivedLetters ? (
-                <div className="grid gap-3">
+                <div className="grid min-w-0 gap-3">
                   <h4 className="text-sm font-semibold">받은 편지</h4>
                   {currentLetters.length > 0 ? (
-                    <div className="grid gap-2">
+                    <div className="grid min-w-0 gap-2">
                       {currentLetters.map((letter) => (
-                        <article
+                        <button
                           key={letter.id}
-                          className="rounded border border-sand bg-warm-white p-3"
+                          type="button"
+                          onClick={() => void handleOpenLetter(letter)}
+                          className="min-w-0 rounded border border-sand bg-warm-white p-3 text-left transition-colors hover:border-leaf/60"
                         >
-                          <p className="whitespace-pre-wrap text-sm leading-6">{letter.body}</p>
+                          <p className="truncate text-sm leading-6">{letter.body}</p>
                           <time className="mt-2 block text-xs text-bark-muted">
                             {new Date(letter.createdAt).toLocaleString()}
                           </time>
-                        </article>
+                        </button>
                       ))}
                     </div>
                   ) : (
@@ -312,21 +344,12 @@ export default function BookshelfInteraction({
                       다음
                     </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelected(null);
-                      setReceivedLetters(null);
-                      setHeartBody('');
-                      setMessage('');
-                    }}
-                    className="justify-self-start rounded border border-sand px-3 py-2 text-sm text-bark"
-                  >
-                    {LIBRARY_LABELS.close}
-                  </button>
                 </div>
               ) : (
-                <form onSubmit={(event) => void handleSendHeart(event)} className="grid gap-2">
+                <form
+                  onSubmit={(event) => void handleSendHeart(event)}
+                  className="grid min-w-0 gap-2"
+                >
                   <label className="text-sm font-semibold" htmlFor={`${panelId}-heart-body`}>
                     마음 내용
                   </label>
@@ -337,21 +360,12 @@ export default function BookshelfInteraction({
                       setHeartBody(event.target.value);
                     }}
                     className="h-24 resize-none rounded border border-sand bg-warm-white p-3"
-                    maxLength={1000}
+                    maxLength={HEART_BODY_MAX_LENGTH}
                   />
-                  <div className="flex items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelected(null);
-                        setReceivedLetters(null);
-                        setHeartBody('');
-                        setMessage('');
-                      }}
-                      className="rounded border border-sand px-3 py-2 text-sm text-bark"
-                    >
-                      {LIBRARY_LABELS.close}
-                    </button>
+                  <p className="text-right text-xs text-bark-muted">
+                    {heartBody.length} / {HEART_BODY_MAX_LENGTH}
+                  </p>
+                  <div className="flex justify-end">
                     <button
                       type="submit"
                       disabled={sendingHeart}
@@ -364,8 +378,8 @@ export default function BookshelfInteraction({
               )}
             </article>
           ) : (
-            <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid min-w-0 gap-4">
+              <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4">
                 {currentBooks.map((book) => (
                   <button
                     key={book.id}
@@ -373,9 +387,9 @@ export default function BookshelfInteraction({
                     aria-label={book.title}
                     disabled={selectingId !== null}
                     onClick={() => void handleSelectBook(book.id)}
-                    className="min-h-24 rounded border border-bark/20 bg-sand px-3 py-4 text-left text-sm font-semibold text-bark shadow-sm disabled:opacity-60"
+                    className="min-h-24 min-w-0 overflow-hidden rounded border border-bark/20 bg-sand px-3 py-4 text-left text-sm font-semibold text-bark shadow-sm disabled:opacity-60"
                   >
-                    <span className="line-clamp-3">{book.title}</span>
+                    <span className="line-clamp-3 min-w-0 break-words">{book.title}</span>
                   </button>
                 ))}
               </div>
@@ -414,6 +428,37 @@ export default function BookshelfInteraction({
             </p>
           )}
         </section>
+      )}
+      {openedLetter && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label="받은 편지 전문"
+            className="flex max-h-[min(78vh,640px)] w-[min(92vw,420px)] flex-col overflow-hidden rounded border border-sand bg-cream text-bark shadow-2xl"
+          >
+            <header className="flex shrink-0 items-center justify-between gap-3 border-b border-sand bg-cream px-5 py-4">
+              <h3 className="truncate font-display text-lg">받은 편지</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setOpenedLetter(null);
+                }}
+                className="text-sm font-semibold text-bark-muted hover:text-bark"
+              >
+                {LIBRARY_LABELS.close}
+              </button>
+            </header>
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+              <p className="whitespace-pre-wrap break-words text-sm leading-6">
+                {openedLetter.body}
+              </p>
+            </div>
+            <time className="block shrink-0 border-t border-sand bg-cream px-5 py-3 text-xs text-bark-muted">
+              {new Date(openedLetter.createdAt).toLocaleString()}
+            </time>
+          </section>
+        </div>
       )}
     </div>
   );

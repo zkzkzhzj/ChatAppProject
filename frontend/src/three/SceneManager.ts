@@ -5,13 +5,16 @@ import {
   emitLibraryEntryBlocked,
   emitLibraryInteractionChange,
   emitSceneChange,
+  emitVillageBoardInteractionChange,
 } from '@/lib/scene/sceneBridge';
 import { sendLeaveVillage } from '@/lib/websocket/realtimeClient';
 import type { PositionBroadcast } from '@/lib/websocket/realtimeTypes';
 import type { ChatMessage } from '@/types/chat';
+import type { Suggestion, VillageDashboard } from '@/types/village-board';
 
 import { AmbientSoundManager } from './audio/AmbientSoundManager';
 import { loadMasterVolume } from './audio/master-volume-store';
+import { animalModelRegistry } from './character/AnimalModelRegistry';
 import { CAMERA, TRANSITION, VILLAGE } from './constants';
 import { InputState } from './input';
 import { PositionSync } from './network/PositionSync';
@@ -20,8 +23,32 @@ import { VillageScene } from './scenes/VillageScene';
 
 type Active = 'village' | 'library' | 'transitioning';
 
+const LOGIN_RETURN_POSITION_KEY = 'gohyang:login-return-position';
+
+interface LoginReturnPosition {
+  scene: 'village';
+  x: number;
+  z: number;
+}
+
 function hasLibraryAccess(): boolean {
   return hasMemberToken();
+}
+
+export function rotateMovementByYaw(
+  input: { dx: number; dz: number; jump: boolean },
+  yaw: number,
+): { dx: number; dz: number; jump: boolean } {
+  if (input.dx === 0 && input.dz === 0) return input;
+
+  const sin = Math.sin(yaw);
+  const cos = Math.cos(yaw);
+
+  return {
+    dx: input.dx * cos + input.dz * sin,
+    dz: -input.dx * sin + input.dz * cos,
+    jump: input.jump,
+  };
 }
 
 /**
@@ -71,13 +98,18 @@ export class SceneManager {
       120,
     );
 
+    // 마을 주민 모델 (Quaternius CC0) 백그라운드 프리로드 — 도착 전까지 placeholder 박스
+    animalModelRegistry.preloadAll();
+
     // Scenes
     this.village = new VillageScene();
     this.library = new LibraryScene();
+    this.restoreLoginReturnPosition();
 
     // Input — 키보드(WASD/점프) + 모바일 가상 조이스틱(InputState.setJoystick).
     // tap-to-move 결 거부 (사용자 결정 2026-05-13) — 모바일은 조이스틱 상시 노출 결로 정합.
     this.input = new InputState();
+    this.input.bindCameraElement(this.renderer.domElement);
 
     // Ambient sound (D6 v + D11 음향 결)
     this.ambientSound = new AmbientSoundManager();
@@ -140,7 +172,9 @@ export class SceneManager {
     // 입력은 transition 중에는 무시 (캐릭터 결 멈춤)
     if (this.active !== 'transitioning') {
       const keys = this.input.read();
-      sceneObj.character.update(keys, delta);
+      const movement =
+        sceneObj instanceof VillageScene ? this.toCameraRelativeMovement(keys, sceneObj) : keys;
+      sceneObj.character.update(movement, delta);
 
       // collision: 마을은 숲 wall 안, 도서관은 벽 안 (간단히 Box clamp)
       if (this.active === 'village') {
@@ -167,29 +201,45 @@ export class SceneManager {
       // 마을에 있을 때만 자기 위치 broadcast (도서관은 spec §2.2 Out)
       if (this.active === 'village') {
         const p = sceneObj.character.position;
-        this.positionSync.sendIfChanged(p.x, p.z);
+        this.positionSync.sendIfChanged(p.x, p.z, p.y);
       }
 
-      if (this.active === 'library') {
-        const libraryScene = sceneObj as LibraryScene;
+      if (this.active === 'library' && sceneObj instanceof LibraryScene) {
+        const libraryScene = sceneObj;
         emitLibraryInteractionChange({
           nearLibrarian: libraryScene.isNearLibrarian(),
           nearBookshelf: libraryScene.isNearBookshelf(),
         });
+        emitVillageBoardInteractionChange({ nearDashboard: false, nearSuggestionBoard: false });
+      } else if (this.active === 'village' && sceneObj instanceof VillageScene) {
+        emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
+        const villageScene = sceneObj;
+        emitVillageBoardInteractionChange({
+          nearDashboard: villageScene.isNearDashboardBoard(),
+          nearSuggestionBoard: villageScene.isNearSuggestionBoard(),
+        });
       } else {
         emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
+        emitVillageBoardInteractionChange({ nearDashboard: false, nearSuggestionBoard: false });
       }
     }
 
-    // RemotePlayer lerp 진행 (마을 전용)
+    // RemotePlayer lerp·애니메이션 + 살아있는 디테일 (불씨·물결·반딧불) — 마을 전용
     if (
       this.active === 'village' ||
       (this.active === 'transitioning' && this.sourceScene === 'village')
     ) {
-      this.village.updateRemotePlayers();
+      this.village.updateRemotePlayers(delta);
+      this.village.updateAmbient(delta);
     }
 
-    sceneObj.updateCamera(this.camera);
+    const orbitDelta = this.input.consumeCameraOrbitDelta();
+    const zoomDelta = this.input.consumeCameraZoomDelta();
+    if (sceneObj instanceof VillageScene) {
+      sceneObj.updateCamera(this.camera, orbitDelta, zoomDelta);
+    } else {
+      sceneObj.updateCamera(this.camera);
+    }
 
     // 위치 기반 환경음 (sound-config.ts zone 결로 음량 결 결)
     const charPos = sceneObj.character.position;
@@ -218,6 +268,13 @@ export class SceneManager {
 
   // pendingTarget 은 startTransition 호출 시점에 'village' | 'library' 만 들어가므로
   // sourceScene 과 동일하게 좁힌 타입 사용. 'transitioning' 은 active 만 가짐.
+  private toCameraRelativeMovement(
+    input: { dx: number; dz: number; jump: boolean },
+    scene: VillageScene,
+  ): { dx: number; dz: number; jump: boolean } {
+    return rotateMovementByYaw(input, scene.getMovementYaw());
+  }
+
   private pendingTarget: 'village' | 'library' = 'village';
 
   private startTransition(target: 'village' | 'library'): void {
@@ -227,6 +284,7 @@ export class SceneManager {
     this.active = 'transitioning';
     emitSceneChange(this.active);
     emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
+    emitVillageBoardInteractionChange({ nearDashboard: false, nearSuggestionBoard: false });
     this.fadeDirection = 1; // fade out
 
     // 도서관 진입 즉시 LEAVE broadcast — 다른 클라이언트에서 본인 placeholder 제거 (Codex P1).
@@ -274,12 +332,29 @@ export class SceneManager {
   setSelfId(id: string | null): void {
     this.positionSync.setSelfId(id);
     this.selfDisplayId = id;
+    // displayId 확정 → 내 주민 모델 채택 (마을·도서관 캐릭터 동일 종)
+    if (id) {
+      this.village.character.adoptAnimal(id);
+      this.library.character.adoptAnimal(id);
+    }
   }
 
   /** 가상 조이스틱 입력 (Step 1.7 모바일 hybrid). dx/dz ∈ [-1, 1]. */
   setJoystickInput(dx: number, dz: number): void {
     if (this.destroyed) return;
     this.input.setJoystick(dx, dz);
+  }
+
+  saveLoginReturnPosition(): void {
+    if (typeof window === 'undefined' || this.destroyed || this.active !== 'village') return;
+
+    const p = this.village.character.position;
+    const snapshot: LoginReturnPosition = {
+      scene: 'village',
+      x: p.x,
+      z: p.z,
+    };
+    window.sessionStorage.setItem(LOGIN_RETURN_POSITION_KEY, JSON.stringify(snapshot));
   }
 
   /** ChatInputAnchor 결로 사용 — 자기 캐릭터 머리 위 위치 계산용. 마을 활성 시에만 유효. */
@@ -318,13 +393,45 @@ export class SceneManager {
     this.village.applyChatBubbleTo(displayId, msg.body);
   }
 
+  setVillageBoardData(
+    dashboard: VillageDashboard | null,
+    latestSuggestion: Suggestion | null,
+  ): void {
+    if (this.destroyed) return;
+    this.village.setCommunityBoardData(dashboard, latestSuggestion);
+  }
+
   private selfDisplayId: string | null = null;
+
+  private restoreLoginReturnPosition(): void {
+    if (typeof window === 'undefined') return;
+
+    const raw = window.sessionStorage.getItem(LOGIN_RETURN_POSITION_KEY);
+    if (!raw) return;
+    window.sessionStorage.removeItem(LOGIN_RETURN_POSITION_KEY);
+
+    try {
+      const snapshot = JSON.parse(raw) as Partial<LoginReturnPosition>;
+      if (
+        snapshot.scene !== 'village' ||
+        typeof snapshot.x !== 'number' ||
+        typeof snapshot.z !== 'number'
+      ) {
+        return;
+      }
+
+      this.village.character.position.set(snapshot.x, 0, snapshot.z);
+    } catch {
+      // Ignore stale or manually edited sessionStorage.
+    }
+  }
 
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
     cancelAnimationFrame(this.rafId);
     emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
+    emitVillageBoardInteractionChange({ nearDashboard: false, nearSuggestionBoard: false });
     window.removeEventListener('resize', this.onResize);
     this.input.destroy();
     this.ambientSound.destroy();

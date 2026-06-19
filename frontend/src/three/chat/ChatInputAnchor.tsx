@@ -65,11 +65,16 @@ export default function ChatInputAnchor({ sceneManager, onLoginRequired }: ChatI
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
         return;
       }
-      if (e.key === 'Enter' && !active) {
+      if (e.key === 'Enter') {
         e.preventDefault();
-        setActive(true);
-        // mount 직후 focus
-        requestAnimationFrame(() => inputRef.current?.focus());
+        if (active) {
+          setActive(false);
+          inputRef.current?.blur();
+        } else {
+          setActive(true);
+          // mount 직후 focus
+          requestAnimationFrame(() => inputRef.current?.focus());
+        }
       } else if (e.key === 'Escape' && active) {
         setActive(false);
         inputRef.current?.blur();
@@ -143,7 +148,7 @@ export default function ChatInputAnchor({ sceneManager, onLoginRequired }: ChatI
         className="fixed right-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
         style={{ bottom: 80 }}
       >
-        <span className="text-xl">✏️</span>
+        <ChatIcon />
       </button>
     );
   }
@@ -171,7 +176,12 @@ export default function ChatInputAnchor({ sceneManager, onLoginRequired }: ChatI
   return (
     <>
       <div ref={containerRef} style={style}>
-        <ChatInput ref={inputRef} onLoginRequired={onLoginRequired} onSent={handleSent} />
+        <ChatInput
+          ref={inputRef}
+          onLoginRequired={onLoginRequired}
+          onSent={handleSent}
+          onCancel={handleSent}
+        />
       </div>
       {/* 모바일 결 FAB 토글 — 활성 결 ✕ 결로 큰 버튼 (옛 ✏️ FAB 자리). Escape 키 없는 터치 결 닫기 경로.
           데스크탑 결 Escape 결로 닫음 결로 표시 X. */}
@@ -183,9 +193,46 @@ export default function ChatInputAnchor({ sceneManager, onLoginRequired }: ChatI
           className="fixed right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-bark/85 text-cream shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
           style={{ bottom: 80 }}
         >
-          <span className="text-xl leading-none">✕</span>
+          <CloseIcon />
         </button>
       )}
     </>
+  );
+}
+
+function ChatIcon() {
+  return (
+    <svg
+      width={20}
+      height={20}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg
+      width={20}
+      height={20}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
   );
 }

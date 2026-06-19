@@ -339,6 +339,10 @@ export class VillageScene {
     camera.lookAt(target.x, target.y + 1, target.z);
   }
 
+  getMovementYaw(): number {
+    return CAMERA.ORBIT_ENABLED ? this.cameraYaw : CAMERA.ORBIT_INITIAL_YAW;
+  }
+
   /** 캐릭터가 도서관 진입 트리거 안에 있는가? */
   isAtLibraryDoor(): boolean {
     return this.character.position.distanceTo(this.libraryDoor) < VILLAGE.LIBRARY_TRIGGER_RADIUS;

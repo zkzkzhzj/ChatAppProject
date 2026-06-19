@@ -8,6 +8,7 @@ import { useChatStore } from '@/store/useChatStore';
 
 export default function VillageControls() {
   const [guideOpen, setGuideOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [member, setMember] = useState(false);
   const setLoginRequired = useChatStore((s) => s.setLoginRequired);
 
@@ -25,6 +26,7 @@ export default function VillageControls() {
   const handleAuthClick = () => {
     if (!member) {
       setLoginRequired(true);
+      setMenuOpen(false);
       return;
     }
 
@@ -36,31 +38,48 @@ export default function VillageControls() {
   return (
     <>
       <div
-        className="fixed z-20 grid gap-2"
+        className="fixed z-20"
         style={{
           right: 'calc(1rem + env(safe-area-inset-right))',
-          bottom: 'calc(224px + env(safe-area-inset-bottom))',
+          bottom: 'calc(208px + env(safe-area-inset-bottom))',
         }}
       >
-        <button
-          type="button"
-          onClick={handleAuthClick}
-          aria-label={member ? '로그아웃' : '로그인'}
-          title={member ? '로그아웃' : '로그인'}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
-        >
-          {member ? <LogOutIcon /> : <LogInIcon />}
-        </button>
+        {menuOpen && (
+          <div className="absolute right-0 bottom-14">
+            <button
+              type="button"
+              onClick={handleAuthClick}
+              aria-label={member ? '로그아웃' : '로그인'}
+              title={member ? '로그아웃' : '로그인'}
+              className="absolute right-0 bottom-0 flex h-10 w-10 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
+            >
+              {member ? <LogOutIcon /> : <LogInIcon />}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setGuideOpen(true);
+                setMenuOpen(false);
+              }}
+              aria-label="가이드"
+              title="가이드"
+              className="absolute right-12 bottom-3 flex h-10 w-10 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
+            >
+              <GuideIcon />
+            </button>
+          </div>
+        )}
         <button
           type="button"
           onClick={() => {
-            setGuideOpen(true);
+            setMenuOpen((open) => !open);
           }}
-          aria-label="가이드"
-          title="가이드"
+          aria-label="마을 메뉴"
+          aria-expanded={menuOpen}
+          title="마을 메뉴"
           className="flex h-12 w-12 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
         >
-          <GuideIcon />
+          <MenuIcon />
         </button>
       </div>
 
@@ -158,6 +177,26 @@ function GuideIcon() {
       <circle cx="12" cy="12" r="10" />
       <path d="M9.1 9a3 3 0 1 1 5.8 1c-.5 1.4-2.2 1.8-2.7 3" />
       <path d="M12 17h.01" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg
+      width={20}
+      height={20}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="1.5" />
+      <circle cx="5" cy="12" r="1.5" />
+      <circle cx="19" cy="12" r="1.5" />
     </svg>
   );
 }

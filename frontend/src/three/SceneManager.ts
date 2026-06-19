@@ -33,6 +33,22 @@ function hasLibraryAccess(): boolean {
   return hasMemberToken();
 }
 
+export function rotateMovementByYaw(
+  input: { dx: number; dz: number; jump: boolean },
+  yaw: number,
+): { dx: number; dz: number; jump: boolean } {
+  if (input.dx === 0 && input.dz === 0) return input;
+
+  const sin = Math.sin(yaw);
+  const cos = Math.cos(yaw);
+
+  return {
+    dx: input.dx * cos + input.dz * sin,
+    dz: -input.dx * sin + input.dz * cos,
+    jump: input.jump,
+  };
+}
+
 /**
  * Scene 매니저 — VillageScene ↔ LibraryScene 전환.
  * URL 안 바뀜 (spec D10). React state 결 X, three.js 자체 결로.
@@ -154,7 +170,9 @@ export class SceneManager {
     // 입력은 transition 중에는 무시 (캐릭터 결 멈춤)
     if (this.active !== 'transitioning') {
       const keys = this.input.read();
-      sceneObj.character.update(keys, delta);
+      const movement =
+        sceneObj instanceof VillageScene ? this.toCameraRelativeMovement(keys, sceneObj) : keys;
+      sceneObj.character.update(movement, delta);
 
       // collision: 마을은 숲 wall 안, 도서관은 벽 안 (간단히 Box clamp)
       if (this.active === 'village') {
@@ -238,6 +256,13 @@ export class SceneManager {
 
   // pendingTarget 은 startTransition 호출 시점에 'village' | 'library' 만 들어가므로
   // sourceScene 과 동일하게 좁힌 타입 사용. 'transitioning' 은 active 만 가짐.
+  private toCameraRelativeMovement(
+    input: { dx: number; dz: number; jump: boolean },
+    scene: VillageScene,
+  ): { dx: number; dz: number; jump: boolean } {
+    return rotateMovementByYaw(input, scene.getMovementYaw());
+  }
+
   private pendingTarget: 'village' | 'library' = 'village';
 
   private startTransition(target: 'village' | 'library'): void {

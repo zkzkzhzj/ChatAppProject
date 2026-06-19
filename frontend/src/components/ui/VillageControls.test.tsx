@@ -22,24 +22,34 @@ describe('VillageControls', () => {
     mockEmitDisplayIdChange.mockReset();
   });
 
-  it('renders login and guide as icon buttons in the right control stack', () => {
+  it('renders a single village menu button in the right control stack', () => {
     render(<VillageControls />);
 
-    const loginButton = screen.getByRole('button', { name: '로그인' });
-    const guideButton = screen.getByRole('button', { name: '가이드' });
+    const menuButton = screen.getByRole('button', { name: '마을 메뉴' });
 
-    expect(loginButton).toHaveClass('h-12', 'w-12');
-    expect(guideButton).toHaveClass('h-12', 'w-12');
-    expect(loginButton.parentElement).toHaveStyle({
-      bottom: 'calc(224px + env(safe-area-inset-bottom))',
+    expect(menuButton).toHaveClass('h-12', 'w-12');
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('button', { name: '로그인' })).not.toBeInTheDocument();
+    expect(menuButton.parentElement).toHaveStyle({
+      bottom: 'calc(208px + env(safe-area-inset-bottom))',
     });
   });
 
   it('opens the guide dialog from the guide icon button', () => {
     render(<VillageControls />);
 
+    fireEvent.click(screen.getByRole('button', { name: '마을 메뉴' }));
     fireEvent.click(screen.getByRole('button', { name: '가이드' }));
 
     expect(screen.getByRole('dialog', { name: '마을 이용 가이드' })).toBeInTheDocument();
+  });
+
+  it('shows auth and guide actions around the menu button when expanded', () => {
+    render(<VillageControls />);
+
+    fireEvent.click(screen.getByRole('button', { name: '마을 메뉴' }));
+
+    expect(screen.getByRole('button', { name: '로그인' })).toHaveClass('h-10', 'w-10');
+    expect(screen.getByRole('button', { name: '가이드' })).toHaveClass('h-10', 'w-10');
   });
 });

@@ -138,7 +138,7 @@ export default function LibraryOverlay() {
 
   if (entryBlocked) {
     return (
-      <div className="fixed inset-x-4 bottom-20 z-40 mx-auto w-[min(92vw,420px)] rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl">
+      <div className="fixed inset-x-3 bottom-4 z-50 mx-auto max-h-[min(78vh,520px)] w-[min(92vw,420px)] overflow-y-auto rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl">
         <h2 className="font-display text-lg">사서방은 로그인 후 이용할 수 있어요</h2>
         <p className="mt-2 text-sm leading-6 text-bark-muted">
           남긴 마음과 답장을 안전하게 보관하기 위해 로그인이 필요합니다.

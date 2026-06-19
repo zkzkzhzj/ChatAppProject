@@ -216,6 +216,11 @@ describe('LibrarianInteraction', () => {
     await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
     await user.click(screen.getByRole('button', { name: '고민 상담하기' }));
 
+    expect(screen.getByRole('dialog', { name: /사서방 사서/ })).toHaveClass(
+      'max-h-[min(78vh,640px)]',
+      'overflow-y-auto',
+    );
+
     expect(
       screen.getByText('고민 상담은 아직 준비 중입니다. 지금은 마음을 남겨둘 수 있어요.'),
     ).toBeInTheDocument();
@@ -503,6 +508,10 @@ describe('LibraryOverlay composition', () => {
     });
 
     expect(await screen.findByText(/사서방은 로그인 후 이용할 수 있어요/)).toBeInTheDocument();
+    expect(screen.getByText(/사서방은 로그인 후 이용할 수 있어요/).parentElement).toHaveClass(
+      'z-50',
+      'max-h-[min(78vh,520px)]',
+    );
 
     await user.click(screen.getByRole('button', { name: '로그인하기' }));
 
@@ -718,6 +727,10 @@ describe('BookshelfInteraction', () => {
 
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
 
+    expect(screen.getByRole('dialog', { name: LIBRARY_LABELS.bookshelfTitle })).toHaveClass(
+      'max-h-[min(78vh,680px)]',
+      'overflow-y-auto',
+    );
     expect(
       screen.queryByRole('button', { name: LIBRARY_LABELS.bookshelfAction }),
     ).not.toBeInTheDocument();

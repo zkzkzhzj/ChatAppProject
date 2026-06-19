@@ -217,7 +217,7 @@ export default function BookshelfInteraction({
   }
 
   return (
-    <div className="fixed right-20 bottom-4 z-30">
+    <div className="fixed inset-x-3 bottom-4 z-50 mx-auto flex max-w-[560px] justify-end sm:inset-x-auto sm:right-20">
       <button
         ref={triggerRef}
         type="button"
@@ -241,10 +241,10 @@ export default function BookshelfInteraction({
           aria-labelledby={panelTitleId}
           tabIndex={-1}
           onKeyDown={handlePanelKeyDown}
-          className="library-bookshelf-zoom mt-3 w-[min(92vw,520px)] rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl"
+          className="library-bookshelf-zoom mt-3 max-h-[min(78vh,680px)] w-full overflow-y-auto rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl sm:w-[min(92vw,520px)]"
         >
-          <header className="mb-4 flex items-center justify-between gap-4">
-            <h2 id={panelTitleId} className="font-display text-xl">
+          <header className="sticky top-0 z-10 mb-4 flex items-center justify-between gap-4 bg-cream/95 pb-2">
+            <h2 id={panelTitleId} className="truncate font-display text-xl">
               {LIBRARY_LABELS.bookshelfTitle}
             </h2>
             <button

@@ -68,7 +68,7 @@ export default function LibrarianInteraction({ near, onSubmitBook }: LibrarianIn
   }
 
   return (
-    <div className="fixed left-1/2 bottom-8 z-30 -translate-x-1/2">
+    <div className="fixed inset-x-3 bottom-4 z-50 mx-auto flex max-w-[420px] justify-center sm:left-1/2 sm:right-auto sm:bottom-8 sm:block sm:-translate-x-1/2">
       <button
         type="button"
         hidden={open}
@@ -94,10 +94,10 @@ export default function LibrarianInteraction({ near, onSubmitBook }: LibrarianIn
           id={panelId}
           role="dialog"
           aria-labelledby={panelTitleId}
-          className="mt-3 w-[min(92vw,420px)] rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl"
+          className="mt-3 max-h-[min(78vh,640px)] w-full overflow-y-auto rounded border border-sand bg-cream/95 p-4 text-bark shadow-2xl sm:w-[min(92vw,420px)]"
         >
-          <header className="mb-3 flex items-center justify-between">
-            <h2 id={panelTitleId} className="font-display text-lg">
+          <header className="sticky top-0 z-10 mb-3 flex items-center justify-between gap-3 bg-cream/95 pb-2">
+            <h2 id={panelTitleId} className="truncate font-display text-lg">
               {LIBRARY_LABELS.roomName} 사서
             </h2>
             <button

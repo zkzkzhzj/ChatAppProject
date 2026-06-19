@@ -27,11 +27,11 @@ const actionClass =
   'flex h-9 w-9 items-center justify-center rounded-full bg-cream/95 text-bark shadow-lg backdrop-blur-sm transition-transform hover:scale-105';
 
 const slots = [
-  { x: -22, y: -118 },
-  { x: -76, y: -96 },
-  { x: -108, y: -45 },
-  { x: -108, y: 25 },
-  { x: -76, y: 78 },
+  { x: -18, y: -98 },
+  { x: -62, y: -80 },
+  { x: -88, y: -38 },
+  { x: -88, y: 18 },
+  { x: -62, y: 60 },
 ] as const;
 
 export default function FloatingActionMenu({
@@ -179,7 +179,7 @@ export default function FloatingActionMenu({
           aria-label="마을 메뉴"
           aria-expanded={open}
           title="마을 메뉴"
-          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-bark text-cream shadow-xl ring-1 ring-cream/40 backdrop-blur-sm transition-transform hover:scale-105"
+          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-leaf/95 text-cream shadow-xl ring-1 ring-cream/50 backdrop-blur-sm transition-transform hover:scale-105"
         >
           <MenuIcon open={open} />
         </button>

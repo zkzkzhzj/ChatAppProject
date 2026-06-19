@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import type { PositionBroadcast } from '@/lib/websocket/realtimeTypes';
+import type { Suggestion, VillageDashboard } from '@/types/village-board';
 
 import { Character } from '../character/Character';
 import { RemotePlayer } from '../character/RemotePlayer';
@@ -23,6 +24,8 @@ export class VillageScene {
   private readonly decor: VillageDecor;
   private readonly dashboardBoard = new THREE.Vector3(-4.8, 0, VILLAGE.ENTRY_Z - 11);
   private readonly suggestionBoard = new THREE.Vector3(4.8, 0, VILLAGE.ENTRY_Z - 11);
+  private dashboardBoardTexture: THREE.CanvasTexture | null = null;
+  private suggestionBoardTexture: THREE.CanvasTexture | null = null;
   private elapsed = 0;
   private cameraYaw: number = CAMERA.ORBIT_INITIAL_YAW;
   private cameraPitch: number = CAMERA.ORBIT_INITIAL_PITCH;
@@ -251,65 +254,164 @@ export class VillageScene {
   }
 
   private buildCommunityBoards(): void {
-    this.buildBoard(this.dashboardBoard, '오늘의 방문자', '손님과 이웃의 발자국');
-    this.buildBoard(this.suggestionBoard, '건의 게시판', '마을에 남기는 바람');
+    this.dashboardBoardTexture = this.createDashboardBoardTexture(null);
+    this.suggestionBoardTexture = this.createSuggestionBoardTexture(null);
+    this.buildBoard(this.dashboardBoard, this.dashboardBoardTexture);
+    this.buildBoard(this.suggestionBoard, this.suggestionBoardTexture);
   }
 
-  private buildBoard(position: THREE.Vector3, title: string, subtitle: string): void {
+  private buildBoard(position: THREE.Vector3, texture: THREE.CanvasTexture): void {
     const postMaterial = new THREE.MeshLambertMaterial({ color: 0x6b4a2e });
     const boardMaterial = new THREE.MeshLambertMaterial({ color: 0xb8794b });
     const edgeMaterial = new THREE.MeshLambertMaterial({ color: 0x4d3320 });
 
-    for (const x of [-1.45, 1.45]) {
-      const post = new THREE.Mesh(new THREE.BoxGeometry(0.24, 2.7, 0.24), postMaterial);
-      post.position.set(position.x + x, 1.25, position.z);
+    for (const x of [-1.9, 1.9]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.26, 3.15, 0.26), postMaterial);
+      post.position.set(position.x + x, 1.45, position.z);
       post.castShadow = true;
       this.scene.add(post);
     }
 
-    const board = new THREE.Mesh(new THREE.BoxGeometry(3.5, 1.85, 0.22), boardMaterial);
-    board.position.set(position.x, 2.15, position.z + 0.03);
+    const board = new THREE.Mesh(new THREE.BoxGeometry(4.6, 2.35, 0.22), boardMaterial);
+    board.position.set(position.x, 2.35, position.z + 0.03);
     board.castShadow = true;
     this.scene.add(board);
 
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.18, 0.28), edgeMaterial);
-    cap.position.set(position.x, 3.17, position.z + 0.06);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(5, 0.2, 0.28), edgeMaterial);
+    cap.position.set(position.x, 3.62, position.z + 0.06);
     cap.castShadow = true;
     this.scene.add(cap);
 
     const label = new THREE.Mesh(
-      new THREE.PlaneGeometry(3.1, 1.35),
+      new THREE.PlaneGeometry(4.08, 1.9),
       new THREE.MeshBasicMaterial({
-        map: this.createBoardTexture(title, subtitle),
+        map: texture,
         transparent: true,
       }),
     );
-    label.position.set(position.x, 2.18, position.z + 0.16);
+    label.position.set(position.x, 2.38, position.z + 0.16);
     this.scene.add(label);
   }
 
-  private createBoardTexture(title: string, subtitle: string): THREE.CanvasTexture {
+  setCommunityBoardData(
+    dashboard: VillageDashboard | null,
+    latestSuggestion: Suggestion | null,
+  ): void {
+    this.updateTexture(this.dashboardBoardTexture, this.createDashboardBoardTexture(dashboard));
+    this.updateTexture(
+      this.suggestionBoardTexture,
+      this.createSuggestionBoardTexture(latestSuggestion),
+    );
+  }
+
+  private updateTexture(target: THREE.CanvasTexture | null, source: THREE.CanvasTexture): void {
+    if (!target) {
+      source.dispose();
+      return;
+    }
+
+    target.image = source.image;
+    target.needsUpdate = true;
+    source.dispose();
+  }
+
+  private createDashboardBoardTexture(dashboard: VillageDashboard | null): THREE.CanvasTexture {
+    return this.createBoardTexture((ctx, canvas) => {
+      drawBoardBase(ctx, canvas);
+      drawCenteredText(
+        ctx,
+        '오늘의 방문자',
+        canvas.width / 2,
+        76,
+        '700 54px sans-serif',
+        '#3f2b1c',
+      );
+      drawCenteredText(
+        ctx,
+        `${dashboard?.date ?? '오늘'} 기준`,
+        canvas.width / 2,
+        122,
+        '500 24px sans-serif',
+        '#6b4a2e',
+      );
+
+      const stats = [
+        ['손님', dashboard?.guestCount ?? 0],
+        ['이웃', dashboard?.memberCount ?? 0],
+        ['총 방문', dashboard?.totalCount ?? 0],
+        ['오늘의 마음', dashboard?.confessionCount ?? 0],
+      ] as const;
+
+      stats.forEach(([label, value], index) => {
+        const x = 90 + (index % 2) * 302;
+        const y = 166 + Math.floor(index / 2) * 84;
+        ctx.fillStyle = '#fff7e6';
+        roundRect(ctx, x, y, 260, 60, 14);
+        ctx.fill();
+        ctx.strokeStyle = '#d7bb84';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        drawText(ctx, label, x + 24, y + 24, '500 22px sans-serif', '#6b4a2e');
+        drawText(ctx, value.toLocaleString(), x + 140, y + 42, '700 34px sans-serif', '#3f2b1c');
+      });
+    });
+  }
+
+  private createSuggestionBoardTexture(suggestion: Suggestion | null): THREE.CanvasTexture {
+    return this.createBoardTexture((ctx, canvas) => {
+      drawBoardBase(ctx, canvas);
+      drawCenteredText(ctx, '건의 게시판', canvas.width / 2, 76, '700 54px sans-serif', '#3f2b1c');
+      drawCenteredText(
+        ctx,
+        '최근 등록된 제안',
+        canvas.width / 2,
+        122,
+        '500 24px sans-serif',
+        '#6b4a2e',
+      );
+
+      if (!suggestion) {
+        drawCenteredText(
+          ctx,
+          '아직 등록된 건의사항이 없어요',
+          canvas.width / 2,
+          228,
+          '600 34px sans-serif',
+          '#6b4a2e',
+        );
+        return;
+      }
+
+      const status = suggestion.status === 'DONE' ? '처리 완료' : '접수';
+      ctx.font = '700 34px sans-serif';
+      drawText(
+        ctx,
+        truncateText(ctx, suggestion.title, 520),
+        82,
+        188,
+        '700 34px sans-serif',
+        '#3f2b1c',
+      );
+      drawText(ctx, status, 620, 188, '600 24px sans-serif', '#6b4a2e');
+      ctx.font = '500 28px sans-serif';
+      wrapText(ctx, suggestion.body, 610, 2).forEach((line, index) => {
+        drawText(ctx, line, 82, 238 + index * 38, '500 28px sans-serif', '#5f432d');
+      });
+    });
+  }
+
+  private createBoardTexture(
+    draw: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => void,
+  ): THREE.CanvasTexture {
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 256;
+    canvas.width = 768;
+    canvas.height = 384;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       return new THREE.CanvasTexture(canvas);
     }
 
-    ctx.fillStyle = '#f1dfb8';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = '#6b4a2e';
-    ctx.lineWidth = 12;
-    ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
-    ctx.fillStyle = '#3f2b1c';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = '700 54px sans-serif';
-    ctx.fillText(title, canvas.width / 2, 96);
-    ctx.font = '500 30px sans-serif';
-    ctx.fillStyle = '#6b4a2e';
-    ctx.fillText(subtitle, canvas.width / 2, 164);
+    draw(ctx, canvas);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -478,4 +580,108 @@ export class VillageScene {
     player.dispose();
     this.remotePlayers.delete(id);
   }
+}
+
+function drawBoardBase(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {
+  ctx.fillStyle = '#f1dfb8';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#6b4a2e';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
+}
+
+function drawCenteredText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  font: string,
+  color: string,
+): void {
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = font;
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+function drawText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  font: string,
+  color: string,
+): void {
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.font = font;
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+): void {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+function truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+
+  let next = text;
+  while (next.length > 0 && ctx.measureText(`${next}...`).width > maxWidth) {
+    next = next.slice(0, -1);
+  }
+  return `${next}...`;
+}
+
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+): string[] {
+  const normalized = text.replace(/s+/g, ' ').trim();
+  const lines: string[] = [];
+  let current = '';
+
+  for (const char of normalized) {
+    const next = `${current}${char}`;
+    if (ctx.measureText(next).width <= maxWidth) {
+      current = next;
+      continue;
+    }
+
+    if (current) {
+      lines.push(current);
+    }
+    current = char;
+    if (lines.length >= maxLines) break;
+  }
+
+  if (current && lines.length < maxLines) {
+    lines.push(current);
+  }
+
+  if (lines.length === maxLines && normalized.length > lines.join('').length) {
+    lines[maxLines - 1] = truncateText(ctx, lines[maxLines - 1], maxWidth);
+  }
+
+  return lines;
 }

@@ -10,6 +10,7 @@ import {
 import { sendLeaveVillage } from '@/lib/websocket/realtimeClient';
 import type { PositionBroadcast } from '@/lib/websocket/realtimeTypes';
 import type { ChatMessage } from '@/types/chat';
+import type { Suggestion, VillageDashboard } from '@/types/village-board';
 
 import { AmbientSoundManager } from './audio/AmbientSoundManager';
 import { loadMasterVolume } from './audio/master-volume-store';
@@ -389,6 +390,14 @@ export class SceneManager {
       return;
     }
     this.village.applyChatBubbleTo(displayId, msg.body);
+  }
+
+  setVillageBoardData(
+    dashboard: VillageDashboard | null,
+    latestSuggestion: Suggestion | null,
+  ): void {
+    if (this.destroyed) return;
+    this.village.setCommunityBoardData(dashboard, latestSuggestion);
   }
 
   private selfDisplayId: string | null = null;

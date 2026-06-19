@@ -68,7 +68,7 @@ export default function GameLoader() {
         onChatOpenChange={setChatDrawerOpen}
       />
       <LibraryOverlay />
-      <VillageBoardOverlay />
+      <VillageBoardOverlay sceneManager={manager} />
       {/* 모바일 결 조이스틱 상시 노출 — tap-to-move 결 거부, 조이스틱 only (사용자 결정 2026-05-13). */}
       {isMobile && <VirtualJoystick sceneManager={manager} />}
     </>

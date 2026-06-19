@@ -1,10 +1,15 @@
 import apiClient from '@/lib/api/client';
+import { isTokenExpired } from '@/lib/auth';
 import { ensureValidRealtimeToken } from '@/lib/websocket/realtimeAuth';
 import type { DailyVisitResult, Suggestion, VillageDashboard } from '@/types/village-board';
 
 const DEFAULT_SUGGESTION_LIMIT = 20;
 
 async function ensureVillageToken(): Promise<void> {
+  const token = await ensureValidRealtimeToken();
+  if (token && !isTokenExpired(token)) return;
+
+  localStorage.removeItem('accessToken');
   await ensureValidRealtimeToken();
 }
 

@@ -21,8 +21,8 @@ export class VillageScene {
   /** 다른 유저 placeholder — key = displayId. spec §2.2 Out: 도서관 진입 유저는 표시 X. */
   private remotePlayers = new Map<string, RemotePlayer>();
   private readonly decor: VillageDecor;
-  private readonly dashboardBoard = new THREE.Vector3(-13, 0, VILLAGE.ENTRY_Z - 3);
-  private readonly suggestionBoard = new THREE.Vector3(13, 0, VILLAGE.ENTRY_Z - 3);
+  private readonly dashboardBoard = new THREE.Vector3(-24, 0, VILLAGE.CAMPFIRE_Z + 4);
+  private readonly suggestionBoard = new THREE.Vector3(24, 0, VILLAGE.CAMPFIRE_Z + 4);
   private elapsed = 0;
   private cameraYaw: number = CAMERA.ORBIT_INITIAL_YAW;
   private cameraPitch: number = CAMERA.ORBIT_INITIAL_PITCH;

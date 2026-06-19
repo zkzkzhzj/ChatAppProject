@@ -98,7 +98,7 @@ KST 기준 오늘 날짜에 대해 `(visit_date, visitor_key)` unique insert로 
 
 ## GET `/api/v1/village/dashboard/today` -- 오늘 전광판 조회
 
-인증 필요. 마을 입구 전광판에 표시할 오늘 집계 정보를 반환한다.
+인증 없이 조회 가능하다. 마을 입구 전광판에 표시할 오늘 집계 정보를 반환한다.
 
 **Response** `200 OK`
 
@@ -116,7 +116,7 @@ KST 기준 오늘 날짜에 대해 `(visit_date, visitor_key)` unique insert로 
 
 ## GET `/api/v1/village/suggestions` -- 건의 게시판 조회
 
-인증 필요. 누구나 최근 건의사항을 볼 수 있다.
+인증 없이 조회 가능하다. 누구나 최근 건의사항을 볼 수 있다.
 
 | Query | 타입 | 기본값 | 제약 |
 |-------|------|--------|------|

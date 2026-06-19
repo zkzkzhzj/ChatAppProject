@@ -9,6 +9,12 @@
 export class InputState {
   private keys = new Set<string>();
   private destroyed = false;
+  private cameraElement: HTMLElement | null = null;
+  private orbitPointerId: number | null = null;
+  private orbitLastX = 0;
+  private orbitLastY = 0;
+  private orbitYawDelta = 0;
+  private orbitPitchDelta = 0;
   /** 가상 조이스틱 입력 (Step 1.7 모바일 hybrid). 0 = 비활성. */
   private joystickDx = 0;
   private joystickDz = 0;
@@ -41,6 +47,12 @@ export class InputState {
   /** 누른 키 전부 clear — blur·visibilitychange·외부 reset 시점에서 호출. */
   release = (): void => {
     this.keys.clear();
+    this.orbitPointerId = null;
+    this.orbitYawDelta = 0;
+    this.orbitPitchDelta = 0;
+    window.removeEventListener('pointermove', this.onPointerMove);
+    window.removeEventListener('pointerup', this.onPointerUp);
+    window.removeEventListener('pointercancel', this.onPointerUp);
   };
 
   private onVisibilityChange = (): void => {
@@ -52,6 +64,52 @@ export class InputState {
     this.joystickDx = dx;
     this.joystickDz = dz;
   }
+
+  bindCameraElement(element: HTMLElement): void {
+    if (this.cameraElement === element) return;
+    if (this.cameraElement) {
+      this.cameraElement.removeEventListener('pointerdown', this.onPointerDown);
+    }
+    this.cameraElement = element;
+    this.cameraElement.addEventListener('pointerdown', this.onPointerDown);
+  }
+
+  consumeCameraOrbitDelta(): { yaw: number; pitch: number } {
+    const delta = { yaw: this.orbitYawDelta, pitch: this.orbitPitchDelta };
+    this.orbitYawDelta = 0;
+    this.orbitPitchDelta = 0;
+    return delta;
+  }
+
+  private onPointerDown = (e: PointerEvent): void => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    if (!e.isPrimary || e.button !== 0) return;
+
+    this.orbitPointerId = e.pointerId;
+    this.orbitLastX = e.clientX;
+    this.orbitLastY = e.clientY;
+    window.addEventListener('pointermove', this.onPointerMove);
+    window.addEventListener('pointerup', this.onPointerUp);
+    window.addEventListener('pointercancel', this.onPointerUp);
+  };
+
+  private onPointerMove = (e: PointerEvent): void => {
+    if (this.orbitPointerId !== e.pointerId) return;
+
+    this.orbitYawDelta += e.clientX - this.orbitLastX;
+    this.orbitPitchDelta += e.clientY - this.orbitLastY;
+    this.orbitLastX = e.clientX;
+    this.orbitLastY = e.clientY;
+  };
+
+  private onPointerUp = (e: PointerEvent): void => {
+    if (this.orbitPointerId !== e.pointerId) return;
+
+    this.orbitPointerId = null;
+    window.removeEventListener('pointermove', this.onPointerMove);
+    window.removeEventListener('pointerup', this.onPointerUp);
+    window.removeEventListener('pointercancel', this.onPointerUp);
+  };
 
   /** 한 프레임 입력 결과 반환. 키보드 우선, 키보드 없으면 조이스틱. */
   read(): { dx: number; dz: number; jump: boolean } {
@@ -73,10 +131,18 @@ export class InputState {
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
+    if (this.cameraElement) {
+      this.cameraElement.removeEventListener('pointerdown', this.onPointerDown);
+      this.cameraElement = null;
+    }
+    this.orbitPointerId = null;
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('blur', this.release);
     window.removeEventListener('contextmenu', this.release);
+    window.removeEventListener('pointermove', this.onPointerMove);
+    window.removeEventListener('pointerup', this.onPointerUp);
+    window.removeEventListener('pointercancel', this.onPointerUp);
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
   }
 }

@@ -104,4 +104,105 @@ describe('InputState', () => {
       }).not.toThrow();
     });
   });
+
+  describe('camera orbit pointer input', () => {
+    let canvas: HTMLCanvasElement;
+
+    beforeEach(() => {
+      canvas = document.createElement('canvas');
+      document.body.appendChild(canvas);
+      input.bindCameraElement(canvas);
+    });
+
+    afterEach(() => {
+      document.body.removeChild(canvas);
+    });
+
+    it('primary pointer drag delta를 누적한 뒤 consume 시 0으로 초기화한다', () => {
+      canvas.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          pointerId: 1,
+          clientX: 100,
+          clientY: 100,
+          button: 0,
+          isPrimary: true,
+        }),
+      );
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { pointerId: 1, clientX: 130, clientY: 85 }),
+      );
+
+      expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 30, pitch: -15 });
+      expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 0, pitch: 0 });
+    });
+
+    it('secondary pointer와 입력 요소 위 pointerdown은 orbit drag를 시작하지 않는다', () => {
+      canvas.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          pointerId: 1,
+          clientX: 100,
+          clientY: 100,
+          button: 2,
+          isPrimary: true,
+        }),
+      );
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { pointerId: 1, clientX: 130, clientY: 85 }),
+      );
+      expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 0, pitch: 0 });
+
+      const textarea = document.createElement('textarea');
+      document.body.appendChild(textarea);
+      const event = new PointerEvent('pointerdown', {
+        pointerId: 2,
+        clientX: 100,
+        clientY: 100,
+        button: 0,
+        isPrimary: true,
+      });
+      Object.defineProperty(event, 'target', { value: textarea });
+      canvas.dispatchEvent(event);
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { pointerId: 2, clientX: 130, clientY: 85 }),
+      );
+      expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 0, pitch: 0 });
+      document.body.removeChild(textarea);
+    });
+
+    it('pointerup 이후 move는 orbit delta를 만들지 않는다', () => {
+      canvas.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          pointerId: 1,
+          clientX: 100,
+          clientY: 100,
+          button: 0,
+          isPrimary: true,
+        }),
+      );
+      window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }));
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { pointerId: 1, clientX: 130, clientY: 85 }),
+      );
+
+      expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 0, pitch: 0 });
+    });
+
+    it('destroy 후 pointer drag를 무시한다', () => {
+      input.destroy();
+      canvas.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          pointerId: 1,
+          clientX: 100,
+          clientY: 100,
+          button: 0,
+          isPrimary: true,
+        }),
+      );
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { pointerId: 1, clientX: 130, clientY: 85 }),
+      );
+
+      expect(input.consumeCameraOrbitDelta()).toEqual({ yaw: 0, pitch: 0 });
+    });
+  });
 });

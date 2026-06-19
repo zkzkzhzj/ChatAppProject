@@ -23,6 +23,7 @@ import com.maeum.gohyang.village.application.port.in.RecordDailyVisitUseCase;
 import com.maeum.gohyang.village.domain.Character;
 import com.maeum.gohyang.village.domain.DailyVisitType;
 import com.maeum.gohyang.village.error.GuestNoPersonalSpaceException;
+import com.maeum.gohyang.village.error.SuggestionAccessDeniedException;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -100,9 +101,16 @@ public class VillageController {
     public SuggestionResponse createSuggestion(
             @Valid @RequestBody CreateSuggestionRequest request,
             @AuthenticationPrincipal AuthenticatedUser user) {
+        requireMemberSuggestionAuthor(user);
         return SuggestionResponse.from(createSuggestionUseCase.execute(
                 request.toCommand(user.displayId(), toDailyVisitType(user))
         ));
+    }
+
+    private void requireMemberSuggestionAuthor(AuthenticatedUser user) {
+        if (user == null || user.isGuest()) {
+            throw new SuggestionAccessDeniedException();
+        }
     }
 
     private DailyVisitType toDailyVisitType(AuthenticatedUser user) {

@@ -203,20 +203,23 @@ export class SceneManager {
         this.positionSync.sendIfChanged(p.x, p.z, p.y);
       }
 
-      if (this.active === 'library') {
-        const libraryScene = sceneObj as LibraryScene;
+      if (this.active === 'library' && sceneObj instanceof LibraryScene) {
+        const libraryScene = sceneObj;
         emitLibraryInteractionChange({
           nearLibrarian: libraryScene.isNearLibrarian(),
           nearBookshelf: libraryScene.isNearBookshelf(),
         });
         emitVillageBoardInteractionChange({ nearDashboard: false, nearSuggestionBoard: false });
-      } else {
+      } else if (this.active === 'village' && sceneObj instanceof VillageScene) {
         emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
-        const villageScene = sceneObj as VillageScene;
+        const villageScene = sceneObj;
         emitVillageBoardInteractionChange({
           nearDashboard: villageScene.isNearDashboardBoard(),
           nearSuggestionBoard: villageScene.isNearSuggestionBoard(),
         });
+      } else {
+        emitLibraryInteractionChange({ nearLibrarian: false, nearBookshelf: false });
+        emitVillageBoardInteractionChange({ nearDashboard: false, nearSuggestionBoard: false });
       }
     }
 

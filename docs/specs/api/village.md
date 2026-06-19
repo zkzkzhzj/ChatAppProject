@@ -143,7 +143,7 @@ KST 기준 오늘 날짜에 대해 `(visit_date, visitor_key)` unique insert로 
 
 ## POST `/api/v1/village/suggestions` -- 건의사항 등록
 
-인증 필요. 회원과 게스트 모두 등록 가능하다. 댓글/답변 입력은 아직 열지 않는다.
+인증 필요. 로그인한 회원만 등록 가능하다. 게스트는 조회만 가능하며 댓글/답변 입력은 아직 열지 않는다.
 
 **Request**
 
@@ -164,7 +164,7 @@ KST 기준 오늘 날짜에 대해 `(visit_date, visitor_key)` unique insert로 
 ```json
 {
   "id": 1,
-  "authorType": "GUEST",
+  "authorType": "MEMBER",
   "title": "건의 제목",
   "body": "건의 내용",
   "status": "OPEN",
@@ -179,3 +179,4 @@ KST 기준 오늘 날짜에 대해 `(visit_date, visitor_key)` unique insert로 
 | 코드 | HTTP | 사유 |
 |------|------|------|
 | VILLAGE_004 | 400 | 제목/내용이 비어 있거나 길이 제한 초과 |
+| VILLAGE_005 | 403 | 게스트 또는 미인증 사용자가 등록 시도 |

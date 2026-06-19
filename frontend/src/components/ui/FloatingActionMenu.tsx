@@ -44,6 +44,7 @@ export default function FloatingActionMenu({
   const [member, setMember] = useState(false);
   const [mailCounts, setMailCounts] = useState<MailCounts>({ receivedCount: 0 });
   const setLoginRequired = useChatStore((s) => s.setLoginRequired);
+  const hasNotice = mailCounts.receivedCount > 0;
 
   useEffect(() => {
     const sync = () => {
@@ -181,6 +182,14 @@ export default function FloatingActionMenu({
           title="마을 메뉴"
           className="relative flex h-14 w-14 items-center justify-center rounded-full bg-leaf/95 text-cream shadow-xl ring-1 ring-cream/50 backdrop-blur-sm transition-transform hover:scale-105"
         >
+          {hasNotice && (
+            <span
+              aria-label="새 알림"
+              className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-hearth text-xs font-bold text-cream ring-2 ring-cream"
+            >
+              !
+            </span>
+          )}
           <MenuIcon open={open} />
         </button>
       </div>

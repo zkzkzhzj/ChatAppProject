@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import FloatingActionMenu from './FloatingActionMenu';
@@ -74,6 +74,17 @@ describe('FloatingActionMenu', () => {
       transform: 'translate(-62px, 60px) scale(1)',
     });
     expect(mockGetUnreadReceivedLetterCount).not.toHaveBeenCalled();
+  });
+
+  it('shows a generic notice badge on the main menu when unread notices exist', async () => {
+    mockHasMemberToken.mockReturnValue(true);
+    mockGetUnreadReceivedLetterCount.mockResolvedValue(1);
+
+    render(<FloatingActionMenu sceneManager={null} chatOpen={false} onChatOpenChange={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('새 알림')).toBeInTheDocument();
+    });
   });
 
   it('opens chat and guide actions from the fan menu', () => {

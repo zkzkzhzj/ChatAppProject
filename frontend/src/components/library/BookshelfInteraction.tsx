@@ -17,6 +17,7 @@ import { LIBRARY_LABELS } from './libraryLabels';
 
 const BOOKS_PER_PAGE = 8;
 const LETTERS_PER_PAGE = 5;
+const HEART_BODY_MAX_LENGTH = 1500;
 const HEART_SUCCESS_MESSAGE = '마음이 조용히 전해졌어요.';
 const SELECT_ERROR_MESSAGE = '도서를 열지 못했어요. 잠시 후 다시 시도해 주세요.';
 const HEART_ERROR_MESSAGE = '마음을 보내지 못했어요. 잠시 후 다시 시도해 주세요.';
@@ -36,6 +37,7 @@ interface BookshelfInteractionProps {
   books: ConfessionSummary[];
   onSelectBook: (id: number) => Promise<SelectedBookResult>;
   onSendHeart: (id: number, body: string) => Promise<void> | void;
+  onReadReceivedLetters?: () => Promise<void> | void;
 }
 
 interface SelectedBookResult {
@@ -72,6 +74,7 @@ export default function BookshelfInteraction({
   books,
   onSelectBook,
   onSendHeart,
+  onReadReceivedLetters,
 }: BookshelfInteractionProps) {
   const panelId = useId();
   const panelTitleId = useId();
@@ -81,6 +84,8 @@ export default function BookshelfInteraction({
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<ConfessionDetail | null>(null);
   const [receivedLetters, setReceivedLetters] = useState<ConfessionLetter[] | null>(null);
+  const [openedLetter, setOpenedLetter] = useState<ConfessionLetter | null>(null);
+  const [receivedLettersRead, setReceivedLettersRead] = useState(false);
   const [letterPage, setLetterPage] = useState(0);
   const [heartBody, setHeartBody] = useState('');
   const [message, setMessage] = useState('');
@@ -124,6 +129,8 @@ export default function BookshelfInteraction({
     setOpen(false);
     setSelected(null);
     setReceivedLetters(null);
+    setOpenedLetter(null);
+    setReceivedLettersRead(false);
     setLetterPage(0);
     setMessage('');
     triggerRef.current?.focus();
@@ -183,6 +190,8 @@ export default function BookshelfInteraction({
       const result = await onSelectBook(id);
       setSelected(result.detail);
       setReceivedLetters(result.receivedLetters);
+      setOpenedLetter(null);
+      setReceivedLettersRead(false);
       setLetterPage(0);
       setHeartBody('');
     } catch {
@@ -213,6 +222,25 @@ export default function BookshelfInteraction({
       setMessage(getHeartErrorMessage(error));
     } finally {
       setSendingHeart(false);
+    }
+  }
+
+  async function handleOpenLetter(letter: ConfessionLetter) {
+    setOpenedLetter(letter);
+    if (receivedLettersRead) return;
+
+    setReceivedLettersRead(true);
+    try {
+      await onReadReceivedLetters?.();
+      setReceivedLetters(
+        (current) =>
+          current?.map((item) => ({
+            ...item,
+            authorReadAt: item.authorReadAt ?? new Date().toISOString(),
+          })) ?? null,
+      );
+    } catch {
+      setReceivedLettersRead(false);
     }
   }
 
@@ -271,15 +299,17 @@ export default function BookshelfInteraction({
                   {currentLetters.length > 0 ? (
                     <div className="grid gap-2">
                       {currentLetters.map((letter) => (
-                        <article
+                        <button
                           key={letter.id}
-                          className="rounded border border-sand bg-warm-white p-3"
+                          type="button"
+                          onClick={() => void handleOpenLetter(letter)}
+                          className="rounded border border-sand bg-warm-white p-3 text-left transition-colors hover:border-leaf/60"
                         >
-                          <p className="whitespace-pre-wrap text-sm leading-6">{letter.body}</p>
+                          <p className="truncate text-sm leading-6">{letter.body}</p>
                           <time className="mt-2 block text-xs text-bark-muted">
                             {new Date(letter.createdAt).toLocaleString()}
                           </time>
-                        </article>
+                        </button>
                       ))}
                     </div>
                   ) : (
@@ -325,8 +355,11 @@ export default function BookshelfInteraction({
                       setHeartBody(event.target.value);
                     }}
                     className="h-24 resize-none rounded border border-sand bg-warm-white p-3"
-                    maxLength={1000}
+                    maxLength={HEART_BODY_MAX_LENGTH}
                   />
+                  <p className="text-right text-xs text-bark-muted">
+                    {heartBody.length} / {HEART_BODY_MAX_LENGTH}
+                  </p>
                   <div className="flex justify-end">
                     <button
                       type="submit"
@@ -390,6 +423,33 @@ export default function BookshelfInteraction({
             </p>
           )}
         </section>
+      )}
+      {openedLetter && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label="받은 편지 전문"
+            className="max-h-[min(78vh,640px)] w-[min(92vw,420px)] overflow-y-auto rounded border border-sand bg-cream p-5 text-bark shadow-2xl"
+          >
+            <header className="sticky top-0 z-10 mb-3 flex items-center justify-between gap-3 bg-cream pb-2">
+              <h3 className="truncate font-display text-lg">받은 편지</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setOpenedLetter(null);
+                }}
+                className="text-sm font-semibold text-bark-muted hover:text-bark"
+              >
+                {LIBRARY_LABELS.close}
+              </button>
+            </header>
+            <p className="whitespace-pre-wrap text-sm leading-6">{openedLetter.body}</p>
+            <time className="mt-4 block text-xs text-bark-muted">
+              {new Date(openedLetter.createdAt).toLocaleString()}
+            </time>
+          </section>
+        </div>
       )}
     </div>
   );

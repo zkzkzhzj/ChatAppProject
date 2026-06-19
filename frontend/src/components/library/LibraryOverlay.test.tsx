@@ -1,4 +1,4 @@
-﻿import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+﻿import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -557,7 +557,19 @@ describe('LibraryOverlay composition', () => {
     expect(await screen.findByText('받은 편지')).toBeInTheDocument();
     expect(screen.getByText('누군가 남긴 마음')).toBeInTheDocument();
     expect(mockedListReceivedLetters).toHaveBeenCalledWith(1);
+    expect(mockedMarkAllReceivedLettersRead).not.toHaveBeenCalled();
+    expect(mailRefreshListener).not.toHaveBeenCalled();
+
+    const receivedLetterButton = screen
+      .getAllByRole('button')
+      .find((button) => button.querySelector('time'));
+    if (!receivedLetterButton) {
+      throw new Error('Expected a received letter button');
+    }
+    await user.click(receivedLetterButton);
+
     await waitFor(() => {
+      expect(screen.getAllByRole('dialog')).toHaveLength(2);
       expect(mockedMarkAllReceivedLettersRead).toHaveBeenCalledTimes(1);
       expect(mailRefreshListener).toHaveBeenCalledTimes(1);
     });
@@ -781,7 +793,8 @@ describe('BookshelfInteraction', () => {
     await screen.findByRole('heading', { name: '책 3' });
 
     const heartBody = screen.getByLabelText('마음 내용');
-    await user.type(heartBody, '  고마워요  ');
+    expect(heartBody).toHaveAttribute('maxLength', '1500');
+    await user.type(heartBody, '  \uACE0\uB9C8\uC6CC\uC694  ');
     await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.sendHeart }));
 
     await waitFor(() => {
@@ -793,6 +806,7 @@ describe('BookshelfInteraction', () => {
 
   it('shows received letters instead of the heart form for my own book', async () => {
     const user = userEvent.setup();
+    const onReadReceivedLetters = vi.fn();
     const letters = Array.from({ length: 6 }, (_, index) =>
       makeReceivedLetter(index + 1, `받은 마음 ${String(index + 1)}`),
     );
@@ -803,6 +817,7 @@ describe('BookshelfInteraction', () => {
         books={[makeBook(11)]}
         onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(11, letters))}
         onSendHeart={vi.fn()}
+        onReadReceivedLetters={onReadReceivedLetters}
       />,
     );
 
@@ -816,9 +831,24 @@ describe('BookshelfInteraction', () => {
       screen.queryByRole('button', { name: LIBRARY_LABELS.sendHeart }),
     ).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '다음' }));
+    const letterButton = screen
+      .getAllByRole('button')
+      .find((button) => button.querySelector('time'));
+    if (!letterButton) {
+      throw new Error('Expected a received letter button');
+    }
+    await user.click(letterButton);
 
-    expect(screen.getByText('받은 마음 6')).toBeInTheDocument();
+    const letterDialog = screen.getAllByRole('dialog').at(-1);
+    if (!letterDialog) {
+      throw new Error('Expected a received letter dialog');
+    }
+    expect(onReadReceivedLetters).toHaveBeenCalledTimes(1);
+    await user.click(within(letterDialog).getByRole('button', { name: LIBRARY_LABELS.close }));
+
+    await user.click(screen.getByRole('button', { name: '\uB2E4\uC74C' }));
+
+    expect(screen.getByText('\uBC1B\uC740 \uB9C8\uC74C 6')).toBeInTheDocument();
   });
 
   it('moves to the next page when more than eight books are available', async () => {

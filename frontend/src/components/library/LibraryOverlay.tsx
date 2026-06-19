@@ -110,13 +110,6 @@ export default function LibraryOverlay() {
 
     try {
       const receivedLetters = await listReceivedLetters(id);
-      if (receivedLetters.length > 0) {
-        void markAllReceivedLettersRead()
-          .then(() => {
-            emitMailRefreshRequested();
-          })
-          .catch(() => undefined);
-      }
       return { detail, receivedLetters };
     } catch (error) {
       if (getHttpStatus(error) !== 403) {
@@ -133,6 +126,11 @@ export default function LibraryOverlay() {
     }
 
     await sendConfessionLetter(id, body);
+    emitMailRefreshRequested();
+  }
+
+  async function handleReadReceivedLetters() {
+    await markAllReceivedLettersRead();
     emitMailRefreshRequested();
   }
 
@@ -177,6 +175,7 @@ export default function LibraryOverlay() {
         books={books}
         onSelectBook={handleSelectBook}
         onSendHeart={handleSendHeart}
+        onReadReceivedLetters={handleReadReceivedLetters}
       />
     </>
   );

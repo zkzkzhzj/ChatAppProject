@@ -37,7 +37,7 @@
    - 인프라/설정: `infra/{track-id}` (예: `infra/s3-bucket-setup`)
    - 버그 수정: `fix/{track-id}` (예: `fix/ghost-session`)
    - UI 수정: `fix/{track-id}-{specifics}` 또는 `feat/{track-id}-{feature}`
-   - 이슈 연결은 **PR 본문에 `Closes #N`** 으로 명시 (브랜치명 X)
+   - 이슈 연결은 **PR 본문에 `Closes #N`** 으로 명시 (브랜치명 X, `git.md` §4)
 7. **(선택) memory에 트랙 상태 파일** — 작업 빈도가 높은 트랙은 `memory/track_{id}_status.md` 분리 권장
 
 ### 2.2 기존 트랙 이어받기 시
@@ -93,6 +93,7 @@
 - [ ] RESERVED.md의 사용한 번호 "사용 완료" 표시 + 미사용 예약 번호 "반환"
 - [ ] memory 파일 갱신 (트랙별 분리 안 한 경우)
 - [ ] 다른 활성 트랙의 Tier 1 파일 동시 수정 여부 확인 (동시 수정이면 머지 순서 협의)
+- [ ] PR 본문에 연결 이슈 closing keyword 확인 (`Closes #N`, 필요 시 `Fixes #N` / `Resolves #N`)
 
 ### 4.3 머지 후
 

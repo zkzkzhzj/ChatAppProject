@@ -67,7 +67,7 @@ Village API는 런타임 마을/도서관 경험을 보조하는 방문 집계, 
 [
   {
     "id": 1,
-    "authorType": "GUEST",
+    "authorType": "MEMBER",
     "title": "건의 제목",
     "body": "건의 내용",
     "status": "OPEN",

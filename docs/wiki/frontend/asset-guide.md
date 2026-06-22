@@ -127,7 +127,7 @@ this.physics.add.collider(this.player, wallLayer!);
 1. **주력 에셋팩 1개를 정해서 70% 이상 커버** — 나머지는 보조
 2. **팔레트 통일이 최우선** — Aseprite 팔레트 리매핑으로 색상 맞춤
 3. **해상도 혼용 절대 금지** — 16x16과 32x32 섞으면 즉시 어색
-4. **커스텀 제작 필요 시점**: 브랜드 요소, 서비스 고유 UI, 유료 과금 아이템
+4. **커스텀 제작 필요 시점**: 브랜드 요소, 서비스 고유 UI, 도서관/서가 전용 오브젝트
 
 ### 제작 도구
 
@@ -148,7 +148,7 @@ frontend/public/assets/
 ├── characters/         # 캐릭터 스프라이트시트
 │   ├── player/        # base + hair/ + clothes/ + accessories/ (레이어링)
 │   └── npcs/
-├── ui/                # UI 요소 (chat-bubble, inventory-frame, buttons)
-├── items/             # 아이템 아이콘 (furniture, decoration, wearable)
+├── ui/                # UI 요소 (chat-bubble, buttons, panels)
+├── props/             # 도서관/마을 오브젝트 (bookshelf, desk, lamp)
 └── effects/           # 이펙트 (감정 표현, 파티클)
 ```

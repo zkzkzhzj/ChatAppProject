@@ -34,8 +34,8 @@ erDiagram
 
     DAILY_VISIT {
         bigint      id              PK
-        date        visit_date
-        string      visitor_key     UK
+        date        visit_date      "UNIQUE with visitor_key"
+        string      visitor_key     "UNIQUE with visit_date"
         string      visitor_type    "MEMBER / GUEST"
         timestamp   created_at
     }

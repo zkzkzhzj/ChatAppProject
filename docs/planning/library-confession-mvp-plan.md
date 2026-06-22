@@ -162,7 +162,7 @@ MVP에서는 태그 기반 유사 고백 기록 안내만 제공한다.
 
 ---
 
-## 7. Critical Rule 체크포인트
+## 7. Critical Rule 체크 지점
 
 - Domain Entity에 JPA/Spring 어노테이션 금지
 - User 도메인 직접 참조 금지, `userId` 값만 사용

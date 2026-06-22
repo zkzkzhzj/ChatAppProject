@@ -367,7 +367,7 @@ processEvent(event);
 
 ### 7.2 API 레벨 멱등성
 
-구매, 충전, 보상 수령, 신고 접수 등 상태를 변경하는 API에는 Idempotency-Key를 필수로 요구한다.
+편지 전송, 감사 답장, 신고 접수 등 상태를 변경하는 API에는 Idempotency-Key를 필수로 요구한다.
 
 **흐름:**
 
@@ -377,9 +377,9 @@ processEvent(event);
 4. INSERT 실패 (affected rows = 0) → 이전 처리 결과를 조회하여 재반환한다.
 
 ```java
-// API 레벨 멱등성 — 아이템 구매 예시
+// API 레벨 멱등성 — 신고 접수 예시
 @Transactional
-public PurchaseResult execute(PurchaseItemCommand command) {
+public ReportResult execute(CreateReportCommand command) {
     // 1. 멱등성 선점 (UNIQUE 제약, ON CONFLICT DO NOTHING)
     boolean isNewRequest = idempotencyPort.insertIfAbsent(
             command.userId(), command.idempotencyKey());
@@ -390,16 +390,16 @@ public PurchaseResult execute(PurchaseItemCommand command) {
     }
 
     // 2. 비즈니스 로직 수행
-    PointWallet wallet = loadPointWalletPort.load(command.userId());
-    Item item = loadItemPort.load(command.itemId());
-    wallet.deduct(item.getPrice());
-
-    savePointWalletPort.save(wallet);
-    saveInventoryPort.add(command.userId(), command.itemId());
+    Report report = Report.create(
+            command.reporterUserId(),
+            command.targetUserId(),
+            command.reason(),
+            command.detail());
+    saveReportPort.save(report);
 
     // 3. 결과 저장 (이후 중복 요청 시 재반환용)
-    PurchaseResult result = PurchaseResult.success(item, wallet.getBalance());
-    savePurchaseResultPort.save(command.idempotencyKey(), result);
+    ReportResult result = ReportResult.success(report.id());
+    saveReportResultPort.save(command.idempotencyKey(), result);
 
     return result;
 }
@@ -413,8 +413,8 @@ public PurchaseResult execute(PurchaseItemCommand command) {
 
 | 유형 | 보존 기간 | 이유 |
 |------|-----------|------|
-| 포인트 사용 (구매) | 영구 보존 | 금액성 거래. 추적 필요 |
-| 포인트 획득 (광고 보상) | 영구 보존 | 광고 SDK callbackId 기준. 중복 지급 방지 |
+| 편지 전송 | 30일 | 사용자의 재시도 중복 전송 방지 |
+| 감사 답장 | 30일 | 같은 편지에 대한 중복 응답 방지 |
 | 신고 접수 | 7일 | 같은 대상에 대한 재신고는 허용 필요 |
 
 ### 7.3 Kafka Consumer 멱등성
@@ -443,19 +443,19 @@ public void handleReportThresholdEvent(ReportThresholdEvent event) {
 ```
 
 ```java
-// Kafka Consumer — 구매 완료 → 알림 발송 이벤트
-@KafkaListener(topics = "purchase-completed")
+// Kafka Consumer — 편지 도착 → 알림 발송 이벤트
+@KafkaListener(topics = "confession.letter.sent")
 @Transactional
-public void handlePurchaseCompletedEvent(PurchaseCompletedEvent event) {
+public void handleLetterSentEvent(ConfessionLetterSentEvent event) {
     boolean isNewEvent = processedEventRepository.insertIfAbsent(event.eventId());
 
     if (!isNewEvent) {
-        log.info("[Kafka] 중복 이벤트 무시: topic=purchase-completed, eventId={}", event.eventId());
+        log.info("[Kafka] 중복 이벤트 무시: topic=confession.letter.sent, eventId={}", event.eventId());
         return;
     }
 
     // 알림 발송
-    notificationPort.send(event.userId(), "아이템 구매가 완료되었습니다.");
+    notificationPort.send(event.authorUserId(), "새 편지가 도착했습니다.");
 }
 ```
 
@@ -463,38 +463,39 @@ public void handlePurchaseCompletedEvent(PurchaseCompletedEvent event) {
 
 ## 8. 동시성 제어 (Concurrency Control)
 
-### 8.1 PointWallet — 낙관적 락 (Optimistic Lock)
+### 8.1 ConfessionLetter — 낙관적 락 (Optimistic Lock)
 
-PointWallet은 금액성 aggregate로 취급한다. 모든 변경은 동시성 제어를 동반한다.
+ConfessionLetter는 읽음 처리와 상태 변경이 겹칠 수 있는 aggregate다. 모든 상태 변경은 동시성 제어를 동반한다.
 
 **기본 전략: version 컬럼 기반 낙관적 락**
 
 ```java
 // Persistence Entity — JPA @Version
 @Entity
-public class PointWalletJpaEntity {
+public class ConfessionLetterJpaEntity {
     @Id
     private Long id;
-    private Long userId;
-    private Long balance;
+    private Long confessionId;
+    private Long senderUserId;
+    private String status;
 
     @Version
     private Long version; // 낙관적 락
 }
 ```
 
-동시에 두 요청이 같은 wallet을 갱신하면, 먼저 커밋한 쪽이 성공하고 나중 쪽은 `OptimisticLockingFailureException`이 발생한다.
+동시에 두 요청이 같은 letter를 갱신하면, 먼저 커밋한 쪽이 성공하고 나중 쪽은 `OptimisticLockingFailureException`이 발생한다.
 
 **충돌 시 재시도 전략:**
 
-- 재시도 가능한 연산 (포인트 차감): 최대 3회 재시도. 재시도마다 wallet을 다시 읽어서 최신 상태에서 연산.
+- 재시도 가능한 연산: 최대 3회 재시도. 재시도마다 aggregate를 다시 읽어서 최신 상태에서 연산.
 - 재시도 불가능한 연산 (이미 외부 효과가 발생한 경우): 재시도하지 않고 실패 처리.
 
 ### 8.2 안티패턴
 
 - 애플리케이션에서 잔액을 읽고 계산한 뒤 저장만 하면서 락이 없는 패턴
 - 재시도를 무한 루프로 돌리는 패턴
-- Redis 캐시 잔액을 source of truth처럼 사용하는 패턴. 잔액의 정합성 기준은 항상 PostgreSQL이다.
+- Redis 캐시 상태를 source of truth처럼 사용하는 패턴. 영속 상태의 정합성 기준은 항상 PostgreSQL이다.
 
 ### 8.3 고경합 시나리오 확장 (현재 범위 아님)
 
@@ -514,12 +515,12 @@ public class PointWalletJpaEntity {
 **동기 트랜잭션 (같은 DB, 같은 트랜잭션):**
 
 - 두 행위가 "같이 성공하거나 같이 실패해야" 하는 경우.
-- 예: 포인트 차감 + 아이템 지급. 포인트만 빠지고 아이템이 안 들어오면 안 된다.
+- 예: 감사 답장 생성 + 원본 편지 상태 변경. 한쪽만 반영되면 안 된다.
 
 **비동기 이벤트 (Kafka):**
 
 - 도메인 경계를 넘는 부수 효과. 실패해도 원래 행위를 취소하면 안 되는 경우.
-- 예: 구매 완료 → 알림 발송. 알림 실패가 구매를 취소시키면 안 된다.
+- 예: 편지 도착 → 알림 발송. 알림 실패가 편지 저장을 취소시키면 안 된다.
 
 ### 9.2 Outbox 패턴
 
@@ -558,7 +559,7 @@ CREATE TABLE outbox_event (
 |--------|------|--------|
 | 채팅 메시지 전송 | WebSocket + Cassandra 직접 저장 | ❌ |
 | 채팅 욕설 분석 | Kafka (유실 시 다음 메시지에서 재감지) | ❌ |
-| 포인트 관련 알림 | Kafka + Outbox | ✅ |
+| 편지 도착 알림 | Kafka + Outbox | ✅ |
 | 신고 → 제재 처리 | Kafka + Outbox | ✅ |
 
 ---

@@ -7,10 +7,9 @@
 ```text
 com.maeum.gohyang
 ├── communication/       # Core — 채팅, 메시지, 참여자 ✅
-├── village/             # Core — 공간, 위치, 캐릭터 ✅
-├── economy/             # Core — 포인트(Wallet) + 아이템(Inventory) (미구현, Phase 4 예정)
-│   ├── wallet/          # 서브 도메인 — 포인트 지갑, 거래
-│   └── inventory/       # 서브 도메인 — 아이템, 인벤토리
+├── village/             # Core — 런타임 마을/도서관 입장, 방문 집계, 건의 ✅
+├── confession/          # Core — 고백, 편지, 감사 답장, 반응/신고 ✅
+├── library/             # Core — 공개 서가, 개인별 사서 RAG 조회 경계
 ├── safety/              # Support — 신고, 제재 (미구현, Phase 7 예정)
 ├── identity/            # Generic — 인증/인가, 게스트 세션, Security 설정 ✅
 ├── notification/        # 인프라 서비스 — 이벤트 구독 기반 알림 발송 (미구현, Phase 6 예정)
@@ -57,71 +56,49 @@ com.maeum.gohyang
 
 ---
 
-## 3. 구체 예시 — Economy (Wallet + Inventory) [설계 초안, 미구현]
+## 3. 구체 예시 — Confession / Library / RAG
 
-> 아래는 Phase 4에서 구현 예정인 Economy 도메인의 **설계 초안**이다. 현재 코드베이스에는 존재하지 않는다.
+고백과 편지는 현재 제품의 핵심 도메인이다. 사서 RAG는 고백/편지의 사적 맥락을 외부 공개 표면과 분리해 다룬다.
 
 ```text
-economy/
-├── wallet/
-│   ├── domain/
-│   │   ├── PointWallet.java
-│   │   └── PointTransaction.java
-│   ├── error/
-│   │   ├── WalletErrorCode.java
-│   │   └── InsufficientBalanceException.java
-│   ├── application/
-│   │   ├── port/
-│   │   │   ├── in/
-│   │   │   │   ├── EarnPointUseCase.java
-│   │   │   │   └── DeductPointUseCase.java
-│   │   │   └── out/
-│   │   │       ├── PointWalletPersistencePort.java
-│   │   │       └── IdempotencyPort.java
-│   │   └── service/
-│   │       ├── EarnPointService.java
-│   │       └── DeductPointService.java
-│   └── adapter/
-│       ├── in/web/
-│       │   ├── PointController.java
-│       │   ├── EarnPointRequest.java
-│       │   └── PointBalanceResponse.java
-│       └── out/persistence/
-│           ├── PointWalletJpaEntity.java
-│           ├── PointWalletJpaRepository.java
-│           ├── PointWalletJpaAdapter.java
-│           └── PointWalletMapper.java
-├── inventory/
-│   ├── domain/
-│   │   ├── ItemDefinition.java
-│   │   ├── OwnedItem.java
-│   │   └── Inventory.java
-│   ├── application/
-│   │   ├── port/
-│   │   │   ├── in/
-│   │   │   │   └── LoadItemListUseCase.java
-│   │   │   └── out/
-│   │   │       └── InventoryPersistencePort.java
-│   │   └── service/
-│   │       └── LoadItemListService.java
-│   └── adapter/
-│       ├── in/web/
-│       │   ├── ItemController.java
-│       │   └── ItemListResponse.java
-│       └── out/persistence/
-│           ├── ItemDefinitionJpaEntity.java
-│           ├── OwnedItemJpaEntity.java
-│           ├── InventoryJpaAdapter.java
-│           └── InventoryMapper.java
-└── purchase/
-    └── application/
-        ├── port/in/
-        │   └── PurchaseItemUseCase.java
-        └── service/
-            └── PurchaseItemService.java  # Wallet + Inventory 조율
+confession/
+├── domain/
+│   ├── ConfessionRecord.java
+│   ├── ConfessionLetter.java
+│   ├── ConfessionThankReply.java
+│   └── ConfessionReaction.java
+├── error/
+│   ├── ConfessionErrorCode.java
+│   └── ConfessionException.java
+├── application/
+│   ├── port/
+│   │   ├── in/
+│   │   │   ├── CreateConfessionUseCase.java
+│   │   │   ├── SendConfessionLetterUseCase.java
+│   │   │   └── QueryLibraryUseCase.java
+│   │   └── out/
+│   │       ├── ConfessionPersistencePort.java
+│   │       ├── LetterPersistencePort.java
+│   │       └── LibrarianRagPort.java
+│   └── service/
+│       ├── CreateConfessionService.java
+│       ├── SendConfessionLetterService.java
+│       └── QueryLibraryService.java
+└── adapter/
+    ├── in/web/
+    │   ├── ConfessionController.java
+    │   ├── LetterController.java
+    │   └── LibraryController.java
+    └── out/
+        ├── persistence/
+        │   ├── ConfessionRecordJpaEntity.java
+        │   ├── ConfessionLetterJpaEntity.java
+        │   └── ConfessionJpaAdapter.java
+        └── external/
+            └── LibrarianRagAdapter.java
 ```
 
-`purchase/`는 Wallet과 Inventory를 조율하는 Application Service만 존재한다. 자체 도메인 모델이 없다. 구매는 프로세스이지 도메인이 아니기 때문이다.
+`library/`는 공개 서가와 개인별 사서 조회 표면을 분리해야 할 때만 별도 bounded context로 둔다. 단순 조회 조합이면 `confession/application/service`에서 조율하고, RAG 저장소·검색 정책이 독립적으로 커질 때 분리한다.
 
 ---
 
@@ -132,7 +109,7 @@ economy/
 ```text
 global/
 ├── config/              # Spring Configuration
-│   ├── WebSocketConfig              # STOMP/SockJS 설정 (브로커, 엔드포인트)
+│   ├── WebSocketConfig              # STOMP/SockJS 설정 (브로커, 접속 경로)
 │   ├── StompAuthChannelInterceptor  # STOMP CONNECT JWT 인증 (ChannelInterceptor)
 │   ├── StompErrorHandler            # STOMP 에러 핸들링
 │   ├── CassandraConfig              # Cassandra 설정
@@ -158,7 +135,7 @@ global/
 ### 4.2 이동된 패키지
 
 - **security/ (인프라)** → `identity/adapter/in/security/`로 이동. JWT 필터, SecurityConfig, JwtProvider는 인증/인가 도메인의 인프라 구현이다.
-- **security/ (공유 타입)** → `global/security/`에 위치. `AuthenticatedUser`, `UserType`은 모든 도메인 Controller에서 `@AuthenticationPrincipal`로 사용되므로 global에 둔다. identity에 두면 village, economy 등이 identity에 직접 의존하게 된다.
+- **security/ (공유 타입)** → `global/security/`에 위치. `AuthenticatedUser`, `UserType`은 모든 도메인 Controller에서 `@AuthenticationPrincipal`로 사용되므로 global에 둔다. identity에 두면 village, confession 등이 identity에 직접 의존하게 된다.
 - **notification/** → 최상위 독립 모듈로 승격. 현재는 단순 이벤트 구독 → FCM 발송이지만, 알림 수신 설정, 재시도 정책, 중복 발송 방지 등 자체 정책이 생길 가능성이 높다. global에 묻어두면 나중에 분리하기 어렵다.
 
 ---

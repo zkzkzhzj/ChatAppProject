@@ -2,7 +2,7 @@
 
 > Issue: #151
 > Track: `personalization-removal-librarian-rag`
-> Status: 진행 예정
+> Status: 진행 중
 
 ## 1. 목표
 

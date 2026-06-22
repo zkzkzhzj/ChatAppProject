@@ -3,7 +3,7 @@
 > 작업 영역: 개인화 저장 모델 제거 + 사서 RAG 중심 재정렬
 > 시작일: 2026-06-23
 > Issue: #151
-> 브랜치: docs-or-refactor/personalization-removal-librarian-rag
+> 브랜치: refactor/personalization-removal-librarian-rag
 > Spec: [docs/specs/features/personalization-removal-librarian-rag.md](../specs/features/personalization-removal-librarian-rag.md)
 
 ## 0. 한 줄 요약

@@ -19,8 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.maeum.gohyang.global.security.AuthenticatedUser;
 import com.maeum.gohyang.global.security.UserType;
 import com.maeum.gohyang.village.application.port.in.CreateSuggestionUseCase;
-import com.maeum.gohyang.village.application.port.in.GetMyCharacterUseCase;
-import com.maeum.gohyang.village.application.port.in.GetMySpaceUseCase;
 import com.maeum.gohyang.village.application.port.in.GetVillageDashboardUseCase;
 import com.maeum.gohyang.village.application.port.in.ListSuggestionsUseCase;
 import com.maeum.gohyang.village.application.port.in.RecordDailyVisitUseCase;
@@ -32,8 +30,6 @@ import com.maeum.gohyang.village.error.SuggestionAccessDeniedException;
 @ExtendWith(MockitoExtension.class)
 class VillageControllerTest {
 
-    @Mock GetMyCharacterUseCase getMyCharacterUseCase;
-    @Mock GetMySpaceUseCase getMySpaceUseCase;
     @Mock RecordDailyVisitUseCase recordDailyVisitUseCase;
     @Mock GetVillageDashboardUseCase getVillageDashboardUseCase;
     @Mock CreateSuggestionUseCase createSuggestionUseCase;

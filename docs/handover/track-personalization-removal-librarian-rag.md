@@ -12,11 +12,11 @@
 
 ## 0.5 Acceptance Criteria
 
-- [ ] character/space 생성·조회 API와 백엔드 흐름 제거
-- [ ] personalization/Economy 테이블 drop migration 추가
-- [ ] README, ERD, domain boundary, API spec 정합성 확보
-- [ ] 일반 채팅이 RAG 기억으로 설명되지 않음
-- [ ] 백엔드 테스트 또는 컴파일 검증 완료
+- [x] character/space 생성·조회 API와 백엔드 흐름 제거
+- [x] personalization/Economy 테이블 drop migration 추가
+- [x] README, ERD, domain boundary, API spec 정합성 확보
+- [x] 일반 채팅이 RAG 기억으로 설명되지 않음
+- [x] 백엔드 테스트 또는 컴파일 검증 완료
 
 ## 1. 배경 / 왜
 
@@ -26,15 +26,15 @@
 
 | Step | 내용 | 상태 | 이슈 | Commit |
 |------|------|------|------|--------|
-| 1 | 이슈/spec/track 생성 | 진행 중 | #151 | TBD |
-| 2 | 백엔드 character/space 제거 | 대기 | #151 | TBD |
-| 3 | DB drop migration 추가 | 대기 | #151 | TBD |
-| 4 | 테스트 정리 | 대기 | #151 | TBD |
-| 5 | README/ERD/아키텍처 문서 정리 | 대기 | #151 | TBD |
+| 1 | 이슈/spec/track 생성 | 완료 | #151 | 0b0f502, 7829a06 |
+| 2 | 백엔드 character/space 제거 | 완료 | #151 | ac0f454 |
+| 3 | DB drop migration 추가 | 완료 | #151 | 24def39 |
+| 4 | 테스트 정리 | 완료 | #151 | e6669d4 |
+| 5 | README/ERD/아키텍처 문서 정리 | 완료 | #151 | 801d85e, b297e89, 26653b5 |
 
 ## 3. 현재 단계 상세
 
-Step 1 진행 중.
+모든 구현 step과 최종 검증이 완료됐다.
 
 ## 4. 충돌 위험 파일
 
@@ -48,9 +48,7 @@ Step 1 진행 중.
 
 ## 5. 다음 세션 착수 전 확인 사항
 
-- GitHub issue 번호 확인
-- character/space API 프론트 호출 여부 확인
-- Flyway 다음 버전 번호 확인
+- 후속 수익모델을 별도 제품 결정으로 다룰지 확인
 
 ## 6. 보류 메모
 

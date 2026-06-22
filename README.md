@@ -1,11 +1,10 @@
-# ghworld — 마음의 고향
+# ghworld - 마음의 고향
 
 > 대화가 그리운 사람을 위한 장소 기반 의사소통 서비스
 
 **<https://ghworld.co>**
 
-누군가의 온기가 필요할 때, 고향에 온 듯한 편안함을 느끼며 대화할 수 있는 **마을**을 제공한다.
-인터랙티브 3D 공간에서 캐릭터가 마을과 도서관을 오가고, 이웃 유저와 자연스럽게 소통하는 서비스다.
+마음의 고향은 사용자가 3D 마을과 도서관에 들어와 잠시 머물고, 고백과 편지를 통해 마음을 남기고 읽는 서비스다. 마을과 도서관은 진입 경험이자 실시간 위치 공유가 일어나는 런타임 공간이며, 장기적으로 저장되는 핵심 데이터는 고백, 편지, 감사 답장, 비공개 사서 RAG 경계에 둔다.
 
 ---
 
@@ -13,18 +12,17 @@
 
 | 기능 | 설명 | 상태 |
 |------|------|------|
-| 회원가입/로그인 | 이메일 기반 인증 + 게스트 토큰 | ✅ 구현 완료 |
-| 마을/도서관 공간 | Three.js 기반 3D 마을과 도서관. 캐릭터 이동, 카메라 팔로우, 씬 전환 | ✅ 구현 완료 |
-| 마을 공개 채팅 | WebSocket(STOMP) 실시간 채팅. 유저 메시지와 시스템 메시지 구분 | ✅ 구현 완료 |
-| @멘션 NPC | 일반 채팅에서 제거. 사서 RAG는 별도 트랙에서 설계 | 제거됨 |
-| 실시간 위치 공유 | STOMP 기반 캐릭터 위치 broadcast + 입퇴장 감지 | ✅ 구현 완료 |
-| 타이핑 인디케이터 | 상대방 입력 중 표시 | ✅ 구현 완료 |
-| AI NPC | 일반 채팅에서 제거. 고민/고백/편지 기반 사서 RAG는 후속 트랙 | 후속 |
-| 대화 요약 | 일반 채팅 Kafka 요약/pgvector 저장 제거 | 제거됨 |
-| 공간 꾸미기 | 아이템으로 내 집을 꾸미는 경험 | 미착수 |
-| 포인트/아이템 | 포인트 획득 → 아이템 구매 → 인벤토리 | 미착수 |
-| 음성/화면 공유 | WebRTC 기반 | 미착수 |
-| AWS 배포 | EC2 서울 리전 + nginx + Cloudflare SSL | ✅ 운영 중 |
+| 회원가입 / 로그인 | 이메일 기반 인증과 게스트 토큰 | 구현 |
+| 3D 마을 / 도서관 | Three.js 기반 진입 경험, 장면 전환, 기본 아바타 이동 | 구현 |
+| 실시간 위치 공유 | STOMP 기반 위치 broadcast와 퇴장 감지 | 구현 |
+| 마을 공개 채팅 | WebSocket(STOMP) 기반 공개 채팅 | 구현 |
+| 방문 집계 | 오늘 방문자와 고백 수를 마을 대시보드에 표시 | 구현 |
+| 건의 게시판 | 사용자가 서비스 건의를 남기는 표면 | 구현 |
+| 고백 / 편지 | 고백 기록, 편지, 감사 답장, 반응, 신고 | 구현 |
+| 비공개 사서 RAG | 고백과 도서관 맥락을 경계로 한 사서 응답 축 | 진행 트랙 |
+| AWS 배포 | EC2 서울 리전 + nginx + Cloudflare SSL | 운영 |
+
+수익 모델은 이번 트랙에서 설계하지 않는다. 현재 문서는 수익화 계획을 제품 범위로 선언하지 않는다.
 
 ---
 
@@ -32,49 +30,47 @@
 
 ### Backend
 
-| 항목 | 버전/설명 |
-|------|-----------|
+| 항목 | 버전 / 설명 |
+|------|-------------|
 | Java | 21 |
-| Spring Boot | 4.0.3 |
+| Spring Boot | 4.x |
 | Build | Gradle Kotlin DSL + Version Catalog |
-| Architecture | Hexagonal (Ports & Adapters) |
+| Architecture | Hexagonal Architecture |
 | ORM | Hibernate 7.x |
 
 ### Infra
 
 | 항목 | 용도 |
 |------|------|
-| PostgreSQL 16 | 주 데이터베이스 |
-| Redis 7.2 | 세션/캐시 |
-| Cassandra 4.1 | 채팅 메시지 저장 (write-heavy) |
-| Kafka 3.7 (KRaft) | 도메인 간 비동기 이벤트 + Transactional Outbox |
-| LLM | 일반 채팅 자동 응답은 제거됨. 사서 RAG는 후속 트랙 |
+| PostgreSQL 16 | 주요 관계형 데이터 |
+| Redis 7.2 | 세션 / 캐시 |
+| Cassandra 4.1 | 채팅 메시지 저장 |
+| Kafka 3.7 | 비동기 이벤트와 Outbox |
+| LLM | 일반 채팅 기억이 아니라 고백/도서관 경계의 사서 RAG에 한정 |
 
 ### Frontend
 
-| 항목 | 버전/설명 |
-|------|-----------|
-| Next.js | 16.2.6 (App Router) |
-| React | 19.2.6 |
-| Three.js | 0.184.x (3D 마을/도서관 렌더링) |
-| Howler.js | ^2.2.4 (환경음 재생) |
-| Tailwind CSS | 4.x (`@theme` 디자인 토큰) |
-| Zustand | 채팅/게임 상태 관리 |
+| 항목 | 버전 / 설명 |
+|------|-------------|
+| Next.js | 16.x App Router |
+| React | 19.x |
+| Three.js | 3D 마을 / 도서관 렌더링 |
+| Howler.js | 환경음 재생 |
+| Tailwind CSS | 디자인 토큰 |
+| Zustand | 클라이언트 상태 관리 |
 
 ### Test & CI/DX
 
 | 항목 | 설명 |
 |------|------|
-| Cucumber BDD | 7.34.2 — Given-When-Then 인수 테스트 |
+| Cucumber BDD | Given-When-Then 인수 테스트 |
 | Testcontainers | PostgreSQL, Kafka, Cassandra 통합 테스트 |
-| Checkstyle | Naver Convention 기반, `maxWarnings=0` |
+| Checkstyle | Naver Convention 기반 |
 | Error Prone + NullAway | 컴파일 타임 버그 탐지 |
 | ArchUnit | 헥사고날 의존 방향 검증 |
-| JaCoCo | 라인 커버리지 50% 강제 |
-| ESLint + Prettier | 프론트엔드 코드 품질 |
-| Husky + lint-staged | pre-commit 자동 검사 |
-| GitHub Actions CI | push/PR 시 자동 빌드 + 테스트 |
-| CodeRabbit | AI 코드 리뷰 (assertive 프로필) |
+| JaCoCo | 라인 커버리지 검증 |
+| ESLint + Prettier | 프론트엔드 코드 정리 |
+| GitHub Actions CI | push / PR 자동 검증 |
 
 ---
 
@@ -84,27 +80,30 @@
 Hexagonal Architecture (Ports & Adapters)
 
 [Adapter In]          [Application]         [Adapter Out]
-Controller      →     UseCase               →  JPA Repository
-WebSocket       →     Domain Service        →  Cassandra Repository
-Kafka Consumer  →     Domain Entity         →  Kafka Producer (Outbox)
-                      Port (interface)      →  External service adapter
+Controller      ->    UseCase          ->   JPA Repository
+WebSocket       ->    Service          ->   Cassandra Repository
+Kafka Consumer  ->    Domain Model     ->   Kafka Producer / Outbox
 ```
 
 ### 도메인 구성
 
 ```text
-identity/        # Generic — 인증/인가, 게스트 세션
-village/         # Core — 캐릭터, 공간, 위치 공유, 타이핑 인디케이터
-communication/   # Core — 채팅, 메시지
-global/          # Cross-cutting — 설정, 예외, Outbox, 멱등성
+identity/        # 인증, 회원, 게스트 세션
+village/         # 런타임 마을/도서관 경험, 위치 공유, 방문 집계, 건의, 대시보드
+communication/   # 공개 채팅, 채팅방, 메시지
+confession/      # 고백, 편지, 감사 답장, 반응/신고, 사서 RAG 사적 데이터 경계
+safety/          # 신고와 제재
+global/          # Cross-cutting 설정, 예외, Outbox, 멱등성
 ```
 
-### 주요 이벤트 흐름
+### 주요 데이터 흐름
 
 ```text
-회원가입 → Outbox → Kafka "user.registered" → 캐릭터/공간 자동 생성
-채팅 메시지 → Cassandra 저장 → WebSocket broadcast
-사서 RAG/로컬 LLM은 communication 일반 채팅이 아닌 별도 후속 트랙에서 설계
+사용자 진입 -> 3D 마을/도서관 런타임 -> 위치 broadcast
+오늘 방문 기록 -> daily_visit insert-if-absent -> 대시보드 집계
+고백 작성 -> confession_record 저장 -> 편지/감사 답장/반응/신고 흐름
+사서 RAG -> 고백/도서관 사적 데이터 경계 안에서만 응답 맥락 구성
+채팅 메시지 -> Cassandra 저장 -> WebSocket broadcast
 ```
 
 ---
@@ -120,29 +119,24 @@ global/          # Cross-cutting — 설정, 예외, Outbox, 멱등성
 ### 전체 스택 기동
 
 ```bash
-# .env 파일 생성 (최초 1회)
 cp .env.example .env
-
-# 인프라 + 서버 전체 기동
 docker-compose up --build
-
-# 또는 프론트엔드만 로컬 개발 (HMR)
-docker-compose stop frontend
-cd frontend && npm install && npm run dev
 ```
 
-### 에셋 설정
+프론트엔드만 로컬 개발 모드로 실행하려면:
 
-마을 배경 에셋은 유료 에셋이므로 git에 포함되지 않는다. `frontend/public/assets/village/` 디렉토리에 직접 배치해야 한다.
-에셋 없이도 프로시저럴 배경으로 동작한다.
+```bash
+docker-compose stop frontend
+cd frontend
+npm install
+npm run dev
+```
 
 ### 테스트 실행
 
 ```bash
 cd backend
 ./gradlew test
-# Cucumber 리포트: backend/build/reports/cucumber/cucumber.html
-# JaCoCo 리포트: backend/build/reports/jacoco/test/html/index.html
 ```
 
 ---
@@ -152,25 +146,16 @@ cd backend
 ```text
 ChatAppProject/
 ├── backend/                    # Spring Boot 서버
-│   ├── src/main/java/          # 비즈니스 로직 (Hexagonal)
-│   ├── src/main/resources/     # application.yml, Flyway 마이그레이션
+│   ├── src/main/java/          # 비즈니스 로직
+│   ├── src/main/resources/     # application.yml, Flyway
 │   └── src/test/               # Cucumber BDD + 단위 테스트
 ├── frontend/                   # Next.js 클라이언트
 │   ├── src/app/                # App Router 페이지
-│   ├── src/components/chat/    # 채팅 UI 컴포넌트
-│   ├── src/three/              # Three.js 씬, 캐릭터, 오디오, 채팅 연동
-│   ├── src/hooks/              # 커스텀 훅
-│   └── src/lib/websocket/      # STOMP/raw WebSocket 클라이언트 facade
+│   ├── src/components/chat/    # 채팅 UI
+│   ├── src/three/              # Three.js 마을/도서관 런타임
+│   └── src/lib/websocket/      # STOMP 클라이언트 facade
 ├── docs/                       # 프로젝트 문서
-│   ├── architecture/           # 아키텍처, ERD, ADR
-│   ├── specs/                  # API/WebSocket/이벤트 명세
-│   ├── conventions/            # 코딩/테스팅/Git 컨벤션
-│   ├── wiki/                   # 시스템 동작 원리
-│   ├── feedback/               # 유저 피드백 & 기술 부채 트래커
-│   ├── learning/               # 기술 학습 노트 (35건)
-│   └── planning/               # 기획, Phase 로드맵
-├── llm-test/                   # LLM 모델 비교 테스트
-└── docker-compose.yml          # 전체 인프라 + 서버 구성
+└── docker-compose.yml          # 로컬 인프라 구성
 ```
 
 ---
@@ -179,7 +164,7 @@ ChatAppProject/
 
 | 목적 | 경로 |
 |------|------|
-| 현재 상태 파악 | `docs/handover.md` |
+| 현재 작업 상태 | `docs/handover/INDEX.md` |
 | 아키텍처 원칙 | `docs/architecture/architecture.md` |
 | 도메인 경계 | `docs/architecture/domain-boundary.md` |
 | 물리 ERD | `docs/architecture/erd.md` |
@@ -187,8 +172,5 @@ ChatAppProject/
 | WebSocket 명세 | `docs/specs/websocket.md` |
 | Kafka 이벤트 | `docs/specs/event.md` |
 | 코딩 컨벤션 | `docs/conventions/coding.md` |
-| 테스팅 전략 | `docs/conventions/testing.md` |
+| 테스트 전략 | `docs/conventions/testing.md` |
 | Git 전략 | `docs/conventions/git.md` |
-| 기술 학습 노트 | `docs/learning/` |
-| Phase 로드맵 | `docs/planning/phases.md` |
-| 유저 피드백 | `docs/feedback/` |

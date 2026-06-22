@@ -1,0 +1,172 @@
+erDiagram
+    %% =============================================
+    %% 마음의 고향 - Physical ERD
+    %% FK: same-context physical FK
+    %% ID reference: cross-context identifier without FK
+    %% Runtime avatars, RemotePlayer, and positions are not persisted.
+    %% Librarian RAG is a Confession/Library private data boundary.
+    %% =============================================
+
+    USERS {
+        bigint      id          PK
+        enum        type        "MEMBER / GUEST"
+        timestamp   created_at
+        timestamp   deleted_at  "soft delete"
+    }
+    USER_LOCAL_AUTH {
+        bigint      id          PK
+        bigint      user_id     FK  "Identity FK, UNIQUE"
+        string      email       UK
+        string      password_hash
+        timestamp   created_at
+        timestamp   deleted_at  "soft delete"
+    }
+    USER_SOCIAL_AUTH {
+        bigint      id          PK
+        bigint      user_id     FK  "Identity FK"
+        string      provider        "GOOGLE / KAKAO"
+        string      provider_id
+        timestamp   created_at
+        timestamp   deleted_at  "soft delete"
+    }
+    USERS ||--o| USER_LOCAL_AUTH  : "has"
+    USERS ||--o{ USER_SOCIAL_AUTH : "has"
+
+    DAILY_VISIT {
+        bigint      id              PK
+        date        visit_date
+        string      visitor_key     UK
+        string      visitor_type    "MEMBER / GUEST"
+        timestamp   created_at
+    }
+    SUGGESTION {
+        bigint      id              PK
+        string      author_key
+        string      author_type     "MEMBER / GUEST"
+        string      title
+        string      body
+        string      status          "OPEN / DONE"
+        string      admin_comment   "nullable"
+        timestamp   created_at
+        timestamp   updated_at
+    }
+
+    CHAT_ROOM {
+        bigint      id          PK
+        string      title
+        enum        type        "PUBLIC / DIRECT / GROUP"
+        enum        status      "ACTIVE / CLOSED"
+        timestamp   created_at
+        timestamp   closed_at   "nullable"
+    }
+    PARTICIPANT {
+        bigint      id                  PK
+        bigint      user_id                 "ID reference to USERS"
+        bigint      chat_room_id        FK  "Communication FK"
+        string      display_name
+        enum        participant_role        "HOST / MEMBER"
+        enum        entry_type              "PROXIMITY / INVITE / SYSTEM"
+        timestamp   joined_at
+        timestamp   left_at                 "nullable"
+    }
+    CATEGORY {
+        bigint      id          PK
+        string      name
+        timestamp   created_at
+    }
+    CHAT_ROOM_CATEGORY {
+        bigint      chat_room_id    FK
+        bigint      category_id     FK
+    }
+    CHAT_ROOM ||--|{ PARTICIPANT        : "has"
+    CHAT_ROOM ||--o{ CHAT_ROOM_CATEGORY : "tagged"
+    CATEGORY  ||--o{ CHAT_ROOM_CATEGORY : "used by"
+
+    CONFESSION_RECORD {
+        bigint      id              PK
+        bigint      author_user_id      "ID reference to USERS"
+        string      title
+        string      body
+        string      bookshelf
+        string      status
+        string      risk_level
+        timestamp   created_at
+        timestamp   updated_at
+    }
+    CONFESSION_LETTER {
+        bigint      id              PK
+        bigint      confession_id   FK  "Confession FK"
+        bigint      sender_user_id      "ID reference to USERS"
+        string      body
+        string      status
+        timestamp   created_at
+        timestamp   author_read_at  "nullable"
+    }
+    CONFESSION_THANK_REPLY {
+        bigint      id              PK
+        bigint      letter_id       FK  "Confession FK, UNIQUE"
+        bigint      author_user_id      "ID reference to USERS"
+        string      body
+        timestamp   created_at
+    }
+    CONFESSION_REACTION {
+        bigint      id              PK
+        bigint      confession_id   FK  "Confession FK"
+        bigint      user_id             "ID reference to USERS"
+        string      reaction_type
+        timestamp   created_at
+    }
+    CONFESSION_REPORT {
+        bigint      id                  PK
+        bigint      confession_id       FK  "Confession FK"
+        bigint      reporter_user_id        "ID reference to USERS"
+        string      reason
+        timestamp   created_at
+    }
+    CONFESSION_RECORD ||--o{ CONFESSION_LETTER      : "receives"
+    CONFESSION_LETTER ||--o| CONFESSION_THANK_REPLY : "has"
+    CONFESSION_RECORD ||--o{ CONFESSION_REACTION    : "has"
+    CONFESSION_RECORD ||--o{ CONFESSION_REPORT      : "has"
+
+    REPORT {
+        bigint      id                  PK
+        bigint      reporter_user_id        "ID reference to USERS"
+        bigint      target_user_id          "ID reference to USERS"
+        uuid        message_id              "ID reference to Cassandra MESSAGE, nullable"
+        enum        reason                  "ABUSE / SEXUAL / SPAM / PERSONAL_INFO / OTHER"
+        string      detail                  "nullable"
+        timestamp   created_at
+    }
+    SANCTION {
+        bigint      id          PK
+        bigint      user_id         "ID reference to USERS"
+        enum        type            "WARNING / CHAT_RESTRICT / SUSPEND / PERMANENT_BAN"
+        string      reason
+        timestamp   started_at
+        timestamp   ended_at        "nullable"
+        timestamp   created_at
+    }
+
+    OUTBOX_EVENT {
+        bigint      id              PK
+        string      aggregate_id
+        string      event_type
+        uuid        event_id        UK
+        jsonb       payload
+        enum        status          "PENDING / PUBLISHED / FAILED"
+        int         retry_count     "DEFAULT 0"
+        timestamp   occurred_at
+        timestamp   published_at    "nullable"
+    }
+    PROCESSED_EVENT {
+        bigint      id              PK
+        uuid        event_id        UK
+        timestamp   processed_at
+    }
+    IDEMPOTENCY_REQUEST {
+        bigint      id                  PK
+        bigint      user_id
+        string      idempotency_key
+        jsonb       result
+        timestamp   created_at
+    }

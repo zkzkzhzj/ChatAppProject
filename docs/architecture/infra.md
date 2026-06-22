@@ -54,7 +54,7 @@ WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 | PostgreSQL | 핵심 도메인 데이터 (Identity, Village, Confession, Library, Safety) | 다수 |
 | Redis | 세션 캐싱 (현재 미사용, 스케일아웃 시 WebSocket Pub/Sub 교체용으로 도입 예정) | — |
 | Cassandra | 채팅 메시지 저장 (파티션 키: chat_room_id) | Communication |
-| Kafka | 도메인 간 비동기 이벤트 (현재: `user.registered`, `confession.letter.sent`) | Identity → Village, Confession 내부 |
+| Kafka | 도메인 간 비동기 이벤트 (현재: `confession.letter.sent`) | Confession 내부 |
 
 ---
 

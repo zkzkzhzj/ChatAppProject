@@ -9,9 +9,9 @@
 
 ---
 
-## 맥락
+## 과거 맥락
 
-회원가입이 완료되면 Village 컨텍스트가 이를 감지하고 해당 유저의 기본 캐릭터와 공간을 생성해야 한다.
+당시에는 회원가입이 완료되면 Village 컨텍스트가 이를 감지하고 해당 유저의 기본 캐릭터와 공간을 생성해야 한다고 보았다.
 이 흐름을 어떻게 구현할 것인가?
 
 ### 선택지
@@ -35,13 +35,13 @@
 
 - 회원가입 트랜잭션 내에서 `outbox_event` 테이블에 이벤트 저장 (같은 DB 트랜잭션)
 - 별도 스케줄러(OutboxKafkaRelay)가 PENDING 이벤트를 Kafka로 발행
-- Village Kafka 컨슈머가 이벤트 수신 → `processed_event` 테이블로 중복 방지 → 캐릭터/공간 생성
+- 과거 Village Kafka 컨슈머가 이벤트 수신 → `processed_event` 테이블로 중복 방지 → 캐릭터/공간 생성
 - 장점: At-least-once 보장, 서버 크래시에도 이벤트 유실 없음, 도메인 완전 분리
 - 단점: 구현 복잡도 증가, 최종 일관성(Eventual Consistency)으로 캐릭터/공간이 즉시 생성되지 않음
 
 ---
 
-## 결정
+## 과거 결정
 
 **C. Kafka + Transactional Outbox Pattern**을 채택한다.
 
@@ -50,6 +50,11 @@
 - 실서비스에서 회원가입은 핵심 경로다. 이벤트 유실은 사용자가 마을에 들어갈 수 없는 치명적 버그다.
 - `outbox_event` 테이블이 이미 ERD에 포함되어 있고, 스키마도 준비되어 있다.
 - Village와 Identity는 서로 다른 도메인이다. 같은 트랜잭션으로 묶이면 안 된다.
+
+## 현재 상태 (2026-06-23, issue #151)
+
+저장형 개인 캐릭터/공간 모델이 제거되어 `user.registered`는 더 이상 Village record를 생성하지 않는다.
+회원가입 후 기본 캐릭터/공간 insert 흐름, consumer, 초기화 서비스는 현재 구현 지침이 아니다.
 
 ---
 
@@ -60,7 +65,7 @@
 
 ---
 
-## 구현 흐름
+## 과거 구현 흐름 (superseded)
 
 ```text
 [RegisterUserService]
@@ -75,7 +80,7 @@
   → KafkaTemplate.send("user.registered", payload)
   → outbox_event UPDATE status=PUBLISHED
 
-[UserRegisteredEventConsumer] (Kafka Listener)
+과거 Village consumer:
   → processed_event WHERE event_id 존재 여부 확인 (중복 방지)
   → character INSERT
   → space INSERT (is_default=true)
@@ -84,12 +89,12 @@
 
 ---
 
-## 트레이드오프 기록
+## 과거 트레이드오프 기록
 
 | 항목 | 선택 결과 |
 |------|----------|
 | 일관성 모델 | 최종 일관성 (Eventual Consistency) |
 | 이벤트 내구성 | DB 커밋과 같은 원자성 보장 |
 | 도메인 결합도 | 없음 (JSON 페이로드 스키마만 공유) |
-| 프론트엔드 부담 | 로딩 처리 필요 |
-| 복잡도 | Outbox + Relay + Consumer + 멱등성 처리 |
+| 프론트엔드 부담 | 과거 저장형 마을 상태 로딩 처리 필요 |
+| 복잡도 | 과거 Outbox + Relay + Consumer + 멱등성 처리 |

@@ -15,6 +15,9 @@ predecessor: docs/specs/features/village-design-mvp.md
 > 4층 분리 모델: [conventions/spec-driven.md](../../conventions/spec-driven.md) §1.
 >
 > **승계 트랙** — 옛 spec [`village-design-mvp.md`](./village-design-mvp.md) (closed-superseded) 의 D1·D2·D6 결을 그대로 승계, D3·D4 정정. 정정 사유: [learning 72](../../learning/72-phaser-to-threejs-pivot-decision.md).
+>
+> **2026-06-23 supersession (issue #151)** — 이 문서의 저장형 개인화/꾸미기/Economy 후속 범위는 폐기됐다.
+> 3D 마을/도서관은 런타임 경험으로 유지하지만, DB 저장 중심은 Confession/Library/private librarian RAG다.
 
 ---
 
@@ -146,7 +149,8 @@ predecessor: docs/specs/features/village-design-mvp.md
 ### D5. [메커니즘] Stardew 차용 / 분리 (옛 트랙 승계)
 
 - **왜**: 본심 안식 결 정합 메커니즘만 차용. 의무감·강요 결 분리.
-- **차용**: 집·마을 꾸미기·확장 / NPC 대화·편지 / 계절·시간 변화 (매일 안부 의식)
+- **과거 차용 후보**: 집·마을 꾸미기·확장 / NPC 대화·편지 / 계절·시간 변화 (매일 안부 의식)
+- **현재 유효 범위(issue #151 이후)**: 3D 마을/도서관 런타임, 공개 채팅, 고백/편지, 환경음, 방문/건의. 저장형 개인화와 꾸미기 루프는 제외.
 - **분리**: 농사·채집·노동 (의무감) / 호감도 게이지 (강요) / 결혼·자녀 (부담)
 - **빈틈·재검토 트리거**: 옛 spec D5 와 동일
 
@@ -260,7 +264,7 @@ predecessor: docs/specs/features/village-design-mvp.md
 | **4** | **도서관 인테리어 + 글 작성·조회·댓글 첫 시안** — 책장 (글 list) + 책상 (글 작성) + 댓글 다대다 + NPC 답변 1개 + AI 추천 사이드바. 백엔드 API 동반 (`POST /confessions`, `GET /confessions`, `POST /confessions/{id}/comments`, 익명 닉 생성, 임베딩 추천) | step1, 백엔드 도메인 (`confession`) | `frontend/src/three/library/`, `frontend/src/components/library/`, 백엔드 새 도메인 | (별도) | — |
 | **5** | **NPC 매일 안부 카드 시스템** (D6 i) — Spring 스케줄러 + 카드 UI + 캠프파이어 NPC 자리 결 통합 | step3, 백엔드 | `frontend/src/components/npc/`, 백엔드 스케줄러 | (별도) | — |
 | **6** | **비동기 편지 시스템** (D6 iii) — 도서관 결과 다른 결 (사용자 결 결로 검토) 또는 도서관 통합 | step4 | (Step 결 결 결) | (별도) | — |
-| **7** | **집 꾸미기 인벤토리 + 슬롯 시스템** | step1, 백엔드 도메인 | `frontend/src/components/inventory/`, 백엔드 새 도메인 | (별도) | — |
+| **7** | **폐기됨(issue #151)** — 저장형 집 꾸미기, 인벤토리, 슬롯, 관련 백엔드 도메인은 현재 미래 작업이 아님 | — | — | — | — |
 
 ## 6. Verification (수용 기준 — track §0.5 와 1:1)
 

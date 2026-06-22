@@ -50,7 +50,7 @@ release(eventId)     → void      // 처리 실패 시 마킹 해제 → Kafka 
 
 | 토픽 | 프로듀서 | 컨슈머 | 용도 |
 |------|---------|--------|------|
-| `user.registered` | Identity | Village | 회원가입 → 캐릭터/공간 자동 생성 |
+| `confession.letter.sent` | Confession | Confession | 편지 발송 후 수신자 알림 큐 전달 |
 
 ## Kafka 직렬화 전략
 
@@ -63,4 +63,4 @@ Key/Value 모두 `StringSerializer/StringDeserializer`. 도메인 코드가 `Obj
 | `global/infra/outbox/OutboxJpaEntity.java` | Outbox 테이블 매핑 |
 | `global/infra/outbox/OutboxKafkaRelay.java` | @Scheduled 1초 릴레이 |
 | `global/infra/idempotency/IdempotencyGuard.java` | 멱등성 처리 공용 |
-| `identity/adapter/out/persistence/OutboxPersistenceAdapter.java` | Outbox 저장 어댑터 (user.registered) |
+| `confession/adapter/out/persistence/ConfessionLetterOutboxAdapter.java` | 편지 발송 Outbox 저장 어댑터 |

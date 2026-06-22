@@ -9,7 +9,7 @@
 
 인증 불필요 (Public).
 
-회원가입 완료 시 `user.registered` Kafka 이벤트가 발행되어 캐릭터와 공간이 비동기로 생성된다.
+회원가입은 `users`와 `user_local_auth`만 저장하고 즉시 회원 JWT를 발급한다.
 
 **Request**
 
@@ -84,7 +84,7 @@
 인증 불필요 (Public). DB 저장 없음.
 
 발급된 JWT의 claim에 `role=GUEST`가 포함된다.
-게스트 토큰으로는 채팅, 공간 조회 등 일부 기능이 제한된다.
+게스트 토큰으로는 로그인 회원 전용 쓰기 기능이 제한된다.
 
 **Request** 없음
 

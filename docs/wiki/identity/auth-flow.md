@@ -56,11 +56,7 @@ POST /api/v1/auth/register
   → RegisterUserService
     → 이메일 중복 확인 (CheckEmailDuplicatePort)
     → User(MEMBER) + LocalAuthCredentials 저장
-    → Outbox에 user.registered 이벤트 저장 (같은 트랜잭션)
     → JWT 발급 후 반환
-  → OutboxKafkaRelay (1초 주기)
-    → Kafka "user.registered" 발행
-    → Village에서 캐릭터/공간 자동 생성
 ```
 
 ## 핵심 코드 위치

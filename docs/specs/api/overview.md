@@ -4,7 +4,7 @@
 
 ## 인증
 
-인증이 필요한 엔드포인트는 HTTP 요청 헤더에 JWT Bearer 토큰을 포함해야 한다.
+인증이 필요한 API는 HTTP 요청 헤더에 JWT Bearer 토큰을 포함해야 한다.
 
 ```text
 Authorization: Bearer <accessToken>
@@ -51,9 +51,8 @@ Authorization: Bearer <accessToken>
 |------|------|--------|------|
 | IDENTITY_001 | 409 | Identity | 이미 사용 중인 이메일 |
 | IDENTITY_002 | 401 | Identity | 이메일 또는 비밀번호가 올바르지 않음 |
-| VILLAGE_001 | 404 | Village | 캐릭터 없음 |
-| VILLAGE_002 | 404 | Village | 공간 없음 |
-| VILLAGE_003 | 403 | Village | 게스트는 개인 공간 없음 |
+| VILLAGE_004 | 400 | Village | 건의 제목이나 내용이 비어 있거나 길이 제한 초과 |
+| VILLAGE_005 | 403 | Village | 게스트 또는 미인증 사용자는 건의 등록 불가 |
 | COMM_001 | 404 | Communication | 채팅방 없음 |
 | COMM_002 | 403 | Communication | 해당 채팅방의 참여자가 아님 |
 | COMM_003 | 403 | Communication | 게스트는 채팅 불가 |

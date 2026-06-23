@@ -10,7 +10,7 @@
 
 | 항목 | 값 |
 |------|-----|
-| 엔드포인트 | `/ws/v2` |
+| 접속 경로 | `/ws/v2` |
 | 프로토콜 | raw WebSocket JSON envelope |
 | 인증 | query param `access_token` |
 | 토큰 없음 | 현재 구현은 handshake 허용, publish 거부 |

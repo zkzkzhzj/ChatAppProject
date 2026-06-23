@@ -104,5 +104,5 @@ frontend/src/
 - [ ] Tiled 맵 로드 + 타일 렌더링
 - [ ] 캐릭터 스프라이트 + 이동 애니메이션
 - [x] 마을 공개 채팅 UI (ChatOverlay + useStomp + /topic/chat/village)
-- [ ] 공간 꾸미기 드래그&드롭
+- [ ] 도서관 입장/서가 전환 인터랙션
 - [ ] 미사용 `game/config/gameConfig.ts` 삭제

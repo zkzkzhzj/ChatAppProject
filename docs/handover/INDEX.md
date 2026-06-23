@@ -13,6 +13,7 @@
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
 | `village-visual-pass` | [track-village-visual-pass.md](./track-village-visual-pass.md) | 마을 비주얼 디자인 패스 (frontend/src/three) | 🟡 PR #144 리뷰 중 | — | 2026-06-12 |
+| `personalization-removal-librarian-rag` | [track-personalization-removal-librarian-rag.md](./track-personalization-removal-librarian-rag.md) | 개인화 저장 모델 제거 + 사서 RAG 중심 재정렬 | 진행 중 | #151 | 2026-06-23 |
 
 > 기존 `ws-redis` Step 3~7 이슈는 하네스 정비 전 계획이라 폐기했다. 후속 실시간 인프라 의제는 `realtime-infra-reset` 종료 시점의 잔여 리스크(ADR-010 STOMP 제거 조건)를 기준으로 새 트랙을 연다.
 

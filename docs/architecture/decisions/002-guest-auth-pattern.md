@@ -112,4 +112,4 @@ MVP 범위에서 "GUEST 세션과의 연속성은 고려하지 않는다"고 결
 - 백엔드: `/api/v1/auth/guest` — JWT(`role=GUEST`) 발급. DB 접근 없음.
 - 프론트엔드: HTTP 인터셉터에서 토큰 부재 시 자동 발급. 나머지 코드는 GUEST/MEMBER 구분 없이 토큰만 사용.
 - WebSocket: STOMP 연결 시 Authorization 헤더 필수. GUEST 토큰도 동일하게 사용.
-- 보안: `role=GUEST` 확인이 필요한 엔드포인트에서 서버가 403 + 가입 안내 반환.
+- 보안: `role=GUEST` 확인이 필요한 API에서 서버가 403 + 가입 안내 반환.

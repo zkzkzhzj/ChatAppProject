@@ -4,6 +4,11 @@
 
 ---
 
+## [2026-06-23] update | 개인화/Economy 제거 후 Wiki 현재형 정리
+
+- issue #151 기준으로 저장형 개인 공간, 캐릭터 장비, 꾸미기, 포인트/아이템 Economy는 현재 제품 범위에서 제거됨.
+- Village Wiki 카탈로그는 런타임 마을/도서관 presence 문서로 재해석하고, 에셋 가이드는 Three.js 런타임 자산 기준으로 갱신.
+
 ## [2026-06-08] update | 일반 채팅 AI 대화 폐기 반영
 
 - `communication/deprecated-general-chat-ai-conversation.md`로 폐기 문서를 정리.

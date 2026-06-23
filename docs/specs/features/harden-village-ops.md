@@ -2,21 +2,22 @@
 feature: harden-village-ops
 track: harden-village-ops
 issue: "#92 (트랙 시작 시 gh issue create)"
-status: draft
+status: superseded
 created: 2026-05-17
-last-updated: 2026-05-17
+last-updated: 2026-06-23
 ---
 
-# 운영 안정성·보안 강화 — UserRegisteredEventConsumer release + JWT_SECRET 폴백 제거
+# 운영 안정성·보안 강화 — 과거 Village 초기화 consumer release + JWT_SECRET 폴백 제거
 
-> 트랙 `harden-village-ops` 의 요구사항 진실. 트랙 `ctx-refresh-post-village-3d` (#90, PR #91) 의 종합 점검에서 발견된 **P1 두 개** 일괄 처치.
-> Pre-scaffolded — 다음 세션이 spec 읽고 즉시 Step 1 진입 가능.
+> 2026-06-23 issue #151 이후 저장형 개인 캐릭터/공간 생성 흐름이 제거되어,
+> 이 문서의 Village 초기화 consumer 보강 범위는 superseded 됐다.
+> JWT_SECRET 폴백 제거 문제는 별도 보안 트랙에서 다시 다룰 수 있지만, 이 spec을 그대로 실행하지 않는다.
 
 ---
 
 ## 1. Outcomes
 
-- **회원가입 이벤트 영구 유실 차단** — Kafka 재배달 시 character/space 정상 생성
+- **superseded** — 회원가입 이벤트로 저장형 Village record를 만들던 과거 흐름 보강
 - **JWT 토큰 위조 위험 차단** — 운영 `.env` 에서 `JWT_SECRET` 누락 시 fail-fast (현재는 GitHub public repo 의 평문 폴백 키로 서명·검증 가능 — 누구나 토큰 위조)
 - **회원가입 동시성 시나리오 unit test 신규** — identity/village 도메인 unit test 0건 부분 해결
 - (가능하면) JaCoCo 0.40 → 0.50 복원
@@ -25,10 +26,10 @@ last-updated: 2026-05-17
 
 ### 2.1 In
 
-- `UserRegisteredEventConsumer.handle` catch 블록에 `idempotencyGuard.release(idempotencyKey)` 추가 (`ConversationSummaryEventConsumer:103-107` 패턴 복사)
+- 과거 Village 초기화 consumer catch 블록에 `idempotencyGuard.release(idempotencyKey)` 추가 (`ConversationSummaryEventConsumer:103-107` 패턴 복사) — issue #151 이후 현재 실행 대상 아님
 - `application.yml:55-56` JWT_SECRET 폴백 제거 + `@ConfigurationProperties` + `@Validated` + `@NotBlank` 또는 `application-prod` profile 분리 fail-fast
 - `docker-compose.yml:172` JWT_SECRET 폴백 제거 — 운영 `.env` 누락 시 컨테이너 기동 실패
-- 회원가입 동시성 시나리오 unit test (`RegisterUserServiceConcurrencyTest`, `InitializeUserVillageServiceConcurrencyTest`) — 동일 email 동시 요청 / Kafka 재배달 시 멱등성
+- 회원가입 동시성 시나리오 unit test (`RegisterUserServiceConcurrencyTest`) — 동일 email 동시 요청 / Kafka 재배달 시 멱등성
 - (가능하면) `backend/build.gradle.kts:164` JaCoCo 0.40 → 0.50 복원 검증 (테스트 추가 후)
 
 ### 2.2 Out
@@ -78,13 +79,13 @@ last-updated: 2026-05-17
 
 | Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | PR |
 |------|------|------|---------------|------|-----|
-| 1 | `UserRegisteredEventConsumer.handle` catch 블록 `idempotencyGuard.release()` 추가 + Cucumber/unit 시나리오 (Kafka 재배달) | — | `backend/.../village/adapter/in/messaging/UserRegisteredEventConsumer.java` + test | #92 | TBD |
+| 1 | superseded — 과거 Village 초기화 consumer catch 블록 `idempotencyGuard.release()` 추가 + Cucumber/unit 시나리오 (Kafka 재배달) | — | 제거된 Village 초기화 consumer + test | #92 | TBD |
 | 2 | JWT_SECRET 폴백 제거 — `application.yml` + `docker-compose.yml` + `@ConfigurationProperties` + `@Validated` `@NotBlank` `@Size(min=64)` | step1 | `backend/src/main/resources/application.yml`, `deploy/docker-compose.yml`, `backend/.../global/security/JwtProperties.java` | #92 | TBD |
-| 3 | 회원가입 동시성 unit test (`RegisterUserServiceConcurrencyTest` + `InitializeUserVillageServiceConcurrencyTest`) + JaCoCo 0.40 → 0.50 복원 검증 | step1 | `backend/src/test/java/.../identity/` + `backend/src/test/java/.../village/` + `backend/build.gradle.kts` | #92 | TBD |
+| 3 | 회원가입 동시성 unit test (`RegisterUserServiceConcurrencyTest`) + JaCoCo 0.40 → 0.50 복원 검증 | step1 | `backend/src/test/java/.../identity/` + `backend/build.gradle.kts` | #92 | TBD |
 
 ## 6. Verification
 
-- [ ] `UserRegisteredEventConsumer.handle` catch 블록에 `release(idempotencyKey)` 호출 존재 + 회원가입 재배달 시나리오 통과 테스트
+- [ ] superseded — 과거 Village 초기화 consumer `release(idempotencyKey)` 검증
 - [ ] `application.yml` `JWT_SECRET` 폴백 0 (`${JWT_SECRET}` 단독 또는 `@NotBlank` 검증)
 - [ ] `docker-compose.yml` `JWT_SECRET=${JWT_SECRET}` 폴백 0
 - [ ] 운영 `.env` 에 `JWT_SECRET` 누락 시 백엔드 컨테이너 fail-fast (기동 실패 + 명확한 에러 메시지)
@@ -96,7 +97,7 @@ last-updated: 2026-05-17
 - 트랙 파일: [track-harden-village-ops.md](../../handover/track-harden-village-ops.md)
 - 1차 출처: PR #91 `full-review-agent` 결과 (운영 리스크 Top 5 의 R1·R2·R3)
 - 관련 코드:
-  - `backend/src/main/java/com/maeum/gohyang/village/adapter/in/messaging/UserRegisteredEventConsumer.java:46-67`
+  - 제거된 과거 Village 초기화 consumer
   - `backend/src/main/java/com/maeum/gohyang/communication/adapter/in/messaging/ConversationSummaryEventConsumer.java:103-107` (패턴 베이스)
   - `backend/src/main/resources/application.yml:55-56`
   - `deploy/docker-compose.yml:172`

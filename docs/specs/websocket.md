@@ -11,7 +11,7 @@
 
 | 항목 | 값 |
 |------|-----|
-| 엔드포인트 | `/ws` |
+| 접속 경로 | `/ws` |
 | 프로토콜 | STOMP over WebSocket |
 | Fallback | SockJS (`/ws/info` 등) |
 | 인증 | 연결 시 `Authorization: Bearer <token>` 헤더 전달 |

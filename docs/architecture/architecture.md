@@ -125,18 +125,21 @@ public class SendConfessionLetterService implements SendConfessionLetterUseCase 
 
         // 2. 비즈니스 로직 — 고백 수신 가능 상태 검증
         Confession confession = loadConfessionPort.load(command.confessionId());
-        ConfessionLetter letter = ConfessionLetter.create(
-                confession.id(),
-                command.userId(),
-                confession.authorUserId(),
-                command.body());
+        if (!confession.isVisible() || confession.isAuthor(command.userId())) {
+            throw new ConfessionAccessDeniedException();
+        }
 
         // 3. 저장
-        saveConfessionLetterPort.save(letter);
-        publishOutboxEventPort.publish(ConfessionLetterSentEvent.from(letter));
+        ConfessionLetter savedLetter = saveConfessionLetterPort.save(
+                ConfessionLetter.create(
+                        confession.id(),
+                        command.userId(),
+                        confession.authorUserId(),
+                        command.body()));
+        publishOutboxEventPort.publish(ConfessionLetterSentEvent.from(savedLetter));
 
         // 4. 결과 저장 (이후 중복 요청 시 재반환용)
-        LetterResult result = LetterResult.success(letter.id());
+        LetterResult result = LetterResult.success(savedLetter.id());
         saveLetterResultPort.save(command.idempotencyKey(), result);
 
         return result;
@@ -497,7 +500,7 @@ public class ConfessionLetterJpaEntity {
 
 ### 8.2 안티패턴
 
-- 애플리케이션에서 잔액을 읽고 계산한 뒤 저장만 하면서 락이 없는 패턴
+- 애플리케이션에서 편지 상태나 신고 상태를 읽고 계산한 뒤 저장만 하면서 락이 없는 패턴
 - 재시도를 무한 루프로 돌리는 패턴
 - Redis 캐시 상태를 source of truth처럼 사용하는 패턴. 영속 상태의 정합성 기준은 항상 PostgreSQL이다.
 

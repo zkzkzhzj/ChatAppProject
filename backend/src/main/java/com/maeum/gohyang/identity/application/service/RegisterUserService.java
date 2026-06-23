@@ -36,7 +36,10 @@ public class RegisterUserService implements RegisterUserUseCase {
         User newUser = User.newMember();
         LocalAuthCredentials credentials = new LocalAuthCredentials(
                 command.email(),
-                Objects.requireNonNull(passwordEncoder.encode(command.rawPassword()))
+                Objects.requireNonNull(
+                        passwordEncoder.encode(command.rawPassword()),
+                        "Password encoding returned null"
+                )
         );
 
         User savedUser;

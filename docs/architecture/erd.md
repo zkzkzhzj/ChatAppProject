@@ -19,7 +19,7 @@
 |---------|-------------|
 | Identity | users, user_local_auth, user_social_auth |
 | Village | daily_visit, suggestion |
-| Communication | chat_room, participant, category, chat_room_category |
+| Communication | chat_room, participant, category, chat_room_category, message, user_message |
 | Confession / Library | confession_record, confession_letter, confession_thank_reply, confession_reaction, confession_report |
 | Safety | report, sanction |
 | Infra | outbox_event, processed_event, idempotency_request |

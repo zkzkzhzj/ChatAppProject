@@ -38,7 +38,7 @@
 ## [2026-04-13] lint | Wiki 정기 점검
 
 - CRITICAL: 0개, WARNING: 0개, LGTM: 6개 (전항목 통과)
-- 12페이지 모두 건강. 당시 미구현 도메인(notification, safety)은 빈 디렉토리로 갭 아님. Economy 범위는 2026-06-23 issue #151로 제거됨.
+- 12페이지 모두 건강. 미구현 도메인(economy, notification, safety)은 빈 디렉토리로 갭 아님
 
 ## [2026-04-13] add | 훅 자동화 페이지 추가
 

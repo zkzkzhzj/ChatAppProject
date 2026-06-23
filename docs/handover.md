@@ -15,10 +15,11 @@
 
 | 트랙 ID | 파일 | 상태 | 이슈 |
 |---------|------|------|------|
-| `personalization-removal-librarian-rag` | [track-personalization-removal-librarian-rag.md](./handover/track-personalization-removal-librarian-rag.md) | 진행 중 | #151 |
+| `village-visual-pass` | [track-village-visual-pass.md](./handover/track-village-visual-pass.md) | PR #144 리뷰 중 | — |
 
 **최근 종료 트랙** (시간 역순):
 
+- `personalization-removal-librarian-rag` (Issue #151, PR #152, 2026-06-23) — 저장형 개인 공간/캐릭터/꾸미기/Economy 제거, V11 drop migration, `user.registered` Outbox 제거, Confession/Library/private librarian RAG 중심 문서 정합화.
 - `realtime-infra-reset` (Issue #127, PR #128 + 후속 안정화 #132~#138, 2026-06-11) — 기존 `ws-redis` Step 3~7 계획 폐기 후 STOMP 운영 경로와 `/ws/v2` raw WS + Redis Pub/Sub 경로 감사·재설계. Step 0~6: Audit → Redis/V2 테스트 보강 → 프론트 클라이언트 책임 분리 (`realtimeAuth`/`stompRealtimeSubscriptions`) → raw WS parity (disconnect LEAVE broadcast 등) → Controlled Cutover (`NEXT_PUBLIC_REALTIME_TRANSPORT=raw` 옵트인 facade) → **ADR-010: STOMP 즉시 제거 X, 제거 조건 9개 명시** → k6 raw V2 하네스 준비 (실측 미실행). 잔여 리스크 (메일 알림·NPC V2 broadcast·reverse proxy 검증·k6 실측) 는 후속 트랙 의제. learning 87
 - `s3-media` (Issue #89, PR #96·#102·#103 + 트랙 종료 docs PR, 2026-05-20) — 정적 자산 외부 호스팅 인프라 (S3 + CloudFront + OAC). 운영 환경음 무음 해결 (Step 2 머지 시점 정상화) + CloudFront edge 캐싱·DDoS Layer 3-4 Shield Standard·OAC confused deputy 방어. **무중단 마이그 4단계** 절차로 운영 끊김 0. **Step 3 (CD 자동 sync) + Step 4 (BGM 분리 매니저) 폐기** — mp3 git 추적 X 결로 trigger 불가 + BGM = 환경음 4종 사용자 의도 확정. spec.decisions 6축 미리 박았으나 트랙 진행 중 D6 폐기·D7 신설 정정. learning 51·52
 - `ai-native-2026-05-upgrade` (Issue #93, 트랙 머지 PR — push 후 갱신, 2026-05-17) — sweep v1 (2026-05-16) + sweep v2 (2026-05-17, MCP / AI Eval / AGENTS.md / Anthropic 5월 / k6 LMOps / 경쟁 환경) 통합 매트릭스 직접 적용. 즉시 도입 3건 (CLAUDE.md compaction 60% + Critical Rules `<rule id=N>` XML 태그 + CodeRabbit Claude Code 플러그인 가이드/1주 시범) + 보안 baseline 1건 (MCP 5규칙). 조건부 도입 9건은 후속 트랙 (`skills-progressive-disclosure` · `anthropic-outcomes-trial` · `npc-evaluator-lmops` 보강) 분리. 메타 트랙 (1 PR · 4 commit). learning 83
@@ -49,7 +50,7 @@
 
 ## 2. 전체 완료 요약
 
-Phase 0·1·2·3·5 구현 → AWS 배포 (ghworld.co) → CD 자동화 → 학습노트 정리까지 완료. 현재 issue #151에서 저장형 개인화와 수익화 저장 모델을 제거하고 Confession/Library/private librarian RAG 중심으로 재정렬 중이다.
+Phase 0·1·2·3·5 구현 → AWS 배포 (ghworld.co) → CD 자동화 → 학습노트 정리까지 완료. issue #151 / PR #152에서 저장형 개인화와 수익화 저장 모델 제거 및 Confession/Library/private librarian RAG 중심 재정렬을 완료했다.
 
 | 구분 | 범위 | 주요 PR | 상세 (learning) |
 |------|------|---------|-----------------|
@@ -152,7 +153,7 @@ POST /api/v1/chat/messages {body: "..."}
 
 ### 진행 중 트랙
 
-- `personalization-removal-librarian-rag` 구현 완료. PR 정리 전까지 저장형 개인화/Economy 제거와 Confession/Library/private librarian RAG 중심 정합성이 현재 기준이다.
+- `village-visual-pass`는 PR #144 리뷰 중이다.
 - 다음 착수 후보는 §1의 `다음 후보 트랙` 목록을 기준으로 사용자 승인 후 시작 (`realtime-raw-ws-cutover`, `token-auto-renewal`, village-3d 후속 Step 트랙, `multi-session-policy`).
 
 ### Week 7 잔여

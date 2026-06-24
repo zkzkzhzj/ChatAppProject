@@ -5,6 +5,7 @@ import type { Suggestion, VillageDashboard } from '@/types/village-board';
 
 import { Character } from '../character/Character';
 import { RemotePlayer } from '../character/RemotePlayer';
+import { type BoxCollider, resolveBoxCollisions } from '../collision';
 import { CAMERA, VILLAGE } from '../constants';
 import { applyWarmLighting } from '../lighting';
 import { buildVillageDecor, type VillageDecor } from './villageDecor';
@@ -24,7 +25,7 @@ export class VillageScene {
   private readonly decor: VillageDecor;
   private readonly dashboardBoard = new THREE.Vector3(-4.8, 0, VILLAGE.ENTRY_Z - 11);
   private readonly suggestionBoard = new THREE.Vector3(4.8, 0, VILLAGE.ENTRY_Z - 11);
-  private readonly collisionBoxes: { minX: number; maxX: number; minZ: number; maxZ: number }[] = [
+  private readonly collisionBoxes: BoxCollider[] = [
     { minX: -4.35, maxX: 4.35, minZ: VILLAGE.LIBRARY_Z - 3.25, maxZ: VILLAGE.LIBRARY_Z + 3.25 },
     { minX: -7.25, maxX: -2.35, minZ: VILLAGE.ENTRY_Z - 11.85, maxZ: VILLAGE.ENTRY_Z - 10.15 },
     { minX: 2.35, maxX: 7.25, minZ: VILLAGE.ENTRY_Z - 11.85, maxZ: VILLAGE.ENTRY_Z - 10.15 },
@@ -574,25 +575,7 @@ export class VillageScene {
 
   resolveCollisions(): void {
     const p = this.character.position;
-    for (const box of this.collisionBoxes) {
-      if (p.x < box.minX || p.x > box.maxX || p.z < box.minZ || p.z > box.maxZ) continue;
-
-      const pushLeft = Math.abs(p.x - box.minX);
-      const pushRight = Math.abs(box.maxX - p.x);
-      const pushBack = Math.abs(p.z - box.minZ);
-      const pushFront = Math.abs(box.maxZ - p.z);
-      const minPush = Math.min(pushLeft, pushRight, pushBack, pushFront);
-      const clearance = 0.08;
-
-      if (minPush === pushLeft) {
-        p.x = box.minX - clearance;
-      } else if (minPush === pushRight) {
-        p.x = box.maxX + clearance;
-      } else {
-        const centerZ = (box.minZ + box.maxZ) / 2;
-        p.z = p.z < centerZ ? box.minZ - clearance : box.maxZ + clearance;
-      }
-    }
+    resolveBoxCollisions(p, this.collisionBoxes);
     this.decor.resolveCollisions(p);
   }
 

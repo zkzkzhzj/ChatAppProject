@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { Character } from '../character/Character';
+import { type BoxCollider, resolveBoxCollisions } from '../collision';
 import { CAMERA } from '../constants';
 import { applyWarmLighting } from '../lighting';
 
@@ -17,8 +18,7 @@ export class LibraryScene {
   private readonly librarianAnchor = new THREE.Vector3(0, 0, -2.6);
   private readonly bookshelfXs = [-5.5, -3.3, -1.1, 1.1, 3.3, 5.5];
   private readonly bookshelfAnchors = this.bookshelfXs.map((x) => new THREE.Vector3(x, 0, -5.1));
-  private readonly collisionBoxes: { minX: number; maxX: number; minZ: number; maxZ: number }[] =
-    [];
+  private readonly collisionBoxes: BoxCollider[] = [];
   private readonly interactionRadius = 1.8;
   private readonly exitZ = 5; // 입구쪽 (남)
 
@@ -388,25 +388,6 @@ export class LibraryScene {
   }
 
   resolveCollisions(): void {
-    const p = this.character.position;
-    for (const box of this.collisionBoxes) {
-      if (p.x < box.minX || p.x > box.maxX || p.z < box.minZ || p.z > box.maxZ) continue;
-
-      const pushLeft = Math.abs(p.x - box.minX);
-      const pushRight = Math.abs(box.maxX - p.x);
-      const pushBack = Math.abs(p.z - box.minZ);
-      const pushFront = Math.abs(box.maxZ - p.z);
-      const minPush = Math.min(pushLeft, pushRight, pushBack, pushFront);
-      const clearance = 0.08;
-
-      if (minPush === pushLeft) {
-        p.x = box.minX - clearance;
-      } else if (minPush === pushRight) {
-        p.x = box.maxX + clearance;
-      } else {
-        const centerZ = (box.minZ + box.maxZ) / 2;
-        p.z = p.z < centerZ ? box.minZ - clearance : box.maxZ + clearance;
-      }
-    }
+    resolveBoxCollisions(this.character.position, this.collisionBoxes);
   }
 }

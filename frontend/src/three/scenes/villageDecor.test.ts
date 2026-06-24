@@ -44,6 +44,27 @@ describe('villageDecor — 마을 데코 풀 패스', () => {
     }).not.toThrow();
   });
 
+  it('두꺼운 데코 충돌 영역에 들어간 위치를 바깥으로 밀어낸다', () => {
+    const scene = new THREE.Scene();
+    const decor = buildVillageDecor(scene);
+    const position = new THREE.Vector3(2.6, 0, 32);
+
+    decor.resolveCollisions(position);
+
+    expect(Math.hypot(position.x - 2.6, position.z - 32)).toBeGreaterThan(0.28);
+  });
+
+  it('중앙 동선의 빈 위치는 데코 충돌로 이동하지 않는다', () => {
+    const scene = new THREE.Scene();
+    const decor = buildVillageDecor(scene);
+    const position = new THREE.Vector3(0, 0, 25);
+
+    decor.resolveCollisions(position);
+
+    expect(position.x).toBe(0);
+    expect(position.z).toBe(25);
+  });
+
   it('모닥불 주변에 대화 아지트 전용 오브젝트가 결정적으로 배치된다', () => {
     const scene = new THREE.Scene();
     buildVillageDecor(scene);
@@ -61,6 +82,41 @@ describe('villageDecor — 마을 데코 풀 패스', () => {
     expect(hideoutObjects.filter((role) => role === 'campfire-lantern')).toHaveLength(5);
     expect(hideoutObjects).toContain('campfire-gathering-ring');
     expect(hideoutObjects).toContain('campfire-keepsake-sign');
+  });
+
+  it('무료 에셋 목업용 시그니처 오브젝트가 마을 동선에 배치된다', () => {
+    const scene = new THREE.Scene();
+    buildVillageDecor(scene);
+
+    const roles: string[] = [];
+    scene.traverse((obj) => {
+      if (!(obj instanceof THREE.Object3D)) return;
+      if (obj.userData.villageDecorRole) {
+        roles.push(String(obj.userData.villageDecorRole));
+      }
+    });
+
+    expect(roles).not.toContain('library-welcome-arch');
+    expect(roles.filter((role) => role === 'letter-path-lantern')).toHaveLength(6);
+    expect(roles.filter((role) => role === 'library-flower-box')).toHaveLength(2);
+  });
+
+  it('동화 숲속 비밀기지 분위기의 장식이 충분한 밀도로 배치된다', () => {
+    const scene = new THREE.Scene();
+    buildVillageDecor(scene);
+
+    const roles: string[] = [];
+    scene.traverse((obj) => {
+      if (!(obj instanceof THREE.Object3D)) return;
+      if (obj.userData.villageDecorRole) {
+        roles.push(String(obj.userData.villageDecorRole));
+      }
+    });
+
+    expect(roles.filter((role) => role === 'fairy-mushroom')).toHaveLength(18);
+    expect(roles.filter((role) => role === 'secret-trail-flower')).toHaveLength(24);
+    expect(roles.filter((role) => role === 'glow-stone')).toHaveLength(10);
+    expect(roles).toContain('leafy-secret-arch');
   });
 
   it('입구~도서관 길 위에는 지상 데코가 없다 (동선 보호)', () => {

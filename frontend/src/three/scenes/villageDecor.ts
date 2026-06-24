@@ -25,10 +25,43 @@ function mulberry32(seed: number): () => number {
 }
 
 const DECOR_SEED = 20260612;
+const COLLISION_CLEARANCE = 0.08;
+
+interface DecorCollider {
+  x: number;
+  z: number;
+  radius: number;
+}
 
 function tagDecor<T extends THREE.Object3D>(obj: T, role: string): T {
   obj.userData.villageDecorRole = role;
   return obj;
+}
+
+function pushCollider(colliders: DecorCollider[], x: number, z: number, radius: number): void {
+  colliders.push({ x, z, radius });
+}
+
+function resolveCircleCollisions(
+  position: THREE.Vector3,
+  colliders: readonly DecorCollider[],
+): void {
+  for (const collider of colliders) {
+    const dx = position.x - collider.x;
+    const dz = position.z - collider.z;
+    const minDistance = collider.radius + COLLISION_CLEARANCE;
+    const distance = Math.hypot(dx, dz);
+    if (distance >= minDistance) continue;
+
+    if (distance === 0) {
+      position.x = collider.x + minDistance;
+      position.z = collider.z;
+      continue;
+    }
+
+    position.x = collider.x + (dx / distance) * minDistance;
+    position.z = collider.z + (dz / distance) * minDistance;
+  }
 }
 
 /** 길·연못·캠프파이어·도서관·입구를 피해서 배치 (걸어다니는 동선 보호). */
@@ -106,7 +139,7 @@ function buildGrassTufts(scene: THREE.Scene, rng: () => number): void {
   }
 }
 
-function buildRocks(scene: THREE.Scene, rng: () => number): void {
+function buildRocks(scene: THREE.Scene, rng: () => number, colliders: DecorCollider[]): void {
   const geometry = new THREE.DodecahedronGeometry(0.4, 0);
   const materials = [
     new THREE.MeshLambertMaterial({ color: 0x9a948a }),
@@ -121,10 +154,11 @@ function buildRocks(scene: THREE.Scene, rng: () => number): void {
     rock.scale.set(0.5 + rng(), 0.4 + rng() * 0.5, 0.5 + rng());
     rock.castShadow = true;
     scene.add(rock);
+    pushCollider(colliders, point.x, point.z, 0.45);
   }
 }
 
-function buildBushes(scene: THREE.Scene, rng: () => number): void {
+function buildBushes(scene: THREE.Scene, rng: () => number, colliders: DecorCollider[]): void {
   const geometry = new THREE.IcosahedronGeometry(0.6, 0);
   const material = new THREE.MeshLambertMaterial({ color: 0x55794a });
   const berryGeometry = new THREE.SphereGeometry(0.06, 6, 5);
@@ -138,6 +172,7 @@ function buildBushes(scene: THREE.Scene, rng: () => number): void {
     bush.scale.set(s, s * 0.8, s);
     bush.castShadow = true;
     scene.add(bush);
+    pushCollider(colliders, point.x, point.z, 0.55 * s);
     // 절반쯤은 열매 — 보면 줍고 싶은 디테일
     if (rng() > 0.5) {
       for (let b = 0; b < 3; b += 1) {
@@ -155,7 +190,7 @@ function buildBushes(scene: THREE.Scene, rng: () => number): void {
 }
 
 /** 입구 길 양옆 낮은 울타리 — "마을에 들어왔다" 는 감각. */
-function buildPathFence(scene: THREE.Scene): void {
+function buildPathFence(scene: THREE.Scene, colliders: DecorCollider[]): void {
   const postGeometry = new THREE.CylinderGeometry(0.07, 0.07, 0.6, 6);
   const railGeometry = new THREE.BoxGeometry(1.9, 0.07, 0.07);
   const woodMaterial = new THREE.MeshLambertMaterial({ color: 0x8a6a48 });
@@ -166,16 +201,271 @@ function buildPathFence(scene: THREE.Scene): void {
       post.position.set(side, 0.3, z);
       post.castShadow = true;
       scene.add(post);
+      pushCollider(colliders, side, z, 0.28);
       const rail = new THREE.Mesh(railGeometry, woodMaterial);
       rail.rotation.y = Math.PI / 2;
       rail.position.set(side, 0.45, z - 1);
       scene.add(rail);
+      pushCollider(colliders, side, z - 1, 0.24);
     }
   }
 }
 
+/** 무료/자체 제작 소품 패스 — 외부 유료 에셋 없이 목업의 밀도와 기억점을 만든다. */
+function buildFreeMockupSignatureProps(scene: THREE.Scene): void {
+  buildLetterPathLanterns(scene);
+  buildLibraryFlowerBoxes(scene);
+  buildFairyForestHideout(scene);
+}
+
+function buildFairyForestHideout(scene: THREE.Scene): void {
+  buildFairyMushroomRing(scene);
+  buildSecretTrailFlowers(scene);
+  buildGlowStones(scene);
+  buildLeafySecretArch(scene);
+}
+
+function buildFairyMushroomRing(scene: THREE.Scene): void {
+  const stemMaterial = new THREE.MeshLambertMaterial({ color: 0xf3dcc5 });
+  const capMaterials = [
+    new THREE.MeshLambertMaterial({ color: 0xe96f72 }),
+    new THREE.MeshLambertMaterial({ color: 0xf2a65a }),
+    new THREE.MeshLambertMaterial({ color: 0xc48ad8 }),
+  ];
+  const spotMaterial = new THREE.MeshLambertMaterial({ color: 0xfff2cf });
+
+  for (let i = 0; i < 18; i += 1) {
+    const angle = (i / 18) * Math.PI * 2;
+    const radius = i % 2 === 0 ? 6.2 : 6.9;
+    const group = tagDecor(new THREE.Group(), 'fairy-mushroom');
+    const scale = 0.75 + (i % 4) * 0.12;
+
+    const stem = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.09 * scale, 0.14 * scale, 0.45 * scale, 7),
+      stemMaterial,
+    );
+    stem.position.set(0, 0.22 * scale, 0);
+    stem.castShadow = true;
+    group.add(stem);
+
+    const cap = new THREE.Mesh(
+      new THREE.SphereGeometry(0.32 * scale, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2),
+      capMaterials[i % capMaterials.length],
+    );
+    cap.position.set(0, 0.48 * scale, 0);
+    cap.scale.y = 0.72;
+    cap.castShadow = true;
+    group.add(cap);
+
+    for (let s = 0; s < 3; s += 1) {
+      const spot = new THREE.Mesh(new THREE.SphereGeometry(0.035 * scale, 6, 5), spotMaterial);
+      const spotAngle = (s / 3) * Math.PI * 2 + i * 0.2;
+      spot.position.set(
+        Math.cos(spotAngle) * 0.16 * scale,
+        0.63 * scale,
+        Math.sin(spotAngle) * 0.16 * scale,
+      );
+      group.add(spot);
+    }
+
+    const rawX = Math.cos(angle) * radius;
+    const safeX = Math.abs(rawX) < 2.15 ? (i % 2 === 0 ? 2.15 : -2.15) : rawX;
+    group.position.set(safeX, 0, VILLAGE.CAMPFIRE_Z + Math.sin(angle) * radius);
+    group.rotation.y = -angle;
+    scene.add(group);
+  }
+}
+
+function buildSecretTrailFlowers(scene: THREE.Scene): void {
+  const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x6f9a55 });
+  const petalMaterials = [
+    new THREE.MeshLambertMaterial({ color: 0xf5a6c8 }),
+    new THREE.MeshLambertMaterial({ color: 0xffd979 }),
+    new THREE.MeshLambertMaterial({ color: 0xb9a7ff }),
+    new THREE.MeshLambertMaterial({ color: 0x9ee6c8 }),
+  ];
+  const positions: [number, number][] = [];
+  for (let i = 0; i < 12; i += 1) {
+    const z = VILLAGE.ENTRY_Z - 4 - i * 4.4;
+    positions.push([-2.25 - (i % 3) * 0.22, z]);
+    positions.push([2.25 + (i % 3) * 0.22, z - 1.4]);
+  }
+
+  positions.forEach(([x, z], index) => {
+    const group = tagDecor(new THREE.Group(), 'secret-trail-flower');
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.42, 5), stemMaterial);
+    stem.position.set(0, 0.2, 0);
+    group.add(stem);
+
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.13, 7, 5),
+      petalMaterials[index % petalMaterials.length],
+    );
+    head.position.set(0, 0.46, 0);
+    group.add(head);
+
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 5), stemMaterial);
+    leaf.position.set(index % 2 === 0 ? 0.1 : -0.1, 0.3, 0);
+    leaf.scale.set(1.4, 0.55, 0.8);
+    group.add(leaf);
+
+    group.position.set(x, 0, z);
+    group.rotation.y = index * 0.43;
+    scene.add(group);
+  });
+}
+
+function buildGlowStones(scene: THREE.Scene): void {
+  const stoneMaterial = new THREE.MeshLambertMaterial({
+    color: 0x9fd8ff,
+    emissive: 0x6db8ff,
+    emissiveIntensity: 0.45,
+  });
+  const spots: [number, number][] = [
+    [-3.1, VILLAGE.ENTRY_Z - 9],
+    [3.15, VILLAGE.ENTRY_Z - 12],
+    [-3.35, VILLAGE.ENTRY_Z - 21],
+    [3.25, VILLAGE.ENTRY_Z - 25],
+    [-3.25, VILLAGE.CAMPFIRE_Z - 1],
+    [3.35, VILLAGE.CAMPFIRE_Z - 6],
+    [-3.1, VILLAGE.CAMPFIRE_Z - 15],
+    [3.2, VILLAGE.LIBRARY_Z + 18],
+    [-3.3, VILLAGE.LIBRARY_Z + 10],
+    [3.3, VILLAGE.LIBRARY_Z + 6],
+  ];
+
+  spots.forEach(([x, z], index) => {
+    const stone = tagDecor(
+      new THREE.Mesh(new THREE.DodecahedronGeometry(0.18 + (index % 3) * 0.04, 0), stoneMaterial),
+      'glow-stone',
+    );
+    stone.position.set(x, 0.11, z);
+    stone.rotation.set(index * 0.37, index * 0.22, 0);
+    stone.scale.set(1.25, 0.62, 1);
+    stone.castShadow = true;
+    scene.add(stone);
+  });
+}
+
+function buildLeafySecretArch(scene: THREE.Scene): void {
+  const group = tagDecor(new THREE.Group(), 'leafy-secret-arch');
+  const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x6d4a32 });
+  const leafMaterials = [
+    new THREE.MeshLambertMaterial({ color: 0x5f8d52 }),
+    new THREE.MeshLambertMaterial({ color: 0x7aa85c }),
+    new THREE.MeshLambertMaterial({ color: 0x8fbf6a }),
+  ];
+  const flowerMaterial = new THREE.MeshLambertMaterial({
+    color: 0xf3a3c7,
+    emissive: 0xc85c86,
+    emissiveIntensity: 0.2,
+  });
+
+  for (const x of [-2.75, 2.75]) {
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 3.0, 7), trunkMaterial);
+    trunk.position.set(x, 1.5, 0);
+    trunk.rotation.z = x < 0 ? -0.18 : 0.18;
+    trunk.castShadow = true;
+    group.add(trunk);
+  }
+
+  for (let i = 0; i < 15; i += 1) {
+    const t = i / 14;
+    const x = -2.6 + t * 5.2;
+    const y = 2.55 + Math.sin(t * Math.PI) * 0.85;
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.48, 8, 6), leafMaterials[i % 3]);
+    leaf.position.set(x, y, 0);
+    leaf.scale.set(1.2, 0.78, 0.95);
+    leaf.castShadow = true;
+    group.add(leaf);
+
+    if (i % 3 === 0) {
+      const flower = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 5), flowerMaterial);
+      flower.position.set(x, y + 0.33, 0.08);
+      group.add(flower);
+    }
+  }
+
+  group.position.set(0, 0, VILLAGE.LIBRARY_Z + 9.7);
+  scene.add(group);
+}
+
+function buildLetterPathLanterns(scene: THREE.Scene): void {
+  const postMaterial = new THREE.MeshLambertMaterial({ color: 0x4e3a2b });
+  const paperMaterial = new THREE.MeshLambertMaterial({
+    color: 0xffe3b0,
+    emissive: 0xffb75f,
+    emissiveIntensity: 0.45,
+  });
+  const waxMaterial = new THREE.MeshLambertMaterial({ color: 0xb95e4a });
+  const spots: [number, number][] = [
+    [-2.8, VILLAGE.ENTRY_Z - 20],
+    [2.8, VILLAGE.ENTRY_Z - 23],
+    [-2.8, VILLAGE.CAMPFIRE_Z - 6],
+    [2.8, VILLAGE.CAMPFIRE_Z - 10],
+    [-2.8, VILLAGE.LIBRARY_Z + 14],
+    [2.8, VILLAGE.LIBRARY_Z + 11],
+  ];
+
+  for (const [x, z] of spots) {
+    const group = tagDecor(new THREE.Group(), 'letter-path-lantern');
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 1.1, 6), postMaterial);
+    post.position.set(0, 0.55, 0);
+    post.castShadow = true;
+    group.add(post);
+
+    const note = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.28, 0.035), paperMaterial);
+    note.position.set(0, 1.16, 0);
+    note.rotation.z = 0.08;
+    group.add(note);
+
+    const seal = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), waxMaterial);
+    seal.position.set(0.1, 1.1, 0.025);
+    group.add(seal);
+
+    group.position.set(x, 0, z);
+    group.rotation.y = x < 0 ? 0.22 : -0.22;
+    scene.add(group);
+  }
+}
+
+function buildLibraryFlowerBoxes(scene: THREE.Scene): void {
+  const boxMaterial = new THREE.MeshLambertMaterial({ color: 0x7a5636 });
+  const leafMaterial = new THREE.MeshLambertMaterial({ color: 0x5f8b4a });
+  const petalMaterials = [
+    new THREE.MeshLambertMaterial({ color: 0xf2a0b5 }),
+    new THREE.MeshLambertMaterial({ color: 0xf5d76e }),
+    new THREE.MeshLambertMaterial({ color: 0xc9a0dc }),
+  ];
+
+  for (const x of [-3.9, 3.9]) {
+    const group = tagDecor(new THREE.Group(), 'library-flower-box');
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.32, 0.38), boxMaterial);
+    box.position.set(0, 0.22, 0);
+    box.castShadow = true;
+    group.add(box);
+
+    for (let i = 0; i < 5; i += 1) {
+      const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 7, 5), leafMaterial);
+      leaf.position.set(-0.55 + i * 0.27, 0.48, 0);
+      leaf.scale.set(1.2, 0.7, 0.8);
+      group.add(leaf);
+
+      const petal = new THREE.Mesh(
+        new THREE.SphereGeometry(0.08, 7, 5),
+        petalMaterials[i % petalMaterials.length],
+      );
+      petal.position.set(-0.55 + i * 0.27, 0.64, 0.02);
+      group.add(petal);
+    }
+
+    group.position.set(x, 0, VILLAGE.LIBRARY_Z + 3.9);
+    scene.add(group);
+  }
+}
+
 /** 마을 안쪽 나무 12그루 + 그루터기 4 — 넓어진 잔디가 비어 보이지 않게. */
-function buildInnerTrees(scene: THREE.Scene, rng: () => number): void {
+function buildInnerTrees(scene: THREE.Scene, rng: () => number, colliders: DecorCollider[]): void {
   const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x5a3d2a });
   const leafMaterials = [
     new THREE.MeshLambertMaterial({ color: 0x4a7c45 }),
@@ -193,6 +483,7 @@ function buildInnerTrees(scene: THREE.Scene, rng: () => number): void {
     trunk.position.set(point.x, 0.9 * s, point.z);
     trunk.castShadow = true;
     scene.add(trunk);
+    pushCollider(colliders, point.x, point.z, 0.42 * s);
 
     const leafMaterial = leafMaterials[Math.floor(rng() * leafMaterials.length)];
     if (rng() > 0.5) {
@@ -217,6 +508,7 @@ function buildInnerTrees(scene: THREE.Scene, rng: () => number): void {
     stump.position.set(point.x, 0.17, point.z);
     stump.castShadow = true;
     scene.add(stump);
+    pushCollider(colliders, point.x, point.z, 0.4);
   }
 }
 
@@ -501,24 +793,32 @@ function buildFireflies(scene: THREE.Scene, rng: () => number): FireflyResult {
 export interface VillageDecor {
   /** 매 프레임 호출 — elapsed 는 누적 초. 저주파 흔들림만 (D11 점멸 금지). */
   update(elapsed: number): void;
+  /** 두꺼운 절차적 데코(나무·울타리·돌·덤불·그루터기) 원형 충돌 처리. */
+  resolveCollisions(position: THREE.Vector3): void;
 }
 
 export function buildVillageDecor(scene: THREE.Scene): VillageDecor {
   const rng = mulberry32(DECOR_SEED);
+  const colliders: DecorCollider[] = [];
 
   buildFlowers(scene, rng);
   buildGrassTufts(scene, rng);
-  buildRocks(scene, rng);
-  buildBushes(scene, rng);
-  buildInnerTrees(scene, rng);
+  buildRocks(scene, rng, colliders);
+  buildBushes(scene, rng, colliders);
+  buildInnerTrees(scene, rng, colliders);
   buildCampfireHideout(scene);
-  buildPathFence(scene);
+  buildPathFence(scene, colliders);
+  buildFreeMockupSignatureProps(scene);
   const lanterns = buildLanterns(scene);
   const pond = buildPondDetail(scene, rng);
   const campfire = buildCampfireDetail(scene, rng);
   const fireflies = buildFireflies(scene, rng);
 
   return {
+    resolveCollisions(position: THREE.Vector3): void {
+      resolveCircleCollisions(position, colliders);
+    },
+
     update(elapsed: number): void {
       // 모닥불 — 불씨가 천천히 떠오르며 소멸, 점광은 잔잔히 일렁임
       campfire.fireLight.intensity = 13 + Math.sin(elapsed * 5.3) * 1.6 + Math.sin(elapsed * 9.1);

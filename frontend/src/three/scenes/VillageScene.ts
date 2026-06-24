@@ -5,6 +5,7 @@ import type { Suggestion, VillageDashboard } from '@/types/village-board';
 
 import { Character } from '../character/Character';
 import { RemotePlayer } from '../character/RemotePlayer';
+import { type BoxCollider, resolveBoxCollisions } from '../collision';
 import { CAMERA, VILLAGE } from '../constants';
 import { applyWarmLighting } from '../lighting';
 import { buildVillageDecor, type VillageDecor } from './villageDecor';
@@ -24,6 +25,11 @@ export class VillageScene {
   private readonly decor: VillageDecor;
   private readonly dashboardBoard = new THREE.Vector3(-4.8, 0, VILLAGE.ENTRY_Z - 11);
   private readonly suggestionBoard = new THREE.Vector3(4.8, 0, VILLAGE.ENTRY_Z - 11);
+  private readonly collisionBoxes: BoxCollider[] = [
+    { minX: -4.35, maxX: 4.35, minZ: VILLAGE.LIBRARY_Z - 3.25, maxZ: VILLAGE.LIBRARY_Z + 3.25 },
+    { minX: -7.25, maxX: -2.35, minZ: VILLAGE.ENTRY_Z - 11.85, maxZ: VILLAGE.ENTRY_Z - 10.15 },
+    { minX: 2.35, maxX: 7.25, minZ: VILLAGE.ENTRY_Z - 11.85, maxZ: VILLAGE.ENTRY_Z - 10.15 },
+  ];
   private dashboardBoardTexture: THREE.CanvasTexture | null = null;
   private suggestionBoardTexture: THREE.CanvasTexture | null = null;
   private elapsed = 0;
@@ -215,11 +221,13 @@ export class VillageScene {
     this.scene.add(door);
 
     // 도서관 표지판
+    const signTexture = this.createLibraryRoomSignTexture();
     const sign = new THREE.Mesh(
       new THREE.BoxGeometry(2.4, 0.6, 0.1),
-      new THREE.MeshLambertMaterial({ color: 0xe8d5a3 }),
+      new THREE.MeshLambertMaterial({ color: 0xe8d5a3, map: signTexture }),
     );
     sign.position.set(0, 3.2, VILLAGE.LIBRARY_Z + 3.05);
+    sign.userData.villageRole = 'library-room-sign';
     this.scene.add(sign);
 
     // 창문 2개 — 안에 불이 켜진 따뜻한 노란빛 (들어가 보고 싶은 신호)
@@ -413,6 +421,24 @@ export class VillageScene {
     });
   }
 
+  private createLibraryRoomSignTexture(): THREE.CanvasTexture {
+    return this.createBoardTexture((ctx, canvas) => {
+      ctx.fillStyle = '#e8d5a3';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#6b4a2e';
+      ctx.lineWidth = 22;
+      ctx.strokeRect(24, 24, canvas.width - 48, canvas.height - 48);
+      drawCenteredText(
+        ctx,
+        '사서방',
+        canvas.width / 2,
+        canvas.height / 2,
+        '800 132px sans-serif',
+        '#3f2b1c',
+      );
+    });
+  }
+
   private createBoardTexture(
     draw: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => void,
   ): THREE.CanvasTexture {
@@ -545,6 +571,12 @@ export class VillageScene {
 
   isNearSuggestionBoard(): boolean {
     return this.character.position.distanceTo(this.suggestionBoard) < VILLAGE.BOARD_TRIGGER_RADIUS;
+  }
+
+  resolveCollisions(): void {
+    const p = this.character.position;
+    resolveBoxCollisions(p, this.collisionBoxes);
+    this.decor.resolveCollisions(p);
   }
 
   /**

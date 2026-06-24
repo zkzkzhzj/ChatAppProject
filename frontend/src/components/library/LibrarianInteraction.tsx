@@ -106,7 +106,7 @@ export default function LibrarianInteraction({ near, onSubmitBook }: LibrarianIn
                 setOpen(false);
                 setMessage('');
               }}
-              className="text-sm text-bark-muted"
+              className="inline-flex min-h-10 items-center justify-center px-4 text-center text-sm font-semibold leading-none text-bark-muted hover:text-bark"
             >
               {LIBRARY_LABELS.close}
             </button>
@@ -118,7 +118,7 @@ export default function LibrarianInteraction({ near, onSubmitBook }: LibrarianIn
                 type="button"
                 onClick={handleCounseling}
                 disabled={!!pending}
-                className="rounded bg-bark px-3 py-2 text-cream"
+                className="inline-flex min-h-10 items-center justify-center rounded bg-bark px-4 py-2 text-center text-sm font-semibold text-cream"
               >
                 {LIBRARY_LABELS.counseling}
               </button>
@@ -127,7 +127,7 @@ export default function LibrarianInteraction({ near, onSubmitBook }: LibrarianIn
                 onClick={() => {
                   setMode('write');
                 }}
-                className="rounded bg-sand px-3 py-2 text-bark"
+                className="inline-flex min-h-10 items-center justify-center rounded bg-sand px-4 py-2 text-center text-sm font-semibold text-bark"
               >
                 {LIBRARY_LABELS.leaveBook}
               </button>
@@ -161,7 +161,7 @@ export default function LibrarianInteraction({ near, onSubmitBook }: LibrarianIn
               <button
                 type="submit"
                 disabled={pending === 'submit'}
-                className="rounded bg-bark px-3 py-2 text-cream"
+                className="inline-flex min-h-10 items-center justify-center rounded bg-bark px-4 py-2 text-center text-sm font-semibold text-cream"
               >
                 사서에게 맡기기
               </button>

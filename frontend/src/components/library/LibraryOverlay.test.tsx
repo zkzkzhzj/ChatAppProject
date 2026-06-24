@@ -240,6 +240,33 @@ describe('LibrarianInteraction', () => {
     expect(screen.getByRole('button', { name: /고민이 있으신가요/ })).toBeInTheDocument();
   });
 
+  it('renders librarian panel action buttons with padded centered controls', async () => {
+    const user = userEvent.setup();
+
+    render(<LibrarianInteraction near={true} onSubmitBook={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
+
+    expect(screen.getByRole('button', { name: LIBRARY_LABELS.close })).toHaveClass(
+      'inline-flex',
+      'items-center',
+      'justify-center',
+      'px-4',
+      'min-h-10',
+    );
+    expect(screen.getByRole('button', { name: LIBRARY_LABELS.close })).not.toHaveClass(
+      'border',
+      'bg-warm-white',
+    );
+    expect(screen.getByRole('button', { name: LIBRARY_LABELS.counseling })).toHaveClass(
+      'inline-flex',
+      'items-center',
+      'justify-center',
+      'px-4',
+      'py-2',
+    );
+  });
+
   it('clears previous counseling feedback when the panel is reopened', async () => {
     const user = userEvent.setup();
 
@@ -754,6 +781,42 @@ describe('BookshelfInteraction', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders bookshelf panel controls with padded centered buttons', async () => {
+    const user = userEvent.setup();
+    const books = Array.from({ length: 9 }, (_, index) => makeBook(index + 1));
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={books}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(1))}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+
+    expect(screen.getByRole('button', { name: LIBRARY_LABELS.close })).toHaveClass(
+      'inline-flex',
+      'min-h-10',
+      'items-center',
+      'justify-center',
+      'px-4',
+    );
+    expect(screen.getByRole('button', { name: LIBRARY_LABELS.close })).not.toHaveClass(
+      'border',
+      'bg-warm-white',
+    );
+    expect(screen.getByRole('button', { name: '다음' })).toHaveClass(
+      'inline-flex',
+      'min-h-10',
+      'items-center',
+      'justify-center',
+      'px-4',
+      'py-2',
+    );
+  });
+
   it('selecting a book calls onSelectBook with the book id', async () => {
     const user = userEvent.setup();
     const onSelectBook = vi.fn().mockResolvedValue(makeSelectedBook(2));
@@ -849,6 +912,16 @@ describe('BookshelfInteraction', () => {
     );
     expect(letterDialog.querySelector('time')).toHaveClass('shrink-0');
     expect(onReadReceivedLetters).toHaveBeenCalledTimes(1);
+    expect(within(letterDialog).getByRole('button', { name: LIBRARY_LABELS.close })).toHaveClass(
+      'inline-flex',
+      'min-h-10',
+      'items-center',
+      'justify-center',
+      'px-4',
+    );
+    expect(
+      within(letterDialog).getByRole('button', { name: LIBRARY_LABELS.close }),
+    ).not.toHaveClass('border', 'bg-warm-white');
     await user.click(within(letterDialog).getByRole('button', { name: LIBRARY_LABELS.close }));
 
     await user.click(screen.getByRole('button', { name: '\uB2E4\uC74C' }));

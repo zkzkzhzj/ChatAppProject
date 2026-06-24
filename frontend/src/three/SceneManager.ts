@@ -179,11 +179,17 @@ export class SceneManager {
       // collision: 마을은 숲 wall 안, 도서관은 벽 안 (간단히 Box clamp)
       if (this.active === 'village') {
         sceneObj.character.clampToCircle(0, 0, VILLAGE.FOREST_WALL_RADIUS - 1);
+        if (sceneObj instanceof VillageScene) {
+          sceneObj.resolveCollisions();
+        }
       } else {
         // 도서관: -7 ~ 7 (x), -6 ~ 6 (z)
         const p = sceneObj.character.position;
         p.x = Math.max(-6.5, Math.min(6.5, p.x));
         p.z = Math.max(-5.5, Math.min(5.8, p.z));
+        if (sceneObj instanceof LibraryScene) {
+          sceneObj.resolveCollisions();
+        }
       }
 
       // 진입·퇴장 트리거

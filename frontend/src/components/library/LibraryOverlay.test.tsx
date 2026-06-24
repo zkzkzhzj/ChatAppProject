@@ -240,6 +240,29 @@ describe('LibrarianInteraction', () => {
     expect(screen.getByRole('button', { name: /고민이 있으신가요/ })).toBeInTheDocument();
   });
 
+  it('renders librarian panel action buttons with padded centered controls', async () => {
+    const user = userEvent.setup();
+
+    render(<LibrarianInteraction near={true} onSubmitBook={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: /고민이 있으신가요/ }));
+
+    expect(screen.getByRole('button', { name: LIBRARY_LABELS.close })).toHaveClass(
+      'inline-flex',
+      'items-center',
+      'justify-center',
+      'px-3',
+      'py-2',
+    );
+    expect(screen.getByRole('button', { name: LIBRARY_LABELS.counseling })).toHaveClass(
+      'inline-flex',
+      'items-center',
+      'justify-center',
+      'px-4',
+      'py-2',
+    );
+  });
+
   it('clears previous counseling feedback when the panel is reopened', async () => {
     const user = userEvent.setup();
 

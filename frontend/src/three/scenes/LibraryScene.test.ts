@@ -37,4 +37,29 @@ describe('LibraryScene', () => {
 
     expect(scene.isNearBookshelf()).toBe(true);
   });
+
+  it('renders the librarian as a cohesive owl keeper marker', () => {
+    const scene = new LibraryScene();
+    const roles: string[] = [];
+
+    scene.scene.traverse((obj) => {
+      if (obj.userData.libraryRole) {
+        roles.push(String(obj.userData.libraryRole));
+      }
+    });
+
+    expect(roles).toContain('librarian-owl-keeper');
+  });
+
+  it('keeps the character out of furniture and bookshelf collision boxes', () => {
+    const scene = new LibraryScene();
+
+    scene.character.position.set(0, 0, -2);
+    scene.resolveCollisions();
+    expect(scene.character.position.z).toBeGreaterThan(-1.25);
+
+    scene.character.position.set(5.5, 0, -5);
+    scene.resolveCollisions();
+    expect(scene.character.position.z < -5.45 || scene.character.position.z > -4.35).toBe(true);
+  });
 });

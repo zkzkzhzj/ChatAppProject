@@ -17,6 +17,8 @@ export class LibraryScene {
   private readonly librarianAnchor = new THREE.Vector3(0, 0, -2.6);
   private readonly bookshelfXs = [-5.5, -3.3, -1.1, 1.1, 3.3, 5.5];
   private readonly bookshelfAnchors = this.bookshelfXs.map((x) => new THREE.Vector3(x, 0, -5.1));
+  private readonly collisionBoxes: { minX: number; maxX: number; minZ: number; maxZ: number }[] =
+    [];
   private readonly interactionRadius = 1.8;
   private readonly exitZ = 5; // 입구쪽 (남)
 
@@ -253,6 +255,7 @@ export class LibraryScene {
       shelf.position.set(x, 1.9, -5);
       shelf.castShadow = true;
       this.scene.add(shelf);
+      this.collisionBoxes.push({ minX: x - 1.1, maxX: x + 1.1, minZ: -5.45, maxZ: -4.35 });
 
       // 책 색깔 layer (Step 4 에서 글 list 결로 박음)
       for (let row = 0; row < 5; row += 1) {
@@ -279,6 +282,7 @@ export class LibraryScene {
     desk.position.set(0, 0.85, -2);
     desk.castShadow = true;
     this.scene.add(desk);
+    this.collisionBoxes.push({ minX: -1.35, maxX: 1.35, minZ: -2.75, maxZ: -1.25 });
 
     // 책상 다리
     const legMaterial = new THREE.MeshLambertMaterial({ color: 0x6b4226 });
@@ -299,62 +303,63 @@ export class LibraryScene {
     note.position.set(0, 0.91, -2);
     this.scene.add(note);
 
-    const body = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.32, 0.68, 4, 8),
-      new THREE.MeshLambertMaterial({ color: 0x526f62 }),
-    );
-    body.position.set(0.65, 1.28, -2.15);
+    this.buildLibrarianOwlKeeper();
+  }
+
+  private buildLibrarianOwlKeeper(): void {
+    const group = new THREE.Group();
+    group.userData.libraryRole = 'librarian-owl-keeper';
+
+    const featherMaterial = new THREE.MeshLambertMaterial({ color: 0x7b5a3a });
+    const faceMaterial = new THREE.MeshLambertMaterial({ color: 0xf1dfbd });
+    const wingMaterial = new THREE.MeshLambertMaterial({ color: 0x5f432c });
+    const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x1f1a14 });
+    const beakMaterial = new THREE.MeshLambertMaterial({ color: 0xe0a542 });
+    const bookMaterial = new THREE.MeshLambertMaterial({ color: 0x8c4a3a });
+
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.42, 18, 14), featherMaterial);
+    body.position.set(0, 1.25, 0);
+    body.scale.set(0.9, 1.15, 0.78);
     body.castShadow = true;
-    this.scene.add(body);
+    group.add(body);
 
-    const apron = new THREE.Mesh(
-      new THREE.BoxGeometry(0.38, 0.5, 0.08),
-      new THREE.MeshLambertMaterial({ color: 0xf0dfbf }),
-    );
-    apron.position.set(0.65, 1.24, -1.9);
-    apron.rotation.x = -0.08;
-    this.scene.add(apron);
+    const face = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 10), faceMaterial);
+    face.position.set(0, 1.58, 0.23);
+    face.scale.set(1.25, 0.82, 0.24);
+    group.add(face);
 
-    const head = new THREE.Mesh(
-      new THREE.SphereGeometry(0.23, 16, 12),
-      new THREE.MeshLambertMaterial({ color: 0xf1c6a8 }),
-    );
-    head.position.set(0.65, 1.82, -2.15);
-    head.castShadow = true;
-    this.scene.add(head);
+    for (const x of [-0.16, 0.16]) {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), eyeMaterial);
+      eye.position.set(x, 1.62, 0.46);
+      group.add(eye);
 
-    const hair = new THREE.Mesh(
-      new THREE.SphereGeometry(0.245, 16, 12),
-      new THREE.MeshLambertMaterial({ color: 0x4a3525 }),
-    );
-    hair.position.set(0.65, 1.9, -2.2);
-    hair.scale.set(1.05, 0.72, 0.9);
-    this.scene.add(hair);
-
-    const bun = new THREE.Mesh(
-      new THREE.SphereGeometry(0.12, 12, 8),
-      new THREE.MeshLambertMaterial({ color: 0x4a3525 }),
-    );
-    bun.position.set(0.65, 1.9, -2.43);
-    this.scene.add(bun);
-
-    const glassesMaterial = new THREE.MeshBasicMaterial({ color: 0x2f2a24 });
-    for (const gx of [0.56, 0.74]) {
-      const lens = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.008, 6, 12), glassesMaterial);
-      lens.position.set(gx, 1.83, -1.94);
-      this.scene.add(lens);
+      const brow = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.2, 3), wingMaterial);
+      brow.position.set(x, 1.77, 0.28);
+      brow.rotation.z = x < 0 ? -0.35 : 0.35;
+      group.add(brow);
     }
-    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.01, 0.01), glassesMaterial);
-    bridge.position.set(0.65, 1.83, -1.94);
-    this.scene.add(bridge);
 
-    const heldBook = new THREE.Mesh(
-      new THREE.BoxGeometry(0.34, 0.06, 0.46),
-      new THREE.MeshLambertMaterial({ color: 0x8c4a3a }),
-    );
-    heldBook.position.set(0.28, 1.2, -1.82);
-    heldBook.rotation.set(0.2, -0.35, 0.1);
-    this.scene.add(heldBook);
+    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.065, 0.16, 4), beakMaterial);
+    beak.position.set(0, 1.52, 0.5);
+    beak.rotation.x = Math.PI / 2;
+    group.add(beak);
+
+    for (const x of [-0.34, 0.34]) {
+      const wing = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 8), wingMaterial);
+      wing.position.set(x, 1.2, 0.05);
+      wing.scale.set(0.62, 1.55, 0.45);
+      wing.rotation.z = x < 0 ? 0.18 : -0.18;
+      group.add(wing);
+    }
+
+    const book = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.08, 0.36), bookMaterial);
+    book.position.set(-0.05, 1.04, 0.46);
+    book.rotation.x = 0.28;
+    group.add(book);
+
+    group.position.set(0.65, 0, -2.22);
+    group.rotation.y = -0.08;
+    this.scene.add(group);
   }
 
   updateCamera(camera: THREE.PerspectiveCamera): void {
@@ -380,5 +385,28 @@ export class LibraryScene {
 
   isAtExit(): boolean {
     return this.character.position.z > this.exitZ;
+  }
+
+  resolveCollisions(): void {
+    const p = this.character.position;
+    for (const box of this.collisionBoxes) {
+      if (p.x < box.minX || p.x > box.maxX || p.z < box.minZ || p.z > box.maxZ) continue;
+
+      const pushLeft = Math.abs(p.x - box.minX);
+      const pushRight = Math.abs(box.maxX - p.x);
+      const pushBack = Math.abs(p.z - box.minZ);
+      const pushFront = Math.abs(box.maxZ - p.z);
+      const minPush = Math.min(pushLeft, pushRight, pushBack, pushFront);
+      const clearance = 0.08;
+
+      if (minPush === pushLeft) {
+        p.x = box.minX - clearance;
+      } else if (minPush === pushRight) {
+        p.x = box.maxX + clearance;
+      } else {
+        const centerZ = (box.minZ + box.maxZ) / 2;
+        p.z = p.z < centerZ ? box.minZ - clearance : box.maxZ + clearance;
+      }
+    }
   }
 }

@@ -184,6 +184,9 @@ export class SceneManager {
         const p = sceneObj.character.position;
         p.x = Math.max(-6.5, Math.min(6.5, p.x));
         p.z = Math.max(-5.5, Math.min(5.8, p.z));
+        if (sceneObj instanceof LibraryScene) {
+          sceneObj.resolveCollisions();
+        }
       }
 
       // 진입·퇴장 트리거

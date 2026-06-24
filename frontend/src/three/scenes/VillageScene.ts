@@ -215,11 +215,13 @@ export class VillageScene {
     this.scene.add(door);
 
     // 도서관 표지판
+    const signTexture = this.createLibraryRoomSignTexture();
     const sign = new THREE.Mesh(
       new THREE.BoxGeometry(2.4, 0.6, 0.1),
-      new THREE.MeshLambertMaterial({ color: 0xe8d5a3 }),
+      new THREE.MeshLambertMaterial({ color: 0xe8d5a3, map: signTexture }),
     );
     sign.position.set(0, 3.2, VILLAGE.LIBRARY_Z + 3.05);
+    sign.userData.villageRole = 'library-room-sign';
     this.scene.add(sign);
 
     // 창문 2개 — 안에 불이 켜진 따뜻한 노란빛 (들어가 보고 싶은 신호)
@@ -410,6 +412,24 @@ export class VillageScene {
       wrapText(ctx, suggestion.body, 610, 2).forEach((line, index) => {
         drawText(ctx, line, 100, 248 + index * 38, '500 28px sans-serif', '#5f432d');
       });
+    });
+  }
+
+  private createLibraryRoomSignTexture(): THREE.CanvasTexture {
+    return this.createBoardTexture((ctx, canvas) => {
+      ctx.fillStyle = '#e8d5a3';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#6b4a2e';
+      ctx.lineWidth = 22;
+      ctx.strokeRect(24, 24, canvas.width - 48, canvas.height - 48);
+      drawCenteredText(
+        ctx,
+        '사서방',
+        canvas.width / 2,
+        canvas.height / 2,
+        '800 132px sans-serif',
+        '#3f2b1c',
+      );
     });
   }
 

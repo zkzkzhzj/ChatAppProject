@@ -16,4 +16,18 @@ describe('VillageScene', () => {
 
     expect(signTexture).toBeInstanceOf(THREE.CanvasTexture);
   });
+
+  it('keeps the character out of village signboards and the library shell', () => {
+    const village = new VillageScene();
+
+    village.character.position.set(-4.8, 0, 21);
+    village.resolveCollisions();
+    expect(village.character.position.z < 20.15 || village.character.position.z > 21.85).toBe(true);
+
+    village.character.position.set(0, 0, -27);
+    village.resolveCollisions();
+    expect(village.character.position.z < -30.25 || village.character.position.z > -23.75).toBe(
+      true,
+    );
+  });
 });

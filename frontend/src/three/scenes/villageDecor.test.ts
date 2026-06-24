@@ -75,7 +75,7 @@ describe('villageDecor — 마을 데코 풀 패스', () => {
       }
     });
 
-    expect(roles).toContain('library-welcome-arch');
+    expect(roles).not.toContain('library-welcome-arch');
     expect(roles.filter((role) => role === 'letter-path-lantern')).toHaveLength(6);
     expect(roles.filter((role) => role === 'library-flower-box')).toHaveLength(2);
   });

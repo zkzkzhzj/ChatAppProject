@@ -106,7 +106,7 @@ export default function LibrarianInteraction({ near, onSubmitBook }: LibrarianIn
                 setOpen(false);
                 setMessage('');
               }}
-              className="inline-flex min-h-10 items-center justify-center rounded border border-sand bg-warm-white px-4 py-2 text-center text-sm font-semibold leading-none text-bark-muted"
+              className="inline-flex min-h-10 items-center justify-center px-4 text-center text-sm font-semibold leading-none text-bark-muted hover:text-bark"
             >
               {LIBRARY_LABELS.close}
             </button>

@@ -252,8 +252,11 @@ describe('LibrarianInteraction', () => {
       'items-center',
       'justify-center',
       'px-4',
-      'py-2',
       'min-h-10',
+    );
+    expect(screen.getByRole('button', { name: LIBRARY_LABELS.close })).not.toHaveClass(
+      'border',
+      'bg-warm-white',
     );
     expect(screen.getByRole('button', { name: LIBRARY_LABELS.counseling })).toHaveClass(
       'inline-flex',
@@ -799,7 +802,10 @@ describe('BookshelfInteraction', () => {
       'items-center',
       'justify-center',
       'px-4',
-      'py-2',
+    );
+    expect(screen.getByRole('button', { name: LIBRARY_LABELS.close })).not.toHaveClass(
+      'border',
+      'bg-warm-white',
     );
     expect(screen.getByRole('button', { name: '다음' })).toHaveClass(
       'inline-flex',
@@ -912,8 +918,10 @@ describe('BookshelfInteraction', () => {
       'items-center',
       'justify-center',
       'px-4',
-      'py-2',
     );
+    expect(
+      within(letterDialog).getByRole('button', { name: LIBRARY_LABELS.close }),
+    ).not.toHaveClass('border', 'bg-warm-white');
     await user.click(within(letterDialog).getByRole('button', { name: LIBRARY_LABELS.close }));
 
     await user.click(screen.getByRole('button', { name: '\uB2E4\uC74C' }));

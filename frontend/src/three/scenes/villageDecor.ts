@@ -176,7 +176,6 @@ function buildPathFence(scene: THREE.Scene): void {
 
 /** 무료/자체 제작 소품 패스 — 외부 유료 에셋 없이 목업의 밀도와 기억점을 만든다. */
 function buildFreeMockupSignatureProps(scene: THREE.Scene): void {
-  buildLibraryWelcomeArch(scene);
   buildLetterPathLanterns(scene);
   buildLibraryFlowerBoxes(scene);
   buildFairyForestHideout(scene);
@@ -351,41 +350,6 @@ function buildLeafySecretArch(scene: THREE.Scene): void {
   }
 
   group.position.set(0, 0, VILLAGE.LIBRARY_Z + 9.7);
-  scene.add(group);
-}
-
-function buildLibraryWelcomeArch(scene: THREE.Scene): void {
-  const group = tagDecor(new THREE.Group(), 'library-welcome-arch');
-  const woodMaterial = new THREE.MeshLambertMaterial({ color: 0x6f4f34 });
-  const signMaterial = new THREE.MeshLambertMaterial({ color: 0xc99a62 });
-  const glowMaterial = new THREE.MeshLambertMaterial({
-    color: 0xffdf9a,
-    emissive: 0xffb85a,
-    emissiveIntensity: 0.65,
-  });
-
-  for (const x of [-2.35, 2.35]) {
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 2.7, 7), woodMaterial);
-    post.position.set(x, 1.35, 0);
-    post.castShadow = true;
-    group.add(post);
-
-    const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), glowMaterial);
-    lantern.position.set(x, 2.25, 0.08);
-    group.add(lantern);
-  }
-
-  const beam = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.18, 0.2), woodMaterial);
-  beam.position.set(0, 2.62, 0);
-  beam.castShadow = true;
-  group.add(beam);
-
-  const sign = new THREE.Mesh(new THREE.BoxGeometry(2.25, 0.55, 0.12), signMaterial);
-  sign.position.set(0, 2.18, 0.08);
-  sign.castShadow = true;
-  group.add(sign);
-
-  group.position.set(0, 0, VILLAGE.LIBRARY_Z + 7.2);
   scene.add(group);
 }
 

@@ -251,8 +251,9 @@ describe('LibrarianInteraction', () => {
       'inline-flex',
       'items-center',
       'justify-center',
-      'px-3',
+      'px-4',
       'py-2',
+      'min-h-10',
     );
     expect(screen.getByRole('button', { name: LIBRARY_LABELS.counseling })).toHaveClass(
       'inline-flex',
@@ -777,6 +778,39 @@ describe('BookshelfInteraction', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders bookshelf panel controls with padded centered buttons', async () => {
+    const user = userEvent.setup();
+    const books = Array.from({ length: 9 }, (_, index) => makeBook(index + 1));
+
+    render(
+      <BookshelfInteraction
+        near={true}
+        books={books}
+        onSelectBook={vi.fn().mockResolvedValue(makeSelectedBook(1))}
+        onSendHeart={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: LIBRARY_LABELS.bookshelfAction }));
+
+    expect(screen.getByRole('button', { name: LIBRARY_LABELS.close })).toHaveClass(
+      'inline-flex',
+      'min-h-10',
+      'items-center',
+      'justify-center',
+      'px-4',
+      'py-2',
+    );
+    expect(screen.getByRole('button', { name: '다음' })).toHaveClass(
+      'inline-flex',
+      'min-h-10',
+      'items-center',
+      'justify-center',
+      'px-4',
+      'py-2',
+    );
+  });
+
   it('selecting a book calls onSelectBook with the book id', async () => {
     const user = userEvent.setup();
     const onSelectBook = vi.fn().mockResolvedValue(makeSelectedBook(2));
@@ -872,6 +906,14 @@ describe('BookshelfInteraction', () => {
     );
     expect(letterDialog.querySelector('time')).toHaveClass('shrink-0');
     expect(onReadReceivedLetters).toHaveBeenCalledTimes(1);
+    expect(within(letterDialog).getByRole('button', { name: LIBRARY_LABELS.close })).toHaveClass(
+      'inline-flex',
+      'min-h-10',
+      'items-center',
+      'justify-center',
+      'px-4',
+      'py-2',
+    );
     await user.click(within(letterDialog).getByRole('button', { name: LIBRARY_LABELS.close }));
 
     await user.click(screen.getByRole('button', { name: '\uB2E4\uC74C' }));

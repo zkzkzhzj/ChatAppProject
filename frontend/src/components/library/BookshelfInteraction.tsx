@@ -255,7 +255,7 @@ export default function BookshelfInteraction({
         onClick={() => {
           setOpen(true);
         }}
-        className="h-12 rounded border-2 border-cream bg-bark px-4 text-sm font-semibold text-cream shadow-xl"
+        className="inline-flex min-h-12 items-center justify-center rounded border-2 border-cream bg-bark px-4 py-2 text-center text-sm font-semibold text-cream shadow-xl"
       >
         {LIBRARY_LABELS.bookshelfAction}
       </button>
@@ -280,7 +280,7 @@ export default function BookshelfInteraction({
               onClick={() => {
                 closePanel();
               }}
-              className="text-sm font-semibold text-bark"
+              className="inline-flex min-h-10 items-center justify-center rounded border border-sand bg-warm-white px-4 py-2 text-center text-sm font-semibold leading-none text-bark"
             >
               {LIBRARY_LABELS.close}
             </button>
@@ -326,7 +326,7 @@ export default function BookshelfInteraction({
                       onClick={() => {
                         setLetterPage((current) => Math.max(0, current - 1));
                       }}
-                      className="rounded border border-sand px-3 py-2 text-sm disabled:opacity-40"
+                      className="inline-flex min-h-10 items-center justify-center rounded border border-sand bg-warm-white px-4 py-2 text-center text-sm font-semibold disabled:opacity-40"
                     >
                       이전
                     </button>
@@ -339,7 +339,7 @@ export default function BookshelfInteraction({
                       onClick={() => {
                         setLetterPage((current) => Math.min(letterPageCount - 1, current + 1));
                       }}
-                      className="rounded border border-sand px-3 py-2 text-sm disabled:opacity-40"
+                      className="inline-flex min-h-10 items-center justify-center rounded border border-sand bg-warm-white px-4 py-2 text-center text-sm font-semibold disabled:opacity-40"
                     >
                       다음
                     </button>
@@ -369,7 +369,7 @@ export default function BookshelfInteraction({
                     <button
                       type="submit"
                       disabled={sendingHeart}
-                      className="rounded bg-bark px-3 py-2 text-sm font-semibold text-cream disabled:opacity-60"
+                      className="inline-flex min-h-10 items-center justify-center rounded bg-bark px-4 py-2 text-center text-sm font-semibold text-cream disabled:opacity-60"
                     >
                       {LIBRARY_LABELS.sendHeart}
                     </button>
@@ -401,7 +401,7 @@ export default function BookshelfInteraction({
                   onClick={() => {
                     setPage((current) => Math.max(0, current - 1));
                   }}
-                  className="rounded border border-sand px-3 py-2 text-sm disabled:opacity-40"
+                  className="inline-flex min-h-10 items-center justify-center rounded border border-sand bg-warm-white px-4 py-2 text-center text-sm font-semibold disabled:opacity-40"
                 >
                   이전
                 </button>
@@ -414,7 +414,7 @@ export default function BookshelfInteraction({
                   onClick={() => {
                     setPage((current) => Math.min(pageCount - 1, current + 1));
                   }}
-                  className="rounded border border-sand px-3 py-2 text-sm disabled:opacity-40"
+                  className="inline-flex min-h-10 items-center justify-center rounded border border-sand bg-warm-white px-4 py-2 text-center text-sm font-semibold disabled:opacity-40"
                 >
                   다음
                 </button>
@@ -444,7 +444,7 @@ export default function BookshelfInteraction({
                 onClick={() => {
                   setOpenedLetter(null);
                 }}
-                className="text-sm font-semibold text-bark-muted hover:text-bark"
+                className="inline-flex min-h-10 items-center justify-center rounded border border-sand bg-warm-white px-4 py-2 text-center text-sm font-semibold leading-none text-bark-muted hover:text-bark"
               >
                 {LIBRARY_LABELS.close}
               </button>

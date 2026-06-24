@@ -176,7 +176,6 @@ function buildPathFence(scene: THREE.Scene): void {
 
 /** 무료/자체 제작 소품 패스 — 외부 유료 에셋 없이 목업의 밀도와 기억점을 만든다. */
 function buildFreeMockupSignatureProps(scene: THREE.Scene): void {
-  buildConfessionMailbox(scene);
   buildLibraryWelcomeArch(scene);
   buildLetterPathLanterns(scene);
   buildLibraryFlowerBoxes(scene);
@@ -186,7 +185,6 @@ function buildFreeMockupSignatureProps(scene: THREE.Scene): void {
 function buildFairyForestHideout(scene: THREE.Scene): void {
   buildFairyMushroomRing(scene);
   buildSecretTrailFlowers(scene);
-  buildHangingLanternGarlands(scene);
   buildGlowStones(scene);
   buildLeafySecretArch(scene);
 }
@@ -281,45 +279,6 @@ function buildSecretTrailFlowers(scene: THREE.Scene): void {
   });
 }
 
-function buildHangingLanternGarlands(scene: THREE.Scene): void {
-  const ropeMaterial = new THREE.MeshLambertMaterial({ color: 0x6b4a32 });
-  const lanternMaterial = new THREE.MeshLambertMaterial({
-    color: 0xffd890,
-    emissive: 0xffaa5a,
-    emissiveIntensity: 0.75,
-  });
-  const leafMaterial = new THREE.MeshLambertMaterial({ color: 0x5f8d52 });
-  const zSpots = [VILLAGE.ENTRY_Z - 14, VILLAGE.CAMPFIRE_Z - 4, VILLAGE.LIBRARY_Z + 13];
-
-  for (const z of zSpots) {
-    const group = tagDecor(new THREE.Group(), 'hanging-lantern-garland');
-    const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 5.4, 6), ropeMaterial);
-    rope.rotation.z = Math.PI / 2;
-    rope.position.set(0, 2.25, 0);
-    group.add(rope);
-
-    for (const x of [-1.75, 0, 1.75]) {
-      const drop = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.45, 5), ropeMaterial);
-      drop.position.set(x, 2.02, 0);
-      group.add(drop);
-
-      const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), lanternMaterial);
-      lantern.position.set(x, 1.72, 0);
-      group.add(lantern);
-    }
-
-    for (const x of [-2.25, -0.75, 0.75, 2.25]) {
-      const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), leafMaterial);
-      leaf.position.set(x, 2.33, 0);
-      leaf.scale.set(1.5, 0.45, 0.8);
-      group.add(leaf);
-    }
-
-    group.position.set(0, 0, z);
-    scene.add(group);
-  }
-}
-
 function buildGlowStones(scene: THREE.Scene): void {
   const stoneMaterial = new THREE.MeshLambertMaterial({
     color: 0x9fd8ff,
@@ -392,47 +351,6 @@ function buildLeafySecretArch(scene: THREE.Scene): void {
   }
 
   group.position.set(0, 0, VILLAGE.LIBRARY_Z + 9.7);
-  scene.add(group);
-}
-
-function buildConfessionMailbox(scene: THREE.Scene): void {
-  const group = tagDecor(new THREE.Group(), 'confession-mailbox');
-  const redMaterial = new THREE.MeshLambertMaterial({ color: 0xb94b43 });
-  const darkRedMaterial = new THREE.MeshLambertMaterial({ color: 0x81352f });
-  const woodMaterial = new THREE.MeshLambertMaterial({ color: 0x765437 });
-  const creamMaterial = new THREE.MeshLambertMaterial({ color: 0xf4e6c9 });
-
-  const post = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.95, 0.16), woodMaterial);
-  post.position.set(0, 0.48, 0);
-  post.castShadow = true;
-  group.add(post);
-
-  const box = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.48, 0.58), redMaterial);
-  box.position.set(0, 1.12, 0);
-  box.castShadow = true;
-  group.add(box);
-
-  const roof = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.06, 12), darkRedMaterial);
-  roof.rotation.z = Math.PI / 2;
-  roof.position.set(0, 1.38, 0);
-  roof.scale.z = 0.72;
-  roof.castShadow = true;
-  group.add(roof);
-
-  const flagPole = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.55, 0.05), woodMaterial);
-  flagPole.position.set(0.58, 1.35, 0.32);
-  group.add(flagPole);
-
-  const flag = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.24, 0.04), creamMaterial);
-  flag.position.set(0.78, 1.55, 0.32);
-  group.add(flag);
-
-  const letterSlot = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.08, 0.04), creamMaterial);
-  letterSlot.position.set(0, 1.15, 0.31);
-  group.add(letterSlot);
-
-  group.position.set(-3.7, 0, VILLAGE.ENTRY_Z - 16);
-  group.rotation.y = -0.18;
   scene.add(group);
 }
 

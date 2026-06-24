@@ -75,7 +75,6 @@ describe('villageDecor — 마을 데코 풀 패스', () => {
       }
     });
 
-    expect(roles).toContain('confession-mailbox');
     expect(roles).toContain('library-welcome-arch');
     expect(roles.filter((role) => role === 'letter-path-lantern')).toHaveLength(6);
     expect(roles.filter((role) => role === 'library-flower-box')).toHaveLength(2);
@@ -95,7 +94,6 @@ describe('villageDecor — 마을 데코 풀 패스', () => {
 
     expect(roles.filter((role) => role === 'fairy-mushroom')).toHaveLength(18);
     expect(roles.filter((role) => role === 'secret-trail-flower')).toHaveLength(24);
-    expect(roles.filter((role) => role === 'hanging-lantern-garland')).toHaveLength(3);
     expect(roles.filter((role) => role === 'glow-stone')).toHaveLength(10);
     expect(roles).toContain('leafy-secret-arch');
   });

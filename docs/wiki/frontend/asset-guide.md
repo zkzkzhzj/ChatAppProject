@@ -2,7 +2,7 @@
 title: 에셋 가이드
 tags: [frontend, assets, threejs, village, library, remote-player, audio]
 related: [village/space-system.md, village/character-system.md]
-last-verified: 2026-06-23
+last-verified: 2026-06-24
 ---
 
 # 에셋 가이드
@@ -38,6 +38,18 @@ last-verified: 2026-06-23
 | Freesound | CC0 또는 상용 허용 CC BY만 | 환경음 |
 
 CC BY 자산은 `LICENSE.md` 또는 credits 문서에 출처를 남긴다. 라이선스가 불명확한 자산은 사용하지 않는다.
+
+## 유료 에셋 선택지
+
+> 아래 항목은 도입 예정이 아니라, 무료/절차적 자산의 한계를 넘고 싶을 때 검토할 수 있는 선택지다.
+
+| 후보 | 링크 | 기대 효과 | 검토 조건 |
+|------|------|-----------|-----------|
+| Synty POLYGON Town Pack | <https://syntystore.com/products/polygon-town-pack> | 마을 건물, 상점, 길가 props, 저폴리 도시/마을 톤 통일 | 구매 전 라이선스 확인, 필요한 FBX/GLB만 선별 변환 |
+| Synty POLYGON Nature Pack | <https://syntystore.com/products/polygon-nature-pack> | 숲, 바위, 나무, 자연물 밀도 개선 | 현재 절차적 데코와 톤 충돌 여부 확인 |
+| Synty POLYGON Fantasy Kingdom | <https://syntystore.com/products/polygon-fantasy-kingdom> | 동화풍 장소성, 판타지 구조물, 비밀 공간 연출 | 서비스 톤이 과도하게 RPG처럼 보이지 않는지 확인 |
+
+유료 에셋을 쓰더라도 "에셋 구매 = 완성 화면"은 아니다. 현재 Three.js 씬 기준으로는 모델 변환, 크기 정규화, 충돌 영역, 조명, 카메라 프레이밍, 라이선스 문서화를 같은 PR에서 처리해야 한다.
 
 ## 디렉토리 기준
 

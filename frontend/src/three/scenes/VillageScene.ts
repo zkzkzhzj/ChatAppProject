@@ -593,6 +593,7 @@ export class VillageScene {
         p.z = p.z < centerZ ? box.minZ - clearance : box.maxZ + clearance;
       }
     }
+    this.decor.resolveCollisions(p);
   }
 
   /**

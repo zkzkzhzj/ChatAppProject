@@ -25,10 +25,43 @@ function mulberry32(seed: number): () => number {
 }
 
 const DECOR_SEED = 20260612;
+const COLLISION_CLEARANCE = 0.08;
+
+interface DecorCollider {
+  x: number;
+  z: number;
+  radius: number;
+}
 
 function tagDecor<T extends THREE.Object3D>(obj: T, role: string): T {
   obj.userData.villageDecorRole = role;
   return obj;
+}
+
+function pushCollider(colliders: DecorCollider[], x: number, z: number, radius: number): void {
+  colliders.push({ x, z, radius });
+}
+
+function resolveCircleCollisions(
+  position: THREE.Vector3,
+  colliders: readonly DecorCollider[],
+): void {
+  for (const collider of colliders) {
+    const dx = position.x - collider.x;
+    const dz = position.z - collider.z;
+    const minDistance = collider.radius + COLLISION_CLEARANCE;
+    const distance = Math.hypot(dx, dz);
+    if (distance >= minDistance) continue;
+
+    if (distance === 0) {
+      position.x = collider.x + minDistance;
+      position.z = collider.z;
+      continue;
+    }
+
+    position.x = collider.x + (dx / distance) * minDistance;
+    position.z = collider.z + (dz / distance) * minDistance;
+  }
 }
 
 /** 길·연못·캠프파이어·도서관·입구를 피해서 배치 (걸어다니는 동선 보호). */
@@ -106,7 +139,7 @@ function buildGrassTufts(scene: THREE.Scene, rng: () => number): void {
   }
 }
 
-function buildRocks(scene: THREE.Scene, rng: () => number): void {
+function buildRocks(scene: THREE.Scene, rng: () => number, colliders: DecorCollider[]): void {
   const geometry = new THREE.DodecahedronGeometry(0.4, 0);
   const materials = [
     new THREE.MeshLambertMaterial({ color: 0x9a948a }),
@@ -121,10 +154,11 @@ function buildRocks(scene: THREE.Scene, rng: () => number): void {
     rock.scale.set(0.5 + rng(), 0.4 + rng() * 0.5, 0.5 + rng());
     rock.castShadow = true;
     scene.add(rock);
+    pushCollider(colliders, point.x, point.z, 0.45);
   }
 }
 
-function buildBushes(scene: THREE.Scene, rng: () => number): void {
+function buildBushes(scene: THREE.Scene, rng: () => number, colliders: DecorCollider[]): void {
   const geometry = new THREE.IcosahedronGeometry(0.6, 0);
   const material = new THREE.MeshLambertMaterial({ color: 0x55794a });
   const berryGeometry = new THREE.SphereGeometry(0.06, 6, 5);
@@ -138,6 +172,7 @@ function buildBushes(scene: THREE.Scene, rng: () => number): void {
     bush.scale.set(s, s * 0.8, s);
     bush.castShadow = true;
     scene.add(bush);
+    pushCollider(colliders, point.x, point.z, 0.55 * s);
     // 절반쯤은 열매 — 보면 줍고 싶은 디테일
     if (rng() > 0.5) {
       for (let b = 0; b < 3; b += 1) {
@@ -155,7 +190,7 @@ function buildBushes(scene: THREE.Scene, rng: () => number): void {
 }
 
 /** 입구 길 양옆 낮은 울타리 — "마을에 들어왔다" 는 감각. */
-function buildPathFence(scene: THREE.Scene): void {
+function buildPathFence(scene: THREE.Scene, colliders: DecorCollider[]): void {
   const postGeometry = new THREE.CylinderGeometry(0.07, 0.07, 0.6, 6);
   const railGeometry = new THREE.BoxGeometry(1.9, 0.07, 0.07);
   const woodMaterial = new THREE.MeshLambertMaterial({ color: 0x8a6a48 });
@@ -166,10 +201,12 @@ function buildPathFence(scene: THREE.Scene): void {
       post.position.set(side, 0.3, z);
       post.castShadow = true;
       scene.add(post);
+      pushCollider(colliders, side, z, 0.28);
       const rail = new THREE.Mesh(railGeometry, woodMaterial);
       rail.rotation.y = Math.PI / 2;
       rail.position.set(side, 0.45, z - 1);
       scene.add(rail);
+      pushCollider(colliders, side, z - 1, 0.24);
     }
   }
 }
@@ -428,7 +465,7 @@ function buildLibraryFlowerBoxes(scene: THREE.Scene): void {
 }
 
 /** 마을 안쪽 나무 12그루 + 그루터기 4 — 넓어진 잔디가 비어 보이지 않게. */
-function buildInnerTrees(scene: THREE.Scene, rng: () => number): void {
+function buildInnerTrees(scene: THREE.Scene, rng: () => number, colliders: DecorCollider[]): void {
   const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x5a3d2a });
   const leafMaterials = [
     new THREE.MeshLambertMaterial({ color: 0x4a7c45 }),
@@ -446,6 +483,7 @@ function buildInnerTrees(scene: THREE.Scene, rng: () => number): void {
     trunk.position.set(point.x, 0.9 * s, point.z);
     trunk.castShadow = true;
     scene.add(trunk);
+    pushCollider(colliders, point.x, point.z, 0.42 * s);
 
     const leafMaterial = leafMaterials[Math.floor(rng() * leafMaterials.length)];
     if (rng() > 0.5) {
@@ -470,6 +508,7 @@ function buildInnerTrees(scene: THREE.Scene, rng: () => number): void {
     stump.position.set(point.x, 0.17, point.z);
     stump.castShadow = true;
     scene.add(stump);
+    pushCollider(colliders, point.x, point.z, 0.4);
   }
 }
 
@@ -754,18 +793,21 @@ function buildFireflies(scene: THREE.Scene, rng: () => number): FireflyResult {
 export interface VillageDecor {
   /** 매 프레임 호출 — elapsed 는 누적 초. 저주파 흔들림만 (D11 점멸 금지). */
   update(elapsed: number): void;
+  /** 두꺼운 절차적 데코(나무·울타리·돌·덤불·그루터기) 원형 충돌 처리. */
+  resolveCollisions(position: THREE.Vector3): void;
 }
 
 export function buildVillageDecor(scene: THREE.Scene): VillageDecor {
   const rng = mulberry32(DECOR_SEED);
+  const colliders: DecorCollider[] = [];
 
   buildFlowers(scene, rng);
   buildGrassTufts(scene, rng);
-  buildRocks(scene, rng);
-  buildBushes(scene, rng);
-  buildInnerTrees(scene, rng);
+  buildRocks(scene, rng, colliders);
+  buildBushes(scene, rng, colliders);
+  buildInnerTrees(scene, rng, colliders);
   buildCampfireHideout(scene);
-  buildPathFence(scene);
+  buildPathFence(scene, colliders);
   buildFreeMockupSignatureProps(scene);
   const lanterns = buildLanterns(scene);
   const pond = buildPondDetail(scene, rng);
@@ -773,6 +815,10 @@ export function buildVillageDecor(scene: THREE.Scene): VillageDecor {
   const fireflies = buildFireflies(scene, rng);
 
   return {
+    resolveCollisions(position: THREE.Vector3): void {
+      resolveCircleCollisions(position, colliders);
+    },
+
     update(elapsed: number): void {
       // 모닥불 — 불씨가 천천히 떠오르며 소멸, 점광은 잔잔히 일렁임
       campfire.fireLight.intensity = 13 + Math.sin(elapsed * 5.3) * 1.6 + Math.sin(elapsed * 9.1);

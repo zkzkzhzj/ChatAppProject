@@ -44,6 +44,27 @@ describe('villageDecor — 마을 데코 풀 패스', () => {
     }).not.toThrow();
   });
 
+  it('두꺼운 데코 충돌 영역에 들어간 위치를 바깥으로 밀어낸다', () => {
+    const scene = new THREE.Scene();
+    const decor = buildVillageDecor(scene);
+    const position = new THREE.Vector3(2.6, 0, 32);
+
+    decor.resolveCollisions(position);
+
+    expect(Math.hypot(position.x - 2.6, position.z - 32)).toBeGreaterThan(0.28);
+  });
+
+  it('중앙 동선의 빈 위치는 데코 충돌로 이동하지 않는다', () => {
+    const scene = new THREE.Scene();
+    const decor = buildVillageDecor(scene);
+    const position = new THREE.Vector3(0, 0, 25);
+
+    decor.resolveCollisions(position);
+
+    expect(position.x).toBe(0);
+    expect(position.z).toBe(25);
+  });
+
   it('모닥불 주변에 대화 아지트 전용 오브젝트가 결정적으로 배치된다', () => {
     const scene = new THREE.Scene();
     buildVillageDecor(scene);

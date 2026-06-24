@@ -81,6 +81,25 @@ describe('villageDecor — 마을 데코 풀 패스', () => {
     expect(roles.filter((role) => role === 'library-flower-box')).toHaveLength(2);
   });
 
+  it('동화 숲속 비밀기지 분위기의 장식이 충분한 밀도로 배치된다', () => {
+    const scene = new THREE.Scene();
+    buildVillageDecor(scene);
+
+    const roles: string[] = [];
+    scene.traverse((obj) => {
+      if (!(obj instanceof THREE.Object3D)) return;
+      if (obj.userData.villageDecorRole) {
+        roles.push(String(obj.userData.villageDecorRole));
+      }
+    });
+
+    expect(roles.filter((role) => role === 'fairy-mushroom')).toHaveLength(18);
+    expect(roles.filter((role) => role === 'secret-trail-flower')).toHaveLength(24);
+    expect(roles.filter((role) => role === 'hanging-lantern-garland')).toHaveLength(3);
+    expect(roles.filter((role) => role === 'glow-stone')).toHaveLength(10);
+    expect(roles).toContain('leafy-secret-arch');
+  });
+
   it('입구~도서관 길 위에는 지상 데코가 없다 (동선 보호)', () => {
     const scene = new THREE.Scene();
     buildVillageDecor(scene);

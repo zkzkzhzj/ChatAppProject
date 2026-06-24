@@ -180,6 +180,219 @@ function buildFreeMockupSignatureProps(scene: THREE.Scene): void {
   buildLibraryWelcomeArch(scene);
   buildLetterPathLanterns(scene);
   buildLibraryFlowerBoxes(scene);
+  buildFairyForestHideout(scene);
+}
+
+function buildFairyForestHideout(scene: THREE.Scene): void {
+  buildFairyMushroomRing(scene);
+  buildSecretTrailFlowers(scene);
+  buildHangingLanternGarlands(scene);
+  buildGlowStones(scene);
+  buildLeafySecretArch(scene);
+}
+
+function buildFairyMushroomRing(scene: THREE.Scene): void {
+  const stemMaterial = new THREE.MeshLambertMaterial({ color: 0xf3dcc5 });
+  const capMaterials = [
+    new THREE.MeshLambertMaterial({ color: 0xe96f72 }),
+    new THREE.MeshLambertMaterial({ color: 0xf2a65a }),
+    new THREE.MeshLambertMaterial({ color: 0xc48ad8 }),
+  ];
+  const spotMaterial = new THREE.MeshLambertMaterial({ color: 0xfff2cf });
+
+  for (let i = 0; i < 18; i += 1) {
+    const angle = (i / 18) * Math.PI * 2;
+    const radius = i % 2 === 0 ? 6.2 : 6.9;
+    const group = tagDecor(new THREE.Group(), 'fairy-mushroom');
+    const scale = 0.75 + (i % 4) * 0.12;
+
+    const stem = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.09 * scale, 0.14 * scale, 0.45 * scale, 7),
+      stemMaterial,
+    );
+    stem.position.set(0, 0.22 * scale, 0);
+    stem.castShadow = true;
+    group.add(stem);
+
+    const cap = new THREE.Mesh(
+      new THREE.SphereGeometry(0.32 * scale, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2),
+      capMaterials[i % capMaterials.length],
+    );
+    cap.position.set(0, 0.48 * scale, 0);
+    cap.scale.y = 0.72;
+    cap.castShadow = true;
+    group.add(cap);
+
+    for (let s = 0; s < 3; s += 1) {
+      const spot = new THREE.Mesh(new THREE.SphereGeometry(0.035 * scale, 6, 5), spotMaterial);
+      const spotAngle = (s / 3) * Math.PI * 2 + i * 0.2;
+      spot.position.set(
+        Math.cos(spotAngle) * 0.16 * scale,
+        0.63 * scale,
+        Math.sin(spotAngle) * 0.16 * scale,
+      );
+      group.add(spot);
+    }
+
+    const rawX = Math.cos(angle) * radius;
+    const safeX = Math.abs(rawX) < 2.15 ? (i % 2 === 0 ? 2.15 : -2.15) : rawX;
+    group.position.set(safeX, 0, VILLAGE.CAMPFIRE_Z + Math.sin(angle) * radius);
+    group.rotation.y = -angle;
+    scene.add(group);
+  }
+}
+
+function buildSecretTrailFlowers(scene: THREE.Scene): void {
+  const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x6f9a55 });
+  const petalMaterials = [
+    new THREE.MeshLambertMaterial({ color: 0xf5a6c8 }),
+    new THREE.MeshLambertMaterial({ color: 0xffd979 }),
+    new THREE.MeshLambertMaterial({ color: 0xb9a7ff }),
+    new THREE.MeshLambertMaterial({ color: 0x9ee6c8 }),
+  ];
+  const positions: [number, number][] = [];
+  for (let i = 0; i < 12; i += 1) {
+    const z = VILLAGE.ENTRY_Z - 4 - i * 4.4;
+    positions.push([-2.25 - (i % 3) * 0.22, z]);
+    positions.push([2.25 + (i % 3) * 0.22, z - 1.4]);
+  }
+
+  positions.forEach(([x, z], index) => {
+    const group = tagDecor(new THREE.Group(), 'secret-trail-flower');
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.42, 5), stemMaterial);
+    stem.position.set(0, 0.2, 0);
+    group.add(stem);
+
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.13, 7, 5),
+      petalMaterials[index % petalMaterials.length],
+    );
+    head.position.set(0, 0.46, 0);
+    group.add(head);
+
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 5), stemMaterial);
+    leaf.position.set(index % 2 === 0 ? 0.1 : -0.1, 0.3, 0);
+    leaf.scale.set(1.4, 0.55, 0.8);
+    group.add(leaf);
+
+    group.position.set(x, 0, z);
+    group.rotation.y = index * 0.43;
+    scene.add(group);
+  });
+}
+
+function buildHangingLanternGarlands(scene: THREE.Scene): void {
+  const ropeMaterial = new THREE.MeshLambertMaterial({ color: 0x6b4a32 });
+  const lanternMaterial = new THREE.MeshLambertMaterial({
+    color: 0xffd890,
+    emissive: 0xffaa5a,
+    emissiveIntensity: 0.75,
+  });
+  const leafMaterial = new THREE.MeshLambertMaterial({ color: 0x5f8d52 });
+  const zSpots = [VILLAGE.ENTRY_Z - 14, VILLAGE.CAMPFIRE_Z - 4, VILLAGE.LIBRARY_Z + 13];
+
+  for (const z of zSpots) {
+    const group = tagDecor(new THREE.Group(), 'hanging-lantern-garland');
+    const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 5.4, 6), ropeMaterial);
+    rope.rotation.z = Math.PI / 2;
+    rope.position.set(0, 2.25, 0);
+    group.add(rope);
+
+    for (const x of [-1.75, 0, 1.75]) {
+      const drop = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.45, 5), ropeMaterial);
+      drop.position.set(x, 2.02, 0);
+      group.add(drop);
+
+      const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), lanternMaterial);
+      lantern.position.set(x, 1.72, 0);
+      group.add(lantern);
+    }
+
+    for (const x of [-2.25, -0.75, 0.75, 2.25]) {
+      const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), leafMaterial);
+      leaf.position.set(x, 2.33, 0);
+      leaf.scale.set(1.5, 0.45, 0.8);
+      group.add(leaf);
+    }
+
+    group.position.set(0, 0, z);
+    scene.add(group);
+  }
+}
+
+function buildGlowStones(scene: THREE.Scene): void {
+  const stoneMaterial = new THREE.MeshLambertMaterial({
+    color: 0x9fd8ff,
+    emissive: 0x6db8ff,
+    emissiveIntensity: 0.45,
+  });
+  const spots: [number, number][] = [
+    [-3.1, VILLAGE.ENTRY_Z - 9],
+    [3.15, VILLAGE.ENTRY_Z - 12],
+    [-3.35, VILLAGE.ENTRY_Z - 21],
+    [3.25, VILLAGE.ENTRY_Z - 25],
+    [-3.25, VILLAGE.CAMPFIRE_Z - 1],
+    [3.35, VILLAGE.CAMPFIRE_Z - 6],
+    [-3.1, VILLAGE.CAMPFIRE_Z - 15],
+    [3.2, VILLAGE.LIBRARY_Z + 18],
+    [-3.3, VILLAGE.LIBRARY_Z + 10],
+    [3.3, VILLAGE.LIBRARY_Z + 6],
+  ];
+
+  spots.forEach(([x, z], index) => {
+    const stone = tagDecor(
+      new THREE.Mesh(new THREE.DodecahedronGeometry(0.18 + (index % 3) * 0.04, 0), stoneMaterial),
+      'glow-stone',
+    );
+    stone.position.set(x, 0.11, z);
+    stone.rotation.set(index * 0.37, index * 0.22, 0);
+    stone.scale.set(1.25, 0.62, 1);
+    stone.castShadow = true;
+    scene.add(stone);
+  });
+}
+
+function buildLeafySecretArch(scene: THREE.Scene): void {
+  const group = tagDecor(new THREE.Group(), 'leafy-secret-arch');
+  const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x6d4a32 });
+  const leafMaterials = [
+    new THREE.MeshLambertMaterial({ color: 0x5f8d52 }),
+    new THREE.MeshLambertMaterial({ color: 0x7aa85c }),
+    new THREE.MeshLambertMaterial({ color: 0x8fbf6a }),
+  ];
+  const flowerMaterial = new THREE.MeshLambertMaterial({
+    color: 0xf3a3c7,
+    emissive: 0xc85c86,
+    emissiveIntensity: 0.2,
+  });
+
+  for (const x of [-2.75, 2.75]) {
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 3.0, 7), trunkMaterial);
+    trunk.position.set(x, 1.5, 0);
+    trunk.rotation.z = x < 0 ? -0.18 : 0.18;
+    trunk.castShadow = true;
+    group.add(trunk);
+  }
+
+  for (let i = 0; i < 15; i += 1) {
+    const t = i / 14;
+    const x = -2.6 + t * 5.2;
+    const y = 2.55 + Math.sin(t * Math.PI) * 0.85;
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.48, 8, 6), leafMaterials[i % 3]);
+    leaf.position.set(x, y, 0);
+    leaf.scale.set(1.2, 0.78, 0.95);
+    leaf.castShadow = true;
+    group.add(leaf);
+
+    if (i % 3 === 0) {
+      const flower = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 5), flowerMaterial);
+      flower.position.set(x, y + 0.33, 0.08);
+      group.add(flower);
+    }
+  }
+
+  group.position.set(0, 0, VILLAGE.LIBRARY_Z + 9.7);
+  scene.add(group);
 }
 
 function buildConfessionMailbox(scene: THREE.Scene): void {

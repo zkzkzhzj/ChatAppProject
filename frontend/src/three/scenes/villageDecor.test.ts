@@ -63,6 +63,24 @@ describe('villageDecor — 마을 데코 풀 패스', () => {
     expect(hideoutObjects).toContain('campfire-keepsake-sign');
   });
 
+  it('무료 에셋 목업용 시그니처 오브젝트가 마을 동선에 배치된다', () => {
+    const scene = new THREE.Scene();
+    buildVillageDecor(scene);
+
+    const roles: string[] = [];
+    scene.traverse((obj) => {
+      if (!(obj instanceof THREE.Object3D)) return;
+      if (obj.userData.villageDecorRole) {
+        roles.push(String(obj.userData.villageDecorRole));
+      }
+    });
+
+    expect(roles).toContain('confession-mailbox');
+    expect(roles).toContain('library-welcome-arch');
+    expect(roles.filter((role) => role === 'letter-path-lantern')).toHaveLength(6);
+    expect(roles.filter((role) => role === 'library-flower-box')).toHaveLength(2);
+  });
+
   it('입구~도서관 길 위에는 지상 데코가 없다 (동선 보호)', () => {
     const scene = new THREE.Scene();
     buildVillageDecor(scene);

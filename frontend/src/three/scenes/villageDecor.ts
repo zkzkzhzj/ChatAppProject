@@ -174,6 +174,164 @@ function buildPathFence(scene: THREE.Scene): void {
   }
 }
 
+/** 무료/자체 제작 소품 패스 — 외부 유료 에셋 없이 목업의 밀도와 기억점을 만든다. */
+function buildFreeMockupSignatureProps(scene: THREE.Scene): void {
+  buildConfessionMailbox(scene);
+  buildLibraryWelcomeArch(scene);
+  buildLetterPathLanterns(scene);
+  buildLibraryFlowerBoxes(scene);
+}
+
+function buildConfessionMailbox(scene: THREE.Scene): void {
+  const group = tagDecor(new THREE.Group(), 'confession-mailbox');
+  const redMaterial = new THREE.MeshLambertMaterial({ color: 0xb94b43 });
+  const darkRedMaterial = new THREE.MeshLambertMaterial({ color: 0x81352f });
+  const woodMaterial = new THREE.MeshLambertMaterial({ color: 0x765437 });
+  const creamMaterial = new THREE.MeshLambertMaterial({ color: 0xf4e6c9 });
+
+  const post = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.95, 0.16), woodMaterial);
+  post.position.set(0, 0.48, 0);
+  post.castShadow = true;
+  group.add(post);
+
+  const box = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.48, 0.58), redMaterial);
+  box.position.set(0, 1.12, 0);
+  box.castShadow = true;
+  group.add(box);
+
+  const roof = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.06, 12), darkRedMaterial);
+  roof.rotation.z = Math.PI / 2;
+  roof.position.set(0, 1.38, 0);
+  roof.scale.z = 0.72;
+  roof.castShadow = true;
+  group.add(roof);
+
+  const flagPole = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.55, 0.05), woodMaterial);
+  flagPole.position.set(0.58, 1.35, 0.32);
+  group.add(flagPole);
+
+  const flag = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.24, 0.04), creamMaterial);
+  flag.position.set(0.78, 1.55, 0.32);
+  group.add(flag);
+
+  const letterSlot = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.08, 0.04), creamMaterial);
+  letterSlot.position.set(0, 1.15, 0.31);
+  group.add(letterSlot);
+
+  group.position.set(-3.7, 0, VILLAGE.ENTRY_Z - 16);
+  group.rotation.y = -0.18;
+  scene.add(group);
+}
+
+function buildLibraryWelcomeArch(scene: THREE.Scene): void {
+  const group = tagDecor(new THREE.Group(), 'library-welcome-arch');
+  const woodMaterial = new THREE.MeshLambertMaterial({ color: 0x6f4f34 });
+  const signMaterial = new THREE.MeshLambertMaterial({ color: 0xc99a62 });
+  const glowMaterial = new THREE.MeshLambertMaterial({
+    color: 0xffdf9a,
+    emissive: 0xffb85a,
+    emissiveIntensity: 0.65,
+  });
+
+  for (const x of [-2.35, 2.35]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 2.7, 7), woodMaterial);
+    post.position.set(x, 1.35, 0);
+    post.castShadow = true;
+    group.add(post);
+
+    const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), glowMaterial);
+    lantern.position.set(x, 2.25, 0.08);
+    group.add(lantern);
+  }
+
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.18, 0.2), woodMaterial);
+  beam.position.set(0, 2.62, 0);
+  beam.castShadow = true;
+  group.add(beam);
+
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(2.25, 0.55, 0.12), signMaterial);
+  sign.position.set(0, 2.18, 0.08);
+  sign.castShadow = true;
+  group.add(sign);
+
+  group.position.set(0, 0, VILLAGE.LIBRARY_Z + 7.2);
+  scene.add(group);
+}
+
+function buildLetterPathLanterns(scene: THREE.Scene): void {
+  const postMaterial = new THREE.MeshLambertMaterial({ color: 0x4e3a2b });
+  const paperMaterial = new THREE.MeshLambertMaterial({
+    color: 0xffe3b0,
+    emissive: 0xffb75f,
+    emissiveIntensity: 0.45,
+  });
+  const waxMaterial = new THREE.MeshLambertMaterial({ color: 0xb95e4a });
+  const spots: [number, number][] = [
+    [-2.8, VILLAGE.ENTRY_Z - 20],
+    [2.8, VILLAGE.ENTRY_Z - 23],
+    [-2.8, VILLAGE.CAMPFIRE_Z - 6],
+    [2.8, VILLAGE.CAMPFIRE_Z - 10],
+    [-2.8, VILLAGE.LIBRARY_Z + 14],
+    [2.8, VILLAGE.LIBRARY_Z + 11],
+  ];
+
+  for (const [x, z] of spots) {
+    const group = tagDecor(new THREE.Group(), 'letter-path-lantern');
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 1.1, 6), postMaterial);
+    post.position.set(0, 0.55, 0);
+    post.castShadow = true;
+    group.add(post);
+
+    const note = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.28, 0.035), paperMaterial);
+    note.position.set(0, 1.16, 0);
+    note.rotation.z = 0.08;
+    group.add(note);
+
+    const seal = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), waxMaterial);
+    seal.position.set(0.1, 1.1, 0.025);
+    group.add(seal);
+
+    group.position.set(x, 0, z);
+    group.rotation.y = x < 0 ? 0.22 : -0.22;
+    scene.add(group);
+  }
+}
+
+function buildLibraryFlowerBoxes(scene: THREE.Scene): void {
+  const boxMaterial = new THREE.MeshLambertMaterial({ color: 0x7a5636 });
+  const leafMaterial = new THREE.MeshLambertMaterial({ color: 0x5f8b4a });
+  const petalMaterials = [
+    new THREE.MeshLambertMaterial({ color: 0xf2a0b5 }),
+    new THREE.MeshLambertMaterial({ color: 0xf5d76e }),
+    new THREE.MeshLambertMaterial({ color: 0xc9a0dc }),
+  ];
+
+  for (const x of [-3.9, 3.9]) {
+    const group = tagDecor(new THREE.Group(), 'library-flower-box');
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.32, 0.38), boxMaterial);
+    box.position.set(0, 0.22, 0);
+    box.castShadow = true;
+    group.add(box);
+
+    for (let i = 0; i < 5; i += 1) {
+      const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 7, 5), leafMaterial);
+      leaf.position.set(-0.55 + i * 0.27, 0.48, 0);
+      leaf.scale.set(1.2, 0.7, 0.8);
+      group.add(leaf);
+
+      const petal = new THREE.Mesh(
+        new THREE.SphereGeometry(0.08, 7, 5),
+        petalMaterials[i % petalMaterials.length],
+      );
+      petal.position.set(-0.55 + i * 0.27, 0.64, 0.02);
+      group.add(petal);
+    }
+
+    group.position.set(x, 0, VILLAGE.LIBRARY_Z + 3.9);
+    scene.add(group);
+  }
+}
+
 /** 마을 안쪽 나무 12그루 + 그루터기 4 — 넓어진 잔디가 비어 보이지 않게. */
 function buildInnerTrees(scene: THREE.Scene, rng: () => number): void {
   const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x5a3d2a });
@@ -513,6 +671,7 @@ export function buildVillageDecor(scene: THREE.Scene): VillageDecor {
   buildInnerTrees(scene, rng);
   buildCampfireHideout(scene);
   buildPathFence(scene);
+  buildFreeMockupSignatureProps(scene);
   const lanterns = buildLanterns(scene);
   const pond = buildPondDetail(scene, rng);
   const campfire = buildCampfireDetail(scene, rng);

@@ -2,7 +2,7 @@
 title: Outbox + Kafka 이벤트
 tags: [infra, outbox, kafka, idempotency, event]
 related: [infra/docker-local.md]
-last-verified: 2026-04-13
+last-verified: 2026-07-02
 ---
 
 # Outbox + Kafka 이벤트

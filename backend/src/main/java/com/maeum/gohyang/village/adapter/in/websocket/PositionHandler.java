@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
  * 게스트 포함 모든 인증된 유저가 전송 가능하다.
  * 위치는 비영속 — 메모리에만 존재하며 DB 저장하지 않는다.
  *
- * 좌표 검증은 NaN/Infinity 만 차단한다. 옛 Phaser 결로 박혀있던 [0, max] clamp 는
+ * 좌표 검증은 NaN/Infinity 만 차단한다. 이전 2D 좌표계에 맞춰진 [0, max] clamp 는
  * 트랙 village-3d 에서 Three.js 좌표계 (원점 중앙, 음수 허용) 로 옮기며 제거됨.
  * 마을 경계는 클라이언트 측 collision(`clampToCircle` 등) 결로 처리한다.
  */

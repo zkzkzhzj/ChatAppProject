@@ -12,11 +12,11 @@
 
 ## 0.5 Acceptance Criteria
 
-- [ ] 새 DB가 단일 baseline migration으로 생성된다.
-- [ ] 참조 없는 deprecated backend source가 제거된다.
-- [ ] Phaser/2D stale frontend 문서와 주석이 현재 Three.js 기준으로 정리된다.
-- [ ] stale active track과 obsolete working artifact가 정리된다.
-- [ ] backend/frontend/docs 검증이 통과한다.
+- [x] 새 DB가 단일 baseline migration으로 생성된다.
+- [x] 참조 없는 deprecated backend source가 제거된다.
+- [x] Phaser/2D stale frontend 문서와 주석이 현재 Three.js 기준으로 정리된다.
+- [x] stale active track과 obsolete working artifact가 정리된다.
+- [x] backend/frontend/docs 검증이 통과한다.
 
 ## 1. 배경 / 왜
 
@@ -27,16 +27,27 @@
 
 | Step | 내용 | 의존 | 상태 | 이슈 | Commit |
 |------|------|------|------|------|--------|
-| 1 | track/spec 시작 | — | 진행 중 | none | 실행 후 기입 |
-| 2 | DB baseline reset | step1 | 대기 | none | 실행 후 기입 |
-| 3 | backend deprecated 정리 | step2 | 대기 | none | 실행 후 기입 |
-| 4 | frontend stale 정리 | step3 | 대기 | none | 실행 후 기입 |
-| 5 | docs stale 정리 | step4 | 대기 | none | 실행 후 기입 |
-| 6 | 최종 검증 | step5 | 대기 | none | 실행 후 기입 |
+| 1 | track/spec 시작 | — | 완료 | none | `9a70de9` |
+| 2 | DB baseline reset | step1 | 완료 | none | `2ad6516` |
+| 3 | backend deprecated 정리 | step2 | 완료 | none | `fd9a08b`, `5268857` |
+| 4 | frontend stale 정리 | step3 | 완료 | none | `ab21d03`, `2af9951` |
+| 5 | docs stale 정리 | step4 | 완료 | none | `f13140e`, `9deb16e` |
+| 6 | 최종 검증 | step5 | 완료 | none | 검증 커밋 |
 
 ## 3. 현재 단계 상세
 
-Step 1 진행 중. 승인된 설계 문서는 `docs/superpowers/specs/2026-07-02-baseline-reset-cleanup-design.md`.
+Step 6 완료. 단일 baseline migration, deprecated backend source 제거, frontend stale 문구 정리, obsolete working artifact 정리를 마쳤다.
+
+검증 결과:
+
+- `docker compose -f deploy\docker-compose.yml down -v`
+- `docker compose -f deploy\docker-compose.yml up -d postgres redis kafka cassandra cassandra-init`
+- backend `.\gradlew.bat --no-daemon check`
+- backend `.\gradlew.bat --no-daemon bootRun` 후 compose PostgreSQL `flyway_schema_history`에서 `V1__initial_schema.sql` success `true` 확인
+- frontend `npx.cmd tsc --noEmit`
+- frontend `npm.cmd run lint`
+- frontend `npm.cmd run test:run` 완료: 27 files, 187 tests
+- stale/deprecated scan 완료: 활성 소스에는 삭제 대상 표현이 남지 않았고, 남은 언급은 설계/학습/이력 문서 맥락이다.
 
 ## 4. 충돌 위험 파일
 
@@ -53,6 +64,7 @@ Step 1 진행 중. 승인된 설계 문서는 `docs/superpowers/specs/2026-07-02
 
 - 기존 DB 데이터 보존은 범위 밖이다.
 - `main`이 다른 worktree에서 사용 중이면 현재 `cleanup/baseline-reset` 브랜치에서 계속 진행한다.
+- 로컬 DB를 재사용하다 Flyway 이력 충돌이 나면 `docs/wiki/infra/docker-local.md`의 volume reset 절차를 따른다.
 
 ## 6. 보류 메모
 

@@ -70,20 +70,32 @@ last-updated: 2026-07-02
 
 | Step | 내용 | 의존 | 예상 변경 영역 | 이슈 | Commit |
 |------|------|------|---------------|------|--------|
-| 1 | track/spec 시작 | — | docs/specs, docs/handover | none | 작업 시 |
-| 2 | DB baseline reset | step1 | backend/src/main/resources/db/migration | none | 작업 시 |
-| 3 | backend deprecated 정리 | step2 | backend/src/main/java, docs/wiki/infra | none | 작업 시 |
-| 4 | frontend stale 정리 | step3 | frontend/src, docs/wiki/frontend | none | 작업 시 |
-| 5 | docs stale 정리 | step4 | docs/handover, docs/reviews, docs/superpowers | none | 작업 시 |
-| 6 | 최종 검증 | step5 | docs/handover, verification | none | 작업 시 |
+| 1 | track/spec 시작 | — | docs/specs, docs/handover | none | `9a70de9` |
+| 2 | DB baseline reset | step1 | backend/src/main/resources/db/migration | none | `2ad6516` |
+| 3 | backend deprecated 정리 | step2 | backend/src/main/java, docs/wiki/infra | none | `fd9a08b`, `5268857` |
+| 4 | frontend stale 정리 | step3 | frontend/src, docs/wiki/frontend | none | `ab21d03`, `2af9951` |
+| 5 | docs stale 정리 | step4 | docs/handover, docs/reviews, docs/superpowers | none | `f13140e`, `9deb16e` |
+| 6 | 최종 검증 | step5 | docs/handover, verification | none | 검증 커밋 |
 
 ## 6. Verification
 
-- [ ] 빈 DB에서 baseline migration 적용 확인
-- [ ] `./gradlew.bat --no-daemon check` 통과
-- [ ] `npx tsc --noEmit` 통과
-- [ ] `npm.cmd run lint` 통과
-- [ ] stale/deprecated scan 결과가 의도한 역사 문서에만 남음
+- [x] 빈 DB에서 baseline migration 적용 확인
+- [x] `./gradlew.bat --no-daemon check` 통과
+- [x] `npx tsc --noEmit` 통과
+- [x] `npm.cmd run lint` 통과
+- [x] stale/deprecated scan 결과가 의도한 역사 문서에만 남음
+
+검증 기록:
+
+- `docker compose -f deploy\docker-compose.yml down -v` 후 `up -d postgres redis kafka cassandra cassandra-init` 통과
+- backend `.\gradlew.bat --no-daemon check` 통과
+- backend `.\gradlew.bat --no-daemon bootRun`으로 compose PostgreSQL에 Flyway 적용 확인
+- PostgreSQL `flyway_schema_history`: `V1__initial_schema.sql`, success `true`
+- PostgreSQL public table: `users`, `user_local_auth`, `chat_room`, `participant`, `confession_letter`, `suggestion`, `outbox_event`, `processed_event`, `idempotency_request` 등 20개 확인
+- frontend `npx.cmd tsc --noEmit` 통과
+- frontend `npm.cmd run lint` 통과
+- frontend `npm.cmd run test:run` 통과: 27 files, 187 tests
+- stale/deprecated scan 통과: 활성 소스에는 삭제 대상 표현이 남지 않았고, 남은 언급은 설계/학습/이력 문서 맥락이다.
 
 ## 7. References
 
@@ -98,3 +110,4 @@ last-updated: 2026-07-02
 | 날짜 | 변경 |
 |------|------|
 | 2026-07-02 | 초안 작성 |
+| 2026-07-02 | 기준선 재설정 클린업 구현 및 검증 완료 |

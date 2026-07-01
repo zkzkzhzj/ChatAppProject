@@ -13,6 +13,8 @@ last-updated: YYYY-MM-DD
 > 이 spec 은 트랙 `{track-id}` (Issue #{N}) 의 **요구사항 진실** 이다.
 > 진행 상태는 `docs/handover/track-{track-id}.md`, 결정의 사고 과정은 `docs/learning/`.
 > 4층 분리 모델: [conventions/spec-driven.md](../../conventions/spec-driven.md) §1.
+> 프로젝트 내부 spec/track/설계 문서는 **한국어로 작성**한다. 코드 식별자, 명령어,
+> 파일명, 라이브러리명, 외부 고유명사는 원문을 유지한다.
 >
 > **식별자 일치 의무 (CodeRabbit C7 리뷰 B8)**:
 >

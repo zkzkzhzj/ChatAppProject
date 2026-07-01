@@ -39,16 +39,4 @@ public class IdempotencyGuard {
     public void release(UUID key) {
         repository.deleteByEventId(key);
     }
-
-    /** @deprecated tryAcquire()로 대체. 기존 코드 마이그레이션 후 삭제 예정. */
-    @Deprecated
-    public boolean isAlreadyProcessed(UUID key) {
-        return repository.existsByEventId(key);
-    }
-
-    /** @deprecated tryAcquire()로 대체. 기존 코드 마이그레이션 후 삭제 예정. */
-    @Deprecated
-    public void markAsProcessed(UUID key) {
-        repository.save(ProcessedEventJpaEntity.of(key));
-    }
 }

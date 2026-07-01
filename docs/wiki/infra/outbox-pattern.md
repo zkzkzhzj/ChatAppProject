@@ -44,7 +44,7 @@ release(eventId)     → void      // 처리 실패 시 마킹 해제 → Kafka 
 두 메서드 모두 `@Transactional(propagation = REQUIRES_NEW)`로 호출자 트랜잭션과 독립 동작한다.
 모든 Kafka 컨슈머는 이 컴포넌트를 사용한다.
 
-> `isAlreadyProcessed()`, `markAsProcessed()`는 `@Deprecated` — 기존 코드 호환용이며 향후 삭제 예정.
+> 현재 표준은 `tryAcquire()`로 이벤트 처리 권한을 선점하고, 처리 실패 시 `release()`로 선점 표시를 해제하는 방식이다.
 
 ## 현재 등록된 이벤트
 

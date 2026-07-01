@@ -7,7 +7,7 @@
 > 시작일: 2026-06-06
 > Issue: #127
 > 브랜치: `chore/realtime-infra-reset-design` 이후 Step별 브랜치 분기
-> Spec: [docs/superpowers/specs/2026-06-06-realtime-infra-reset-design.md](../superpowers/specs/2026-06-06-realtime-infra-reset-design.md)
+> Spec: [WebSocket 운영 명세](../specs/websocket.md) / [Raw WebSocket V2 Draft](../specs/websocket-raw-v2-draft.md)
 
 ---
 
@@ -36,9 +36,11 @@
 
 관련 문서:
 
-- [Realtime Infra Reset Design](../superpowers/specs/2026-06-06-realtime-infra-reset-design.md)
+- [ADR-010: STOMP 유지와 raw WebSocket 전환 조건](../architecture/decisions/010-realtime-stomp-retention-and-raw-ws-cutover.md)
+- [Learning 87: STOMP 유지 + raw WS 컷오버 조건](../learning/87-stomp-retention-raw-ws-cutover-conditions.md)
 - ws-redis 기존 트랙 결정 이력 (learning/ADR/spec에 보존)
 - [WebSocket 운영 명세](../specs/websocket.md)
+- [Raw WebSocket V2 Draft](../specs/websocket-raw-v2-draft.md)
 
 ---
 

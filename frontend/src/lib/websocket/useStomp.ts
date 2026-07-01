@@ -60,7 +60,7 @@ export function useStomp(): void {
         return;
       }
 
-      // 자기인식 동기화 — 토큰이 결정된 시점에 displayId 를 Phaser 측에 전달
+      // 자기인식 동기화 — 토큰이 결정된 시점에 displayId 를 Three.js scene 계층에 전달
       emitDisplayIdChange(getDisplayIdFromToken(token));
 
       console.log('[useStomp] Connecting to STOMP server');

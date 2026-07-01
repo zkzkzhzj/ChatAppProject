@@ -94,7 +94,7 @@ last-updated: 2026-06-23
 
 ## 7. References
 
-- 트랙 파일: [track-harden-village-ops.md](../../handover/track-harden-village-ops.md)
+- 트랙 파일: baseline reset cleanup에서 삭제, 결정 이력은 이 spec에 보존
 - 1차 출처: PR #91 `full-review-agent` 결과 (운영 리스크 Top 5 의 R1·R2·R3)
 - 관련 코드:
   - 제거된 과거 Village 초기화 consumer

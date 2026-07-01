@@ -10,7 +10,7 @@ last-updated: 2026-05-20
 # 음량 조절 (0=음소거 통합) + 모바일 위치 기반 환경음 fix
 
 > 이 spec 은 트랙 `village-3d-audio-improvements` (Issue #105) 의 **요구사항 진실** 이다.
-> 진행 상태는 `docs/handover/track-village-3d-audio-improvements.md`, 결정의 사고 과정은 `docs/learning/84-*.md`·`docs/learning/85-*.md` (예약).
+> 진행 이력은 이 spec에 보존한다. 결정의 사고 과정은 `docs/learning/84-*.md`·`docs/learning/85-*.md` (예약).
 
 ---
 
@@ -146,7 +146,7 @@ last-updated: 2026-05-20
 
 ## 7. References
 
-- 트랙 파일: [track-village-3d-audio-improvements.md](../../handover/track-village-3d-audio-improvements.md)
+- 트랙 파일: baseline reset cleanup에서 삭제, 진행 이력은 이 spec에 보존
 - 관련 wiki: [frontend/asset-guide.md](../../wiki/frontend/asset-guide.md) (자산 호스팅 정책 — Web Audio fetch 흐름)
 - 관련 learning: [78 (Next.js + Three.js + Howler dev 메모리 진단)](../../learning/78-next-three-howler-dev-memory-diagnosis.md), [51 (R2 vs S3 + CloudFront + OAC)](../../learning/51-s3-vs-r2-cloudfront-oac-decision.md) (자산 fetch 경로)
 - 관련 ADR: [009 S3 자산 호스팅](../../architecture/decisions/009-s3-asset-hosting.md) (Web Audio fetch 시 CloudFront 경유)

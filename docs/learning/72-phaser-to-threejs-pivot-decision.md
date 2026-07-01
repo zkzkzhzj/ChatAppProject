@@ -175,7 +175,7 @@ D6 4축 코드 결이 진짜 차별점.
 - learning [69 — 에셋 모델 큐레이션 vs AI](./69-asset-model-curated-vs-ai-generation.md)
 - learning [70 — 마을 톤·미감 결정](./70-village-mood-aesthetic-decision.md)
 - learning [71 — 디자인 톤 자기 인터뷰 (§2 도피 패턴)](./71-design-tone-from-self-interview.md)
-- track docs [track-village-design-mvp.md](../handover/track-village-design-mvp.md) (✅ 종료)
+- village-design-mvp 트랙 결정 이력 (✅ 종료, spec/learning에 보존)
 - 메모리 `feedback_essence_first_when_stuck.md` · `marpple_coffee_chat_insights.md`
 - 외부 자료:
   - Three.js 공식 [threejs.org](https://threejs.org)

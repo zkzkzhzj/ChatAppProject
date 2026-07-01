@@ -1,6 +1,6 @@
 /**
  * 키보드 입력 — WASD 이동 + Space 점프.
- * Phaser·HTML 포커스 충돌 (learning 26) 은 캔버스 click 시 활성화로 처리.
+ * Scene canvas·HTML 포커스 충돌은 캔버스 click 시 활성화로 처리.
  *
  * window blur · document visibilitychange 시 누른 키 전부 release —
  * 다른 창 / 바탕화면 클릭 / 탭 전환 후 keyup 누락으로 캐릭터가 계속 이동하는

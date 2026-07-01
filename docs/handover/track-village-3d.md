@@ -40,7 +40,7 @@
 - learning [72](../learning/72-phaser-to-threejs-pivot-decision.md) — 본 트랙 정정 사유
 - learning [71](../learning/71-design-tone-from-self-interview.md) — 본심 워크샵 (도피 패턴 §2)
 - 옛 spec [village-design-mvp.md](../specs/features/village-design-mvp.md) (closed-superseded)
-- 옛 track [track-village-design-mvp.md](./track-village-design-mvp.md) (✅ 종료)
+- 옛 village-design-mvp 트랙 (✅ 종료, 결정 이력은 spec/learning에 보존)
 
 ## 2. 전체 로드맵 (1 step = 1 PR — git.md §4)
 

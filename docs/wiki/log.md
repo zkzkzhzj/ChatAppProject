@@ -4,6 +4,12 @@
 
 ---
 
+## [2026-07-02] update | 현재 Wiki의 Phaser 참조 정리
+
+- `frontend/phaser-setup.md`를 현재 구조 문서가 아닌 과거 Phaser 2D 프로토타입 기록으로 축소했다.
+- `frontend/websocket-client.md`, `INDEX.md`에서 현재 WebSocket/프론트엔드 구조를 Three.js scene 기준으로 갱신했다.
+- 현재 프론트엔드 작업 라우팅에서 Phaser Wiki를 활성 구조 문서로 보지 않도록 정리했다.
+
 ## [2026-06-23] update | 개인화/Economy 제거 후 Wiki 현재형 정리
 
 - issue #151 기준으로 저장형 개인 공간, 캐릭터 장비, 꾸미기, 포인트/아이템 Economy는 현재 제품 범위에서 제거됨.

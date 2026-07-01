@@ -45,7 +45,7 @@
 
 | 문서 | 경로 | 내용 |
 |------|------|------|
-| Phaser + Next.js | `/docs/wiki/frontend/phaser-setup.md` | Phaser 설정, Next.js 통합, 현재 구조 |
+| Three.js frontend scene | `/docs/wiki/frontend/asset-guide.md`, `/docs/wiki/frontend/websocket-client.md` | Three.js scene 자산, WebSocket-scene 연동, 현재 프론트엔드 구조 |
 | 에셋 가이드 | `/docs/wiki/frontend/asset-guide.md` | 에셋 소스, 규격, Tiled 워크플로우, 스타일 방향 |
 | WebSocket 클라이언트 | `/docs/wiki/frontend/websocket-client.md` | STOMP 연결, 메시지 송수신 |
 

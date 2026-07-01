@@ -5,7 +5,7 @@ import type { PositionBroadcast } from '@/lib/websocket/realtimeTypes';
  * 멀티유저 위치 송신·필터 (Step 1.5).
  *
  * - 송신: Character 이동 시 throttle + 위치 변화 임계값 통과해야 sender 호출.
- *   Three.js ground 평면의 z 를 백엔드 contract y 에 매핑한다 (옛 Phaser 2D 호환).
+ *   Three.js ground 평면의 z 를 백엔드 contract y 에 매핑한다.
  * - heartbeat: 변화 없어도 HEARTBEAT_MS 마다 1회 송신. backend 가 새 connection
  *   에 idle user snapshot 결 안 보내므로 (변화 시점에만 broadcast), idle user 결
  *   새로 join 한 사람한테 안 보이는 한계를 client heartbeat 결로 가린다.

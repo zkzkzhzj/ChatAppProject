@@ -1,2 +1,0 @@
--- Deprecated no-op migration.
--- Generated chat embeddings are no longer used.

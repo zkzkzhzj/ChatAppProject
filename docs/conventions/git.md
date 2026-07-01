@@ -4,19 +4,21 @@
 
 ## 1. 브랜치 전략
 
+현재 원격 저장소는 `main` 단일 기본 브랜치로 운영한다. `develop` 브랜치를 실제로 만들기 전까지
+모든 작업 브랜치는 `main`에서 분기하고 PR도 `main`을 대상으로 연다.
+
 ```text
-main              ← 배포 가능한 상태만
-└── develop       ← 개발 통합 브랜치
-    ├── feat/xxx  ← 기능 개발
-    ├── fix/xxx   ← 버그 수정
-    ├── refactor/xxx ← 리팩토링
-    ├── infra/xxx ← 인프라/CI/DX 설정
-    ├── chore/xxx ← 기타 잡무
-    └── docs/xxx  ← 문서 작업
+main                  ← 배포 가능한 상태, 현재 기본 통합 브랜치
+├── feat/xxx          ← 기능 개발
+├── fix/xxx           ← 버그 수정
+├── refactor/xxx      ← 리팩토링
+├── infra/xxx         ← 인프라/CI/DX 설정
+├── chore/xxx         ← 기타 잡무
+└── docs/xxx          ← 문서 작업
 ```
 
 - `main`: 항상 배포 가능한 상태. 직접 커밋 금지.
-- `develop`: 기능 통합. feat/fix/refactor/docs 브랜치가 여기로 머지.
+- `develop`: 현재 사용하지 않는다. 도입하려면 원격 브랜치를 만든 뒤 이 문서와 CI/PR base 규칙을 함께 갱신한다.
 - `feat/기능명`: 새 기능 개발. 예: `feat/purchase-item`, `feat/chat-room`
 - `fix/이슈명`: 버그 수정. 예: `fix/point-deduction-race-condition`
 - `refactor/대상`: 리팩토링. 예: `refactor/wallet-port-simplify`
@@ -124,13 +126,19 @@ fix: 아이템 구매 시 멱등성 키 미검증 수정
 - **1 작업 = 1 커밋.** spec/track의 step은 PR 단위가 아니라 커밋 가능한 작업 단위다.
   한 PR 안에 여러 step 커밋이 들어갈 수 있다.
 - PR이 너무 커질 때는 티켓을 먼저 쪼갠다. 이미 시작한 티켓을 임의로 여러 PR로 나누지 않는다.
+- PR 제목은 커밋 메시지와 같은 형식의 `type: 간결한 설명`을 사용한다.
+  - 허용 타입: `feat`, `fix`, `refactor`, `infra`, `test`, `docs`, `chore`
+  - 한글 설명을 허용한다.
+  - 도구 기본 prefix인 `[codex]`, `[Claude]`, `WIP:`는 쓰지 않는다. Draft 상태는 GitHub PR 상태로 표시한다.
 - PR 설명에 "무엇을, 왜" 변경했는지 적는다. 트랙 spec 링크 의무 (`docs/specs/features/{feature}.md`).
 - PR 본문에는 연결 이슈를 닫는 closing keyword를 반드시 넣는다.
   - 기본 형식: `Closes #N`
   - 같은 PR이 여러 이슈를 닫을 때만 `Closes #N, Closes #M`처럼 모두 명시한다.
   - GitHub 자동 종료는 기본 브랜치(`main`)에 머지될 때 동작하므로, 브랜치명이나 커밋 메시지에만 이슈 번호를 쓰는 것으로 대체하지 않는다.
+  - 이슈가 없는 정리 작업은 `Issue: none`을 명시한다.
 - 테스트가 포함되어야 머지 가능하다.
 - CI(GitHub Actions)가 통과해야 머지 가능하다.
+- PR 생성/수정 전 `docs/harness/skills/pr-preflight.md`를 실행한다.
 
 ### PR 설명 예시
 
@@ -139,6 +147,14 @@ fix: 아이템 구매 시 멱등성 키 미검증 수정
 
 - 마을 입장 시 게스트 토큰 발급 경로 정리
 - 토큰 발급 실패 응답 매핑 추가
+
+## 왜
+
+- 게스트 입장 실패 시 원인을 추적하기 어렵고 사용자 응답이 불안정했다.
+
+## Spec
+
+- `docs/specs/features/guest-token.md`
 
 ## 검증
 

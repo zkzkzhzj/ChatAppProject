@@ -22,10 +22,11 @@ version: 1.0.0
 1. 변경 파일과 의도하지 않은 변경을 확인한다.
 2. 관련 테스트, lint, docs consistency를 실행한다.
 3. 위험도에 맞는 Critic Gates를 통과한다.
-4. PR 설명에 summary, verification, risk를 적는다.
-5. 사용자가 요청한 경우 PR을 생성하거나 갱신한다.
-6. merge 요청이면 리뷰와 CI 상태를 확인한 뒤 진행한다.
-7. 완료 후 worktree, 브랜치, handover 상태를 정리한다.
+4. PR을 만들거나 갱신할 경우 `docs/harness/skills/pr-preflight.md`를 먼저 실행한다.
+5. PR 설명에 변경 사항, 왜, 영향 또는 남은 리스크, Spec, 검증을 적는다.
+6. 사용자가 요청한 경우 PR을 생성하거나 갱신한다.
+7. merge 요청이면 리뷰와 CI 상태를 확인한 뒤 진행한다.
+8. 완료 후 worktree, 브랜치, handover 상태를 정리한다.
 
 ## 선택지
 

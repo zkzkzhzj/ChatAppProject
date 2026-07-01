@@ -34,7 +34,7 @@
 
 - 헥사고날을 "그냥 인터페이스로 인프라 분리하는 패턴" 으로 받아들이면 outbound port 의 정의가 흐려진다. **outbound port 는 "도메인이 인프라에게 무엇을 원하는가" 의 표현** 이지, "어댑터끼리 통신용 인터페이스" 가 아니다.
 - 한 번 잘못 끌어올리면 어댑터끼리의 협업이 "도메인 → port → 어댑터" 처럼 위장되어, ArchUnit 으로도 잡히지 않는 의존 방향 위반이 생긴다 ([ADR-008](../architecture/decisions/008-ci-dx-tool-stack.md) 의 ArchUnit 규칙은 패키지 의존만 본다).
-- ws-redis 트랙의 [§4 "건드리지 않는 것"](../handover/track-ws-redis.md) 룰 — V1 STOMP 코드 손대지 않기 — 와 빈 충돌 회피까지 같이 풀어야 한다.
+- ws-redis 트랙의 "건드리지 않는 것" 룰 — V1 STOMP 코드 손대지 않기 — 와 빈 충돌 회피까지 같이 풀어야 한다.
 
 ---
 

@@ -27,6 +27,15 @@ docker-compose down           # 종료 (볼륨 유지)
 docker-compose down -v        # 종료 + 볼륨 삭제 (데이터 초기화)
 ```
 
+### DB 기준선 재설정 후 로컬 볼륨 삭제
+
+`baseline-reset-cleanup` 이후 migration은 빈 개발 DB 기준이다. 기존 로컬 데이터와 `flyway_schema_history`는 보존 대상이 아니므로, 예전 volume을 쓰지 않는다.
+
+```powershell
+docker compose -f deploy/docker-compose.yml down -v
+docker compose -f deploy/docker-compose.yml up -d postgres
+```
+
 ## 포트 충돌 해결
 
 `.env` 파일로 오버라이드:

@@ -37,7 +37,7 @@
 관련 문서:
 
 - [Realtime Infra Reset Design](../superpowers/specs/2026-06-06-realtime-infra-reset-design.md)
-- [ws-redis 기존 트랙](./track-ws-redis.md)
+- ws-redis 기존 트랙 결정 이력 (learning/ADR/spec에 보존)
 - [WebSocket 운영 명세](../specs/websocket.md)
 
 ---

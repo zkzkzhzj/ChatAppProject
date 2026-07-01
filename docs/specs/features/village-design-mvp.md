@@ -20,7 +20,7 @@ successor: docs/specs/features/village-3d.md
 > ---
 >
 > 이 spec 은 트랙 `village-design-mvp` (Issue #56) 의 **요구사항 진실** 이다.
-> 진행 상태는 [`docs/handover/track-village-design-mvp.md`](../../handover/track-village-design-mvp.md), 결정의 사고 과정은 [`docs/learning/69`](../../learning/69-asset-model-curated-vs-ai-generation.md) · [`70`](../../learning/70-village-mood-aesthetic-decision.md) · [`71`](../../learning/71-design-tone-from-self-interview.md) · [`72`](../../learning/72-phaser-to-threejs-pivot-decision.md).
+> 진행 이력은 이 spec과 learning 노트에 보존한다. 결정의 사고 과정은 [`docs/learning/69`](../../learning/69-asset-model-curated-vs-ai-generation.md) · [`70`](../../learning/70-village-mood-aesthetic-decision.md) · [`71`](../../learning/71-design-tone-from-self-interview.md) · [`72`](../../learning/72-phaser-to-threejs-pivot-decision.md).
 > 4층 분리 모델: [conventions/spec-driven.md](../../conventions/spec-driven.md) §1.
 
 ---
@@ -219,7 +219,7 @@ successor: docs/specs/features/village-3d.md
 
 ## 7. References
 
-- 트랙 파일: [track-village-design-mvp.md](../../handover/track-village-design-mvp.md)
+- 트랙 파일: baseline reset cleanup에서 삭제, 결정 이력은 이 spec과 learning 노트에 보존
 - 관련 wiki: (필요 시 트랙 종료 시 추가)
 - 관련 learning:
   - [69 — 에셋 모델 큐레이션 vs AI 생성 vs 하이브리드](../../learning/69-asset-model-curated-vs-ai-generation.md)

@@ -2,7 +2,7 @@
 
 > 작성 시점: 2026-04-26
 > 문서 유형: **결정 기록 (Decision Log)**. 단일 트레이드오프 비교가 아니라, 한 세션에서 연쇄적으로 합의된 6개 결정의 묶음.
-> 관련: [21. 마을 공개 채팅 아키텍처](./21-village-public-chat-architecture.md) · [44. STOMP 외부 broker 선택](./44-spring-stomp-external-broker-choice.md) · [45. Raw WebSocket + Redis Pub/Sub 재설계 설계서](./45-websocket-redis-pubsub-redesign.md) · [track-ws-redis](../handover/track-ws-redis.md) · CLAUDE.md §4 Critical Rule #7
+> 관련: [21. 마을 공개 채팅 아키텍처](./21-village-public-chat-architecture.md) · [44. STOMP 외부 broker 선택](./44-spring-stomp-external-broker-choice.md) · [45. Raw WebSocket + Redis Pub/Sub 재설계 설계서](./45-websocket-redis-pubsub-redesign.md) · ws-redis 트랙 결정 이력 · CLAUDE.md §4 Critical Rule #7
 
 ---
 
@@ -458,7 +458,7 @@ ZEP 에선 통하는 이유:
 - [21. 마을 공개 채팅 아키텍처](./21-village-public-chat-architecture.md) — 마을 1개 + 단일 채팅방의 도메인 가정
 - [44. STOMP 외부 broker 선택](./44-spring-stomp-external-broker-choice.md) — RabbitMQ 도 가능했던 이유
 - [45. Raw WebSocket + Redis Pub/Sub 재설계 설계서](./45-websocket-redis-pubsub-redesign.md) — 결정 2 (서버 분리) 의 구체 설계
-- [track-ws-redis](../handover/track-ws-redis.md) — 이 노트의 인프라 결정이 이어지는 트랙
+- ws-redis 트랙 결정 이력 — 이 노트의 인프라 결정이 이어진 과거 트랙
 - [knowledge/realtime/chat.md](../knowledge/realtime/chat.md) — 빅테크 실시간 채팅 사례 모음
 
 ### 마을 다중화 패턴 (결정 1·5·6)

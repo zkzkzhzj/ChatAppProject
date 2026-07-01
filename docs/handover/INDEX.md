@@ -38,7 +38,7 @@
 
 > 완료된 트랙의 `track-*.md`는 학습노트로 결정 이력이 충분히 옮겨졌고 후속 트랙이 더 이상 참조하지 않을 때 삭제한다. 후속 의제로 살아있는 트랙 (예: `realtime-infra-reset`, `token-auto-renewal` 재개) 은 종료 표시 후 보존한다. 메인 `handover.md` §2 "전체 완료 요약" 표에는 머지 시점 한 줄 등록 (보존 여부와 무관).
 >
-> **현재 잔존 트랙 파일** (2026-06-11 시점): `track-realtime-infra-reset.md` (✅ 종료 — ADR-010 잔여 리스크가 후속 트랙 의제로 살아있어 보존) · `track-ws-redis.md` (Step 3~7 폐기 후 과거 결정 이력으로 보존) · `track-token-auto-renewal.md` (재개 대기) · `track-village-3d.md` · `track-village-design-mvp.md` · `track-harness-spec-driven.md` · `track-infra-tls-hardening.md` · `track-ghost-session.md` — 후속 트랙 의제 정리되면 일괄 삭제 (별도 트랙).
+> 종료된 트랙 파일은 learning/ADR/spec에 결정 이력이 옮겨지고 후속 의제로 살아있지 않으면 삭제한다. 후속 작업의 직접 입력인 `track-token-auto-renewal.md` 같은 파일만 보존한다.
 
 ---
 

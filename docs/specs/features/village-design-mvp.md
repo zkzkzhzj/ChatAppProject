@@ -225,6 +225,7 @@ successor: docs/specs/features/village-3d.md
   - [69 — 에셋 모델 큐레이션 vs AI 생성 vs 하이브리드](../../learning/69-asset-model-curated-vs-ai-generation.md)
   - [70 — 마을 차별점 + 에셋 톤 결정](../../learning/70-village-mood-aesthetic-decision.md)
   - [71 — 본심에서 디자인 길어내기 워크샵](../../learning/71-design-tone-from-self-interview.md)
+  - [72 — Phaser 2D → Three.js 3D 전환 결정](../../learning/72-phaser-to-threejs-pivot-decision.md)
 - 외부 자료 (자산 큐레이션):
   - [LimeZu — Modern Interiors](https://limezu.itch.io/modernfurniture)
   - [Cup Nooble — Sprout Lands](https://cupnooble.itch.io/sprout-lands-asset-pack)

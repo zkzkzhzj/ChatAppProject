@@ -48,6 +48,9 @@ version: 2.0.0
 git/PR 정책은 `docs/conventions/git.md`를 따른다 — **1 티켓 = 1 PR, 1 작업 = 1 커밋**
 (step은 PR 단위가 아니라 커밋 단위, `spec-driven.md` §2.2). 트랙 종료 시
 `docs/handover/INDEX.md` 활성 표와 트랙 파일 상태를 같은 PR에서 갱신한다.
+사용자가 "PR", "push", "머지", "마무리"를 요청하면 PR 생성/수정 전에 반드시
+`docs/harness/skills/pr-preflight.md`를 적용한다. 외부 도구나 스킬의 기본 PR 제목/본문
+규칙보다 이 프로젝트의 `docs/conventions/git.md`와 `pr-preflight.md`가 우선한다.
 
 ---
 

@@ -4,11 +4,10 @@ type PositionListener = (pos: PositionBroadcast) => void;
 type TypingListener = (data: TypingBroadcast) => void;
 
 /**
- * STOMP ↔ Phaser 위치 데이터 브릿지.
+ * WebSocket 위치 데이터 브릿지.
  *
- * React(useStomp)가 STOMP에서 수신한 위치 데이터를 Phaser(VillageScene)에 전달한다.
- * Phaser는 React 컴포넌트가 아니므로 Zustand 대신 콜백 기반 브릿지를 사용한다.
- * Set 기반으로 다중 리스너를 지원하여 React StrictMode 재마운트에도 안전하다.
+ * React WebSocket 구독 계층이 수신한 위치 데이터를 Three.js SceneManager 계층에 전달한다.
+ * 렌더링 엔진과 React 컴포넌트 생명주기가 달라서 콜백 기반 브릿지를 사용한다.
  */
 const listeners = new Set<PositionListener>();
 
@@ -42,7 +41,7 @@ export function emitTypingUpdate(data: TypingBroadcast): void {
   }
 }
 
-// --- 내 타이핑 브릿지 (chat input focus → phaser) ---
+// --- 내 타이핑 브릿지 (chat input focus → scene input) ---
 
 const myTypingListeners = new Set<(typing: boolean) => void>();
 

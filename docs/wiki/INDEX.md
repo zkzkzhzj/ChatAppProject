@@ -48,7 +48,7 @@
 
 | 페이지 | 한 줄 요약 | tags |
 |--------|-----------|------|
-| [Phaser.js + Next.js 통합](frontend/phaser-setup.md) | Phaser 설정, Next.js 통합 구조 (⚠️ Phaser 2D 시점 — village-3d 머지 후 Three.js 전환, 갱신 필요) | `frontend, phaser, nextjs, stale` |
+| [Phaser.js + Next.js 통합 기록](frontend/phaser-setup.md) | 과거 Phaser 2D 프로토타입 기록. 현재 프론트엔드 구조는 Three.js scene 계층 기준 | `frontend, phaser, nextjs, deprecated, historical` |
 | [WebSocket 클라이언트](frontend/websocket-client.md) | STOMP 연결, 메시지 송수신, 인증 (ws-redis Step 3 이후 raw WS 전환 예정) | `frontend, websocket, stomp` |
 | [에셋 가이드](frontend/asset-guide.md) | Three.js 마을/도서관 런타임 자산, RemotePlayer placeholder, 환경음, 라이선스 기준 | `frontend, assets, threejs, village, library` |
 
@@ -106,7 +106,7 @@ last-verified: YYYY-MM-DD       # 마지막으로 코드와 일치 확인한 날
 ### 태그 규칙
 
 - 도메인: `identity`, `communication`, `village`, `infra`, `frontend`
-- 기술: `jwt`, `websocket`, `cassandra`, `kafka`, `phaser`, `stomp`
+- 기술: `jwt`, `websocket`, `cassandra`, `kafka`, `threejs`, `stomp`
 - 개념: `guest`, `outbox`, `idempotency`, `pixel-art`, `ai`, `deprecated`
 
 ---

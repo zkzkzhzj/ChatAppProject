@@ -1,7 +1,7 @@
 ---
 title: WebSocket 클라이언트
 tags: [frontend, websocket, stomp, sockjs, chat]
-related: [communication/chat-architecture.md, frontend/phaser-setup.md]
+related: [communication/chat-architecture.md]
 last-verified: 2026-06-08
 ---
 
@@ -100,14 +100,14 @@ interface PositionBroadcast {
 }
 ```
 
-### STOMP-Phaser 브릿지 (positionBridge.ts)
+### WebSocket-scene 브릿지 (positionBridge.ts)
 
-React(useStomp)가 STOMP에서 수신한 위치 데이터를 Phaser(VillageScene)에 전달하는 콜백 기반 브릿지.
-Phaser는 React 컴포넌트가 아니므로 Zustand 대신 콜백 패턴을 사용한다.
+React WebSocket 구독 계층은 `positionBridge.ts`를 통해 Three.js scene 계층에 위치 데이터를 전달한다.
+렌더링 계층은 React 컴포넌트가 아니므로 콜백 기반 브릿지를 사용한다.
 
 ```typescript
 // positionBridge.ts
-onPositionUpdate(callback: PositionListener): () => void  // Phaser에서 등록
+onPositionUpdate(callback: PositionListener): () => void  // scene 계층에서 등록
 emitPositionUpdate(pos: PositionBroadcast): void           // useStomp에서 호출
 ```
 

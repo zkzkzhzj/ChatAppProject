@@ -581,7 +581,7 @@ export class VillageScene {
 
   /**
    * STOMP 위치 broadcast 수신 시 호출. self filter 는 호출자(SceneManager) 책임.
-   * 백엔드 contract y → Three.js z 로 매핑한다 (옛 Phaser 2D 호환).
+   * 백엔드 contract y 값을 Three.js z 축으로 매핑한다.
    */
   applyRemotePosition(pos: PositionBroadcast): void {
     if (pos.userType === 'LEAVE') {

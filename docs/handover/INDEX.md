@@ -12,7 +12,7 @@
 
 | 트랙 ID | 파일 | 작업 영역 | 상태 | 이슈 | 시작일 |
 |---------|------|-----------|------|------|--------|
-| `village-visual-pass` | [track-village-visual-pass.md](./track-village-visual-pass.md) | 마을 비주얼 디자인 패스 (frontend/src/three) | 🟡 PR #144 리뷰 중 | — | 2026-06-12 |
+| `baseline-reset-cleanup` | [track-baseline-reset-cleanup.md](./track-baseline-reset-cleanup.md) | DB baseline reset + deprecated/stale source/docs cleanup | 🔧 진행 중 | — | 2026-07-02 |
 
 > 기존 `ws-redis` Step 3~7 이슈는 하네스 정비 전 계획이라 폐기했다. 후속 실시간 인프라 의제는 `realtime-infra-reset` 종료 시점의 잔여 리스크(ADR-010 STOMP 제거 조건)를 기준으로 새 트랙을 연다.
 
@@ -22,6 +22,7 @@
 
 | 트랙 ID | 결정 이력 (학습노트) | 종료일 | PR |
 |---------|---------------------|--------|----|
+| `village-visual-pass` | 마을/사서방 3D 비주얼·상호작용 정리, 방문자/건의 게시판 API 추가 | 2026-06-19 | [PR #144](https://github.com/zkzkzhzj/ChatAppProject/pull/144) |
 | `personalization-removal-librarian-rag` | [Issue #151](https://github.com/zkzkzhzj/ChatAppProject/issues/151) · [Spec](../specs/features/personalization-removal-librarian-rag.md) | 2026-06-23 | [PR #152](https://github.com/zkzkzhzj/ChatAppProject/pull/152) |
 | `realtime-infra-reset` | [87 (STOMP 유지 + raw WS 컷오버 조건 — ADR-010)](../learning/87-stomp-retention-raw-ws-cutover-conditions.md) · [ADR-010](../architecture/decisions/010-realtime-stomp-retention-and-raw-ws-cutover.md) | 2026-06-11 | #128 (audit·step 작업) + 후속 안정화 #132~#138 |
 | `s3-media` | [51 (R2 vs S3 + CloudFront + OAC 설계 결정)](../learning/51-s3-vs-r2-cloudfront-oac-decision.md) · [52 (frontend 자산 외부화 패턴 — NEXT_PUBLIC env + 무중단 마이그)](../learning/52-frontend-asset-externalization-pattern.md) | 2026-05-20 | #96 (Step 1) · #102 (Step 2) · #103 (Step 5) |
